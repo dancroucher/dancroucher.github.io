@@ -89,7 +89,7 @@ window.onload = function() {
 document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function(){
     mp4background.play();
-    start.innerHTML = "Click / tap anywhere to start";
+    start.innerHTML = "Click anywhere to start";
     backgroundAuto.style.display="none";
     }, 2000);
 }, false);
