@@ -80,7 +80,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 window.onload = function() {
     getYoutubes();
     getSoundcloud();    
-    playYoutubeVideo();
+    //playYoutubeVideo();
     getVideoBackgrounds();
     getGifBackgrounds(); 
 }
@@ -488,7 +488,7 @@ function UpdateBackgroundName (){
 
 function loadGenreType(){
     if (localStorage.getItem('playlist') == null){
-      genreIndex = 0;  
+      genreIndex = 1;  
     }
     else{
         let myPlaylist = localStorage.getItem('playlist');
