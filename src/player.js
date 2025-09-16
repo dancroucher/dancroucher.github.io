@@ -366,13 +366,13 @@ function infoSlide() {
 }
 
 function loadBackgroundType() {
-    if (localStorage.getItem('backtype') == null){
-      bgTypeIndex = 1;  
-    }
-    else{
-        let myBackType = localStorage.getItem('backtype');
-        bgTypeIndex = myBackType;
-    }
+    //if (localStorage.getItem('backtype') == null){
+      bgTypeIndex = 0;  
+    //}
+    // else{
+    //     let myBackType = localStorage.getItem('backtype');
+    //     bgTypeIndex = myBackType;
+    // }
     if (bgTypeIndex > backtypes.length-1) {
         bgTypeIndex = 0;
     };
