@@ -78,11 +78,11 @@ var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onload = function() {
-    clearData();
+    //clearData();
     //getYoutubes();
     getSoundcloud();    
     playYoutubeVideo();
-    //getVideoBackgrounds();
+    getVideoBackgrounds();
     //getGifBackgrounds(); 
 }
 
