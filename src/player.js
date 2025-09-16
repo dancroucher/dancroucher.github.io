@@ -79,7 +79,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onload = function() {
     //clearData();
-    //getYoutubes();
+    getYoutubes();
     getSoundcloud();    
     playYoutubeVideo();
     getVideoBackgrounds();
@@ -124,7 +124,7 @@ function getYoutubes() {
             //playPause(); // for some reason this hides the space to start
         }
     }
-    xmlhttp.open("GET", youtubeList_lofi, true);
+    xmlhttp.open("GET", youtubeList_synth, true);
     xmlhttp.send();
 }
 
