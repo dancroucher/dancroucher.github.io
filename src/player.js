@@ -41,12 +41,12 @@ var infoOpen = true;
 var cursor = true;
 var autoTypeName;
 var youtubeList_all = "assets/lists/all.txt";
-//var soundcloudList = "assets/lists/sc.txt";
-// var youtubeList_lofi = "assets/lists/lofi.txt";
-// var youtubeList_synth = "assets/lists/synthwave.txt";
-// var youtubeList_game = "assets/lists/game.txt";
-// var youtubeList_tdnb = "assets/lists/tdnb.txt";
-// var youtubeList_none = "assets/lists/none.txt";
+var soundcloudList = "assets/lists/sc.txt";
+var youtubeList_lofi = "assets/lists/lofi.txt";
+var youtubeList_synth = "assets/lists/synthwave.txt";
+var youtubeList_game = "assets/lists/game.txt";
+var youtubeList_tdnb = "assets/lists/tdnb.txt";
+var youtubeList_none = "assets/lists/none.txt";
 var fauxInput = document.createElement('textarea');
 var videoName;
 var mp4List = "assets/lists/videos_vid.txt";
@@ -79,7 +79,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onload = function() {
             
-   // getSoundcloud();    
+    getSoundcloud();    
     playYoutubeVideo();
     getVideoBackgrounds();
     getGifBackgrounds(); 
@@ -89,7 +89,7 @@ window.onload = function() {
 document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function(){
     mp4background.play();
-    start.innerHTML = "Click anywhere to start";
+    start.innerHTML = "Click / tap anywhere to start";
     backgroundAuto.style.display="none";
     }, 2000);
 }, false);
@@ -107,7 +107,6 @@ function getYoutubes() {
             var text = xmlhttp.responseText;
             // Now convert it into array using regex
             var textclean = text.replaceAll('https://www.youtube.com/watch?v=','');
-            //var textclean = text;
             //youtubes = textclean.split(/\n|\r/g);
             youtubes = textclean.split(", ");
             //youtubes = textclean.split('\n'); 
@@ -119,7 +118,6 @@ function getYoutubes() {
                 let myTrack = localStorage.getItem('track');
                 youtubeIndex = myTrack;
             }
-            // player.cuePlaylist(youtubes[youtubeIndex]);
             player.loadVideoById(youtubes[youtubeIndex]);
             UpdateTrackNumber();
             //playPause(); // for some reason this hides the space to start
@@ -129,39 +127,39 @@ function getYoutubes() {
     xmlhttp.send();
 }
 
-// function getSoundcloud() {
-//     var xmlhttp;
-//     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
-//         xmlhttp = new XMLHttpRequest();
-//     } else { // code for IE6, IE5
-//         xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-//     }
-//     xmlhttp.onreadystatechange = function() {
-//         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-//             var text = xmlhttp.responseText;
-//             //add url stuff
-//             var textclean = text.replaceAll('soundcloud.com','https://w.soundcloud.com/player/?url=https%3A//soundcloud.com');
-//             // Now convert it into array using regex
-//             var soundclouds = textclean.split(", ");
-//             soundcloudIndex = 1;
-//             //console.log(soundclouds);
-//             bgsc.src = soundclouds[soundcloudIndex];
-//             widget         = SC.Widget(iframeElement);
-//             if (localStorage.getItem('soundcloudtrack') == null){
-//                 currentSoundcloudTrack = 1;
-//             }
-//             else
-//             {
-//                 currentSoundcloudTrack = localStorage.getItem('soundcloudtrack');
+function getSoundcloud() {
+    var xmlhttp;
+    if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp = new XMLHttpRequest();
+    } else { // code for IE6, IE5
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            var text = xmlhttp.responseText;
+            //add url stuff
+            var textclean = text.replaceAll('soundcloud.com','https://w.soundcloud.com/player/?url=https%3A//soundcloud.com');
+            // Now convert it into array using regex
+            var soundclouds = textclean.split(", ");
+            soundcloudIndex = 1;
+            //console.log(soundclouds);
+            bgsc.src = soundclouds[soundcloudIndex];
+            widget         = SC.Widget(iframeElement);
+            if (localStorage.getItem('soundcloudtrack') == null){
+                currentSoundcloudTrack = 1;
+            }
+            else
+            {
+                currentSoundcloudTrack = localStorage.getItem('soundcloudtrack');
                 
-//             //console.log (currentSoundcloudTrack);
-//             }
-//             UpdateTrackNumber();
-//         }
-//     }
-//     xmlhttp.open("GET", soundcloudList, true);
-//     xmlhttp.send();
-// }
+            //console.log (currentSoundcloudTrack);
+            }
+            UpdateTrackNumber();
+        }
+    }
+    xmlhttp.open("GET", soundcloudList, true);
+    xmlhttp.send();
+}
 
 function skipSoundcloud(){
     widget.toggle();
@@ -326,8 +324,8 @@ function playPause() {
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
         // document.getElementById("info-container").style.display="block";
-        //loadBackgroundType();
-        //loadBackground();
+        loadBackgroundType();
+        loadBackground();
         //getYoutubes();
         loadAuto();
         UpdateUI();
@@ -378,13 +376,11 @@ function loadBackgroundType() {
         bgTypeIndex = 0;
     };
     if (bgTypeIndex == 0){//none
-        document.getElementById("bg-gif").style.display="none";
+        document.getElementById("bg-gif").style.display="block";
         document.getElementById("bg-mp4").style.display="none";
         document.getElementById("bg-start").style.display="none";
-        document.getElementById("bg-youtube").style.display="block";
+        document.getElementById("bg-youtube").style.display="none";
         document.getElementById("background-name").style.display="none";
-        mp4background.src = 'https://www.youtube.com/watch?v=' + youtubes[youtubeIndex];
-
     }
     else if (bgTypeIndex == 1){//gif
         document.getElementById("bg-gif").style.display="none";
@@ -417,12 +413,11 @@ function changeBackgroundType() {
         bgTypeIndex = 0;
     };
     if (bgTypeIndex == 0){//none
-        document.getElementById("bg-gif").style.display="none";
+        document.getElementById("bg-gif").style.display="block";
         document.getElementById("bg-mp4").style.display="none";
         document.getElementById("bg-start").style.display="none";
-        document.getElementById("bg-youtube").style.display="block";
+        document.getElementById("bg-youtube").style.display="none";
         document.getElementById("background-name").style.display="none";
-        mp4background.src = 'https://www.youtube.com/watch?v=' + youtubes[youtubeIndex];
     }
     else if (bgTypeIndex == 1){//gif
         document.getElementById("bg-gif").style.display="none";
@@ -526,7 +521,7 @@ function loadGenreType(){
     // }
     else if (genreIndex == 1){//Soundcloud
         genreName.innerHTML = "<i class='fab fa-soundcloud'></i>&nbsp;Soundcloud";
-        youtubeList = soundcloudList;
+        youtubeList = youtubeList_none;
         genreName.className = 'genre-name sc';
         genrePlaylist.className = 'genre-playlist scp';
         // genreNumber.style.display="inline-block";
@@ -573,7 +568,7 @@ function changeGenreType() {
     // }
     else if (genreIndex == 1){//Soundcloud
         genreName.innerHTML = "<i class='fab fa-soundcloud'></i>&nbsp;Soundcloud";
-        youtubeList = soundcloudList;
+        youtubeList = youtubeList_none;
         genreName.className = 'genre-name sc';
         genrePlaylist.className = 'genre-playlist scp';
         // document.getElementById("genre-number").style.display="inline-block";
