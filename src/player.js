@@ -726,14 +726,14 @@ function loadBackground() {
         mp4background.src = textclean;
     }
     else if (bgTypeIndex == 1){
-        if (localStorage.getItem('background') == null){
+        //if (localStorage.getItem('background') == null){
             gifbackgroundIndex = 0;  
-        }
-        else
-        {
-            let myBackground = localStorage.getItem('background');
-            gifbackgroundIndex = myBackground;
-        }
+        // }
+        // else
+        // {
+        //     let myBackground = localStorage.getItem('background');
+        //     gifbackgroundIndex = myBackground;
+        // }
         if (gifbackgroundIndex > gifbackgroundsMax) {
             gifbackgroundIndex = 0;
         };
