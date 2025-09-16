@@ -78,7 +78,7 @@ var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onload = function() {
-            
+    getYoutubes();
     getSoundcloud();    
     playYoutubeVideo();
     getVideoBackgrounds();
