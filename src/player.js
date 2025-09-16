@@ -124,7 +124,7 @@ function getYoutubes() {
             //playPause(); // for some reason this hides the space to start
         }
     }
-    xmlhttp.open("GET", youtubeList, true);
+    xmlhttp.open("GET", youtubeList_lofi, true);
     xmlhttp.send();
 }
 
