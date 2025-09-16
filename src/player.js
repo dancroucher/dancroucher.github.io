@@ -324,8 +324,8 @@ function playPause() {
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
         // document.getElementById("info-container").style.display="block";
-        loadBackgroundType();
-        loadBackground();
+        //loadBackgroundType();
+        //loadBackground();
         //getYoutubes();
         loadAuto();
         UpdateUI();
