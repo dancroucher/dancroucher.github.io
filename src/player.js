@@ -79,11 +79,11 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onload = function() {
     clearData();
-    getYoutubes();
+    //getYoutubes();
     getSoundcloud();    
     playYoutubeVideo();
-    getVideoBackgrounds();
-    getGifBackgrounds(); 
+    //getVideoBackgrounds();
+    //getGifBackgrounds(); 
 }
 
 //landing screen
@@ -325,8 +325,8 @@ function playPause() {
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
         // document.getElementById("info-container").style.display="block";
-        loadBackgroundType();
-        loadBackground();
+        //loadBackgroundType();
+        //loadBackground();
         getYoutubes();
         loadAuto();
         UpdateUI();
@@ -366,13 +366,13 @@ function infoSlide() {
 }
 
 function loadBackgroundType() {
-    //if (localStorage.getItem('backtype') == null){
-      bgTypeIndex = 0;  
-    //}
-    // else{
-    //     let myBackType = localStorage.getItem('backtype');
-    //     bgTypeIndex = myBackType;
-    // }
+    if (localStorage.getItem('backtype') == null){
+      bgTypeIndex = 1;  
+    }
+    else{
+        let myBackType = localStorage.getItem('backtype');
+        bgTypeIndex = myBackType;
+    }
     if (bgTypeIndex > backtypes.length-1) {
         bgTypeIndex = 0;
     };
@@ -726,14 +726,14 @@ function loadBackground() {
         mp4background.src = textclean;
     }
     else if (bgTypeIndex == 1){
-        //if (localStorage.getItem('background') == null){
+        if (localStorage.getItem('background') == null){
             gifbackgroundIndex = 0;  
-        // }
-        // else
-        // {
-        //     let myBackground = localStorage.getItem('background');
-        //     gifbackgroundIndex = myBackground;
-        // }
+        }
+        else
+        {
+            let myBackground = localStorage.getItem('background');
+            gifbackgroundIndex = myBackground;
+        }
         if (gifbackgroundIndex > gifbackgroundsMax) {
             gifbackgroundIndex = 0;
         };
