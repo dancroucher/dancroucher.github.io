@@ -326,8 +326,8 @@ function playPause() {
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
         // document.getElementById("info-container").style.display="block";
-        loadBackgroundType();
-        loadBackground();
+        //loadBackgroundType();
+        //loadBackground();
         //getYoutubes();
         loadAuto();
         UpdateUI();
@@ -392,7 +392,7 @@ function loadBackgroundType() {
         document.getElementById("bg-mp4").style.display="block";
         document.getElementById("bg-youtube").style.display="none";
         document.getElementById("background-name").style.display="inline-block";
-        var text = gifbackgrounds[0];
+        var text = gifbackgrounds[gifbackgroundIndex];
         var textclean = text.replace(/^/,'./assets/video_gif/');
         mp4background.src = textclean;
     }
