@@ -127,7 +127,7 @@ function playPause() {
         document.getElementById("song-container").style.display="block";
         //getYoutubes();
         mp4background.play();
-        loadAuto();
+        //loadAuto();
         UpdateUI();
         loadGenreType();
         starting = false;
@@ -491,14 +491,13 @@ function UpdateBackgroundName (){
 }
 
 function loadGenreType(){
-    // if (localStorage.getItem('playlist') == null){
-    //   genreIndex = 1;  
-    // }
-    // else{
-    //     let myPlaylist = localStorage.getItem('playlist');
-    //     genreIndex = myPlaylist;
-    // }
-    genreIndex = 1;
+    if (localStorage.getItem('playlist') == null){
+      genreIndex = 1;  
+    }
+    else{
+        let myPlaylist = localStorage.getItem('playlist');
+        genreIndex = myPlaylist;
+    }
     if (genreIndex == 0){//Youtube
         genreName.innerHTML = "<i class='fab fa-youtube'></i>&nbsp;YouTube";
         genreName.className = 'genre-name youtube';
