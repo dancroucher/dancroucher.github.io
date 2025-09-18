@@ -95,7 +95,41 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 0);
 }, false);
 
-
+function playPause() {
+    if (playing == false) {
+        playing = true;
+        if (genreIndex == 0){
+            player.playVideo();
+        }
+        else if (genreIndex == 1){
+            toggleSoundcloud();
+        }
+        UpdateUI();
+        if (starting == false){
+            mp4background.play();
+        }
+    }
+    else if (playing == true) {
+        playing = false;
+        if (genreIndex == 0){
+            player.pauseVideo();
+        }
+        else if (genreIndex == 1){
+            toggleSoundcloud();
+        }
+        UpdateUI();
+        mp4background.pause();
+    }
+    if (starting == true){
+        document.getElementById("start-container").style.display="none";
+        document.getElementById("song-container").style.display="block";
+        getYoutubes();
+        loadAuto();
+        UpdateUI();
+        loadGenreType();
+        starting = false;
+    }
+}
 function getYoutubes() {
     var xmlhttp;
     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
@@ -296,44 +330,7 @@ function getGifBackgrounds() {
 }
 
 
-function playPause() {
-    if (playing == false) {
-        playing = true;
-        if (genreIndex == 0){
-            player.playVideo();
-        }
-        else if (genreIndex == 1){
-            toggleSoundcloud();
-        }
-        UpdateUI();
-        if (starting == false){
-            mp4background.play();
-        }
-    }
-    else if (playing == true) {
-        playing = false;
-        if (genreIndex == 0){
-            player.pauseVideo();
-        }
-        else if (genreIndex == 1){
-            toggleSoundcloud();
-        }
-        UpdateUI();
-        mp4background.pause();
-    }
-    if (starting == true){
-        document.getElementById("start-container").style.display="none";
-        document.getElementById("song-container").style.display="block";
-        // document.getElementById("info-container").style.display="block";
-        //loadBackgroundType();
-        //loadBackground();
-        getYoutubes();
-        loadAuto();
-        UpdateUI();
-        loadGenreType();
-        starting = false;
-    }
-}
+
 
 function infoSlide() {
     if (infoOpen == true){
@@ -489,7 +486,7 @@ function UpdateBackgroundName (){
 
 function loadGenreType(){
     if (localStorage.getItem('playlist') == null){
-      genreIndex = 1;  
+      genreIndex = 0;  
     }
     else{
         let myPlaylist = localStorage.getItem('playlist');
@@ -503,7 +500,7 @@ function loadGenreType(){
         document.getElementById("soundcloud-container").style.display="none";
         changeBackground();
         UpdateUI();
-        getYoutubes();
+        //getYoutubes();
     }
     // else if (genreIndex == 1){//synthwave
     //     youtubeList = youtubeList_synth;
