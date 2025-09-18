@@ -203,7 +203,7 @@ function skipSoundcloud(){
     widget.getCurrentSound(function(currentSound) {
         songName.innerHTML = "<a href='"+currentSound.permalink_url+"'target='_blank'>"+currentSound.title+"</a>";
         songAuthor.innerHTML = currentSound.user.username;
-        genrePlaylist.innerHTML = currentSound.collection.track_count;
+        //genrePlaylist.innerHTML = currentSound.collection.track_count;
 
     });
 }
@@ -487,7 +487,7 @@ function UpdateBackgroundName (){
 
 function loadGenreType(){
     if (localStorage.getItem('playlist') == null){
-      genreIndex = 0;  
+      genreIndex = 1;  
     }
     else{
         let myPlaylist = localStorage.getItem('playlist');
@@ -990,7 +990,7 @@ function updateProgressValue() {
         else if (genreIndex ==1){
             document.getElementById("song-author").className = 'song-author';
         }
-        //songAuthor.innerHTML ="<a href='"+player.getVideoUrl()+"'target='_blank'>"+player.getVideoData().author+"</a>";
+        songAuthor.innerHTML ="<a href='"+player.getVideoUrl()+"'target='_blank'>"+player.getVideoData().author+"</a>";
 
 };  
 
