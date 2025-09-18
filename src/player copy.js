@@ -79,10 +79,10 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onload = function() {
     //clearData();
-    //getYoutubes();
-    //getSoundcloud();    
-    //playYoutubeVideo();
-   // getVideoBackgrounds();
+    getYoutubes();
+    getSoundcloud();    
+    playYoutubeVideo();
+    getVideoBackgrounds();
     //getGifBackgrounds(); 
 }
 
