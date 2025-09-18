@@ -372,9 +372,6 @@ function loadBackgroundType() {
         let myBackType = localStorage.getItem('backtype');
         bgTypeIndex = myBackType;
     }
-    if (bgTypeIndex > backtypes.length-1) {
-        bgTypeIndex = 0;
-    };
     if (bgTypeIndex == 0){//none
         document.getElementById("bg-gif").style.display="block";
         document.getElementById("bg-mp4").style.display="none";
@@ -404,11 +401,15 @@ function loadBackgroundType() {
         mp4background.src = textclean;
 
     }
+    localStorage.setItem('backtype', bgTypeIndex);
+    localStorage.getItem('backtype');
     UpdateUI();
     UpdateBackgroundName();
 }
 function changeBackgroundType() {
+    //increment background type
     bgTypeIndex++;
+    //loop round
     if (bgTypeIndex > backtypes.length-1) {
         bgTypeIndex = 0;
     };
