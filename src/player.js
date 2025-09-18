@@ -84,7 +84,7 @@ window.onload = function() {
     //playYoutubeVideo();
     getVideoBackgrounds();
     getGifBackgrounds(); 
-    localStorage.setItem('backtype', 1;
+    localStorage.setItem('backtype', 1);
 }
 
 //landing screen
