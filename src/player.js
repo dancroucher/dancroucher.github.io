@@ -524,12 +524,13 @@ function loadGenreType(){
         youtubeList = youtubeList_none;
         genreName.className = 'genre-name sc';
         genrePlaylist.className = 'genre-playlist scp';
-        // genreNumber.style.display="inline-block";
+        // document.getElementById("genre-number").style.display="inline-block";
         document.getElementById("soundcloud-container").style.display="none";
+        changeBackground();
+        skipSoundcloud();
+        player.pauseVideo();
         UpdateUI();
         UpdateTrackNumber();
-        skipSoundcloud();
-
     }
     
 }
