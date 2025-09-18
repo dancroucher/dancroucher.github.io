@@ -124,6 +124,7 @@ function playPause() {
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
         //getYoutubes();
+        mp4background.play();
         loadAuto();
         UpdateUI();
         loadGenreType();
@@ -527,7 +528,8 @@ function loadGenreType(){
         // document.getElementById("genre-number").style.display="inline-block";
         document.getElementById("soundcloud-container").style.display="none";
         changeBackground();
-        skipSoundcloud();
+        toggleSoundcloud();
+        //skipSoundcloud();
         player.pauseVideo();
         UpdateUI();
         UpdateTrackNumber();
