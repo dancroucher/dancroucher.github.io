@@ -82,8 +82,8 @@ window.onload = function() {
     //getYoutubes();
     getSoundcloud();    
     //playYoutubeVideo();
-   // getVideoBackgrounds();
-    //getGifBackgrounds(); 
+    getVideoBackgrounds();
+    getGifBackgrounds(); 
 }
 
 //landing screen
