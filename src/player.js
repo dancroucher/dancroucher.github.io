@@ -84,7 +84,6 @@ window.onload = function() {
     //playYoutubeVideo();
     getVideoBackgrounds();
     getGifBackgrounds(); 
-    localStorage.setItem('backtype', 1);
 }
 
 //landing screen
@@ -310,6 +309,7 @@ function getVideoBackgrounds() {
     }
     xmlhttp.open("GET", mp4List, true);
     xmlhttp.send();
+    console.log(mp4backgrounds);
 }
 
 function getGifBackgrounds() {
