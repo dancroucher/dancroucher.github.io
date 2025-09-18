@@ -153,6 +153,7 @@ function getYoutubes() {
                 let myTrack = localStorage.getItem('track');
                 youtubeIndex = myTrack;
             }
+            //player.loadVideoById(youtubes[youtubeIndex]);
             player.loadVideoById(youtubes[youtubeIndex]);
             UpdateTrackNumber();
             //playPause(); // for some reason this hides the space to start
