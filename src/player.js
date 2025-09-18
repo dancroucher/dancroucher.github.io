@@ -582,8 +582,8 @@ function changeGenreType() {
         // document.getElementById("genre-number").style.display="inline-block";
         document.getElementById("soundcloud-container").style.display="none";
         changeBackground();
-        skipSoundcloud();
-        player.pauseVideo();
+        toggleSoundcloud();
+        //player.pauseVideo();
         UpdateUI();
         UpdateTrackNumber();
     }
