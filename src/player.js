@@ -89,10 +89,10 @@ window.onload = function() {
 //landing screen
 document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function(){
-    mp4background.play();
+    //mp4background.play();
     start.innerHTML = "Click / tap anywhere to start";
     backgroundAuto.style.display="none";
-    }, 2000);
+    }, 0);
 }, false);
 
 
