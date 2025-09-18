@@ -80,7 +80,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 window.onload = function() {
     //clearData();
     //getYoutubes();
-    //getSoundcloud();    
+    getSoundcloud();    
     //playYoutubeVideo();
    // getVideoBackgrounds();
     //getGifBackgrounds(); 
@@ -99,7 +99,7 @@ function playPause() {
     if (playing == false) {
         playing = true;
         if (genreIndex == 0){
-            player.playVideo();
+            //player.playVideo();
         }
         else if (genreIndex == 1){
             toggleSoundcloud();
@@ -112,7 +112,7 @@ function playPause() {
     else if (playing == true) {
         playing = false;
         if (genreIndex == 0){
-            player.pauseVideo();
+           // player.pauseVideo();
         }
         else if (genreIndex == 1){
             toggleSoundcloud();
@@ -806,8 +806,8 @@ function formatTime(seconds) {
     return `${min}:${sec}`;
 };
 
-setInterval(updateProgressValue, 500);
-setInterval(newBackground, 5000);
+//setInterval(updateProgressValue, 500);
+//setInterval(newBackground, 5000);
 
 function doFullscreen() {
 if (fullscreenbool == false){
