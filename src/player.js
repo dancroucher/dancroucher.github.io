@@ -79,7 +79,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onload = function() {
     //clearData();
-    //getYoutubes();
+    getYoutubes();
     //getSoundcloud();    
     //playYoutubeVideo();
     getVideoBackgrounds();
@@ -534,10 +534,12 @@ function loadGenreType(){
         //changeBackground();
         //skipSoundcloud();
         //player.pauseVideo();
+        
         UpdateUI();
         UpdateTrackNumber();
     }
-    
+    localStorage.setItem('genretype', genreIndex);
+    localStorage.getItem('genretype');   
 }
 
 function changeGenreType() {
@@ -585,8 +587,8 @@ function changeGenreType() {
         UpdateUI();
         UpdateTrackNumber();
     }
-    localStorage.setItem('playlist', genreIndex);
-    localStorage.getItem('playlist');
+    localStorage.setItem('genretype', genreIndex);
+    localStorage.getItem('genretype');
 }
 
 function UpdateGenreName() {
