@@ -80,11 +80,12 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 window.onload = function() {
     //clearData();
     //getYoutubes();
-    getSoundcloud();    
+    //getSoundcloud();    
     //playYoutubeVideo();
     getVideoBackgrounds();
     getGifBackgrounds(); 
     loadBackgroundType();
+    loadGenreType();
 }
 
 //landing screen
@@ -492,7 +493,7 @@ function UpdateBackgroundName (){
 
 function loadGenreType(){
     if (localStorage.getItem('playlist') == null){
-      genreIndex = 1;  
+      genreIndex = 0;  
     }
     else{
         let myPlaylist = localStorage.getItem('playlist');
@@ -504,7 +505,7 @@ function loadGenreType(){
         genrePlaylist.className = 'genre-playlist youtubep';
         youtubeList = youtubeList_all;
         document.getElementById("soundcloud-container").style.display="none";
-        changeBackground();
+        //changeBackground();
         UpdateUI();
         //getYoutubes();
     }
@@ -524,14 +525,13 @@ function loadGenreType(){
     //     document.getElementById("genre-number").style.display="inline-block";
     // }
     else if (genreIndex == 1){//Soundcloud
-        nextSong();
         genreName.innerHTML = "<i class='fab fa-soundcloud'></i>&nbsp;Soundcloud";
-        youtubeList = youtubeList_none;
+        //youtubeList = youtubeList_none;
         genreName.className = 'genre-name sc';
         genrePlaylist.className = 'genre-playlist scp';
         // document.getElementById("genre-number").style.display="inline-block";
         document.getElementById("soundcloud-container").style.display="none";
-        changeBackground();
+        //changeBackground();
         //skipSoundcloud();
         //player.pauseVideo();
         UpdateUI();
