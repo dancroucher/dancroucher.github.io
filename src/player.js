@@ -84,8 +84,7 @@ window.onload = function() {
     //playYoutubeVideo();
     getVideoBackgrounds();
     getGifBackgrounds(); 
-    loadBackgroundType();
-    loadGenreType();
+
 }
 
 //landing screen
@@ -127,8 +126,9 @@ function playPause() {
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
         //getYoutubes();
+        loadBackgroundType();
+        loadGenreType();
         mp4background.play();
-        //loadAuto();
         UpdateUI();
         loadGenreType();
         starting = false;
