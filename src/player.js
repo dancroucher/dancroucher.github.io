@@ -521,6 +521,7 @@ function loadGenreType(){
     //     document.getElementById("genre-number").style.display="inline-block";
     // }
     else if (genreIndex == 1){//Soundcloud
+        nextSong();
         genreName.innerHTML = "<i class='fab fa-soundcloud'></i>&nbsp;Soundcloud";
         youtubeList = youtubeList_none;
         genreName.className = 'genre-name sc';
@@ -528,8 +529,7 @@ function loadGenreType(){
         // document.getElementById("genre-number").style.display="inline-block";
         document.getElementById("soundcloud-container").style.display="none";
         changeBackground();
-        toggleSoundcloud();
-        //skipSoundcloud();
+        skipSoundcloud();
         player.pauseVideo();
         UpdateUI();
         UpdateTrackNumber();
