@@ -255,7 +255,7 @@ document.body.onkeyup = function(e){
         else if(e.keyCode == 73){//i key
             doPopup();
         }
-        else if(e.keyCode == 80){//P key
+        else if(e.keyCode == 80){//P keypress
             changeGenreType();
         }
         else if(e.keyCode == 187){//= key
