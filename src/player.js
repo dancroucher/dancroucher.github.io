@@ -123,7 +123,7 @@ function playPause() {
     if (starting == true){
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
-        getYoutubes();
+        //getYoutubes();
         loadAuto();
         UpdateUI();
         loadGenreType();
