@@ -116,6 +116,7 @@ function playPause() {
            // player.pauseVideo();
         }
         else if (genreIndex == 1){
+            console.log(genreIndex);
             toggleSoundcloud();
         }
         UpdateUI();
