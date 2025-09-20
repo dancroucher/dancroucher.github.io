@@ -79,7 +79,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onload = function() {
     //clearData();
-    getYoutubes();
+    //getYoutubes();
     //getSoundcloud();    
     //playYoutubeVideo();
     getVideoBackgrounds();
@@ -129,7 +129,7 @@ function playPause() {
         document.getElementById("song-container").style.display="block";
         loadBackgroundType();
         loadGenreType();
-        
+        playYoutubeVideo();
         UpdateUI();
         starting = false;
     }
@@ -923,7 +923,8 @@ else{
 
 var player;
 function playYoutubeVideo() {
-    var myVideoId = youtubes[0];
+    // var myVideoId = youtubes[0];
+    var myVideoId = edTcufyrHc;
     var ctrlq = document.getElementById("bg-youtube");
     player = new YT.Player('bg-youtube', {
         height: '1080',
