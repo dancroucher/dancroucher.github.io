@@ -124,11 +124,12 @@ function playPause() {
         }
     }
     else if (starting == true){
-        mp4background.play();
+        
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
         loadBackgroundType();
         loadGenreType();
+        
         UpdateUI();
         starting = false;
     }
@@ -406,6 +407,7 @@ function loadBackgroundType() {
     }
     localStorage.setItem('backtype', bgTypeIndex);
     localStorage.getItem('backtype');
+    mp4background.play();
     UpdateUI();
     UpdateBackgroundName();
 }
