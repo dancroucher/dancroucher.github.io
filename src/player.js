@@ -79,7 +79,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onload = function() {
     //clearData();
-    getYoutubes();
+    //getYoutubes();
     //getSoundcloud();    
     //playYoutubeVideo();
     getVideoBackgrounds();
@@ -128,9 +128,8 @@ function playPause() {
         //getYoutubes();
         loadBackgroundType();
         loadGenreType();
-        mp4background.play();
+        //mp4background.play();
         UpdateUI();
-        loadGenreType();
         starting = false;
     }
 }
