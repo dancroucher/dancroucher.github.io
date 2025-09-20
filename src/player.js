@@ -128,9 +128,9 @@ function playPause() {
         mp4background.play();
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
-        //getYoutubes();
         loadBackgroundType();
         loadGenreType();
+        getYoutubes();
         UpdateUI();
         starting = false;
     }
@@ -160,6 +160,7 @@ function getYoutubes() {
             }
             //player.loadVideoById(youtubes[youtubeIndex]);
             player.loadVideoById(youtubes[youtubeIndex]);
+            console.log(youtubeIndex);
             UpdateTrackNumber();
             //playPause(); // for some reason this hides the space to start
         }
