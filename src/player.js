@@ -79,7 +79,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onload = function() {
     //clearData();
-    //getYoutubes();
+    getYoutubes();
     //getSoundcloud();    
     //playYoutubeVideo();
     getVideoBackgrounds();
@@ -117,7 +117,6 @@ function playPause() {
             // player.pauseVideo();
             }
             else if (genreIndex == 1){
-                console.log(genreIndex);
                 toggleSoundcloud();
             }
             UpdateUI();
@@ -130,7 +129,6 @@ function playPause() {
         document.getElementById("song-container").style.display="block";
         loadBackgroundType();
         loadGenreType();
-        getYoutubes();
         UpdateUI();
         starting = false;
     }
@@ -314,7 +312,6 @@ function getVideoBackgrounds() {
     }
     xmlhttp.open("GET", mp4List, true);
     xmlhttp.send();
-    console.log(mp4backgrounds);
 }
 
 function getGifBackgrounds() {
