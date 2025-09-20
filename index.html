@@ -32,9 +32,8 @@
                 <div class="song-container fadeout" id="song-container" style="display: none;">
                 <div class = "padsong">
                     <div class ="song-name" id="song-name"> </div><br>
-                    <div class ="song-author" id="song-author"> <i class="fas fa-spinner fa-pulse"></i></div><br>
-
-                    <form name="videoentry" id="videoentry" class="videoentry" onsubmit="return false" style="display: none;">
+                   <div class ="song-author" id="song-author"></div><br>  <!-- <i class="fas fa-spinner fa-pulse"></i></div><br> -->
+                    <form name="videoentry" id="videoentry" class="videoentry" onsubmit="return false" style="display: block;">
                                 <input class="videobox" type="text" value="" autocomplete="off" autocorrect="off" onfocus="this.placeholder=''" autocapitalize="none" spellcheck="false" id="videoname" oninput="checkVideoName()" onblur="submitVideoName()" onchange="submitVideoName()" placeholder="Enter your own Youtube URL...">
                                 <input type="submit" class="space" value="SUBMIT">
                     </form><br><br>

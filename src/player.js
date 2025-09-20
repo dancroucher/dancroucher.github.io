@@ -125,12 +125,12 @@ function playPause() {
         }
     }
     else if (starting == true){
+        mp4background.play();
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
         //getYoutubes();
         loadBackgroundType();
         loadGenreType();
-        mp4background.play();
         UpdateUI();
         starting = false;
     }
