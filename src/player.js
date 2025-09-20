@@ -97,38 +97,40 @@ document.addEventListener('DOMContentLoaded', function() {
 }, false);
 
 function playPause() {
-    if (playing == false) {
-        playing = true;
-        if (genreIndex == 0){
-            //player.playVideo();
+    if (starting == false){
+        if (playing == false) {
+            playing = true;
+            if (genreIndex == 0){
+                //player.playVideo();
+            }
+            else if (genreIndex == 1){
+                //toggleSoundcloud();
+            }
+            UpdateUI();
+            if (starting == false){
+                mp4background.play();
+            }
         }
-        else if (genreIndex == 1){
-            toggleSoundcloud();
-        }
-        UpdateUI();
-        if (starting == false){
-            mp4background.play();
+        else if (playing == true) {
+            playing = false;
+            if (genreIndex == 0){
+            // player.pauseVideo();
+            }
+            else if (genreIndex == 1){
+                console.log(genreIndex);
+                toggleSoundcloud();
+            }
+            UpdateUI();
+            mp4background.pause();
         }
     }
-    else if (playing == true) {
-        playing = false;
-        if (genreIndex == 0){
-           // player.pauseVideo();
-        }
-        else if (genreIndex == 1){
-            console.log(genreIndex);
-            toggleSoundcloud();
-        }
-        UpdateUI();
-        mp4background.pause();
-    }
-    if (starting == true){
+    else if (starting == true){
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
         //getYoutubes();
         loadBackgroundType();
         loadGenreType();
-        //mp4background.play();
+        mp4background.play();
         UpdateUI();
         starting = false;
     }
