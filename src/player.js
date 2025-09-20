@@ -158,7 +158,7 @@ function getYoutubes() {
                 youtubeIndex = myTrack;
             }
             //player.loadVideoById(youtubes[youtubeIndex]);
-            player.loadVideoById(youtubes[youtubeIndex]);
+            // player.loadVideoById(youtubes[youtubeIndex]);
             console.log(youtubeIndex);
             UpdateTrackNumber();
             //playPause(); // for some reason this hides the space to start
