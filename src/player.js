@@ -924,7 +924,7 @@ else{
 var player;
 function playYoutubeVideo() {
     // var myVideoId = youtubes[0];
-    var myVideoId = edTcufyrHc;
+    var myVideoId = 'edTcufyrHc';
     var ctrlq = document.getElementById("bg-youtube");
     player = new YT.Player('bg-youtube', {
         height: '1080',
