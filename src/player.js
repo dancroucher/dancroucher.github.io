@@ -101,7 +101,7 @@ window.onload = function() {
 document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function(){
     //mp4background.play();
-    start.innerHTML = "<span>Enter Playlist URL or ID: <br><br><input class='videobox' type=\"text\" id=\"video-playlist-entry\" name=\"video-playlist-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoPlaylistName()'><br><br>Enter Video URL or ID: <br><br><input class='videobox' type=\"text\" id=\"video-entry\" name=\"video-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoName()'></span>";
+    start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><input class='videobox' type=\"text\" id=\"video-playlist-entry\" name=\"video-playlist-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoPlaylistName()'><br><br>Enter Video URL or ID: <br><br><input class='videobox' type=\"text\" id=\"video-entry\" name=\"video-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoName()'></div>";
     //backgroundAuto.style.display="none";
 
     }, 0);
@@ -821,6 +821,7 @@ function updateProgressValue() {
 
 function submitVideoPlaylistName(){
     videoPlaylistName = document.getElementById('video-playlist-entry').value;
+    start.innerHTML = "<i class=\"fa-sharp-duotone fa-regular fa-spinner fa-spin-pulse\"></i>";
     if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://www.youtube.com/playlist?list=','');
     }
