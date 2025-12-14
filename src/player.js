@@ -766,7 +766,7 @@ function onPlayerReadyPlaylist(event) {
     event.target.playVideo();
     player.playVideo();
     videosInPlaylist = player.getPlaylist();
-    console.log(videosInPlaylist);
+    //console.log(videosInPlaylist);
     if (videosInPlaylist != null){
         playerReady = true;
         if (starting == true){
@@ -786,7 +786,7 @@ function onPlayerReadyPlaylist(event) {
 }//PLZAH1CMN7BNTA0BOgOJLOHIFIAitFYYy0
 
 function onPlayerReady(event) {
-
+    console.log (playlistName);
     player.setPlaybackQuality("hd1080");
     player.setVolume(100);
     event.target.playVideo();
