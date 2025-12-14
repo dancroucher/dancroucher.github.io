@@ -824,7 +824,8 @@ function updateProgressValue() {
 
 function submitVideoPlaylistName(){
     videoPlaylistName = document.getElementById('video-playlist-entry').value;
-    start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><i class='far fa-question-circle fa-spin-pulse'></div>";
+    //start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><i class=\"fas fa-spinner fa-pulse\"></div>";
+    start.innerHTML = "<div class=\"start\" id=\"start\"><i class=\"fas fa-spinner fa-pulse\"></i></div>";
     if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://www.youtube.com/playlist?list=','');
     }
