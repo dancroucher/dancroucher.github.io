@@ -821,9 +821,8 @@ function updateProgressValue() {
 
 function submitVideoPlaylistName(){
     videoPlaylistName = document.getElementById('video-playlist-entry').value;
-    start.innerHTML = "<div class=\"video-submit\"><i class='fa-sharp-duotone fa-regular fa-spinner fa-spin-pulse'></i></div>";
-    //start.innerHTML = "<i class='fa-sharp-duotone fa-regular fa-spinner fa-spin-pulse'></i>";
-    if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
+    start.innerHTML = "<div class=\"video-submit\"><i class='fas-spinner fa-spin-pulse'></i><i class='fas fa-file-image'></i></div>";
+        if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://www.youtube.com/playlist?list=','');
     }
     else if (videoPlaylistName.includes("https://youtu.be")){
