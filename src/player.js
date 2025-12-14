@@ -734,7 +734,7 @@ function playYoutubeVideo() {
     player = new YT.Player('bg-youtube', {
         height: '360',
         width: '640',
-        videoId: myVideoName,
+        videoId: playlistName,
         playerVars: {
             autoplay: 1,
             controls: 0,
@@ -774,11 +774,15 @@ function onPlayerReadyPlaylist(event) {
         }
     }
     else{
-        console.log("invalid ID");
-        start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br>Invalid ID!</div>";
-        location.reload();
-        //alert("invalid ID");
+        singleVideo = true;
+        playYoutubeVideo();
     }
+    // else{
+    //     console.log("invalid ID");
+    //     start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br>Invalid ID!</div>";
+    //     location.reload();
+    //     //alert("invalid ID");
+    // }
 }//PLZAH1CMN7BNTA0BOgOJLOHIFIAitFYYy0
 
 function onPlayerReady(event) {
@@ -787,8 +791,7 @@ function onPlayerReady(event) {
     player.setVolume(100);
     event.target.playVideo();
     player.playVideo();
-    videosInPlaylist = player.getVideoUrl();
-    if (videosInPlaylist != null){
+    if (player.getVideoUrl() != null){
         playerReady = true;
         if (starting == true){
             doStart();
