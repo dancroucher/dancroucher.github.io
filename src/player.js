@@ -775,8 +775,7 @@ function onPlayerReadyPlaylist(event) {
     }
     else{
         console.log("invalid ID");
-        document.getElementById('video-playlist-entry').value = "Invalid ID";
-        document.getElementById('video-entry').value = "Invalid ID";
+        start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br>Invalid ID!</div>";
         location.reload();
         //alert("invalid ID");
     }
@@ -797,8 +796,8 @@ function onPlayerReady(event) {
     }
     else{
         console.log("invalid ID");
-        document.getElementById('video-playlist-entry').value = "Invalid ID";
-        document.getElementById('video-entry').value = "Invalid ID";
+        // document.getElementById('video-playlist-entry').value = "Invalid ID";
+        start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br>Invalid ID!</div>";
         location.reload();
         //alert("invalid ID");
     }
@@ -821,8 +820,8 @@ function updateProgressValue() {
 
 function submitVideoPlaylistName(){
     videoPlaylistName = document.getElementById('video-playlist-entry').value;
-    start.innerHTML = "<div class=\"video-submit\"><i class='fa-solid fa-spinner fa-spin-pulse'></i><i class='far fa-question-circle fa-spin-pulse'></div>";
-        if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
+    start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><i class='far fa-question-circle fa-spin-pulse'></div>";
+    if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://www.youtube.com/playlist?list=','');
     }
     else if (videoPlaylistName.includes("https://youtu.be")){
