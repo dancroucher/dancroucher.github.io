@@ -731,6 +731,8 @@ function playYoutubeVideo() {
     //var myVideoId = "UL98fEff8yY";
     //myVideoName = "PLZAH1CMN7BNTQfor1FzJ018CRE2DBLSVp";
     var ctrlq = document.getElementById("bg-youtube");
+        console.log(playlistName);
+
     player = new YT.Player('bg-youtube', {
         height: '360',
         width: '640',
@@ -774,9 +776,10 @@ function onPlayerReadyPlaylist(event) {
         }
     }
     else{
-        console.log("youtube");
         singleVideo = true;
         playYoutubeVideo();
+        console.log("switching to youtube");
+
     }
     // else{
     //     console.log("invalid ID");
@@ -793,6 +796,8 @@ function onPlayerReady(event) {
     event.target.playVideo();
     player.playVideo();
     if (player.getVideoUrl() != null){
+                console.log("youtube");
+
         playerReady = true;
         if (starting == true){
             doStart();
@@ -825,7 +830,7 @@ function updateProgressValue() {
 function submitVideoPlaylistName(){
     videoPlaylistName = document.getElementById('video-playlist-entry').value;
     //start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><i class=\"fas fa-spinner fa-pulse\"></div>";
-    start.innerHTML = "<div class=\"start\" id=\"start\"><i class=\"fas fa-spinner fa-pulse\"></i></div>";
+    start.innerHTML = "<div class=\"start\" id=\"start\">Enter Playlist URL or ID: <br><br><i class=\"fas fa-spinner fa-pulse\"></i></div>";
     if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://www.youtube.com/playlist?list=','');
     }
