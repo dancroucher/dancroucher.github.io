@@ -71,7 +71,8 @@ var Youtube = (function () {
 
 			// Setup iframe
 			this.iframe = document.createElement("iframe");
-			this.iframe.setAttribute("frameborder", "0");
+			this.iframe.setAttribute("frameborder", "1");
+			this.iframe.setAttribute("id", "bg-youtube");
 
 			// URL
 			this.url_target = ("https" in settings && !settings.https ? "http:" : "https:") + "//www.youtube.com";

@@ -101,7 +101,7 @@ window.onload = function() {
 document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function(){
     //mp4background.play();
-    start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><form name=\"idEntry\" target=\"#here\" method=\"post\"><input class='videobox' type=\"text\" id=\"video-playlist-entry\" name=\"video-playlist-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoPlaylistName()' hidden></form></div>";
+    start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><form name=\"idEntry\" target=\"#here\" method=\"post\"><input class='videobox' type=\"text\" id=\"video-playlist-entry\" name=\"video-playlist-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoName()' hidden></form></div>";
     //backgroundAuto.style.display="none";
     start.appendChild(idEntry);
     }, 0);
@@ -723,8 +723,9 @@ function playYoutubePlaylist() {
 
 function playNew(){
         console.log ('wsdswee');
-        player = new Youtube.Player({
-            video_id: myVideoName
+        player = new Youtube.Player( {
+            video_id: myVideoName,
+            http: false
             //https: true/* true or false; setting to false uses http: embedding (may not work) */
             //params: { /* key:value pairs of player parameters */ },
             //on: { /* key:value pairs of event_name:callbacks */ },
