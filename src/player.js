@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
     //mp4background.play();
     start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><form name=\"idEntry\" target=\"#here\" method=\"post\"><input class='videobox' type=\"text\" id=\"video-playlist-entry\" name=\"video-playlist-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoPlaylistName()' hidden></form></div>";
     //backgroundAuto.style.display="none";
-
+    start.appendChild(idEntry);
     }, 0);
 }, false);
 
@@ -695,12 +695,6 @@ else if (auto == true){
 var player;
 
 function playYoutubePlaylist() {
-        //window.alert(videoPlaylistName);
-
-        //playlistName = "My Playlist";
-        //title.innerHTML ="// jeem-fm&nbsp;";
-        //title.innerHTML = "<a href='"+location.reload();+"'target='_blank'>// jeem-fm</a>";
-        //console.log(videoPlaylistName);
         player = new YT.Player('bg-youtube', {
           height: '360',
           width: '640',
@@ -722,15 +716,23 @@ function playYoutubePlaylist() {
                   events: {
             'onReady': onPlayerReadyPlaylist,
             'onStateChange': onPlayerStateChange
-        }
+            }
         });
 }
 
+
+function playNew(){
+        console.log ('wsdswee');
+        player = new Youtube.Player({
+            video_id: myVideoName
+            //https: true/* true or false; setting to false uses http: embedding (may not work) */
+            //params: { /* key:value pairs of player parameters */ },
+            //on: { /* key:value pairs of event_name:callbacks */ },
+        })
+}
+
+
 function playYoutubeVideo() {
-    // var myVideoId = youtubes[0];
-    //var myVideoId = "UL98fEff8yY";
-    //myVideoName = "PLZAH1CMN7BNTQfor1FzJ018CRE2DBLSVp";
-    var ctrlq = document.getElementById("bg-youtube");
     console.log(myVideoName);
     player = new YT.Player('bg-youtube', {
         height: '360',
@@ -761,7 +763,7 @@ function doPopup() {
 }
 
 function onPlayerReadyPlaylist(event) {
-
+    console.log ('onplayereadyplaylist');
     player.setPlaybackQuality("hd1080");
     player.setVolume(100);
     event.target.playVideo();
@@ -777,8 +779,6 @@ function onPlayerReadyPlaylist(event) {
     else{
         singleVideo = true;
         submitVideoName();
-
-
     }
     // else{
     //     console.log("invalid ID");
@@ -789,7 +789,7 @@ function onPlayerReadyPlaylist(event) {
 }//PLZAH1CMN7BNTA0BOgOJLOHIFIAitFYYy0
 
 function onPlayerReady(event) {
-    console.log (playlistName);
+    console.log ('onplayeready');
     player.setPlaybackQuality("hd1080");
     player.setVolume(100);
     event.target.playVideo();
@@ -828,22 +828,30 @@ function updateProgressValue() {
 
 function submitVideoPlaylistName(){
     videoPlaylistName = document.getElementById('video-playlist-entry').value;
-    //start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><i class=\"fas fa-spinner fa-pulse\"></div>";
     start.innerHTML = "<div class=\"start\" id=\"start\">Enter Playlist URL or ID: <br><br><i class=\"fas fa-spinner fa-pulse\"></i></div>";
+    //link from main playist page
     if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://www.youtube.com/playlist?list=','');
     }
+    //link from 1 video
+    else if (videoPlaylistName.includes("watch?v=")){
+        const getChar = (s, n) => s.slice(-n);
+        const s = videoPlaylistName;
+        videoPlaylistNameClean = (getChar(s, 34));
+    }
+//playlist link mobile
     else if (videoPlaylistName.includes("https://youtu.be")){
         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://youtu.be/','');
     }
     else {
         videoPlaylistNameClean = videoPlaylistName;
     }
+    console.log(videoPlaylistNameClean);
     doVideoPlaylistName();
 }
 
 function submitVideoName(){
-    console.log("switching to youtube");
+    console.log("switching to single video mode");
     videoName = videoPlaylistName;
     //window.alert(videoName);
     if (videoName.includes("https://www.youtube.com/watch?v=")){
@@ -854,10 +862,8 @@ function submitVideoName(){
     }
     else {
         videoNameClean = videoName;
-        // document.getElementById("videoname").value = "";
-        // document.getElementById("videoname").placeholder = "Enter your own Youtube URL...";
-        // videobox.className = 'videobox';
     }
+    console.log(videoNameClean);
     doVideoName();
 }
 
@@ -870,7 +876,8 @@ function doVideoPlaylistName(){
 function doVideoName(){
         myVideoName = videoNameClean;
         singleVideo = true;
-        playYoutubeVideo();
+        //playYoutubeVideo();
+        playNew();
 }
  
 function doStart(){
