@@ -101,7 +101,7 @@ window.onload = function() {
 document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function(){
     //mp4background.play();
-    start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><input class='videobox' type=\"text\" id=\"video-playlist-entry\" name=\"video-playlist-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoPlaylistName()'></div>";
+    start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><input class='videobox' type=\"text\" id=\"video-playlist-entry\" name=\"video-playlist-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoName()'></div>";
     //backgroundAuto.style.display="none";
 
     }, 0);
@@ -731,12 +731,12 @@ function playYoutubeVideo() {
     //var myVideoId = "UL98fEff8yY";
     //myVideoName = "PLZAH1CMN7BNTQfor1FzJ018CRE2DBLSVp";
     var ctrlq = document.getElementById("bg-youtube");
-        console.log(playlistName);
+        console.log(myVideoName);
 
     player = new YT.Player('bg-youtube', {
         height: '360',
         width: '640',
-        videoId: playlistName,
+        videoId: myVideoName,
         playerVars: {
             autoplay: 1,
             controls: 0,
