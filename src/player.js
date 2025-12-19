@@ -101,7 +101,7 @@ window.onload = function() {
 document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function(){
     //mp4background.play();
-    start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><input class='videobox' type=\"text\" id=\"video-playlist-entry\" name=\"video-playlist-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoName()'></div>";
+    start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><form name=\"idEntry\" target=\"#here\" method=\"post\"><input class='videobox' type=\"text\" id=\"video-playlist-entry\" name=\"video-playlist-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoPlaylistName()' hidden></form></div>";
     //backgroundAuto.style.display="none";
 
     }, 0);
@@ -731,8 +731,7 @@ function playYoutubeVideo() {
     //var myVideoId = "UL98fEff8yY";
     //myVideoName = "PLZAH1CMN7BNTQfor1FzJ018CRE2DBLSVp";
     var ctrlq = document.getElementById("bg-youtube");
-        console.log(myVideoName);
-
+    console.log(myVideoName);
     player = new YT.Player('bg-youtube', {
         height: '360',
         width: '640',
@@ -777,8 +776,8 @@ function onPlayerReadyPlaylist(event) {
     }
     else{
         singleVideo = true;
-        playYoutubeVideo();
-        console.log("switching to youtube");
+        submitVideoName();
+
 
     }
     // else{
@@ -795,21 +794,21 @@ function onPlayerReady(event) {
     player.setVolume(100);
     event.target.playVideo();
     player.playVideo();
-    if (player.getVideoUrl() != null){
-                console.log("youtube");
+    // if (player.getVideoUrl() != null){
+    //             console.log("youtube");
 
         playerReady = true;
         if (starting == true){
             doStart();
         }
-    }
-    else{
-        console.log("invalid ID");
-        // document.getElementById('video-playlist-entry').value = "Invalid ID";
-        start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br>Invalid ID!</div>";
-        location.reload();
-        //alert("invalid ID");
-    }
+    // }
+    // else{
+    //     console.log("invalid ID");
+    //     // document.getElementById('video-playlist-entry').value = "Invalid ID";
+    //     start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br>Invalid ID!</div>";
+    //     location.reload();
+    //     //alert("invalid ID");
+    // }
 }
 
 function onPlayerStateChange(event) {
@@ -843,10 +842,9 @@ function submitVideoPlaylistName(){
     doVideoPlaylistName();
 }
 
-
-
 function submitVideoName(){
-    videoName = document.getElementById('video-entry').value;
+    console.log("switching to youtube");
+    videoName = videoPlaylistName;
     //window.alert(videoName);
     if (videoName.includes("https://www.youtube.com/watch?v=")){
         videoNameClean = videoName.replaceAll('https://www.youtube.com/watch?v=','');
