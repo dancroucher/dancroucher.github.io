@@ -6,24 +6,77 @@
         <meta name="description" content="music description">
         <meta name="author" content="jeem">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <link rel="stylesheet" href="player.css">
+        <!-- <link rel="stylesheet" href="player.css"> -->
         <link rel="stylesheet" href="font.css">
         <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
-
+	    <link rel="stylesheet" href="style.css" />
+	    <script src="src/script.js"></script>
+        <script src="src/demo.js"></script>
+        <!-- <script src="src/player.js"></script> -->
         <script src="https://kit.fontawesome.com/c71940ba40.js" crossorigin="anonymous"></script>
         <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
         <script src="https://unpkg.com/jquery.terminal/js/jquery.terminal.min.js"></script>
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
         <link rel="stylesheet" href="https://unpkg.com/jquery.terminal/css/jquery.terminal.min.css"/>
     </head>
+
+<div class="main body">
+	<div class="main_table">
+		<div class="main_table_full">
+
+				<h1 id="demo"><span class="hardlink_text">Demo<a class="hardlink" href="#demo"></a></span></h1>
+				<p>
+					<div class="demo_region_preload demo_region_preload_visible">
+						<span class="script_enabled">
+							To begin the demo, <a href="#demo" class="light_underline" id="demo_start"><span>click here</span></a>.
+						</span>
+					</div>
+					<div class="demo_region">
+						<!-- <div class="demo_iframe_container_size"><div class="demo_iframe_container"></div></div> -->
+						<table class="demo_control_table"><tbody>
+							<!-- <tr class="demo_control_table_header">
+								<td>Actions</td>
+								<td>Playback</td>
+								<td>Loading</td>
+								<td>Playlist</td>
+							</tr> -->
+							<tr class="demo_control_table_body">
+								<td><div class="demo_control_region_container"><div class="demo_control_region" id="demo_actions"></div></div></td>
+								<td><div class="demo_control_region_container"><div class="demo_control_region" id="demo_playback"></div></div></td>
+								<td><div class="demo_control_region_container"><div class="demo_control_region" id="demo_loading"></div></div></td>
+								<td><div class="demo_control_region_container"><div class="demo_control_region" id="demo_playlist"></div></div></td>
+							</tr>
+							<!-- <tr class="demo_control_table_header">
+								<td>State</td>
+								<td>Extended API</td>
+								<td colspan="2">Event Log</td>
+							</tr> -->
+							<tr class="demo_control_table_body">
+								<td><div class="demo_control_region_container"><div class="demo_control_region" id="demo_state"></div></div></td>
+								<td><div class="demo_control_region_container demo_control_region_container_full"><div class="demo_control_region"><textarea class="code_textarea" id="demo_extended_api" wrap="off" spellcheck="false" autocomplete="off" readonly></textarea></div></div></td>
+								<td colspan="2"><div class="demo_control_region_container"><div class="demo_control_region" id="demo_log"></div></div></td>
+							</tr>
+						</tbody></table>
+					</div>
+				</p>
+
+			</div>
+		</div>
+	</div>
+
+</div>
+
+
+
+
     <body >
         <div class="crt noselect">
-            <div id="bg-start" class="bg" style="display: block;" onclick=''></div>
+            <div id="bg-start" class="bg" style="display: none;" onclick=''></div>
             <div id="bg-mp4" class="bg" style="display: none;" onclick='playPause()' ondblclick="doFullscreen()"><video preload="auto" autoplay muted playsinline loop id="mp4-background"></video></div>
             <div id="bg-mp4-alt" class="bg" style="display: none;" onclick='playPause()' ondblclick="doFullscreen()"><video preload="auto" autoplay muted playsinline loop id="mp4-alt-background"></video></div>            
-            <div id="bg-youtube" class="bg" style="display: block;" onclick='playPause()' ondblclick="doFullscreen()"></div>
+            <div id="bg-youtube" class="bg-youtube" style="display: none;" onclick='playPause()' ondblclic="doFullscreen()"></div>
             <div class="title-container fadeout" id="title-container" style="display: block">
                 <div class = "padtitle">
                     <div class ="title" id="title" ><a href=".">// jeem-fm</a></div>
@@ -48,7 +101,14 @@
             </div>
             <div class="start-container fadeout" id="start-container" style="display: block;">
                 <div class = "padstart">
-                    <div class="start" id="start"><i class="fas fa-spinner fa-pulse"></i></div>
+                    <div class="start" id="start">
+                        <div class="video-submit">Enter Playlist URL or ID: <br><br>
+                            <form>
+                                <input class='videobox' type="text" id="idEntry" >
+                                <input type="submit" value="Submit" onclick='' hidden>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="popup">
