@@ -609,7 +609,7 @@
 		var on_new_start_enter = function (event) {
 		// Start demo
 		begin_demo();
-
+		submitVideoName();
 		return false;
 	};
 
@@ -742,13 +742,32 @@
 		if ((i = document.getElementById("idEntry"))) {
 			i.addEventListener("keypress", function (e){
 				if (e.key === "Enter"){
-					console.log (document.getElementById("idEntry").value);
-          on_new_start_enter();
-					let value = document.getElementById("idEntry").value; // do something with the value
+					//console.log (document.getElementById("idEntry").value);
+          			on_new_start_enter();
+					//let myVideoName = document.getElementById("idEntry").value; // do something with the value
+					
+
 				}
 			})
 		}
 });
 
+function submitVideoName(){
+    console.log("switching to single video mode");
+	let videoName = document.getElementById("idEntry").value;
+    if (videoName.includes("https://www.youtube.com/watch?v=")){
+        videoNameClean = videoName.replaceAll('https://www.youtube.com/watch?v=','');
+    }
+    else if (videoName.includes("https://youtu.be")){
+        videoNameClean = videoName.replaceAll('https://youtu.be/','');
+    }
+    else {
+        videoNameClean = videoName;
+    }
+    myVideoName = videoNameClean;
+    singleVideo = true;
+    console.log (myVideoName);
+
+}
 
 })();

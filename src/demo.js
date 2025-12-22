@@ -1,3 +1,7 @@
+var myVideoName;
+var singleVideo = false;
+
+
 var Demo = (function () {
 	"use strict";
 
@@ -6,8 +10,10 @@ var Demo = (function () {
 			list, iframe, i, n1, n2, n3, n4, n5;
 
 		this.container = document.querySelector(".demo_region");
-
-		this.default_video = "";
+		if (myVideoName != null)
+			this.default_video = myVideoName;
+		else
+			this.default_video = "";
 		this.default_playlists = [
 			[ null ]
 		];
@@ -134,7 +140,7 @@ var Demo = (function () {
 
 		// Setup loading
 		list = [//{
-			[ "Video ID:", "video id", "r-qhj3sJ5qs", Player.prototype.load_video, this.player, [null, true, null, null, null] ],
+			[ "Video ID:", "video id", "", Player.prototype.load_video, this.player, [null, true, null, null, null] ],
 			[ "Video URL:", "video url", "https://www.youtube.com/embed/r-qhj3sJ5qs", Player.prototype.load_video_from_url, this.player, [null, true, null, null, null] ],
 			[ "Playlist Custom:", "video ids", "r-qhj3sJ5qs,xwg2Hpf4ta8", Demo.prototype.load_custom_playlist, this, [ null ] ],
 			[ "Playlist ID:", "playlist id", "UUI4fJYWKcGa8MvnvLw0qysQ", Player.prototype.load_playlist, this.player, [null, "playlist", 0, true, null, null] ],

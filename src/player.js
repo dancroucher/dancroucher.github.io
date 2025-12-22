@@ -70,7 +70,7 @@ var genreIndex;
 var youtubeIndex = 1;
 var fadeTime = 3000;
 
-let singleVideo = false;
+//let singleVideo = false;
 let playing = false;
 let starting = true;
 let playerReady = false;
@@ -866,6 +866,7 @@ function submitVideoName(){
     }
     console.log(videoNameClean);
     doVideoName();
+
 }
 
 
