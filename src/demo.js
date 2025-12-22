@@ -14,7 +14,7 @@ var Demo = (function () {
 		if (myVideoName != null)
 			this.default_video = myVideoName;
 		else
-			this.default_video = "";
+			this.default_video = "Msm7B15G0hY";
 		this.default_playlists = [
 			[ null ]
 		];
