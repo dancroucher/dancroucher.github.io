@@ -1,35 +1,36 @@
-var songName = document.getElementById('song-name'); // element where track name appears
-var songAuthor = document.getElementById('song-author'); // element where track artist appears
-var songURL = document.getElementById('song-url'); // element where track url appears
-// var genre = document.querySelector('.genre-name'); // 
-var info = document.querySelector('.info'); // background display type
-var backgroundType = document.getElementById('background-type'); // type of background
-var backgroundName = document.getElementById('background-name'); // filename of background
-var backgroundAuto = document.getElementById('background-auto'); // background auto change or not
-var mp4background =  document.getElementById('mp4-background');
-var mp4altbackground =  document.getElementById('mp4-alt-background');
-// var gifbackground =  document.getElementById('gif-background');
 
-var song = document.querySelector('#song'); // audio object
-//var playlistName = document.getElementById('genre-name');
-var genreNumber = document.getElementById('genre-number');
-var genreNumberNext = document.getElementById('genre-number-next');
-var genreNumberPrev = document.getElementById('genre-number-prev');
-//var genrePlaylist = document.getElementById('genre-playlist');
-var startContainer = document.getElementById('start-container');
-var start = document.getElementById('start');
-var songContainer = document.getElementById('song-container');
-var infoContainer = document.getElementById('info-container');
-var titleContainer = document.getElementById('title-container');
-var infoButton = document.querySelector('.info-button'); // background display type
-var fullscreen = document.querySelector('.fullscreen');
-var title = document.getElementById('title'); // page/site title
-var songTitle = document.querySelector('.song-title'); // element where track title appears
-var bgTitle = document.querySelector('.bg-title'); // eleent where track title appears
-var controlsImage = document.getElementById('bottom');
-var bgmp4 = document.getElementById('bg-mp4');
-var bggif = document.getElementById('bg-gif');
-// var bgyt = document.getElementById('bg-youtube');
+const songName = document.getElementById('song-name'); // element where track name appears
+const songAuthor = document.getElementById('song-author'); // element where track artist appears
+const songURL = document.getElementById('song-url'); // element where track url appears
+// const genre = document.querySelector('.genre-name'); // 
+const info = document.querySelector('.info'); // background display type
+const backgroundType = document.getElementById('background-type'); // type of background
+const backgroundName = document.getElementById('background-name'); // filename of background
+const backgroundAuto = document.getElementById('background-auto'); // background auto change or not
+const mp4background =  document.getElementById('mp4-background');
+const mp4altbackground =  document.getElementById('mp4-alt-background');
+// const gifbackground =  document.getElementById('gif-background');
+
+const song = document.querySelector('#song'); // audio object
+//const playlistName = document.getElementById('genre-name');
+const genreNumber = document.getElementById('genre-number');
+const genreNumberNext = document.getElementById('genre-number-next');
+const genreNumberPrev = document.getElementById('genre-number-prev');
+//const genrePlaylist = document.getElementById('genre-playlist');
+const startContainer = document.getElementById('start-container');
+const start = document.getElementById('start');
+const songContainer = document.getElementById('song-container');
+const infoContainer = document.getElementById('info-container');
+const titleContainer = document.getElementById('title-container');
+const infoButton = document.querySelector('.info-button'); // background display type
+const fullscreen = document.querySelector('.fullscreen');
+const title = document.getElementById('title'); // page/site title
+const songTitle = document.querySelector('.song-title'); // element where track title appears
+const bgTitle = document.querySelector('.bg-title'); // eleent where track title appears
+const controlsImage = document.getElementById('bottom');
+const bgmp4 = document.getElementById('bg-mp4');
+const bggif = document.getElementById('bg-gif');
+// const bgyt = document.getElementById('bg-youtube');
 
 var elem = document.documentElement;
 var fullscreenbool = false;
@@ -55,7 +56,7 @@ var videoName;
 var videoPlaylistName;
 var videoPlaylistNameClean;
 var videoNameClean;
-var pPause = document.querySelector('#play-pause'); // element where play and pause image appears
+let pPause = document.querySelector('#play-pause'); // element where play and pause image appears
 var player;
 var youtubes = [];
 var videosInPlaylist = [];
@@ -70,9 +71,9 @@ var youtubeIndex = 1;
 var fadeTime = 3000;
 
 //let singleVideo = false;
-var playing = false;
-var starting = true;
-var playerReady = false;
+let playing = false;
+let starting = true;
+let playerReady = false;
 
 // var iframeElement   = document.querySelector('iframe');
 // var iframeElementID = iframeElement.id;
@@ -91,7 +92,7 @@ window.onload = function() {
     //playYoutubeVideo();
     getVideoBackgrounds();
     getAnimeBackgrounds(); 
-    getSkatingBackgrounds();
+    getSnesBackgrounds();
 
 
 }
@@ -139,91 +140,91 @@ function playPause() {
     //     starting = false;
     // }
 }
-// function getYoutubes() {
-//     var xmlhttp;
-//     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
-//         xmlhttp = new XMLHttpRequest();
-//     } else { // code for IE6, IE5
-//         xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-//     }
-//     xmlhttp.onreadystatechange = function() {
-//         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-//             var text = xmlhttp.responseText;
-//             // Now convert it into array using regex
-//             var textclean = text.replaceAll('https://www.youtube.com/watch?v=','');
-//             //youtubes = textclean.split(/\n|\r/g);
-//             youtubes = textclean.split(", ");
-//             //youtubes = textclean.split('\n'); 
-//             if (localStorage.getItem('track') == null){
-//                 youtubeIndex = 0;
-//             }
-//             else
-//             {
-//                 let myTrack = localStorage.getItem('track');
-//                 youtubeIndex = myTrack;
-//             }
-//             //player.loadVideoById(youtubes[youtubeIndex]);
-//             console.log(textclean);
-//             player.loadVideoById(textclean);
-//             UpdateTrackNumber();
-//             //playPause(); // for some reason this hides the space to start
-//         }
-//     }
-//     xmlhttp.open("GET", youtubeList_synth, true);
-//     xmlhttp.send();
-// }
+function getYoutubes() {
+    var xmlhttp;
+    if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp = new XMLHttpRequest();
+    } else { // code for IE6, IE5
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            var text = xmlhttp.responseText;
+            // Now convert it into array using regex
+            var textclean = text.replaceAll('https://www.youtube.com/watch?v=','');
+            //youtubes = textclean.split(/\n|\r/g);
+            youtubes = textclean.split(", ");
+            //youtubes = textclean.split('\n'); 
+            if (localStorage.getItem('track') == null){
+                youtubeIndex = 0;
+            }
+            else
+            {
+                let myTrack = localStorage.getItem('track');
+                youtubeIndex = myTrack;
+            }
+            //player.loadVideoById(youtubes[youtubeIndex]);
+            console.log(textclean);
+            player.loadVideoById(textclean);
+            UpdateTrackNumber();
+            //playPause(); // for some reason this hides the space to start
+        }
+    }
+    xmlhttp.open("GET", youtubeList_synth, true);
+    xmlhttp.send();
+}
 
 
 
-//     window.addEventListener('click', mouse, false);
-//     window.addEventListener('mousemove', mouse, false);
+    window.addEventListener('click', mouse, false);
+    window.addEventListener('mousemove', mouse, false);
     
-//     //check bg elemets for mouse move
-//     function mouse (event) {
-//       UpdateUI();
-//       showCursor();
-// }
+    //check bg elemets for mouse move
+    function mouse (event) {
+      UpdateUI();
+      showCursor();
+}
 
 //hide video context menu
-// mp4background.addEventListener('contextmenu', e => {
-//   e.preventDefault();
-// });
+mp4background.addEventListener('contextmenu', e => {
+  e.preventDefault();
+});
 
 
-// document.body.onkeyup = function(e){
-//         if (!/^(?:input|textarea|select|button)$/i.test(e.target.tagName)) {
-//         if(e.keyCode == 32){//space
-//             playPause();
-//         }
-//         else if(e.keyCode == 37){//left arrow
-//             previousSong();
-//         }
-//         else if(e.keyCode == 39){//right arrow
-//             nextSong();
-//         }
-//         else if(e.keyCode == 88){//x key
-//             changeBackgroundType();
-//         }
-//         else if(e.keyCode == 66){//B key
-//             changeBackground();
-//         }
-//         else if(e.keyCode == 65){//A key
-//             toggleAuto();
-//         }
-//         else if(e.keyCode == 70){//f key
-//             doFullscreen();
-//         }
-//         else if(e.keyCode == 73){//i key
-//             doPopup();
-//         }
-//         else if(e.keyCode == 80){//P keypress
-//             changePlaylist();
-//         }
-//         else if(e.keyCode == 187){//= key
-//             clearData();
-//         }
-//     }
-// }
+document.body.onkeyup = function(e){
+        if (!/^(?:input|textarea|select|button)$/i.test(e.target.tagName)) {
+        if(e.keyCode == 32){//space
+            playPause();
+        }
+        else if(e.keyCode == 37){//left arrow
+            previousSong();
+        }
+        else if(e.keyCode == 39){//right arrow
+            nextSong();
+        }
+        else if(e.keyCode == 88){//x key
+            changeBackgroundType();
+        }
+        else if(e.keyCode == 66){//B key
+            changeBackground();
+        }
+        else if(e.keyCode == 65){//A key
+            toggleAuto();
+        }
+        else if(e.keyCode == 70){//f key
+            doFullscreen();
+        }
+        else if(e.keyCode == 73){//i key
+            doPopup();
+        }
+        else if(e.keyCode == 80){//P keypress
+            changePlaylist();
+        }
+        else if(e.keyCode == 187){//= key
+            clearData();
+        }
+    }
+}
 
 
 
@@ -293,7 +294,7 @@ function getAnimeBackgrounds() {
     xmlhttp.send()
 }
 
-function getSkatingBackgrounds() {
+function getSnesBackgrounds() {
     var xmlhttp;
     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
         xmlhttp = new XMLHttpRequest();
@@ -688,6 +689,11 @@ else if (auto == true){
     }
 }
 
+
+
+
+var player;
+
 function playYoutubePlaylist() {
         player = new YT.Player('bg-youtube', {
           height: '360',
@@ -714,6 +720,17 @@ function playYoutubePlaylist() {
         });
 }
 
+
+function playNew(){
+        console.log ('wsdswee');
+        player = new Youtube.Player('bg-youtube', {
+            video_id: myVideoName,
+            http: false
+            //https: true/* true or false; setting to false uses http: embedding (may not work) */
+            //params: { /* key:value pairs of player parameters */ },
+            //on: { /* key:value pairs of event_name:callbacks */ },
+        })
+}
 
 
 function playYoutubeVideo() {
@@ -795,11 +812,11 @@ function onPlayerReady(event) {
     // }
 }
 
-// function onPlayerStateChange(event) {
-//         if (event.data == YT.PlayerState.BUFFERING) {
-//         event.target.setPlaybackQuality('hd1080');
-//     }
-// }
+function onPlayerStateChange(event) {
+        if (event.data == YT.PlayerState.BUFFERING) {
+        event.target.setPlaybackQuality('hd1080');
+    }
+}
 
 function updateProgressValue() {
     if (starting == false && playerReady == true){
@@ -810,60 +827,60 @@ function updateProgressValue() {
     
 };  
 
-// function submitVideoPlaylistName(){
-//     videoPlaylistName = document.getElementById('video-playlist-entry').value;
-//     start.innerHTML = "<div class=\"start\" id=\"start\">Enter Playlist URL or ID: <br><br><i class=\"fas fa-spinner fa-pulse\"></i></div>";
-//     //link from main playist page
-//     if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
-//         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://www.youtube.com/playlist?list=','');
-//     }
-//     //link from 1 video
-//     else if (videoPlaylistName.includes("watch?v=")){
-//         const getChar = (s, n) => s.slice(-n);
-//         const s = videoPlaylistName;
-//         videoPlaylistNameClean = (getChar(s, 34));
-//     }
-// //playlist link mobile
-//     else if (videoPlaylistName.includes("https://youtu.be")){
-//         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://youtu.be/','');
-//     }
-//     else {
-//         videoPlaylistNameClean = videoPlaylistName;
-//     }
-//     console.log(videoPlaylistNameClean);
-//     doVideoPlaylistName();
-// }
+function submitVideoPlaylistName(){
+    videoPlaylistName = document.getElementById('video-playlist-entry').value;
+    start.innerHTML = "<div class=\"start\" id=\"start\">Enter Playlist URL or ID: <br><br><i class=\"fas fa-spinner fa-pulse\"></i></div>";
+    //link from main playist page
+    if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
+        videoPlaylistNameClean = videoPlaylistName.replaceAll('https://www.youtube.com/playlist?list=','');
+    }
+    //link from 1 video
+    else if (videoPlaylistName.includes("watch?v=")){
+        const getChar = (s, n) => s.slice(-n);
+        const s = videoPlaylistName;
+        videoPlaylistNameClean = (getChar(s, 34));
+    }
+//playlist link mobile
+    else if (videoPlaylistName.includes("https://youtu.be")){
+        videoPlaylistNameClean = videoPlaylistName.replaceAll('https://youtu.be/','');
+    }
+    else {
+        videoPlaylistNameClean = videoPlaylistName;
+    }
+    console.log(videoPlaylistNameClean);
+    doVideoPlaylistName();
+}
 
-// function submitVideoName(){
-//     console.log("switching to single video mode");
-//     videoName = videoPlaylistName;
-//     //window.alert(videoName);
-//     if (videoName.includes("https://www.youtube.com/watch?v=")){
-//         videoNameClean = videoName.replaceAll('https://www.youtube.com/watch?v=','');
-//     }
-//     else if (videoName.includes("https://youtu.be")){
-//         videoNameClean = videoName.replaceAll('https://youtu.be/','');
-//     }
-//     else {
-//         videoNameClean = videoName;
-//     }
-//     console.log(videoNameClean);
-//     doVideoName();
+function submitVideoName(){
+    console.log("switching to single video mode");
+    videoName = videoPlaylistName;
+    //window.alert(videoName);
+    if (videoName.includes("https://www.youtube.com/watch?v=")){
+        videoNameClean = videoName.replaceAll('https://www.youtube.com/watch?v=','');
+    }
+    else if (videoName.includes("https://youtu.be")){
+        videoNameClean = videoName.replaceAll('https://youtu.be/','');
+    }
+    else {
+        videoNameClean = videoName;
+    }
+    console.log(videoNameClean);
+    doVideoName();
 
-// }
+}
 
 
-// function doVideoPlaylistName(){
-//         playlistName = videoPlaylistNameClean;
-//         playYoutubePlaylist();
-// }
+function doVideoPlaylistName(){
+        playlistName = videoPlaylistNameClean;
+        playYoutubePlaylist();
+}
 
-// function doVideoName(){
-//         myVideoName = videoNameClean;
-//         singleVideo = true;
-//         //playYoutubeVideo();
-//         playNew();
-// }
+function doVideoName(){
+        myVideoName = videoNameClean;
+        singleVideo = true;
+        //playYoutubeVideo();
+        playNew();
+}
  
 function doStart(){
         document.getElementById("start-container").style.display="none";
@@ -903,7 +920,7 @@ function showCursor() {
 
     clearTimeout(j);
     document.body.style.cursor = "default";
-    //songContainer.className = 'song-container fadein';
+        songContainer.className = 'song-container fadein';
     startContainer.className = 'start-container fadein';
     titleContainer.className = 'title-container fadein';
     j = setTimeout(hideCursor, fadeTime);

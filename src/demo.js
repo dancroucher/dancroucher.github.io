@@ -2,6 +2,7 @@ var myVideoName;
 var singleVideo = false;
 
 
+
 var Demo = (function () {
 	"use strict";
 
@@ -360,12 +361,18 @@ var Demo = (function () {
 
 			// Reset
 			args[modify_id] = null;
+
 		},
 
 		on_video_data_change: function (event) {
 			if (this.player.get_playlist() === null) {
 				this.node_playlist.classList.add("demo_playlist_none");
 				this.node_playlist.textContent = JSON.stringify(this.player.get_video_data(), null, 2);
+				console.log(this.player.get_video_data());
+				console.log ("starting");
+				if (starting == true){
+					doStart();
+				}
 			}
 		},
 		on_playlist_change: function (event) {
