@@ -33,18 +33,18 @@
                 <div class = "padtitle">
                     <div class ="title" id="title" ><a href=".">// jeem-fm</a></div>
                 </div>
-                <div class="song-container" id="song-container" style="display: none;">
-                    <div class = "padsong">
-                        <div class ="song-name" id="song-name"> </div><br>
-                        <div class ="song-author" id="song-author"></div><br>
-                        <!-- <i class="fas fa-spinner fa-pulse"></i></div><br> -->
-                    </div>
+            </div>
+            <div class="song-container" id="song-container" style="display: none;">
+                <div class = "padsong">
+                    <div class ="song-name" id="song-name"> </div><br>
+                    <div class ="song-author" id="song-author"></div><br>
+                    <!-- <i class="fas fa-spinner fa-pulse"></i></div><br> -->
                 </div>
                 <div class = "padinfo" id="padinfo">
                     <!-- <div class ="genre-name youtube" id="genre-name" onclick='changePlaylist()'></div> -->
                     <!-- <div class ="genre-playlist" id="genre-playlist"></div> -->
                     <!-- <div class ="genre-number" id="genre-number-prev" onclick='previousSong()'></div> -->
-                    <div class ="genre-number-nohover" id="genre-number" ></div>
+                    <div class ="genre-number-nohover" id="track-number" ></div>
                     <!-- <div class ="genre-number" id="genre-number-next" onclick='nextSong()'></div> -->
                     <div class ="background-type" id="background-type" onclick='changeBackgroundType()'></div>
                     <div class ="background-name" id="background-name" onclick='changeBackground()'></div>
@@ -66,9 +66,25 @@
 		            </div>
                 </div>
             </div>
-            <div class="main_table_full" hidden >
+        </div>
+        <div class="popup">
+            <span class="popuptext" id="myPopup" onclick='doPopup()'></span>
+      _                       ___        
+     (_)___  ___  __ _  ____ / _/__ _
+    / // -_)/ -_)/  ' \/___// _//  ' \
+ __/ / \__/ \__//_/_/_/    /_/ /_/_/_/
+|___/                                 
+
+<span id="info">
+<!-- Keys
+=== -->
+<!-- <b>Space</b> [Play / Pause] : <b>Left/Right</b> [Change Track] : <b>F</b> [Fullscreen] : <b>X</b> [Change Background Type] : <b>B</b> [New Background] : <b>P</b> [Change Source] : <b>A</b> [Toggle Background Autochange] : <b>=</b> [Clear Saved Prefs.] : <b>I</b> [Open/Close this Popup] -->
+
+            </span>
+        </div>
+        <div class="main_table_full" hidden >
 				<!-- <h1 id="demo"><span class="hardlink_text">Demo<a class="hardlink" href="#demo"></a></span></h1> -->
-			
+				<p>
 					<div class="demo_region_preload demo_region_preload_visible">
 						<!-- <span class="script_enabled">
 							To begin the demo, <a href="#demo" class="light_underline" id="demo_start"><span>click here</span></a>.
@@ -84,10 +100,11 @@
 								<td>Playlist</td>
 							</tr> -->
 							<tr class="demo_control_table_body">
-								<td><div class="demo_control_region_container"><div class="demo_control_region" id="demo_actions"></div></div></td>
-								<td><div class="demo_control_region_container" hidden><div class="demo_control_region" id="demo_playback"></div></div></td>
 								<td><div class="demo_control_region_container"><div class="demo_control_region" id="demo_loading"></div></div></td>
 								<td><div class="demo_control_region_container"><div class="demo_control_region" id="demo_playlist"></div></div></td>
+                                <td><div class="demo_control_region_container" hidden><div class="demo_control_region" id="demo_playback"></div></div></td>
+                                <td><div class="demo_control_region_container"><div class="demo_control_region" id="demo_actions"></div></div></td>
+
 							</tr>
 							<!-- <tr class="demo_control_table_header">
 								<td>State</td>
@@ -103,27 +120,12 @@
 					</div>
 
 
-			</div>
-        </div>
-        <div class="popup">
-            <span class="popuptext" id="myPopup" onclick='doPopup()'>
-      _                       ___        
-     (_)___  ___  __ _  ____ / _/__ _
-    / // -_)/ -_)/  ' \/___// _//  ' \
- __/ / \__/ \__//_/_/_/    /_/ /_/_/_/
-|___/                                 
-
-            </span>
-            <span id="info">
-            <!-- Keys
-            === -->
-            <!-- <b>Space</b> [Play / Pause] : <b>Left/Right</b> [Change Track] : <b>F</b> [Fullscreen] : <b>X</b> [Change Background Type] : <b>B</b> [New Background] : <b>P</b> [Change Source] : <b>A</b> [Toggle Background Autochange] : <b>=</b> [Clear Saved Prefs.] : <b>I</b> [Open/Close this Popup] -->
-            </span>
-        </div>
-        <script>
-            let text = document.lastModified;
-            document.getElementById("info").innerHTML = text;
-        </script>
-                <script type="text/javascript" src="src/youtube_iframe_api.js"></script>
+		</div> 
+<script type="text/javascript" src="src/player.js"></script>
+<script type="text/javascript" src="src/youtube_iframe_api.js"></script>
+<script>
+let text = document.lastModified;
+document.getElementById("info").innerHTML = text;
+</script>
     </body>
 </html>

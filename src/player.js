@@ -488,6 +488,8 @@ function UpdateTrackNumber(){
         //console.log(player.getVideoData().playlist)
         //document.getElementById("song-author").className = 'song-author';
         // songName.innerHTML = songTitle;
+        // songAuthor.innerHTML = songChannel;
+        // songName.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
         // songAuthor.innerHTML = "<a href='"+player.getVideoUrl()+"'target='_blank'>"+songChannel+"</a>";
        //playlistName.innerHTML = "<i class='fab fa-youtube'></i>&nbsp;"+(songChannel);
         localStorage.setItem('track', youtubeIndex);
