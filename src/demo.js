@@ -53,7 +53,7 @@ var Demo = (function () {
 		this.node_padinfo = document.getElementById("padinfo");
 		this.node_songTitle = document.getElementById('song-name'); // element where track name appears
 		this.node_songAuthor = document.getElementById('song-author'); // element where track artist appears
-		this.node_trackNumber = document.getElementById('track-number'); // element where track number in a playlsit appears
+
 
 
 
@@ -128,15 +128,43 @@ var songName =
 			// Playlist fwd and back buttons
 			list = [//{
 				["<<", this.player, Player.prototype.goto_previous],
-				["0 / 0", this.player, Player.prototype.goto_next],
-				[">>", this.player, Player.prototype.goto_next],
-
-				
 			];//}
 			for (i = 0; i < list.length; ++i) {
 				n1 = document.createElement("div");
 				n1.className = "genre-number";
-				n1.id = "genre-number";
+				n1.setAttribute("id", "genre-number");
+				n2 = document.createElement("a");
+				n2.className = "genre-number-link";
+				n2.textContent = list[i][0];
+				n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
+				n1.appendChild(n2);
+
+				this.node_padinfo.appendChild(n1);
+			}
+						// Playlist fwd and back buttons
+			list = [//{
+				["", this.player, null],
+			];//}
+			for (i = 0; i < list.length; ++i) {
+				n1 = document.createElement("div");
+				n1.className = "genre-number-nohover";
+				n1.setAttribute("id", "track-number");
+				//n2 = document.createElement("a");
+				//n2.className = "genre-number-link";
+				//n2.textContent = list[i][0];
+				//n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
+				//n1.appendChild(n2);
+
+				this.node_padinfo.appendChild(n1);
+			}
+						// Playlist fwd and back buttons
+			list = [//{
+				[">>", this.player, Player.prototype.goto_next],
+
+			];//}
+			for (i = 0; i < list.length; ++i) {
+				n1 = document.createElement("div");
+				n1.className = "genre-number";
 				n1.setAttribute("id", "genre-number");
 				n2 = document.createElement("a");
 				n2.className = "genre-number-link";
@@ -317,7 +345,15 @@ var songName =
 			songAuthor = (this.player.get_video_data().author)
         	this.node_songTitle.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
 			this.node_songAuthor.innerHTML = songAuthor;
-        	this.node_trackNumber.innerHTML = (JSON.stringify(this.player.get_playlist_index(), null, 2))+"&nbsp;/&nbsp;"+(this.player.get_playlist.length);
+			var playlist = this.player.get_playlist(),
+				n1, n2, video_id, i;
+			if (playlist === null) {
+				// No playlist
+				this.on_video_data_change();
+				return;
+			}
+			this.node_trackNumber = document.getElementById('track-number'); // element where track number in a playlist appears
+        	this.node_trackNumber.innerHTML = (JSON.stringify(this.player.get_playlist_index() + 1)+"&nbsp;/&nbsp;"+(playlist.length));
 			
 			// var videoData = JSON.stringify(this.player.get_video_data(), null, 2);
 			// var title = videoData['title'];
@@ -325,7 +361,7 @@ var songName =
 			// var video_id = videoData['video_id'];
 			// var author = videoData['author'];
 			//console.log(this.player.get_video_data());
-			UpdateTrackNumber();
+			//UpdateTrackNumber();
 		},
 		on_api_change: function (event) {
 			this.node_extended_api.value = JSON.stringify(this.player.get_api(), null, 2);
