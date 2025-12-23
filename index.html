@@ -77,9 +77,9 @@
 				<h1 id="demo"><span class="hardlink_text">Demo<a class="hardlink" href="#demo"></a></span></h1>
 				<p>
 					<div class="demo_region_preload demo_region_preload_visible">
-						<span class="script_enabled">
+						<!-- <span class="script_enabled">
 							To begin the demo, <a href="#demo" class="light_underline" id="demo_start"><span>click here</span></a>.
-						</span>
+						</span> -->
 					</div>
 					<div class="demo_region">
 						<!-- <div class="demo_iframe_container_size"><div class="demo_iframe_container"></div></div> -->
@@ -120,7 +120,7 @@
  __/ / \__/ \__//_/_/_/    /_/ /_/_/_/
 |___/                                 
 
-<p id="demo"></p>
+<span id="info"></span>
 <!-- Keys
 === -->
 <!-- <b>Space</b> [Play / Pause] : <b>Left/Right</b> [Change Track] : <b>F</b> [Fullscreen] : <b>X</b> [Change Background Type] : <b>B</b> [New Background] : <b>P</b> [Change Source] : <b>A</b> [Toggle Background Autochange] : <b>=</b> [Clear Saved Prefs.] : <b>I</b> [Open/Close this Popup] -->
@@ -133,7 +133,7 @@
 <script type="text/javascript" src="src/youtube_iframe_api.js"></script>
 <script>
 let text = document.lastModified;
-document.getElementById("demo").innerHTML = text;
+document.getElementById("info").innerHTML = text;
 </script>
     </body>
 </html>
