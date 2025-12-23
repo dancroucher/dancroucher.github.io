@@ -228,17 +228,17 @@ a:active {
     color:  rgba(250,249,246,1);
   }
     .info-button {
-    display: none;
     color:  rgba(250,249,246,0.9);
-    float: right;
+    display: inline-block;
     clear: both;
-    align-content: right;
     line-height: 1.5em;
     padding-bottom: 0px;
     padding-top: 4px;
     padding-left: 8px;
     padding-right: 8px;
     background-color: rgba(0, 0, 0, 0.3);
+    width: fit-content;
+    text-align: center;
 
   }
 

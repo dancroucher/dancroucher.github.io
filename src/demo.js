@@ -1,7 +1,7 @@
 var myVideoName;
 var myVideoPlaylistName;
 var songTitle;
-var songChannel;
+var songAuthor;
 
 
 var Demo = (function () {
@@ -51,7 +51,13 @@ var Demo = (function () {
 		this.node_log = document.getElementById("demo_log");
 		this.node_iframe_container = document.querySelector(".bg-youtube");
 		this.node_padinfo = document.getElementById("padinfo");
+		this.node_songTitle = document.getElementById('song-name'); // element where track name appears
+		this.node_songAuthor = document.getElementById('song-author'); // element where track artist appears
+		this.node_trackNumber = document.getElementById('track-number'); // element where track number in a playlsit appears
 
+
+
+var songName = 
 
 		// Setup event logging
 		this.log_max = 50;
@@ -87,22 +93,22 @@ var Demo = (function () {
 			["Play", this.player, Player.prototype.play],
 			["Pause", this.player, Player.prototype.pause],
 			["Stop", this.player, Player.prototype.stop],
-			["Clear", this.player, Player.prototype.clear],
-			["Mute", this.player, Player.prototype.mute],
-			["Unmute", this.player, Player.prototype.unmute],
-			["Next in Playlist", this.player, Player.prototype.goto_next],
-			["Previous in Playlist", this.player, Player.prototype.goto_previous],
-			["Set Volume 0%", this.player, Player.prototype.set_volume, 0],
-			["Set Volume 50%", this.player, Player.prototype.set_volume, 50],
-			["Set Volume 100%", this.player, Player.prototype.set_volume, 100],
-			["Seek To 0%", this, Demo.prototype.seek_to, 0.0],
-			["Seek To 50%", this, Demo.prototype.seek_to, 0.5],
-			["Seek To 100%", this, Demo.prototype.seek_to, 1.0],
-			["Enable Playlist Loop", this.player, Player.prototype.set_loop, true],
-			["Disable Playlist Loop", this.player, Player.prototype.set_loop, false],
-			["Enable Playlist Shuffle", this.player, Player.prototype.set_shuffle, true],
-			["Disable Playlist Shuffle", this.player, Player.prototype.set_shuffle, false],
-			["Destroy Player", this.player, Player.prototype.destroy],
+			// ["Clear", this.player, Player.prototype.clear],
+			// ["Mute", this.player, Player.prototype.mute],
+			// ["Unmute", this.player, Player.prototype.unmute],
+			// ["Next in Playlist", this.player, Player.prototype.goto_next],
+			// ["Previous in Playlist", this.player, Player.prototype.goto_previous],
+			// ["Set Volume 0%", this.player, Player.prototype.set_volume, 0],
+			// ["Set Volume 50%", this.player, Player.prototype.set_volume, 50],
+			// ["Set Volume 100%", this.player, Player.prototype.set_volume, 100],
+			// ["Seek To 0%", this, Demo.prototype.seek_to, 0.0],
+			// ["Seek To 50%", this, Demo.prototype.seek_to, 0.5],
+			// ["Seek To 100%", this, Demo.prototype.seek_to, 1.0],
+			// ["Enable Playlist Loop", this.player, Player.prototype.set_loop, true],
+			// ["Disable Playlist Loop", this.player, Player.prototype.set_loop, false],
+			// ["Enable Playlist Shuffle", this.player, Player.prototype.set_shuffle, true],
+			// ["Disable Playlist Shuffle", this.player, Player.prototype.set_shuffle, false],
+			// ["Destroy Player", this.player, Player.prototype.destroy],
 		];//}
 		for (i = 0; i < list.length; ++i) {
 			n1 = document.createElement("div");
@@ -117,10 +123,12 @@ var Demo = (function () {
 			this.node_actions.appendChild(n1);
 		}
 
+
 		if (!singleVideo){
-			// New actions
+			// Playlist fwd and back buttons
 			list = [//{
 				["<<", this.player, Player.prototype.goto_previous],
+				["0 / 0", this.player, Player.prototype.goto_next],
 				[">>", this.player, Player.prototype.goto_next],
 
 				
@@ -148,6 +156,7 @@ var Demo = (function () {
 			["Load Progress", "progress", Player.prototype.get_loaded_fraction, Demo.prototype.format_percent, null],
 			["Volume", "volume_change", Player.prototype.get_volume, Demo.prototype.format_volume, null],
 			["Muted", "volume_change", Player.prototype.is_muted, Demo.prototype.format_boolean, null],
+			// ["Index", "state_change", Player.prototype.get_playlist_index, Demo.prototype.format_integer, null],
 		];//}
 		for (i = 0; i < list.length; ++i) {
 			n1 = document.createElement("div");
@@ -175,10 +184,10 @@ var Demo = (function () {
 		list = [//{
 			[ "Video ID:", "video id", "", Player.prototype.load_video, this.player, [null, true, null, null, null] ],
 			[ "Video URL:", "video url", "https://www.youtube.com/embed/r-qhj3sJ5qs", Player.prototype.load_video_from_url, this.player, [null, true, null, null, null] ],
-			[ "Playlist Custom:", "video ids", "r-qhj3sJ5qs,xwg2Hpf4ta8", Demo.prototype.load_custom_playlist, this, [ null ] ],
+			// [ "Playlist Custom:", "video ids", "r-qhj3sJ5qs,xwg2Hpf4ta8", Demo.prototype.load_custom_playlist, this, [ null ] ],
 			[ "Playlist ID:", "playlist id", "UUI4fJYWKcGa8MvnvLw0qysQ", Player.prototype.load_playlist, this.player, [null, "playlist", 0, true, null, null] ],
-			[ "User Uploads:", "user uploads", "crnaviofficial", Player.prototype.load_playlist, this.player, [null, "user_uploads", 0, true, null, null] ],
-			[ "Search Query:", "search results", "WORLD ORDER MACHINE CIVILIZATION", Player.prototype.load_playlist, this.player, [null, "search", 0, true, null, null] ],
+			// [ "User Uploads:", "user uploads", "crnaviofficial", Player.prototype.load_playlist, this.player, [null, "user_uploads", 0, true, null, null] ],
+			// [ "Search Query:", "search results", "WORLD ORDER MACHINE CIVILIZATION", Player.prototype.load_playlist, this.player, [null, "search", 0, true, null, null] ],
 		];//}
 		for (i = 0; i < list.length; ++i) {
 			n1 = document.createElement("div");
@@ -305,9 +314,10 @@ var Demo = (function () {
 
 			node.textContent = value;
 			songTitle = (this.player.get_video_data().title);
-			songChannel = (this.player.get_video_data().author)
-	
-		
+			songAuthor = (this.player.get_video_data().author)
+        	this.node_songTitle.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
+			this.node_songAuthor.innerHTML = songAuthor;
+        	this.node_trackNumber.innerHTML = (JSON.stringify(this.player.get_playlist_index(), null, 2))+"&nbsp;/&nbsp;"+(this.player.get_playlist.length);
 			
 			// var videoData = JSON.stringify(this.player.get_video_data(), null, 2);
 			// var title = videoData['title'];
