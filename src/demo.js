@@ -1,6 +1,8 @@
 var myVideoName;
+var myVideoPlaylistName;
 var singleVideo = false;
-
+var songTitle;
+var songChannel;
 
 
 var Demo = (function () {
@@ -11,13 +13,21 @@ var Demo = (function () {
 			list, iframe, i, n1, n2, n3, n4, n5;
 
 		this.container = document.querySelector(".demo_region");
-		if (myVideoName != null)
+		if (myVideoName != null){
 			this.default_video = myVideoName;
-		else
-			this.default_video = "Msm7B15G0hY";
+		}
+		else{
+		this.default_video = "";
+		}
+	
+		if (myVideoPlaylistName != null){
+		this.default_playlists = myVideoPlaylistName;
+		}	
+		else{
 		this.default_playlists = [
 			[ null ]
 		];
+		}
 
 		this.player = new Player({
 			video_id: this.default_video,
@@ -227,6 +237,8 @@ var Demo = (function () {
 
 		// Event date start
 		this.init_date = new Date();
+
+	
 	};
 
 
@@ -234,6 +246,8 @@ var Demo = (function () {
 	Demo.prototype = {
 		constructor: Demo,
 
+
+		
 		on_ready_state_setup: function (state_vars, event) {
 			var i, sv;
 
@@ -268,6 +282,26 @@ var Demo = (function () {
 			var value = formatter.call(this, getter.call(this.player));
 
 			node.textContent = value;
+			songTitle = (this.player.get_video_data().title);
+			songChannel = (this.player.get_video_data().author)
+			if (starting == true && (myVideoName != null || myVideoPlaylistName != null)){
+					//console.log(myVideoPlaylistName);
+					this.on_loading_start_new.bind(this.player.load_playlist ("UUI4fJYWKcGa8MvnvLw0qysQ", null, null, false, null, null)), false;
+					//this.player.load_playlist ("UUI4fJYWKcGa8MvnvLw0qysQ", "playlist", 0, true, null, null);
+					//this.player.goto_next();
+			}
+			else{
+				//this.player.goto_next();
+			}
+		
+			
+			// var videoData = JSON.stringify(this.player.get_video_data(), null, 2);
+			// var title = videoData['title'];
+			// console.log (this.player.get_video_data().title);
+			// var video_id = videoData['video_id'];
+			// var author = videoData['author'];
+			//console.log(this.player.get_video_data());
+			UpdateTrackNumber();
 		},
 		on_api_change: function (event) {
 			this.node_extended_api.value = JSON.stringify(this.player.get_api(), null, 2);
@@ -368,12 +402,19 @@ var Demo = (function () {
 			if (this.player.get_playlist() === null) {
 				this.node_playlist.classList.add("demo_playlist_none");
 				this.node_playlist.textContent = JSON.stringify(this.player.get_video_data(), null, 2);
-				console.log(this.player.get_video_data());
-				console.log ("starting");
+				// if (myVideoPlaylistName !== null){
+				// 	//console.log(myVideoPlaylistName);
+				// 	this.player.load_playlist ("UUI4fJYWKcGa8MvnvLw0qysQ", null, 0, false, null, null);
+				// 	this.player.goto_next();
+				// 	// this.player.play();
+				// }
 				if (starting == true){
 					doStart();
+					//this.player.goto_next();
 				}
+
 			}
+		
 		},
 		on_playlist_change: function (event) {
 			// Add new
@@ -527,9 +568,24 @@ var Demo = (function () {
 
 	};
 
-
+	function playPause() {
+		if (starting == false){
+			if (playing == false) {
+				playing = true;
+				this.player.play();
+				mp4background.play();
+			}
+			else if (playing == true) {
+				playing = false;
+				this.player.pause();
+				mp4background.pause();
+			}
+		}
+	}
 
 	return Demo;
+
+
 
 })();
 

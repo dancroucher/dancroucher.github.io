@@ -593,25 +593,42 @@
 		}
 	};
 
-	var on_demo_start_click = function (event) {
+	var on_demo_start_video_click = function (event) {
 		// Start demo
+		submitVideoName();
 		begin_demo();
-
 		// Update URL
 		nav.go(this.getAttribute("href") || "", true);
-
 		// Stop click
 		event.preventDefault();
 		event.stopPropagation();
 		return false;
 	};
 
-		var on_new_start_enter = function (event) {
+	var on_demo_start_playlist_click = function (event) {
 		// Start demo
+		submitPlaylistName();
 		begin_demo();
-		submitVideoName();
+		// Update URL
+		nav.go(this.getAttribute("href") || "", true);
+		// Stop click
+		event.preventDefault();
+		event.stopPropagation();
 		return false;
 	};
+	// 	var on_new_start_enter = function (event) {
+	// 	// Start demo
+	// 	submitVideoName();
+		
+	// 	begin_demo();
+
+	// 	// Update URL
+	// 	nav.go(this.getAttribute("href") || "", true);
+	// 	// Stop click
+	// 	event.preventDefault();
+	// 	event.stopPropagation();
+	// 	return false;
+	// };
 
 	var on_doc_expand_all_click = function (event) {
 		var nodes = document.querySelectorAll(".doc_block_display_mode.doc_block_display_mode_1"),
@@ -735,21 +752,25 @@
 			i.addEventListener("click", on_doc_shrink_all_click, false);
 		}
 
-		if ((i = document.getElementById("demo_start"))) {
-			i.addEventListener("click", on_demo_start_click, false);
+		if ((i = document.getElementById("demo_start_video"))) {
+			i.addEventListener("click", on_demo_start_video_click, false);
+		}
+		if ((i = document.getElementById("demo_start_playlist"))) {
+			i.addEventListener("click", on_demo_start_playlist_click, false);
 		}
 	
-		if ((i = document.getElementById("idEntry"))) {
-			i.addEventListener("keypress", function (e){
-				if (e.key === "Enter"){
-					//console.log (document.getElementById("idEntry").value);
-          			on_new_start_enter();
-					//let myVideoName = document.getElementById("idEntry").value; // do something with the value
+		// if ((i = document.getElementById("idEntry"))) {
+		// 	i.addEventListener("keypress", function (e){
+		// 		if (e.key === "Enter"){
+		// 			//console.log (document.getElementById("idEntry").value);
+        //   			on_new_start_enter();
+		// 			//on_demo_start_click();
+		// 			//let myVideoName = document.getElementById("idEntry").value; // do something with the value
 					
 
-				}
-			})
-		}
+		// 		}
+		// 	}, false)
+		// }
 });
 
 function submitVideoName(){
@@ -770,6 +791,31 @@ function submitVideoName(){
 
 }
 
+function submitPlaylistName(){
+    console.log("switching to playlist mode");
+	let videoPlaylistName = document.getElementById("idEntryPlaylist").value;
+	if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
+        videoPlaylistNameClean = videoPlaylistName.replaceAll('https://www.youtube.com/playlist?list=','');
+    }
+    //link from 1 video
+    else if (videoPlaylistName.includes("watch?v=")){
+        const getChar = (s, n) => s.slice(-n);
+        const s = videoPlaylistName;
+        videoPlaylistNameClean = (getChar(s, 34));
+    }
+//playlist link mobile
+    else if (videoPlaylistName.includes("https://youtu.be")){
+        videoPlaylistNameClean = videoPlaylistName.replaceAll('https://youtu.be/','');
+    }
+    else {
+        videoPlaylistNameClean = videoPlaylistName;
+    }
+
+    myVideoPlaylistName = videoPlaylistNameClean;
+    singleVideo = false;
+    console.log (myVideoPlaylistName);
+
+}
 
 
 })();

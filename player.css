@@ -33,6 +33,7 @@
 body {
   margin: 0;
   background: #000000;
+  color:  rgba(250,249,246,1);
 }
 
 body, input, textarea, select, button, input {
@@ -131,8 +132,8 @@ a:active {
   z-index: 5;
 }
 .fadeout{
-  -webkit-animation: 1s ease 6s normal forwards 1 fadeout;
-  animation: 1s ease 6s normal forwards 1 fadeout;
+  /* -webkit-animation: 1s ease 6s normal forwards 1 fadeout;
+  animation: 1s ease 6s normal forwards 1 fadeout; */
 }
 
 .fadein{
@@ -186,7 +187,7 @@ a:active {
   }
 
   .song-author:hover{
-  background-color: rgba(0, 0, 0, 0.5);
+  /* background-color: rgba(0, 0, 0, 0.5); */
   }
 
   .background-name {
@@ -617,7 +618,7 @@ input[type=submit] {
 }
 
 
-@keyframes fadeout{
+/* @keyframes fadeout{
     0% { opacity:1; }
     100% { opacity:0.1; }
 }
@@ -635,7 +636,7 @@ input[type=submit] {
 @-webkit-keyframes fadein{
     0% { opacity:0.1; }
     100% { opacity:1; }
-}
+} */
 
 
 /*CRT*/
@@ -927,4 +928,71 @@ background-color: rgba(0, 0, 0, 0.6 );
 ::-webkit-scrollbar-thumb {
   border-radius: 10px;
   background: #111;
+}
+
+
+.main {
+	text-align: left;
+	display: inline-block;
+	width: 60em;
+	vertical-align: middle;
+  	padding: 0;
+	margin: 0;
+	border: none;
+	color: #ffffff;
+	background-color: #b0494900;
+	font-family: Arial;
+	font-size: 16px;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	text-align: center;
+}
+.main_table {
+	display: table;
+	width: 100%;
+	position: relative;
+}
+.main.main_no_overflow {
+	overflow: hidden;
+}
+.main.body {
+	margin: 0.5em 0 4em 0;
+}
+.main.main_full {
+	width: 100%;
+}
+.main_table_full {
+	display: table-cell;
+	width: 100%;
+	vertical-align: top;
+  	color: #ffffff;
+	background-color: #b0494900;
+}
+.main_table_side {
+	display: table-cell;
+	width: 0;
+	vertical-align: top;
+}
+.main_table.main_table_nav_outer {
+	display: block;
+}
+.main_table.main_table_nav_outer>.main_table_full {
+	display: block;
+}
+.main_table.main_table_nav_outer>.main_table_side {
+	display: block;
+	position: absolute;
+	left: 100%;
+	top: 0;
+	bottom: 0;
+	width: auto;
+}
+.main_table.main_table_nav_outer.main_table_nav_left>.main_table_side {
+	display: block;
+	position: absolute;
+	left: auto;
+	right: 100%;
+	top: 0;
+	bottom: 0;
+	width: auto;
 }

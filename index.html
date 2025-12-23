@@ -36,17 +36,18 @@
             <div id="bg-start" class="bg" style="display: none;" onclick=''></div>
             <div id="bg-mp4" class="bg" style="display: none;" onclick='playPause()' ondblclick="doFullscreen()"><video preload="auto" autoplay muted playsinline loop id="mp4-background"></video></div>
             <div id="bg-mp4-alt" class="bg" style="display: none;" onclick='playPause()' ondblclick="doFullscreen()"><video preload="auto" autoplay muted playsinline loop id="mp4-alt-background"></video></div>            
-            <div id="bg-youtube" class="bg-youtube" style="display: none;" onclick='playPause()' ondblclic="doFullscreen()"></div>
-            <div class="title-container fadeout" id="title-container" style="display: block">
+            <div id="bg-youtube" class="bg-youtube" style="display: none;" onclick='playPause()'></div>
+            <div class="title-container" id="title-container" style="display: block">
                 <div class = "padtitle">
                     <div class ="title" id="title" ><a href=".">// jeem-fm</a></div>
                 </div>
-                <div class="song-container fadeout" id="song-container" style="display: none;">
+                <div class="song-container" id="song-container" style="display: none;">
                 <div class = "padsong">
                     <div class ="song-name" id="song-name"> </div><br>
                     <div class ="song-author" id="song-author"></div><br>
                     <!-- <i class="fas fa-spinner fa-pulse"></i></div><br> -->
                 </div>
+                
                 <div class = "padinfo">
                     <!-- <div class ="genre-name youtube" id="genre-name" onclick='changePlaylist()'></div> -->
                     <!-- <div class ="genre-playlist" id="genre-playlist"></div> -->
@@ -59,23 +60,27 @@
                     <div class ="info-button" onclick="doPopup()"><i class="fas fa-info-circle"></i></div>
                 </div>
             </div>
-            <div class="start-container fadeout" id="start-container" style="display: block;">
+            <div class="start-container" id="start-container" style="display: block;">
                 <div class = "padstart">
                     <div class="start" id="start">
                         <div class="video-submit">Enter Playlist URL or ID: <br><br>
                             <form>
-                                <input class='videobox' type="text" id="idEntry" placeholder="Msm7B15G0hY">
-                                <input type="submit" value="Submit" onclick='' hidden>
+                                <input class='videobox' type="text" id="idEntry" placeholder="Enter URL">
+                                <input type="submit" value="Submit" id="demo_start_video" onclick=''><br><br>
+                                <input class='videobox' type="text" id="idEntryPlaylist" placeholder="Enter Playlist URL">
+                                <input type="submit" value="Submit" id="demo_start_playlist" onclick=''>
                             </form>
                         </div>
-                        		<div class="main_table_full">
-
+		            </div>
+                </div>
+            </div>
+            <div class="main_table_full" hidden >
 				<h1 id="demo"><span class="hardlink_text">Demo<a class="hardlink" href="#demo"></a></span></h1>
 				<p>
 					<div class="demo_region_preload demo_region_preload_visible">
-						<!-- <span class="script_enabled">
+						<span class="script_enabled">
 							To begin the demo, <a href="#demo" class="light_underline" id="demo_start"><span>click here</span></a>.
-						</span> -->
+						</span>
 					</div>
 					<div class="demo_region">
 						<!-- <div class="demo_iframe_container_size"><div class="demo_iframe_container"></div></div> -->
@@ -98,7 +103,7 @@
 								<td colspan="2">Event Log</td>
 							</tr> -->
 							<tr class="demo_control_table_body">
-								<td><div class="demo_control_region_container" hidden><div class="demo_control_region" id="demo_state"></div></div></td>
+								<td><div class="demo_control_region_container" ><div class="demo_control_region" id="demo_state"></div></div></td>
 								<td hidden><div class="demo_control_region_container demo_control_region_container_full"><div class="demo_control_region"><textarea class="code_textarea" id="demo_extended_api" wrap="off" spellcheck="false" autocomplete="off" readonly></textarea></div></div></td>
 								<td colspan="2" hidden><div class="demo_control_region_container"><div class="demo_control_region" id="demo_log"></div></div></td>
 							</tr>
@@ -107,9 +112,6 @@
 				</p>
 
 			</div>
-		</div>
-                    </div>
-                </div>
             </div>
             <div class="popup">
                 <span class="popuptext" id="myPopup" onclick='doPopup()'>

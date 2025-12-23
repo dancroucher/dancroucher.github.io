@@ -67,7 +67,7 @@ var bgTypeIndex;
 var genretypes = [0,1];
 var genreIndex;
 var youtubeIndex = 1;
-var fadeTime = 3000;
+// var fadeTime = 3000;
 
 //let singleVideo = false;
 var playing = false;
@@ -109,36 +109,36 @@ document.addEventListener('DOMContentLoaded', function() {
 setInterval(updateProgressValue, 100);
 setInterval(newBackground, 16000);
 
-function playPause() {
-    if (starting == false){
-        if (playing == false) {
-            playing = true;
-            player.playVideo();
-            //if (starting == false){
-                mp4background.play();
-            //}
-        }
-        else if (playing == true) {
-            playing = false;
-            player.pauseVideo();
-            //UpdateUI();
-            mp4background.pause();
-        }
-    }
-    // else if (starting == true){
+// function playPause() {
+//     if (starting == false){
+//         if (playing == false) {
+//             playing = true;
+//             this.player.play();
+//             //if (starting == false){
+//                 mp4background.play();
+//             //}
+//         }
+//         else if (playing == true) {
+//             playing = false;
+//             this.player.pause();
+//             //UpdateUI();
+//             mp4background.pause();
+//         }
+//     }
+//     // else if (starting == true){
         
-    //     document.getElementById("start-container").style.display="none";
-    //     backgroundName.style.display="none";
-    //     document.getElementById("song-container").style.display="block";
-    //     loadBackgroundType();
-    //     loadAuto();
-    //     //loadGenreType();
-    //     //playYoutubeVideo();
-    //     changeBackground();
-    //     playYoutubePlaylist();
-    //     starting = false;
-    // }
-}
+//     //     document.getElementById("start-container").style.display="none";
+//     //     backgroundName.style.display="none";
+//     //     document.getElementById("song-container").style.display="block";
+//     //     loadBackgroundType();
+//     //     loadAuto();
+//     //     //loadGenreType();
+//     //     //playYoutubeVideo();
+//     //     changeBackground();
+//     //     playYoutubePlaylist();
+//     //     starting = false;
+//     // }
+// }
 // function getYoutubes() {
 //     var xmlhttp;
 //     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
@@ -314,35 +314,35 @@ function getSkatingBackgrounds() {
 }
 
 
-function infoSlide() {
-    // if (infoOpen == true){
-    // //slide away
-    //   setTimeout(function(){
-    //         UpdateUI();
-    //         infoContainer.className = 'info-container-out';
-    //         infoButton.className = 'info-button-out';
-    //         infoButton.innerHTML = "<span class='info-button-out' id='info-button' onclick='infoSlide()'><i class='far fa-question-circle'></i></span>";
-    //         //term.classList.remove('term-focus');
-    //     }, 0);
-    //     setTimeout(function(){ 
-    //         infoContainer.className = 'info-container fadeout';
-    //         infoButton.className = 'info-button';
-    //         infoOpen = false;
-    //     }, 1000);
-    // }
-    // else {
-    // //slide open
-    //   setTimeout(function(){
-    //         UpdateUI();
-    //         infoContainer.className = 'info-container-in';
-    //         infoButton.className = 'info-button-in';
-    //         infoButton.innerHTML = "<span class='info-button-in' id='info-button'onclick='infoSlide()'><i class='far fa-question-circle'></i></span>";
-    //         infoOpen = true;
-    //         //fauxInput.focus();
-    //         //term.classList.add('term-focus');
-    //     }, 0);
-    // }
-}
+// function infoSlide() {
+//     // if (infoOpen == true){
+//     // //slide away
+//     //   setTimeout(function(){
+//     //         UpdateUI();
+//     //         infoContainer.className = 'info-container-out';
+//     //         infoButton.className = 'info-button-out';
+//     //         infoButton.innerHTML = "<span class='info-button-out' id='info-button' onclick='infoSlide()'><i class='far fa-question-circle'></i></span>";
+//     //         //term.classList.remove('term-focus');
+//     //     }, 0);
+//     //     setTimeout(function(){ 
+//     //         infoContainer.className = 'info-container fadeout';
+//     //         infoButton.className = 'info-button';
+//     //         infoOpen = false;
+//     //     }, 1000);
+//     // }
+//     // else {
+//     // //slide open
+//     //   setTimeout(function(){
+//     //         UpdateUI();
+//     //         infoContainer.className = 'info-container-in';
+//     //         infoButton.className = 'info-button-in';
+//     //         infoButton.innerHTML = "<span class='info-button-in' id='info-button'onclick='infoSlide()'><i class='far fa-question-circle'></i></span>";
+//     //         infoOpen = true;
+//     //         //fauxInput.focus();
+//     //         //term.classList.add('term-focus');
+//     //     }, 0);
+//     // }
+// }
 
 function loadBackgroundType() {
     if (localStorage.getItem('backtype') == null){
@@ -486,15 +486,15 @@ function UpdateTrackNumber(){
         var trackNumber = youtubeIndex;
         genreNumberPrev.innerHTML = "<<";
         // genreNumberPrev.innerHTML = "<i class='fas fa-file-image'></i>";
-        genreNumber.innerHTML = (trackNumber)+"&nbsp;/&nbsp;"+(videosInPlaylist.length);
+        //genreNumber.innerHTML = (trackNumber)+"&nbsp;/&nbsp;"+(videosInPlaylist.length);
         genreNumberNext.innerHTML = ">>";
-        var songTitle = player.getVideoData().title;
-        var songChannel = player.getVideoData().author;
         //var playlistName = player.title;
         //console.log(player.getVideoData().playlist)
         document.getElementById("song-author").className = 'song-author';
-        songName.innerHTML = "<a href='"+player.getVideoUrl()+"'target='_blank'>"+songTitle+"</a>";
-        songAuthor.innerHTML = "<a href='"+player.getVideoUrl()+"'target='_blank'>"+songChannel+"</a>";
+        // songName.innerHTML = songTitle;
+        songAuthor.innerHTML = songChannel;
+        songName.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
+        // songAuthor.innerHTML = "<a href='"+player.getVideoUrl()+"'target='_blank'>"+songChannel+"</a>";
        //playlistName.innerHTML = "<i class='fab fa-youtube'></i>&nbsp;"+(songChannel);
         localStorage.setItem('track', youtubeIndex);
         localStorage.getItem('track');
@@ -746,54 +746,54 @@ function doPopup() {
   popup.classList.toggle("show");
 }
 
-function onPlayerReadyPlaylist(event) {
-    console.log ('onplayereadyplaylist');
-    player.setPlaybackQuality("hd1080");
-    player.setVolume(100);
-    event.target.playVideo();
-    player.playVideo();
-    videosInPlaylist = player.getPlaylist();
-    //console.log(videosInPlaylist);
-    if (videosInPlaylist != null){
-        playerReady = true;
-        if (starting == true){
-            doStart();
-        }
-    }
-    else{
-        singleVideo = true;
-        submitVideoName();
-    }
-    // else{
-    //     console.log("invalid ID");
-    //     start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br>Invalid ID!</div>";
-    //     location.reload();
-    //     //alert("invalid ID");
-    // }
-}//PLZAH1CMN7BNTA0BOgOJLOHIFIAitFYYy0
+// function onPlayerReadyPlaylist(event) {
+//     console.log ('onplayereadyplaylist');
+//     player.setPlaybackQuality("hd1080");
+//     player.setVolume(100);
+//     event.target.playVideo();
+//     player.playVideo();
+//     videosInPlaylist = player.getPlaylist();
+//     //console.log(videosInPlaylist);
+//     if (videosInPlaylist != null){
+//         playerReady = true;
+//         if (starting == true){
+//             doStart();
+//         }
+//     }
+//     else{
+//         singleVideo = true;
+//         submitVideoName();
+//     }
+//     // else{
+//     //     console.log("invalid ID");
+//     //     start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br>Invalid ID!</div>";
+//     //     location.reload();
+//     //     //alert("invalid ID");
+//     // }
+// }//PLZAH1CMN7BNTA0BOgOJLOHIFIAitFYYy0
 
-function onPlayerReady(event) {
-    console.log ('onplayeready');
-    player.setPlaybackQuality("hd1080");
-    player.setVolume(100);
-    event.target.playVideo();
-    player.playVideo();
-    // if (player.getVideoUrl() != null){
-    //             console.log("youtube");
+// function onPlayerReady(event) {
+//     console.log ('onplayeready');
+//     player.setPlaybackQuality("hd1080");
+//     player.setVolume(100);
+//     event.target.playVideo();
+//     player.playVideo();
+//     // if (player.getVideoUrl() != null){
+//     //             console.log("youtube");
 
-        playerReady = true;
-        if (starting == true){
-            doStart();
-        }
-    // }
-    // else{
-    //     console.log("invalid ID");
-    //     // document.getElementById('video-playlist-entry').value = "Invalid ID";
-    //     start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br>Invalid ID!</div>";
-    //     location.reload();
-    //     //alert("invalid ID");
-    // }
-}
+//         playerReady = true;
+//         if (starting == true){
+//             doStart();
+//         }
+//     // }
+//     // else{
+//     //     console.log("invalid ID");
+//     //     // document.getElementById('video-playlist-entry').value = "Invalid ID";
+//     //     start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br>Invalid ID!</div>";
+//     //     location.reload();
+//     //     //alert("invalid ID");
+//     // }
+// }
 
 // function onPlayerStateChange(event) {
 //         if (event.data == YT.PlayerState.BUFFERING) {
@@ -879,33 +879,35 @@ function doStart(){
         loadAuto();
         //changeBackground();
         UpdateBackgroundName();
+        UpdateTrackNumber();
         UpdateUI();
         starting = false;
+        UpdateTrackNumber();
 }
 
-var justHidden = false;
-var j;target="_blank";
+// var justHidden = false;
+// var j;target="_blank";
 
-function hideCursor() {
-  document.body.style.cursor = "none";
-    songContainer.className = 'song-container fadeout';
-    startContainer.className = 'start-container fadeout';
-    titleContainer.className = 'title-container fadeout';
-  justHidden = true;
-  setTimeout(function() {
-    justHidden = false;
-  }, 500);
-}
+// function hideCursor() {
+//   document.body.style.cursor = "none";
+//     songContainer.className = 'song-container fadeout';
+//     startContainer.className = 'start-container fadeout';
+//     titleContainer.className = 'title-container fadeout';
+//   justHidden = true;
+//   setTimeout(function() {
+//     justHidden = false;
+//   }, 500);
+// }
 
-function showCursor() {
-  if (!justHidden) {
-    justHidden = false;
+// function showCursor() {
+//   if (!justHidden) {
+//     justHidden = false;
 
-    clearTimeout(j);
-    document.body.style.cursor = "default";
-    //songContainer.className = 'song-container fadein';
-    startContainer.className = 'start-container fadein';
-    titleContainer.className = 'title-container fadein';
-    j = setTimeout(hideCursor, fadeTime);
-  }
-};
+//     clearTimeout(j);
+//     document.body.style.cursor = "default";
+//     //songContainer.className = 'song-container fadein';
+//     startContainer.className = 'start-container fadein';
+//     titleContainer.className = 'title-container fadein';
+//     j = setTimeout(hideCursor, fadeTime);
+//   }
+// };
