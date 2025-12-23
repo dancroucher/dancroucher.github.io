@@ -1,3 +1,5 @@
+var songName = document.getElementById('song-name'); // element where track name appears
+var songAuthor = document.getElementById('song-author'); // element where track artist appears
 var songURL = document.getElementById('song-url'); // element where track url appears
 // var genre = document.querySelector('.genre-name'); // 
 var info = document.querySelector('.info'); // background display type
@@ -5,7 +7,7 @@ var backgroundType = document.getElementById('background-type'); // type of back
 var backgroundName = document.getElementById('background-name'); // filename of background
 var backgroundAuto = document.getElementById('background-auto'); // background auto change or not
 var mp4background =  document.getElementById('mp4-background');
-// var mp4altbackground =  document.getElementById('mp4-alt-background');
+var mp4altbackground =  document.getElementById('mp4-alt-background');
 // var gifbackground =  document.getElementById('gif-background');
 
 var song = document.querySelector('#song'); // audio object
@@ -486,8 +488,10 @@ function UpdateTrackNumber(){
         //genreNumberNext.innerHTML = ">>";
         //var playlistName = player.title;
         //console.log(player.getVideoData().playlist)
-        //document.getElementById("song-author").className = 'song-author';
+        document.getElementById("song-author").className = 'song-author';
         // songName.innerHTML = songTitle;
+        // songAuthor.innerHTML = songChannel;
+        // songName.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
         // songAuthor.innerHTML = "<a href='"+player.getVideoUrl()+"'target='_blank'>"+songChannel+"</a>";
        //playlistName.innerHTML = "<i class='fab fa-youtube'></i>&nbsp;"+(songChannel);
         localStorage.setItem('track', youtubeIndex);
@@ -861,7 +865,7 @@ function updateProgressValue() {
  
 function doStart(){
         document.getElementById("start-container").style.display="none";
-        //backgroundName.style.display="none";
+        backgroundName.style.display="none";
         document.getElementById("song-container").style.display="block";
         // if (singleVideo == true)
         // {
