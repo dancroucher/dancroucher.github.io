@@ -1,5 +1,5 @@
-var songName = document.getElementById('song-name'); // element where track name appears
-var songAuthor = document.getElementById('song-author'); // element where track artist appears
+
+
 var songURL = document.getElementById('song-url'); // element where track url appears
 // var genre = document.querySelector('.genre-name'); // 
 var info = document.querySelector('.info'); // background display type
@@ -488,10 +488,8 @@ function UpdateTrackNumber(){
         //genreNumberNext.innerHTML = ">>";
         //var playlistName = player.title;
         //console.log(player.getVideoData().playlist)
-        document.getElementById("song-author").className = 'song-author';
+        //document.getElementById("song-author").className = 'song-author';
         // songName.innerHTML = songTitle;
-        songAuthor.innerHTML = songChannel;
-        songName.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
         // songAuthor.innerHTML = "<a href='"+player.getVideoUrl()+"'target='_blank'>"+songChannel+"</a>";
        //playlistName.innerHTML = "<i class='fab fa-youtube'></i>&nbsp;"+(songChannel);
         localStorage.setItem('track', youtubeIndex);

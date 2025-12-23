@@ -1,7 +1,7 @@
 var myVideoName;
 var myVideoPlaylistName;
 var songTitle;
-var songChannel;
+var songAuthor;
 
 
 var Demo = (function () {
@@ -51,7 +51,11 @@ var Demo = (function () {
 		this.node_log = document.getElementById("demo_log");
 		this.node_iframe_container = document.querySelector(".bg-youtube");
 		this.node_padinfo = document.getElementById("padinfo");
+		this.node_songTitle = document.getElementById('song-name'); // element where track name appears
+		this.node_songAuthor = document.getElementById('song-author'); // element where track artist appears
 
+
+var songName = 
 
 		// Setup event logging
 		this.log_max = 50;
@@ -305,9 +309,9 @@ var Demo = (function () {
 
 			node.textContent = value;
 			songTitle = (this.player.get_video_data().title);
-			songChannel = (this.player.get_video_data().author)
-	
-		
+			songAuthor = (this.player.get_video_data().author)
+        	this.node_songTitle.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
+			this.node_songAuthor.innerHTML = songAuthor;
 			
 			// var videoData = JSON.stringify(this.player.get_video_data(), null, 2);
 			// var title = videoData['title'];
