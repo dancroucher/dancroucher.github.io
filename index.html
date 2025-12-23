@@ -15,7 +15,7 @@
         <script src="src/player.js"></script>
         <script src="src/script.js"></script>
         <script src="src/demo.js"></script>
-        <script type="text/javascript" src="src/youtube_iframe_api.js"></script>
+
         <script src="https://kit.fontawesome.com/c71940ba40.js" crossorigin="anonymous"></script>
         <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
         <script src="https://unpkg.com/jquery.terminal/js/jquery.terminal.min.js"></script>
@@ -34,10 +34,11 @@
                     <div class ="title" id="title" ><a href=".">// jeem-fm</a></div>
                 </div>
                 <div class="song-container" id="song-container" style="display: none;">
-                <div class = "padsong">
-                    <div class ="song-name" id="song-name"> </div><br>
-                    <div class ="song-author" id="song-author"></div><br>
-                    <!-- <i class="fas fa-spinner fa-pulse"></i></div><br> -->
+                    <div class = "padsong">
+                        <div class ="song-name" id="song-name"> </div><br>
+                        <div class ="song-author" id="song-author"></div><br>
+                        <!-- <i class="fas fa-spinner fa-pulse"></i></div><br> -->
+                    </div>
                 </div>
                 <div class = "padinfo" id="padinfo">
                     <!-- <div class ="genre-name youtube" id="genre-name" onclick='changePlaylist()'></div> -->
@@ -67,7 +68,7 @@
             </div>
             <div class="main_table_full" hidden >
 				<!-- <h1 id="demo"><span class="hardlink_text">Demo<a class="hardlink" href="#demo"></a></span></h1> -->
-				<p>
+			
 					<div class="demo_region_preload demo_region_preload_visible">
 						<!-- <span class="script_enabled">
 							To begin the demo, <a href="#demo" class="light_underline" id="demo_start"><span>click here</span></a>.
@@ -95,12 +96,12 @@
 							</tr> -->
 							<tr class="demo_control_table_body">
 								<td><div class="demo_control_region_container" ><div class="demo_control_region" id="demo_state"></div></div></td>
-								<td hidden><div class="demo_control_region_container demo_control_region_container_full"><div class="demo_control_region"><textarea class="code_textarea" id="demo_extended_api" wrap="off" spellcheck="false" autocomplete="off" readonly></textarea></div></div></td>
+								<!-- <td hidden><div class="demo_control_region_container demo_control_region_container_full"><div class="demo_control_region"><textarea class="code_textarea" id="demo_extended_api" wrap="off" spellcheck="false" autocomplete="off" readonly></textarea></div></div></td> -->
 								<td colspan="2" hidden><div class="demo_control_region_container"><div class="demo_control_region" id="demo_log"></div></div></td>
 							</tr>
 						</tbody></table>
 					</div>
-				</p>
+
 
 			</div>
         </div>
@@ -112,7 +113,8 @@
  __/ / \__/ \__//_/_/_/    /_/ /_/_/_/
 |___/                                 
 
-            <p id="info"></p>
+            </span>
+            <span id="info">
             <!-- Keys
             === -->
             <!-- <b>Space</b> [Play / Pause] : <b>Left/Right</b> [Change Track] : <b>F</b> [Fullscreen] : <b>X</b> [Change Background Type] : <b>B</b> [New Background] : <b>P</b> [Change Source] : <b>A</b> [Toggle Background Autochange] : <b>=</b> [Clear Saved Prefs.] : <b>I</b> [Open/Close this Popup] -->
@@ -122,5 +124,6 @@
             let text = document.lastModified;
             document.getElementById("info").innerHTML = text;
         </script>
+                <script type="text/javascript" src="src/youtube_iframe_api.js"></script>
     </body>
 </html>
