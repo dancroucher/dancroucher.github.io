@@ -57,6 +57,8 @@ var Demo = (function () {
 
 
 
+
+
 var songName = 
 
 		// Setup event logging
