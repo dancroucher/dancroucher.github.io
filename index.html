@@ -34,9 +34,9 @@
     <body >
         <div class="crt noselect">
             <div id="bg-start" class="bg" style="display: none;" onclick=''></div>
-            <div id="bg-mp4" class="bg" style="display: none;" onclick='playPause()' ondblclick="doFullscreen()"><video preload="auto" autoplay muted playsinline loop id="mp4-background"></video></div>
-            <div id="bg-mp4-alt" class="bg" style="display: none;" onclick='playPause()' ondblclick="doFullscreen()"><video preload="auto" autoplay muted playsinline loop id="mp4-alt-background"></video></div>            
-            <div id="bg-youtube" class="bg-youtube" style="display: none;" onclick='playPause()'></div>
+            <div id="bg-mp4" class="bg" style="display: none;" onclick='' ondblclick="doFullscreen()"><video preload="auto" autoplay muted playsinline loop id="mp4-background"></video></div>
+            <!-- <div id="bg-mp4-alt" class="bg" style="display: none;" onclick='' ondblclick="doFullscreen()"><video preload="auto" autoplay muted playsinline loop id="mp4-alt-background"></video></div>             -->
+            <div id="bg-youtube" class="bg-youtube" style="display: none;" onclick=''></div>
             <div class="title-container" id="title-container" style="display: block">
                 <div class = "padtitle">
                     <div class ="title" id="title" ><a href=".">// jeem-fm</a></div>
@@ -47,13 +47,12 @@
                     <div class ="song-author" id="song-author"></div><br>
                     <!-- <i class="fas fa-spinner fa-pulse"></i></div><br> -->
                 </div>
-                
-                <div class = "padinfo">
+                <div class = "padinfo" id="padinfo">
                     <!-- <div class ="genre-name youtube" id="genre-name" onclick='changePlaylist()'></div> -->
                     <!-- <div class ="genre-playlist" id="genre-playlist"></div> -->
-                    <div class ="genre-number" id="genre-number-prev" onclick='previousSong()'></div>
+                    <!-- <div class ="genre-number" id="genre-number-prev" onclick='previousSong()'></div> -->
                     <div class ="genre-number-nohover" id="genre-number" ></div>
-                    <div class ="genre-number" id="genre-number-next" onclick='nextSong()'></div>
+                    <!-- <div class ="genre-number" id="genre-number-next" onclick='nextSong()'></div> -->
                     <div class ="background-type" id="background-type" onclick='changeBackgroundType()'></div>
                     <div class ="background-name" id="background-name" onclick='changeBackground()'></div>
                     <div class ="background-name" id="background-auto" onclick='toggleAuto()' style="display: none;"></div>

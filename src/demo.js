@@ -1,6 +1,5 @@
 var myVideoName;
 var myVideoPlaylistName;
-var singleVideo = false;
 var songTitle;
 var songChannel;
 
@@ -14,14 +13,14 @@ var Demo = (function () {
 
 		this.container = document.querySelector(".demo_region");
 		if (myVideoName != null){
-			this.default_video = myVideoName;
+			this.default_video = "";
 		}
 		else{
 		this.default_video = "";
 		}
 	
 		if (myVideoPlaylistName != null){
-		this.default_playlists = myVideoPlaylistName;
+		this.default_playlists = "";
 		}	
 		else{
 		this.default_playlists = [
@@ -51,6 +50,7 @@ var Demo = (function () {
 		this.node_extended_api = document.getElementById("demo_extended_api");
 		this.node_log = document.getElementById("demo_log");
 		this.node_iframe_container = document.querySelector(".bg-youtube");
+		this.node_padinfo = document.getElementById("padinfo");
 
 
 		// Setup event logging
@@ -117,6 +117,28 @@ var Demo = (function () {
 			this.node_actions.appendChild(n1);
 		}
 
+		if (!singleVideo){
+			// New actions
+			list = [//{
+				["<<", this.player, Player.prototype.goto_previous],
+				[">>", this.player, Player.prototype.goto_next],
+
+				
+			];//}
+			for (i = 0; i < list.length; ++i) {
+				n1 = document.createElement("div");
+				n1.className = "genre-number";
+				n1.id = "genre-number";
+				n1.setAttribute("id", "genre-number");
+				n2 = document.createElement("a");
+				n2.className = "genre-number-link";
+				n2.textContent = list[i][0];
+				n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
+				n1.appendChild(n2);
+
+				this.node_padinfo.appendChild(n1);
+			}
+		}
 
 		// Setup state
 		list = [//{
@@ -284,15 +306,7 @@ var Demo = (function () {
 			node.textContent = value;
 			songTitle = (this.player.get_video_data().title);
 			songChannel = (this.player.get_video_data().author)
-			if (starting == true && (myVideoName != null || myVideoPlaylistName != null)){
-					//console.log(myVideoPlaylistName);
-					this.on_loading_start_new.bind(this.player.load_playlist ("UUI4fJYWKcGa8MvnvLw0qysQ", null, null, false, null, null)), false;
-					//this.player.load_playlist ("UUI4fJYWKcGa8MvnvLw0qysQ", "playlist", 0, true, null, null);
-					//this.player.goto_next();
-			}
-			else{
-				//this.player.goto_next();
-			}
+	
 		
 			
 			// var videoData = JSON.stringify(this.player.get_video_data(), null, 2);
@@ -402,17 +416,20 @@ var Demo = (function () {
 			if (this.player.get_playlist() === null) {
 				this.node_playlist.classList.add("demo_playlist_none");
 				this.node_playlist.textContent = JSON.stringify(this.player.get_video_data(), null, 2);
-				// if (myVideoPlaylistName !== null){
-				// 	//console.log(myVideoPlaylistName);
-				// 	this.player.load_playlist ("UUI4fJYWKcGa8MvnvLw0qysQ", null, 0, false, null, null);
-				// 	this.player.goto_next();
-				// 	// this.player.play();
-				// }
-				if (starting == true){
-					doStart();
-					//this.player.goto_next();
-				}
+		
+				if (starting == true ) {
+					if (singleVideo == false){
+						//this.on_loading_start_new.bind(this.player.load_playlist ("UUI4fJYWKcGa8MvnvLw0qysQ", null, null, false, null, null)), false;
+						this.player.load_playlist (myVideoPlaylistName, "playlist", 0, true, null, null);
+						doStart();
 
+					}
+					else if (singleVideo == true){
+						this.player.load_video (myVideoName, true, null, null, null);
+						doStart();
+					}
+
+				}
 			}
 		
 		},
@@ -568,20 +585,20 @@ var Demo = (function () {
 
 	};
 
-	function playPause() {
-		if (starting == false){
-			if (playing == false) {
-				playing = true;
-				this.player.play();
-				mp4background.play();
-			}
-			else if (playing == true) {
-				playing = false;
-				this.player.pause();
-				mp4background.pause();
-			}
-		}
-	}
+	// function playPause() {
+	// 	if (starting == false){
+	// 		if (playing == false) {
+	// 			playing = true;
+	// 			this.player.play();
+	// 			mp4background.play();
+	// 		}
+	// 		else if (playing == true) {
+	// 			playing = false;
+	// 			this.player.pause();
+	// 			mp4background.pause();
+	// 		}
+	// 	}
+	// }
 
 	return Demo;
 

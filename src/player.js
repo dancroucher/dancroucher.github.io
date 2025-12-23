@@ -13,8 +13,6 @@ var mp4altbackground =  document.getElementById('mp4-alt-background');
 var song = document.querySelector('#song'); // audio object
 //var playlistName = document.getElementById('genre-name');
 var genreNumber = document.getElementById('genre-number');
-var genreNumberNext = document.getElementById('genre-number-next');
-var genreNumberPrev = document.getElementById('genre-number-prev');
 //var genrePlaylist = document.getElementById('genre-playlist');
 var startContainer = document.getElementById('start-container');
 var start = document.getElementById('start');
@@ -484,10 +482,10 @@ function changePlaylist(){
 function UpdateTrackNumber(){
         //var trackNumber = parseInt(youtubeIndex, 10);
         var trackNumber = youtubeIndex;
-        genreNumberPrev.innerHTML = "<<";
+        //genreNumberPrev.innerHTML = "<<";
         // genreNumberPrev.innerHTML = "<i class='fas fa-file-image'></i>";
         //genreNumber.innerHTML = (trackNumber)+"&nbsp;/&nbsp;"+(videosInPlaylist.length);
-        genreNumberNext.innerHTML = ">>";
+        //genreNumberNext.innerHTML = ">>";
         //var playlistName = player.title;
         //console.log(player.getVideoData().playlist)
         document.getElementById("song-author").className = 'song-author';
@@ -871,9 +869,7 @@ function doStart(){
         document.getElementById("song-container").style.display="block";
         if (singleVideo == true)
         {
-            genreNumberPrev.style.display="none";
             genreNumber.style.display="none";
-            genreNumberNext.style.display="none";
         }
         loadBackgroundType();
         loadAuto();
@@ -882,7 +878,6 @@ function doStart(){
         UpdateTrackNumber();
         UpdateUI();
         starting = false;
-        UpdateTrackNumber();
 }
 
 // var justHidden = false;

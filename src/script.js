@@ -1,5 +1,4 @@
-
-
+var singleVideo = false;
 (function () {
 	"use strict";
 
@@ -596,7 +595,13 @@
 	var on_demo_start_video_click = function (event) {
 		// Start demo
 		submitVideoName();
-		begin_demo();
+		var regexp = /^[a-zA-Z0-9_]+$/i;
+		if (regexp.test(myVideoName)){
+			begin_demo();
+		}
+		else{
+			console.log("invalid video ID");
+		}
 		// Update URL
 		nav.go(this.getAttribute("href") || "", true);
 		// Stop click
@@ -608,9 +613,36 @@
 	var on_demo_start_playlist_click = function (event) {
 		// Start demo
 		submitPlaylistName();
-		begin_demo();
+		var regexp = /^[a-zA-Z0-9_]+$/i;
+		if (regexp.test(myVideoPlaylistName)){
+			begin_demo();
+		}
+		else{
+			console.log("invalid playlist ID");
+		}
 		// Update URL
 		nav.go(this.getAttribute("href") || "", true);
+		// Stop click
+		event.preventDefault();
+		event.stopPropagation();
+		return false;
+	};
+
+		var on_play_pause_click = function (event) {
+		if (starting == false){
+			if (playing == false) {
+				playing = true;
+				demo.this.player.play();
+				mp4background.play();
+			}
+			else if (playing == true) {
+				playing = false;
+				this.player.pause();
+				mp4background.pause();
+			}
+		}
+		console.log("play / pause");
+	
 		// Stop click
 		event.preventDefault();
 		event.stopPropagation();
@@ -758,7 +790,9 @@
 		if ((i = document.getElementById("demo_start_playlist"))) {
 			i.addEventListener("click", on_demo_start_playlist_click, false);
 		}
-	
+		if ((i = document.getElementById("bg-mp4"))) {
+			i.addEventListener("click", on_play_pause_click, false);
+		}
 		// if ((i = document.getElementById("idEntry"))) {
 		// 	i.addEventListener("keypress", function (e){
 		// 		if (e.key === "Enter"){
@@ -775,6 +809,7 @@
 
 function submitVideoName(){
     console.log("switching to single video mode");
+	singleVideo = true;
 	let videoName = document.getElementById("idEntry").value;
     if (videoName.includes("https://www.youtube.com/watch?v=")){
         videoNameClean = videoName.replaceAll('https://www.youtube.com/watch?v=','');
@@ -786,13 +821,13 @@ function submitVideoName(){
         videoNameClean = videoName;
     }
     myVideoName = videoNameClean;
-    singleVideo = true;
-    console.log (myVideoName);
+    console.log ("video ID is " + myVideoName);
 
 }
 
 function submitPlaylistName(){
     console.log("switching to playlist mode");
+	singleVideo = false;
 	let videoPlaylistName = document.getElementById("idEntryPlaylist").value;
 	if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://www.youtube.com/playlist?list=','');
@@ -812,8 +847,9 @@ function submitPlaylistName(){
     }
 
     myVideoPlaylistName = videoPlaylistNameClean;
-    singleVideo = false;
-    console.log (myVideoPlaylistName);
+	
+
+    console.log ("Playlist ID is " + myVideoPlaylistName);
 
 }
 
