@@ -632,12 +632,12 @@ var singleVideo = false;
 		if (starting == false){
 			if (playing == false) {
 				playing = true;
-				demo.this.player.play();
+				//this.player.play();
 				mp4background.play();
 			}
 			else if (playing == true) {
 				playing = false;
-				this.player.pause();
+				//this.player.pause();
 				mp4background.pause();
 			}
 		}
