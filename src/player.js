@@ -867,10 +867,10 @@ function doStart(){
         document.getElementById("start-container").style.display="none";
         backgroundName.style.display="none";
         document.getElementById("song-container").style.display="block";
-        if (singleVideo == true)
-        {
-            genreNumber.style.display="none";
-        }
+        // if (singleVideo == true)
+        // {
+        //     genreNumber.style.display="none";
+        // }
         loadBackgroundType();
         loadAuto();
         //changeBackground();
