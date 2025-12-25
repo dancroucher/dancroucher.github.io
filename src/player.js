@@ -105,13 +105,13 @@ window.onload = function() {
 // }, false);
 
 
-function run(){
-    const time = getTime();
-    console.log(time);
-    setTimeout(run, 0);
-    //requestAnimationFrame(run);
-}
-run();
+// function run(frameTime){
+//     //const time = getTime();
+//     console.log(frameTime);
+//     //setTimeout(run, 0);
+//     requestAnimationFrame(run);
+// }
+// run();
 // setInterval(updateProgressValue, 100);
 // setInterval(function () {console.log("yo")}, 1000);
 
