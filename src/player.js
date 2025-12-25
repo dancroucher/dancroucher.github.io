@@ -95,24 +95,32 @@ window.onload = function() {
 }
 
 //landing screen
-document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function(){
-    //mp4background.play();
-    // start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><form name=\"idEntry\" target=\"#here\" method=\"post\"><input class='videobox' type=\"text\" id=\"video-playlist-entry\" name=\"video-playlist-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoName()' hidden></form></div>";
-    //backgroundAuto.style.display="none";
-    // start.appendChild(idEntry);
-    }, 0);
-}, false);
+// document.addEventListener('DOMContentLoaded', function() {
+//         setTimeout(function(){
+//     //mp4background.play();
+//     // start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><form name=\"idEntry\" target=\"#here\" method=\"post\"><input class='videobox' type=\"text\" id=\"video-playlist-entry\" name=\"video-playlist-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoName()' hidden></form></div>";
+//     //backgroundAuto.style.display="none";
+//     // start.appendChild(idEntry);
+//     }, 0);
+// }, false);
 
-setInterval(updateProgressValue, 100);
-setInterval(newBackground, 16000);
+
+function run(){
+    const time = getTime();
+    console.log(time);
+    setTimeout(run, 0);
+    //requestAnimationFrame(run);
+}
+run();
+// setInterval(updateProgressValue, 100);
+// setInterval(function () {console.log("yo")}, 1000);
 
 // function playPause() {
 //     if (starting == false){
 //         if (playing == false) {
 //             playing = true;
 //             this.player.play();
-//             //if (starting == false){
+//             //if (starting == aflse){
 //                 mp4background.play();
 //             //}
 //         }
@@ -481,14 +489,14 @@ function changePlaylist(){
 
 function UpdateTrackNumber(){
         //var trackNumber = parseInt(youtubeIndex, 10);
-        var trackNumber = youtubeIndex;
+        //var trackNumber = youtubeIndex;
         //genreNumberPrev.innerHTML = "<<";
         // genreNumberPrev.innerHTML = "<i class='fas fa-file-image'></i>";
         //genreNumber.innerHTML = (trackNumber)+"&nbsp;/&nbsp;"+(videosInPlaylist.length);
         //genreNumberNext.innerHTML = ">>";
         //var playlistName = player.title;
         //console.log(player.getVideoData().playlist)
-        document.getElementById("song-author").className = 'song-author';
+        //document.getElementById("song-author").className = 'song-author';
         // songName.innerHTML = songTitle;
         // songAuthor.innerHTML = songChannel;
         // songName.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
@@ -537,46 +545,49 @@ function clearData() {
     localStorage.clear();
 }
 
-function newBackground() {
-    if (auto == true && playing == true){
-        changeBackground();
-    }   
-}
+// function newBackground() {
+//     if (auto == true && playing == true){
+//         changeBackground();
+//     }   
+// }
 
 function changeBackground() {
-    if (bgTypeIndex == 2){
-        videobackgroundIndex++;
-        if (videobackgroundIndex > videobackgroundsMax) {
-            videobackgroundIndex = 0;
-        };
-        var text = videobackgrounds[videobackgroundIndex];
-        var textclean = text.replace(/^/,'./assets/video/video/');
+    console.log("change background");
+    if (playing){
+        if (bgTypeIndex == 2){
+            videobackgroundIndex++;
+            if (videobackgroundIndex > videobackgroundsMax) {
+                videobackgroundIndex = 0;
+            };
+            var text = videobackgrounds[videobackgroundIndex];
+            var textclean = text.replace(/^/,'./assets/video/video/');
 
-        mp4background.src = textclean;
-        localStorage.setItem('background', videobackgroundIndex);
+            mp4background.src = textclean;
+            localStorage.setItem('background', videobackgroundIndex);
+        }
+        else if (bgTypeIndex == 1){
+            animebackgroundIndex++;
+            if (animebackgroundIndex > animebackgroundsMax) {
+                animebackgroundIndex = 0;
+            };
+            var text = animebackgrounds[animebackgroundIndex];
+            var textclean = text.replace(/^/,'./assets/video/anime/');
+            mp4background.src = textclean;
+            localStorage.setItem('background', animebackgroundIndex);
+        }
+        else if (bgTypeIndex == 0){
+            skatingbackgroundIndex++;
+            if (skatingbackgroundIndex > skatingbackgroundsMax) {
+                skatingbackgroundIndex = 0;
+            };
+            var text = skatingbackgrounds[skatingbackgroundIndex];
+            var textclean = text.replace(/^/,'./assets/video/skating/');
+            mp4background.src = textclean;
+            localStorage.setItem('background', skatingbackgroundIndex);
+        }
+        localStorage.getItem('background');
+        UpdateBackgroundName();
     }
-    else if (bgTypeIndex == 1){
-        animebackgroundIndex++;
-        if (animebackgroundIndex > animebackgroundsMax) {
-            animebackgroundIndex = 0;
-        };
-        var text = animebackgrounds[animebackgroundIndex];
-        var textclean = text.replace(/^/,'./assets/video/anime/');
-        mp4background.src = textclean;
-        localStorage.setItem('background', animebackgroundIndex);
-    }
-    else if (bgTypeIndex == 0){
-        skatingbackgroundIndex++;
-        if (skatingbackgroundIndex > skatingbackgroundsMax) {
-            skatingbackgroundIndex = 0;
-        };
-        var text = skatingbackgrounds[skatingbackgroundIndex];
-        var textclean = text.replace(/^/,'./assets/video/skating/');
-        mp4background.src = textclean;
-        localStorage.setItem('background', skatingbackgroundIndex);
-    }
-    localStorage.getItem('background');
-    UpdateBackgroundName();
 }
 
 
@@ -687,29 +698,29 @@ else if (auto == true){
 }
 
 function playYoutubePlaylist() {
-        player = new YT.Player('bg-youtube', {
-          height: '360',
-          width: '640',
-          playerVars: 
-          {
-            autoplay: 1,
-            controls: 0,
-            loop: 1,
-            disablekb: 1,
-            fs: 0,
-            iv_load_policy: 3,
-            modestbranding: 1,
-            listType:'playlist',
-            list: playlistName,
-            // list: 'PLnNfLjvDzk1CTMebS0ADSyK91Fby8vFgf', oow
-            // list: 'PLZAH1CMN7BNTQfor1FzJ018CRE2DBLSVp',//blogwave
-            index: youtubeIndex
-          },
-                  events: {
-            'onReady': onPlayerReadyPlaylist,
-            'onStateChange': onPlayerStateChange
-            }
-        });
+        // player = new YT.Player('bg-youtube', {
+        //   height: '360',
+        //   width: '640',
+        //   playerVars: 
+        //   {
+        //     autoplay: 1,
+        //     controls: 0,
+        //     loop: 1,
+        //     disablekb: 1,
+        //     fs: 0,
+        //     iv_load_policy: 3,
+        //     modestbranding: 1,
+        //     listType:'playlist',
+        //     list: playlistName,
+        //     // list: 'PLnNfLjvDzk1CTMebS0ADSyK91Fby8vFgf', oow
+        //     // list: 'PLZAH1CMN7BNTQfor1FzJ018CRE2DBLSVp',//blogwave
+        //     index: youtubeIndex
+        //   },
+        //           events: {
+        //     'onReady': onPlayerReadyPlaylist,
+        //     'onStateChange': onPlayerStateChange
+        //     }
+        // });
 }
 
 
@@ -801,8 +812,8 @@ function doPopup() {
 
 function updateProgressValue() {
     if (starting == false && playerReady == true){
-        UpdateTrackNumber();
-        UpdateUI();
+        //UpdateTrackNumber();
+        //UpdateUI();
     }
 
     
@@ -872,10 +883,10 @@ function doStart(){
         //     genreNumber.style.display="none";
         // }
         loadBackgroundType();
-        loadAuto();
+        //loadAuto();
         //changeBackground();
         UpdateBackgroundName();
-        UpdateTrackNumber();
+        //UpdateTrackNumber();
         UpdateUI();
         starting = false;
 }

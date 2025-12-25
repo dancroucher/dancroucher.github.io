@@ -56,9 +56,6 @@ var Demo = (function () {
 
 
 
-
-var songName = 
-
 		// Setup event logging
 		this.log_max = 50;
 		list = [//{
@@ -460,6 +457,7 @@ var songName =
 
 		on_video_data_change: function (event) {
 			if (this.player.get_playlist() === null) {
+				console.log("plist null");
 				this.node_playlist.classList.add("demo_playlist_none");
 				this.node_playlist.textContent = JSON.stringify(this.player.get_video_data(), null, 2);
 		
@@ -471,7 +469,7 @@ var songName =
 
 					}
 					else if (singleVideo == true){
-						this.player.load_video (myVideoName, true, null, null, null);
+						this.player.load_video (myVideoPlaylistName, true, null, null, null);
 						doStart();
 					}
 

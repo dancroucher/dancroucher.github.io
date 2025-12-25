@@ -1,4 +1,5 @@
 var singleVideo = false;
+
 (function () {
 	"use strict";
 
@@ -808,7 +809,7 @@ var singleVideo = false;
 });
 
 function submitVideoName(){
-    console.log("switching to single video mode");
+    //console.log("switching to single video mode");
 	singleVideo = true;
 	let videoName = document.getElementById("idEntry").value;
     if (videoName.includes("https://www.youtube.com/watch?v=")){
@@ -826,8 +827,8 @@ function submitVideoName(){
 }
 
 function submitPlaylistName(){
-    console.log("switching to playlist mode");
-	singleVideo = false;
+    //console.log("switching to playlist mode");
+	//singleVideo = false;
 	let videoPlaylistName = document.getElementById("idEntryPlaylist").value;
 	if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://www.youtube.com/playlist?list=','');
