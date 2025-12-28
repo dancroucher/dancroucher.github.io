@@ -807,13 +807,23 @@ function submitVideoName(){
 	let videoName = document.getElementById("idEntry").value;
 	
 	//playlist urls
-	if (videoName.includes("playlist?list=")){
+	if (videoName.includes("playlist?list=") && !videoName.includes("&si=")){
         const getChar = (s, n) => s.slice(-n);
         const s = videoName;
         videoNameClean = (getChar(s, 34));
     }
+	//playlist YT share with first track cued
+	else if (videoName.includes("playlist?list=") && videoName.includes("si=")){
+		var tempVid = videoName.substring(0,68);
+		videoNameClean = tempVid.replaceAll('https://youtube.com/playlist?list=','');
+    }
 	//pull out video id from link to 1 video within playlist 
     else if (videoName.includes("watch?v=") && videoName.includes("?list=")){
+        var tempVid = videoName.substring(0,43);
+		videoNameClean = tempVid.replaceAll('https://www.youtube.com/watch?v=','');
+    }
+	//pull out video id from link to 1 video within playlist, searhc page
+    else if (videoName.includes("watch?v=") && videoName.includes("?list=") && videoName.includes("pp=")){
         var tempVid = videoName.substring(0,43);
 		videoNameClean = tempVid.replaceAll('https://www.youtube.com/watch?v=','');
     }
@@ -827,7 +837,19 @@ function submitVideoName(){
         var tempVid = videoName.substring(0,28);
 		videoNameClean = tempVid.replaceAll('https://youtu.be/','');
     }
-	//youtube url
+	//youtube live share
+    else if (videoName.includes("https://www.youtube.com/live") && videoName.includes("si=") ){
+		var tempVid = videoName.substring(0,40);
+		// console.log(tempVid);
+        videoNameClean = tempVid.replaceAll('https://www.youtube.com/live/','');
+    }
+	//youtube from search page
+    else if (videoName.includes("https://www.youtube.com/watch?v=") && videoName.includes("pp=")){
+		var tempVid = videoName.substring(0,43);
+		console.log(tempVid);
+        videoNameClean = tempVid.replaceAll('https://www.youtube.com/watch?v=','');
+    }
+		//youtube url
     else if (videoName.includes("https://www.youtube.com/watch?v=")){
         videoNameClean = videoName.replaceAll('https://www.youtube.com/watch?v=','');
     }
