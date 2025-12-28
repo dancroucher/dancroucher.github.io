@@ -68,6 +68,7 @@ var youtubeIndex = 1;
 // var fadeTime = 3000;
 
 //let singleVideo = false;
+var singleVideo = false;
 var playing = false;
 var starting = true;
 var playerReady = false;

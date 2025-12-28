@@ -121,57 +121,59 @@ var Demo = (function () {
 		}
 
 
-		if (!singleVideo){
+		
 			// Playlist fwd and back buttons
-			list = [//{
-				["<<", this.player, Player.prototype.goto_previous],
-			];//}
-			for (i = 0; i < list.length; ++i) {
-				n1 = document.createElement("div");
-				n1.className = "genre-number";
-				n1.setAttribute("id", "genre-number");
-				n2 = document.createElement("a");
-				n2.className = "genre-number-link";
-				n2.textContent = list[i][0];
-				n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
-				n1.appendChild(n2);
+			if (!singleVideo){
+				list = [//{
+					["<<", this.player, Player.prototype.goto_previous],
+				];//}
+				for (i = 0; i < list.length; ++i) {
+					n1 = document.createElement("div");
+					n1.className = "genre-number";
+					n1.setAttribute("id", "genre-number");
+					n2 = document.createElement("a");
+					n2.className = "genre-number-link";
+					n2.textContent = list[i][0];
+					n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
+					n1.appendChild(n2);
 
-				this.node_padinfo.appendChild(n1);
+					this.node_padinfo.appendChild(n1);
+				}
+							// Playlist fwd and back buttons
+				list = [//{
+					["", this.player, null],
+				];//}
+				for (i = 0; i < list.length; ++i) {
+					n1 = document.createElement("div");
+					n1.className = "genre-number-nohover";
+					n1.setAttribute("id", "track-number");
+					//n2 = document.createElement("a");
+					//n2.className = "genre-number-link";
+					//n2.textContent = list[i][0];
+					//n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
+					//n1.appendChild(n2);
+
+					this.node_padinfo.appendChild(n1);
+				}
+							// Playlist fwd and back buttons
+				list = [//{
+					[">>", this.player, Player.prototype.goto_next],
+
+				];//}
+				for (i = 0; i < list.length; ++i) {
+					n1 = document.createElement("div");
+					n1.className = "genre-number";
+					n1.setAttribute("id", "genre-number");
+					n2 = document.createElement("a");
+					n2.className = "genre-number-link";
+					n2.textContent = list[i][0];
+					n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
+					n1.appendChild(n2);
+
+					this.node_padinfo.appendChild(n1);
+				}
 			}
-						// Playlist fwd and back buttons
-			list = [//{
-				["", this.player, null],
-			];//}
-			for (i = 0; i < list.length; ++i) {
-				n1 = document.createElement("div");
-				n1.className = "genre-number-nohover";
-				n1.setAttribute("id", "track-number");
-				//n2 = document.createElement("a");
-				//n2.className = "genre-number-link";
-				//n2.textContent = list[i][0];
-				//n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
-				//n1.appendChild(n2);
-
-				this.node_padinfo.appendChild(n1);
-			}
-						// Playlist fwd and back buttons
-			list = [//{
-				[">>", this.player, Player.prototype.goto_next],
-
-			];//}
-			for (i = 0; i < list.length; ++i) {
-				n1 = document.createElement("div");
-				n1.className = "genre-number";
-				n1.setAttribute("id", "genre-number");
-				n2 = document.createElement("a");
-				n2.className = "genre-number-link";
-				n2.textContent = list[i][0];
-				n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
-				n1.appendChild(n2);
-
-				this.node_padinfo.appendChild(n1);
-			}
-		}
+		
 
 		// Setup state
 		list = [//{
@@ -207,7 +209,7 @@ var Demo = (function () {
 
 		// Setup loading
 		list = [//{
-			[ "Video ID:", "video id", "", Player.prototype.load_video, this.player, [null, true, null, null, null] ],
+			[ "Video ID:", "video id", "HDCfV4s__Pg", Player.prototype.load_video, this.player, [null, true, null, null, null] ],
 			[ "Video URL:", "video url", "https://www.youtube.com/embed/r-qhj3sJ5qs", Player.prototype.load_video_from_url, this.player, [null, true, null, null, null] ],
 			// [ "Playlist Custom:", "video ids", "r-qhj3sJ5qs,xwg2Hpf4ta8", Demo.prototype.load_custom_playlist, this, [ null ] ],
 			[ "Playlist ID:", "playlist id", "UUI4fJYWKcGa8MvnvLw0qysQ", Player.prototype.load_playlist, this.player, [null, "playlist", 0, true, null, null] ],
@@ -457,21 +459,41 @@ var Demo = (function () {
 
 		on_video_data_change: function (event) {
 			if (this.player.get_playlist() === null) {
-				console.log("plist null");
 				this.node_playlist.classList.add("demo_playlist_none");
 				this.node_playlist.textContent = JSON.stringify(this.player.get_video_data(), null, 2);
 		
 				if (starting == true ) {
-					if (singleVideo == false){
-						//this.on_loading_start_new.bind(this.player.load_playlist ("UUI4fJYWKcGa8MvnvLw0qysQ", null, null, false, null, null)), false;
-						this.player.load_playlist (myVideoPlaylistName, "playlist", 0, true, null, null);
-						doStart();
+				// 	this.player.load_playlist (myVideoPlaylistName, "playlist", 0, true, null, null);
+				// 	var playlist = this.player.get_playlist (myVideoPlaylistName, "playlist", 0, true, null, null);
+				// 	console.log(playlist);
+				// 	if (playlist.length == null) {
+				// 		// No playlist
+				// 		
+				// 		console.log ("Single Video! ID is " + myVideoPlaylistName);
+				// 		singleVideo = true;
+				// 		doStart();
+				// 		console.log(singleVideo);
+				// 		//this.on_video_data_change();
+				// 		return;
+				// 	}
+				// 	else{
+				// 		console.log (playlist.length);
 
-					}
-					else if (singleVideo == true){
-						this.player.load_video (myVideoPlaylistName, true, null, null, null);
-						doStart();
-					}
+				// 	}
+
+
+
+
+				if (singleVideo == true){
+					//this.on_loading_start_new.bind(this.player.load_playlist ("UUI4fJYWKcGa8MvnvLw0qysQ", null, null, false, null, null)), false;
+					this.player.load_video (myVideoName, true, null, null, null);
+					doStart();
+
+				}
+				else if (singleVideo == false){
+					this.player.load_playlist (myVideoPlaylistName, "playlist", 0, true, null, null);
+					doStart();
+				}
 
 				}
 			}
