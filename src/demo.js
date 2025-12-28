@@ -2,6 +2,7 @@ var myVideoName;
 var myVideoPlaylistName;
 var songTitle;
 var songAuthor;
+var ppClicked;
 
 
 var Demo = (function () {
@@ -50,6 +51,7 @@ var Demo = (function () {
 		this.node_extended_api = document.getElementById("demo_extended_api");
 		this.node_log = document.getElementById("demo_log");
 		this.node_iframe_container = document.querySelector(".bg-youtube");
+		this.node_mp4Background = document.getElementById('bg-mp4');//panel that vids play on
 		this.node_padinfo = document.getElementById("padinfo");
 		this.node_songTitle = document.getElementById('song-name'); // element where track name appears
 		this.node_songAuthor = document.getElementById('song-author'); // element where track artist appears
@@ -115,24 +117,70 @@ var Demo = (function () {
 			n2.className = "demo_action_link";
 			n2.textContent = list[i][0];
 			n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
+			
+			//console.log((this, list[i].slice(1)), false);
 			n1.appendChild(n2);
 
 			this.node_actions.appendChild(n1);
 		}
 
+		// Custom actions
+		// list = [//{
+		// 	["Play", this.player, Player.prototype.play],
+		// 	["Pause", this.player, Player.prototype.pause],
+	
+		// ];//}
+		// 		for (i = 0; i < list.length; ++i) {
+		// 			n1 = document.createElement("input");
+		// 			n1.className = "pp-button";
+		// 			n1.type= "button";
+		// 			n2.textContent = "        ";
+		// 			n1.setAttribute("id", "play-pause");
+		// 			n1.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
+		// 			//n1.addEventListener("click", Player.prototype.pause, false);
+		// 			// n2 = document.createElement("a");
+		// 			// n2.className = "genre-number-link";
+		// 			// n2.setAttribute("id", "genre-number")
+		// 			// n2.textContent = list[i][0];
+		// 			// n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
+		// 			// n1.appendChild(n2);
 
-		
-			// Playlist fwd and back buttons
+		// 			this.node_mp4Background.appendChild(n1);
+		// }
+		// n1 = document.createElement("div");
+		// n1.className = "pp-button";
+		// n1.type = "button";
+		// n1.setAttribute("id", "play-pause");
+
+		this.node_mp4Background.addEventListener("click", () => {
+			if (playing == false) {
+				//console.log(playing);
+				this.player.play();
+				mp4background.play();
+				playing = true;
+			} else {
+				//console.log(playing);
+				this.player.pause();
+				mp4background.pause();
+				playing = false;
+			}
+		}, false);
+
+		// this.node_mp4Background.appendChild(n1);
+
+
+			// Playlist fwd button
 			if (!singleVideo){
 				list = [//{
 					["<<", this.player, Player.prototype.goto_previous],
 				];//}
 				for (i = 0; i < list.length; ++i) {
 					n1 = document.createElement("div");
-					n1.className = "genre-number";
+					n1.className = "genre";
 					n1.setAttribute("id", "genre-number");
 					n2 = document.createElement("a");
 					n2.className = "genre-number-link";
+
 					n2.textContent = list[i][0];
 					n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
 					n1.appendChild(n2);
@@ -145,7 +193,7 @@ var Demo = (function () {
 				];//}
 				for (i = 0; i < list.length; ++i) {
 					n1 = document.createElement("div");
-					n1.className = "genre-number-nohover";
+					n1.className = "genre-nohover";
 					n1.setAttribute("id", "track-number");
 					//n2 = document.createElement("a");
 					//n2.className = "genre-number-link";
@@ -155,14 +203,14 @@ var Demo = (function () {
 
 					this.node_padinfo.appendChild(n1);
 				}
-							// Playlist fwd and back buttons
+							// Playlist back button
 				list = [//{
 					[">>", this.player, Player.prototype.goto_next],
 
 				];//}
 				for (i = 0; i < list.length; ++i) {
 					n1 = document.createElement("div");
-					n1.className = "genre-number";
+					n1.className = "genre";
 					n1.setAttribute("id", "genre-number");
 					n2 = document.createElement("a");
 					n2.className = "genre-number-link";
@@ -247,6 +295,7 @@ var Demo = (function () {
 			n5.setAttribute("type", "text");
 			n5.textContent = "load";
 			n5.addEventListener("click", this.on_loading_start_new.bind(this, n4, list[i][3], list[i][4], list[i][5], 0), false);
+
 			n3.appendChild(n5);
 
 			this.node_loading.appendChild(n1);
@@ -296,7 +345,41 @@ var Demo = (function () {
 		// Event date start
 		this.init_date = new Date();
 
+		// document.getElementById('play-pause').addEventListener('click', function(event) {
+		// 	on_play_pause_click(); 
+		// 	});
+
+		var on_play_pause_click = function (event) {
+			// If you have the array [this.player, Player.prototype.play]
+			var playerArray = [this.player, Player.prototype.play];
+
+
+
+			// ppClicked = true;
+			// console.log(ppClicked);
+			// if (ppClicked == true){
+			if (playing == false) {
+				playing = true;
+				console.log(playing);
+				playerArray[1].call(playerArray[0]);
+				mp4background.play();
+			}
+			else if (playing == true) {
+				playing = false;
+				console.log(playing);
+				
+			}
+		
+		
+		
 	
+		// Stop click
+		// event.preventDefault();
+		// event.stopPropagation();
+		return false;
+	};
+		
+
 	};
 
 
@@ -338,7 +421,7 @@ var Demo = (function () {
 		},
 		on_generic_state_change: function (getter, formatter, node, event) {
 			var value = formatter.call(this, getter.call(this.player));
-
+			//console.log('state changed');
 			node.textContent = value;
 			songTitle = (this.player.get_video_data().title);
 			songAuthor = (this.player.get_video_data().author)
@@ -354,13 +437,34 @@ var Demo = (function () {
 			this.node_trackNumber = document.getElementById('track-number'); // element where track number in a playlist appears
         	this.node_trackNumber.innerHTML = (JSON.stringify(this.player.get_playlist_index() + 1)+"&nbsp;/&nbsp;"+(playlist.length));
 			
-			// var videoData = JSON.stringify(this.player.get_video_data(), null, 2);
-			// var title = videoData['title'];
-			// console.log (this.player.get_video_data().title);
-			// var video_id = videoData['video_id'];
-			// var author = videoData['author'];
-			//console.log(this.player.get_video_data());
-			//UpdateTrackNumber();
+
+// var on_play_pause_click = function (event) {
+		// if (ppClicked == true){
+		// 	if (playing == false) {
+		// 		playing = true;
+		// 		console.log(playing);
+		// 		this.player.play();
+		// 		mp4background.play();
+		// 		ppClicked = false;
+		// 	}
+		// 	else if (playing == true) {
+		// 		playing = false;
+		// 		console.log(playing);
+		// 		this.player.pause();
+		// 		mp4background.pause();
+		// 		ppClicked = false;
+		// 	}
+		// }
+// 		console.log("play / pause");
+	
+// 		// Stop click
+// 		// event.preventDefault();
+// 		// event.stopPropagation();
+// 		return false;
+// 	};
+
+
+
 		},
 		on_api_change: function (event) {
 			this.node_extended_api.value = JSON.stringify(this.player.get_api(), null, 2);
@@ -651,25 +755,11 @@ var Demo = (function () {
 
 	};
 
-	// function playPause() {
-	// 	if (starting == false){
-	// 		if (playing == false) {
-	// 			playing = true;
-	// 			this.player.play();
-	// 			mp4background.play();
-	// 		}
-	// 		else if (playing == true) {
-	// 			playing = false;
-	// 			this.player.pause();
-	// 			mp4background.pause();
-	// 		}
-	// 	}
-	// }
+
 
 	return Demo;
 
 
 
 })();
-
 

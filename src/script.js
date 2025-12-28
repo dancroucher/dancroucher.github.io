@@ -798,7 +798,7 @@ var singleVideo = false;
 		// if ((i = document.getElementById("demo_start_playlist"))) {
 		// 	i.addEventListener("click", on_demo_start_playlist_click, false);
 		// }
-		if ((i = document.getElementById("bg-mp4"))) {
+		if ((i = document.getElementById("genre-number"))) {
 			i.addEventListener("click", on_play_pause_click, false);
 		}
 });
