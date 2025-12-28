@@ -167,7 +167,7 @@ a:active {
 .title {
   color:  rgba(250,249,246,0.9);
   display: inline-block;
-  font-size: 3vw;
+  font-size: 3em;
   clear: both;    
   padding-top: 3px;
   padding-left: 6px;
@@ -179,7 +179,6 @@ a:active {
 
 
   .song-name {
-    font-size: 1vw;
     color:  rgba(250,249,246,0.9);
     display: inline-block;
     clear: both;
@@ -196,7 +195,6 @@ a:active {
   }
 
   .song-author {
-    font-size: 1vw;
     color:  rgba(250,249,246,0.9);
     display: inline-block;
     clear: both;
@@ -456,8 +454,8 @@ hr.style {
 #bg-mp4 video {
   position: fixed; 
   object-fit: cover;
-  width: 100vw;
-  height:  100vh;
+  width: 120vw;
+  height:  120vh;
   z-index: -22;
 }
 
@@ -800,7 +798,7 @@ input[type=submit] {
   bottom: 0;
   right: 0;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  z-index: 2;
+  z-index: -10;
   background-size: 100% 2px, 3px 100%;
   pointer-events: none;
 }
