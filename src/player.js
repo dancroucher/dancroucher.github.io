@@ -1,19 +1,14 @@
 var songName = document.getElementById('song-name'); // element where track name appears
 var songAuthor = document.getElementById('song-author'); // element where track artist appears
 var songURL = document.getElementById('song-url'); // element where track url appears
-// var genre = document.querySelector('.genre-name'); // 
 var info = document.querySelector('.info'); // background display type
 var backgroundType = document.getElementById('background-type'); // type of background
-var backgroundName = document.getElementById('background-name'); // filename of background
+var backgroundName = document.getElementById('background-name'); // current backgrounds name
 var backgroundAuto = document.getElementById('background-auto'); // background auto change or not
 var mp4background =  document.getElementById('mp4-background');
 var mp4altbackground =  document.getElementById('mp4-alt-background');
-// var gifbackground =  document.getElementById('gif-background');
-
 var song = document.querySelector('#song'); // audio object
-//var playlistName = document.getElementById('genre-name');
 var genreNumber = document.getElementById('genre-number');
-//var genrePlaylist = document.getElementById('genre-playlist');
 var startContainer = document.getElementById('start-container');
 var start = document.getElementById('start');
 var songContainer = document.getElementById('song-container');
@@ -65,16 +60,10 @@ var bgTypeIndex;
 var genretypes = [0,1];
 var genreIndex;
 var youtubeIndex = 1;
-// var fadeTime = 3000;
-
-//let singleVideo = false;
 
 var playing = false;
 var starting = true;
 var playerReady = false;
-
-// var iframeElement   = document.querySelector('iframe');
-// var iframeElementID = iframeElement.id;
 var widget;
 
 var csv;
@@ -82,183 +71,24 @@ var tag = document.createElement('script');
 tag.src = "https://www.youtube.com/player_api";
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-window.onload = function() {
-    //clearData();
 
-    //getYoutubes();
-    //getSoundcloud();    
-    //playYoutubeVideo();
+window.onload = function() {
+    let text = document.lastModified;
+    document.getElementById("info").innerHTML = text;
     getVideoBackgrounds();
     getAnimeBackgrounds(); 
     getSkatingBackgrounds();
-
-
 }
 
-//landing screen
-// document.addEventListener('DOMContentLoaded', function() {
-//         setTimeout(function(){
-//     //mp4background.play();
-//     // start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br><form name=\"idEntry\" target=\"#here\" method=\"post\"><input class='videobox' type=\"text\" id=\"video-playlist-entry\" name=\"video-playlist-entry\">&nbsp;&nbsp;<input type=\"submit\" value=\"Submit\" onclick='submitVideoName()' hidden></form></div>";
-//     //backgroundAuto.style.display="none";
-//     // start.appendChild(idEntry);
-//     }, 0);
-// }, false);
-
-
-// function run(frameTime){
-//     //const time = getTime();
-//     console.log(frameTime);
-//     //setTimeout(run, 0);
-//     requestAnimationFrame(run);
-// }
-// run();
-// setInterval(updateProgressValue, 100);
-// setInterval(function () {console.log("yo")}, 1000);
-
-// function playPause() {
-//     if (starting == false){
-//         if (playing == false) {
-//             playing = true;
-//             this.player.play();
-//             //if (starting == aflse){
-//                 mp4background.play();
-//             //}
-//         }
-//         else if (playing == true) {
-//             playing = false;
-//             this.player.pause();
-//             //UpdateUI();
-//             mp4background.pause();
-//         }
-//     }
-//     // else if (starting == true){
-        
-//     //     document.getElementById("start-container").style.display="none";
-//     //     backgroundName.style.display="none";
-//     //     document.getElementById("song-container").style.display="block";
-//     //     loadBackgroundType();
-//     //     loadAuto();
-//     //     //loadGenreType();
-//     //     //playYoutubeVideo();
-//     //     changeBackground();
-//     //     playYoutubePlaylist();
-//     //     starting = false;
-//     // }
-// }
-// function getYoutubes() {
-//     var xmlhttp;
-//     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
-//         xmlhttp = new XMLHttpRequest();
-//     } else { // code for IE6, IE5
-//         xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-//     }
-//     xmlhttp.onreadystatechange = function() {
-//         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-//             var text = xmlhttp.responseText;
-//             // Now convert it into array using regex
-//             var textclean = text.replaceAll('https://www.youtube.com/watch?v=','');
-//             //youtubes = textclean.split(/\n|\r/g);
-//             youtubes = textclean.split(", ");
-//             //youtubes = textclean.split('\n'); 
-//             if (localStorage.getItem('track') == null){
-//                 youtubeIndex = 0;
-//             }
-//             else
-//             {
-//                 let myTrack = localStorage.getItem('track');
-//                 youtubeIndex = myTrack;
-//             }
-//             //player.loadVideoById(youtubes[youtubeIndex]);
-//             console.log(textclean);
-//             player.loadVideoById(textclean);
-//             UpdateTrackNumber();
-//             //playPause(); // for some reason this hides the space to start
-//         }
-//     }
-//     xmlhttp.open("GET", youtubeList_synth, true);
-//     xmlhttp.send();
-// }
-
-
-
-//     window.addEventListener('click', mouse, false);
-//     window.addEventListener('mousemove', mouse, false);
-    
-//     //check bg elemets for mouse move
-//     function mouse (event) {
-//       UpdateUI();
-//       showCursor();
-// }
-
-//hide video context menu
-// mp4background.addEventListener('contextmenu', e => {
-//   e.preventDefault();
-// });
-
-
-// document.body.onkeyup = function(e){
-//         if (!/^(?:input|textarea|select|button)$/i.test(e.target.tagName)) {
-//         if(e.keyCode == 32){//space
-//             playPause();
-//         }
-//         else if(e.keyCode == 37){//left arrow
-//             previousSong();
-//         }
-//         else if(e.keyCode == 39){//right arrow
-//             nextSong();
-//         }
-//         else if(e.keyCode == 88){//x key
-//             changeBackgroundType();
-//         }
-//         else if(e.keyCode == 66){//B key
-//             changeBackground();
-//         }
-//         else if(e.keyCode == 65){//A key
-//             toggleAuto();
-//         }
-//         else if(e.keyCode == 70){//f key
-//             doFullscreen();
-//         }
-//         else if(e.keyCode == 73){//i key
-//             doPopup();
-//         }
-//         else if(e.keyCode == 80){//P keypress
-//             changePlaylist();
-//         }
-//         else if(e.keyCode == 187){//= key
-//             clearData();
-//         }
-//     }
-// }
-
-
-
-
-
-function checkVideoName(){
-    // videoName = document.getElementById("videoname").value;
-    
-    // if (videoName == null){
-    //     videobox.className = 'videobox';
-    // }
-    // if (videoName.includes("https://www.youtube.com/watch?v=")){
-    //     videoNameClean = videoName.replaceAll('https://www.youtube.com/watch?v=','');
-    //     console.log("OK!!!!!!");
-    //     videobox.className = 'videobox-ok';
-    // }
-    // else if (videoName.includes("https://youtu.be")){
-    //     videoNameClean = videoName.replaceAll('https://youtu.be/','');
-    //     console.log("OK!!!!!!");
-    //     videobox.className = 'videobox-ok';
-    // }
-    // else {
-    //     videobox.className = 'videobox-notok';
-    //     console.log("NOT OK");
-    //     // console.log(videoName);
-    // }
+function doStart(){
+        document.getElementById("start-container").style.display="none";
+        document.getElementById("song-container").style.display="block";
+        loadBackgroundType();
+        backgroundTypeCommon();
+        UpdateUI();
+        starting = false;
+        playing = true;
 }
-
 
 function getVideoBackgrounds() {
     var xmlhttp;
@@ -320,37 +150,6 @@ function getSkatingBackgrounds() {
     xmlhttp.send()
 }
 
-
-// function infoSlide() {
-//     // if (infoOpen == true){
-//     // //slide away
-//     //   setTimeout(function(){
-//     //         UpdateUI();
-//     //         infoContainer.className = 'info-container-out';
-//     //         infoButton.className = 'info-button-out';
-//     //         infoButton.innerHTML = "<span class='info-button-out' id='info-button' onclick='infoSlide()'><i class='far fa-question-circle'></i></span>";
-//     //         //term.classList.remove('term-focus');
-//     //     }, 0);
-//     //     setTimeout(function(){ 
-//     //         infoContainer.className = 'info-container fadeout';
-//     //         infoButton.className = 'info-button';
-//     //         infoOpen = false;
-//     //     }, 1000);
-//     // }
-//     // else {
-//     // //slide open
-//     //   setTimeout(function(){
-//     //         UpdateUI();
-//     //         infoContainer.className = 'info-container-in';
-//     //         infoButton.className = 'info-button-in';
-//     //         infoButton.innerHTML = "<span class='info-button-in' id='info-button'onclick='infoSlide()'><i class='far fa-question-circle'></i></span>";
-//     //         infoOpen = true;
-//     //         //fauxInput.focus();
-//     //         //term.classList.add('term-focus');
-//     //     }, 0);
-//     // }
-// }
-
 function loadBackgroundType() {
     if (localStorage.getItem('backtype') == null){
       bgTypeIndex = 1;
@@ -359,44 +158,9 @@ function loadBackgroundType() {
         let myBackType = localStorage.getItem('backtype');
         bgTypeIndex = myBackType;
     }
-    if (bgTypeIndex == 0){//skating
-       //document.getElementById("bg-gif").style.display="block";
-        document.getElementById("bg-start").style.display="none";
-        document.getElementById("bg-mp4").style.display="block";
-        // document.getElementById("bg-youtube").style.display="none";
-        // document.getElementById("background-name").style.display="none";
-        var text = skatingbackgrounds[skatingbackgroundIndex];
-        var textclean = text.replace(/^/,'./assets/video/skating/');
-        mp4background.src = textclean;
-    }
-    else if (bgTypeIndex == 1){//anime
-        //document.getElementById("bg-gif").style.display="none";
-        document.getElementById("bg-start").style.display="none";
-        document.getElementById("bg-mp4").style.display="block";
-        // document.getElementById("bg-youtube").style.display="none";
-        // document.getElementById("background-name").style.display="none";
-        var text = animebackgrounds[animebackgroundIndex];
-        var textclean = text.replace(/^/,'./assets/video/anime/');
-        mp4background.src = textclean;
-    }
-
-    else if (bgTypeIndex == 2){//video
-        //document.getElementById("bg-gif").style.display="none";
-        document.getElementById("bg-start").style.display="none";
-        document.getElementById("bg-mp4").style.display="block";
-        // document.getElementById("bg-youtube").style.display="none";
-        // document.getElementById("background-name").style.display="none";
-        var text = videobackgrounds[videobackgroundIndex];
-        var textclean = text.replace(/^/,'./assets/video/video/');
-        mp4background.src = textclean;
-
-    }
-    localStorage.setItem('backtype', bgTypeIndex);
-    localStorage.getItem('backtype');
-    mp4background.play();
-    UpdateUI();
-    UpdateBackgroundName();
+    bgmp4.style.display="block";
 }
+
 function changeBackgroundType() {
     //increment background type
     bgTypeIndex++;
@@ -404,40 +168,35 @@ function changeBackgroundType() {
     if (bgTypeIndex > backtypes.length-1) {
         bgTypeIndex = 0;
     };
+    backgroundTypeCommon();
+}
+
+function backgroundTypeCommon(){
     if (bgTypeIndex == 0){//skating
-        //document.getElementById("bg-gif").style.display="block";
-        document.getElementById("bg-start").style.display="none";
-        document.getElementById("bg-mp4").style.display="block";
-        // document.getElementById("bg-youtube").style.display="none";
-        // document.getElementById("background-name").style.display="none";
+        var typeName = "skating";
+        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
         skatingbackgroundIndex = Math.floor(Math.random() * skatingbackgroundsMax);
         var text = skatingbackgrounds[skatingbackgroundIndex];
         var textclean = text.replace(/^/,'./assets/video/skating/');
         mp4background.src = textclean;
     }
     else if (bgTypeIndex == 1){//anime
-        //document.getElementById("bg-gif").style.display="none";
-        document.getElementById("bg-start").style.display="none";
-        document.getElementById("bg-mp4").style.display="block";
-        // document.getElementById("bg-youtube").style.display="none";
-        // document.getElementById("background-name").style.display="none";
+        var typeName = "anime";
+        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
         animebackgroundIndex = Math.floor(Math.random() * animebackgroundsMax);
         var text = animebackgrounds[animebackgroundIndex];
         var textclean = text.replace(/^/,'./assets/video/anime/');
         mp4background.src = textclean;
     }
-
     else if (bgTypeIndex == 2){//video
-        //document.getElementById("bg-gif").style.display="none";
-        document.getElementById("bg-start").style.display="none";
-        document.getElementById("bg-mp4").style.display="block";
-        // document.getElementById("bg-youtube").style.display="none";
-        // document.getElementById("background-name").style.display="none";
+        var typeName = "video";
+        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
         videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
         var text = videobackgrounds[videobackgroundIndex];
         var textclean = text.replace(/^/,'./assets/video/video/');
         mp4background.src = textclean;
     }
+
     // else if (bgTypeIndex == 3){//youtube
     //     // info.innerHTML = "<span class='butt' onclick='changeBackgroundType()'>youtube</span>";
     //     document.getElementById("bg-gif").style.display="none";
@@ -449,111 +208,51 @@ function changeBackgroundType() {
     // }
     localStorage.setItem('backtype', bgTypeIndex);
     localStorage.getItem('backtype');
+    mp4background.play();
     UpdateUI();
-    UpdateBackgroundName();
 }
 
-function UpdateBackgroundName (){
-    if (bgTypeIndex == 2){//video
-        var str = videobackgrounds[videobackgroundIndex];
-        var typeName = "video";
-        // str = str.replace('.mp4','');
-        str = str.replace('./assets/video/video/','');
-        str = str.replace('.mp4','');
-        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-        backgroundName.innerHTML = str;
-        backgroundAuto.innerHTML = autoTypeName;
-    }
-    else if (bgTypeIndex == 1){//gif
-        var str = animebackgrounds[animebackgroundIndex];
-        var typeName = "anime";
-        str = str.replace('./assets/video/amime/','');
-        str = str.replace('.mp4','');
-        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-        backgroundName.innerHTML = str;
-        backgroundAuto.innerHTML = autoTypeName;
-    }
-    else if (bgTypeIndex == 0){//none
-        var str = skatingbackgrounds[skatingbackgroundIndex];
-        var typeName = "skating";
-        str = str.replace('./assets/video/skating/','');
-        str = str.replace('.mp4','');
-        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-        backgroundName.innerHTML = str;
-        backgroundAuto.innerHTML = autoTypeName;
-    }
-}
-
-function changePlaylist(){
-
-}
+// function UpdateBackgroundName (){
+//     if (bgTypeIndex == 0){//skating
+//         var str = skatingbackgrounds[skatingbackgroundIndex];
+//         var typeName = "skating";
+//         str = str.replace('./assets/video/skating/','');
+//         str = str.replace('.mp4','');
+//         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
+//         backgroundName.innerHTML = str;
+//         backgroundAuto.innerHTML = autoTypeName;
+//     }
+//     else if (bgTypeIndex == 1){//anime
+//         var str = animebackgrounds[animebackgroundIndex];
+//         var typeName = "anime";
+//         str = str.replace('./assets/video/amime/','');
+//         str = str.replace('.mp4','');
+//         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
+//         backgroundName.innerHTML = str;
+//         backgroundAuto.innerHTML = autoTypeName;
+//     }
+//     else if (bgTypeIndex == 2){//video
+//         var str = videobackgrounds[videobackgroundIndex];
+//         var typeName = "video";
+//         str = str.replace('./assets/video/video/','');
+//         str = str.replace('.mp4','');
+//         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
+//         backgroundName.innerHTML = str;
+//         backgroundAuto.innerHTML = autoTypeName;
+//     }
+// }
 
 function UpdateTrackNumber(){
-        //var trackNumber = parseInt(youtubeIndex, 10);
-        //var trackNumber = youtubeIndex;
-        //genreNumberPrev.innerHTML = "<<";
-        // genreNumberPrev.innerHTML = "<i class='fas fa-file-image'></i>";
-        //genreNumber.innerHTML = (trackNumber)+"&nbsp;/&nbsp;"+(videosInPlaylist.length);
-        //genreNumberNext.innerHTML = ">>";
-        //var playlistName = player.title;
-        //console.log(player.getVideoData().playlist)
-        //document.getElementById("song-author").className = 'song-author';
-        // songName.innerHTML = songTitle;
-        // songAuthor.innerHTML = songChannel;
-        // songName.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
-        // songAuthor.innerHTML = "<a href='"+player.getVideoUrl()+"'target='_blank'>"+songChannel+"</a>";
-       //playlistName.innerHTML = "<i class='fab fa-youtube'></i>&nbsp;"+(songChannel);
         localStorage.setItem('track', youtubeIndex);
         localStorage.getItem('track');
 }
-
-function previousSong() {
-    if (!singleVideo && youtubeIndex > 1) {
-        youtubeIndex--;
-        if (playing == false){
-            mp4background.play();
-        }
-        player.previousVideo();
-        playing = true;
-        // player.loadVideoById(youtubes[youtubeIndex]);
-        localStorage.setItem('track', youtubeIndex);
-        localStorage.getItem('track');
-    }
-    UpdateTrackNumber();
-    UpdateUI();
-}
-
-function nextSong() {
-    if (!singleVideo && youtubeIndex < videosInPlaylist.length){
-        youtubeIndex++;
-        if (playing == false){
-            mp4background.play();
-        }
-        player.nextVideo();
-        playing = true;
-        localStorage.setItem('track', youtubeIndex);
-        localStorage.getItem('track');
-    }
-    UpdateTrackNumber();
-    UpdateUI();
-}
-
-
-
-
 
 function clearData() {
     localStorage.clear();
 }
 
-// function newBackground() {
-//     if (auto == true && playing == true){
-//         changeBackground();
-//     }   
-// }
-
 function changeBackground() {
-    console.log("change background");
+    console.log("change background" + bgTypeIndex + " playing:  " + playing);
     if (playing){
         if (bgTypeIndex == 2){
             videobackgroundIndex++;
@@ -587,7 +286,7 @@ function changeBackground() {
             localStorage.setItem('background', skatingbackgroundIndex);
         }
         localStorage.getItem('background');
-        UpdateBackgroundName();
+        //UpdateBackgroundName();
     }
 }
 
@@ -609,10 +308,6 @@ function UpdateUI() {
     }, 500);
 }
 
-
-
-
-
 // convert song.currentTime and song.duration into MM:SS format
 function formatTime(seconds) {
     let min = Math.floor((seconds / 60));
@@ -623,32 +318,31 @@ function formatTime(seconds) {
     return `${min}:${sec}`;
 };
 
-
-
 function doFullscreen() {
 if (fullscreenbool == false){
       if (elem.requestFullscreen) {
         elem.requestFullscreen();
-      } else if (elem.webkitRequestFullscreen) { /* Safari */
+      }
+      else if (elem.webkitRequestFullscreen) { /* Safari */
         elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) { /* IE11 */
+      }
+      else if (elem.msRequestFullscreen) { /* IE11 */
         elem.msRequestFullscreen();
       }
       fullscreenbool = true;
-      // fullscreen.innerHTML = "<span class='butt' >&nbsp;&nbsp;on&nbsp;&nbsp;</span>";
 }
 
 else{
       if (document.exitFullscreen) {
         document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) { /* Safari */
+      }
+      else if (document.webkitExitFullscreen) { /* Safari */
         document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) { /* IE11 */
+      }
+      else if (document.msExitFullscreen) { /* IE11 */
         document.msExitFullscreen();
       }
       fullscreenbool = false;
-      // fullscreen.innerHTML = "<span class='butt' >&nbsp;&nbsp;off&nbsp;&nbsp;</span>";
-
     }
 }
 
@@ -680,7 +374,7 @@ if (auto == false){
         autoTypeName = "(auto)";
         // backgroundAuto.style.display="inline-block";
         UpdateUI();
-        UpdateBackgroundName();
+        //UpdateBackgroundName();
         auto = true;
         localStorage.setItem('auto', '1');
         localStorage.getItem('auto');
@@ -698,224 +392,39 @@ else if (auto == true){
     }
 }
 
-function playYoutubePlaylist() {
-        // player = new YT.Player('bg-youtube', {
-        //   height: '360',
-        //   width: '640',
-        //   playerVars: 
-        //   {
-        //     autoplay: 1,
-        //     controls: 0,
-        //     loop: 1,
-        //     disablekb: 1,
-        //     fs: 0,
-        //     iv_load_policy: 3,
-        //     modestbranding: 1,
-        //     listType:'playlist',
-        //     list: playlistName,
-        //     // list: 'PLnNfLjvDzk1CTMebS0ADSyK91Fby8vFgf', oow
-        //     // list: 'PLZAH1CMN7BNTQfor1FzJ018CRE2DBLSVp',//blogwave
-        //     index: youtubeIndex
-        //   },
-        //           events: {
-        //     'onReady': onPlayerReadyPlaylist,
-        //     'onStateChange': onPlayerStateChange
-        //     }
-        // });
-}
-
-
-
-function playYoutubeVideo() {
-    console.log(myVideoName);
-    player = new YT.Player('bg-youtube', {
-        height: '360',
-        width: '640',
-        videoId: myVideoName,
-        playerVars: {
-            autoplay: 1,
-            controls: 0,
-            loop: 1,
-            disablekb: 1,
-            fs: 0,
-            iv_load_policy: 3,
-            modestbranding: 1,
-        },
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
-        }
-    });
-    // UpdateTrackNumber();
-    // UpdateUI();
-}
-
 
 function doPopup() {
   var popup = document.getElementById("myPopup");
   popup.classList.toggle("show");
 }
-
-// function onPlayerReadyPlaylist(event) {
-//     console.log ('onplayereadyplaylist');
-//     player.setPlaybackQuality("hd1080");
-//     player.setVolume(100);
-//     event.target.playVideo();
-//     player.playVideo();
-//     videosInPlaylist = player.getPlaylist();
-//     //console.log(videosInPlaylist);
-//     if (videosInPlaylist != null){
-//         playerReady = true;
-//         if (starting == true){
-//             doStart();
-//         }
-//     }
-//     else{
-//         singleVideo = true;
-//         submitVideoName();
-//     }
-//     // else{
-//     //     console.log("invalid ID");
-//     //     start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br>Invalid ID!</div>";
-//     //     location.reload();
-//     //     //alert("invalid ID");
-//     // }
-// }//PLZAH1CMN7BNTA0BOgOJLOHIFIAitFYYy0
-
-// function onPlayerReady(event) {
-//     console.log ('onplayeready');
-//     player.setPlaybackQuality("hd1080");
-//     player.setVolume(100);
-//     event.target.playVideo();
-//     player.playVideo();
-//     // if (player.getVideoUrl() != null){
-//     //             console.log("youtube");
-
-//         playerReady = true;
-//         if (starting == true){
-//             doStart();
-//         }
-//     // }
-//     // else{
-//     //     console.log("invalid ID");
-//     //     // document.getElementById('video-playlist-entry').value = "Invalid ID";
-//     //     start.innerHTML = "<div class=\"video-submit\">Enter Playlist URL or ID: <br><br>Invalid ID!</div>";
-//     //     location.reload();
-//     //     //alert("invalid ID");
-//     // }
-// }
-
-// function onPlayerStateChange(event) {
-//         if (event.data == YT.PlayerState.BUFFERING) {
-//         event.target.setPlaybackQuality('hd1080');
-//     }
-// }
-
-function updateProgressValue() {
-    if (starting == false && playerReady == true){
-        //UpdateTrackNumber();
-        //UpdateUI();
-    }
-
-    
-};  
-
-// function submitVideoPlaylistName(){
-//     videoPlaylistName = document.getElementById('video-playlist-entry').value;
-//     start.innerHTML = "<div class=\"start\" id=\"start\">Enter Playlist URL or ID: <br><br><i class=\"fas fa-spinner fa-pulse\"></i></div>";
-//     //link from main playist page
-//     if (videoPlaylistName.includes("https://www.youtube.com/playlist?list=")){
-//         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://www.youtube.com/playlist?list=','');
-//     }
-//     //link from 1 video
-//     else if (videoPlaylistName.includes("watch?v=")){
-//         const getChar = (s, n) => s.slice(-n);
-//         const s = videoPlaylistName;
-//         videoPlaylistNameClean = (getChar(s, 34));
-//     }
-// //playlist link mobile
-//     else if (videoPlaylistName.includes("https://youtu.be")){
-//         videoPlaylistNameClean = videoPlaylistName.replaceAll('https://youtu.be/','');
-//     }
-//     else {
-//         videoPlaylistNameClean = videoPlaylistName;
-//     }
-//     console.log(videoPlaylistNameClean);
-//     doVideoPlaylistName();
-// }
-
-// function submitVideoName(){
-//     console.log("switching to single video mode");
-//     videoName = videoPlaylistName;
-//     //window.alert(videoName);
-//     if (videoName.includes("https://www.youtube.com/watch?v=")){
-//         videoNameClean = videoName.replaceAll('https://www.youtube.com/watch?v=','');
-//     }
-//     else if (videoName.includes("https://youtu.be")){
-//         videoNameClean = videoName.replaceAll('https://youtu.be/','');
-//     }
-//     else {
-//         videoNameClean = videoName;
-//     }
-//     console.log(videoNameClean);
-//     doVideoName();
-
-// }
-
-
-// function doVideoPlaylistName(){
-//         playlistName = videoPlaylistNameClean;
-//         playYoutubePlaylist();
-// }
-
-// function doVideoName(){
-//         myVideoName = videoNameClean;
-//         singleVideo = true;
-//         //playYoutubeVideo();
-//         playNew();
-// }
  
-function doStart(){
-        document.getElementById("start-container").style.display="none";
-        backgroundName.style.display="none";
-        document.getElementById("song-container").style.display="block";
-        // if (singleVideo == true)
-        // {
-        //     genreNumber.style.display="none";
-        // }
-        loadBackgroundType();
-        //loadAuto();
-        //changeBackground();
-        UpdateBackgroundName();
-        //UpdateTrackNumber();
-        UpdateUI();
-        starting = false;
-        playing = true;
+
+
+var interval = null;
+
+function startRepeating(func, seconds) {
+    if (playing && !starting){
+        // Clear any existing interval
+        if (interval) {
+            clearInterval(interval);
+        }
+    }
+  // Start new interval
+  interval = setInterval(func, seconds * 1000);
+  
+  // Optionally run once immediately
+//   func();
 }
 
-// var justHidden = false;
-// var j;target="_blank";
+function stopRepeating() {
+  if (interval) {
+    clearInterval(interval);
+    interval = null;
+  }
+}
+    startRepeating(() => {
+        changeBackground();
+    }, 5);
 
-// function hideCursor() {
-//   document.body.style.cursor = "none";
-//     songContainer.className = 'song-container fadeout';
-//     startContainer.className = 'start-container fadeout';
-//     titleContainer.className = 'title-container fadeout';
-//   justHidden = true;
-//   setTimeout(function() {
-//     justHidden = false;
-//   }, 500);
-// }
-
-// function showCursor() {
-//   if (!justHidden) {
-//     justHidden = false;
-
-//     clearTimeout(j);
-//     document.body.style.cursor = "default";
-//     //songContainer.className = 'song-container fadein';
-//     startContainer.className = 'start-container fadein';
-//     titleContainer.className = 'title-container fadein';
-//     j = setTimeout(hideCursor, fadeTime);
-//   }
-// };
+// Stop it when needed:
+// stopRepeating();

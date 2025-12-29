@@ -12,7 +12,7 @@
         <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
-        <script src="src/player.js"></script>
+        <!-- <script src="src/player.js"></script> -->
         <script src="src/script.js"></script>
         <script src="src/demo.js"></script>
         <script src="https://kit.fontawesome.com/c71940ba40.js" crossorigin="anonymous"></script>
@@ -33,30 +33,23 @@
 
     <body >
         <div class="crt noselect">
-            <div id="bg-start" class="bg" style="display: none;" onclick=''></div>
-            <div id="bg-mp4" class="bg" style="display: none;" onclick='' ondblclick="doFullscreen()"><video preload="auto" autoplay muted playsinline loop id="mp4-background"></video></div>
-            <!-- <div id="bg-mp4-alt" class="bg" style="display: none;" onclick='' ondblclick="doFullscreen()"><video preload="auto" autoplay muted playsinline loop id="mp4-alt-background"></video></div>             -->
-            <div id="bg-youtube" class="bg-youtube" style="display: none;" onclick=''></div>
+            <div id="bg-start" class="bg" style="display: none" onclick=''></div>
+            <div id="bg-mp4" class="bg" style="display: none" onclick='' ondblclick="doFullscreen()"><video preload="auto" autoplay muted playsinline loop id="mp4-background"></video></div>
+            <div id="bg-youtube" class="bg-youtube" style="display: none" onclick=''></div>
             <div class="title-container" id="title-container" style="display: block">
                 <div class = "padtitle">
                     <div class ="title" id="title" ><a href=".">// jeem-fm</a></div>
                 </div>
             </div>
-            <div class="song-container" id="song-container" style="display: none;">
+            <div class="song-container" id="song-container" style="display: none">
                 <div class = "padsong">
                     <div class ="song-name" id="song-name"> </div><br>
                     <div class ="song-author" id="song-author"></div><br>
-                    <!-- <i class="fas fa-spinner fa-pulse"></i></div><br> -->
                 </div>
                 <div class = "padinfo" id="padinfo">
-                    <!-- <div class ="genre-name youtube" id="genre-name" onclick='changePlaylist()'></div> -->
-                    <!-- <div class ="genre-playlist" id="genre-playlist"></div> -->
-                    <!-- <div class ="genre-number" id="genre-number-prev" onclick='previousSong()'></div> -->
-                    <!-- <div class ="genre-number-nohover" id="track-number" ></div> -->
-                    <!-- <div class ="genre-number" id="genre-number-next" onclick='nextSong()'></div> -->
                     <div class ="genre" id="background-type" onclick='changeBackgroundType()'></div>
-                    <div class ="background-name" id="background-name" onclick='changeBackground()'></div>
-                    <div class ="background-name" id="background-auto" onclick='toggleAuto()' style="display: none;"></div>
+                    <div class ="background-name" id="background-name" onclick='changeBackground()' style="display: none"></div>
+                    <div class ="background-name" id="background-auto" onclick='toggleAuto()' style="display: none"></div>
                     <div class ="info-button" onclick="doPopup()"><i class="fas fa-info-circle"></i></div>
                 </div>
             </div>
@@ -65,8 +58,6 @@
                     <div class="start" id="start">
                         <div>Enter Youtube Video or Playlist URL or ID: <br><br>
                             <form>
-                                <!-- <input class='videobox' type="text" autocomplete="on" id="idEntry" placeholder="Enter URL">
-                                <input type="submit" value="Submit" id="demo_start_video" onclick=''><br><br> -->
                                 <input class='videobox' type="text" autocomplete="on" id="idEntry" placeholder=""><br><br>
                                 <input type="submit" value="Submit" id="demo_start_video" onclick=''>
                             </form>
@@ -131,9 +122,5 @@
 		</div> 
 <script type="text/javascript" src="src/player.js"></script>
 <script type="text/javascript" src="src/youtube_iframe_api.js"></script>
-<script>
-let text = document.lastModified;
-document.getElementById("info").innerHTML = text;
-</script>
     </body>
 </html>

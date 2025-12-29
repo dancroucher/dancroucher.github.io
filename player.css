@@ -43,11 +43,11 @@ body, input, textarea, select, button, input {
 */}
 
 a:link{
-    color:  rgba(250,249,246,1);
+    color:  rgba(250,249,246,0.9);
     text-decoration: none;
 }
 a:visited{
-    color:  rgba(250,249,246,1);
+    color:  rgba(250,249,246,0.9);
   text-decoration: none;
 }
 a:hover{
@@ -187,6 +187,7 @@ a:active {
   .song-name {
     color:  rgba(250,249,246,0.9);
     display: inline-block;
+    font-size: 1.3em;
     clear: both;
     line-height: 1em;
     padding-bottom: 2px;
@@ -202,6 +203,7 @@ a:active {
 
   .song-author {
     color:  rgba(250,249,246,0.9);
+    font-size: 1.3em;
     display: inline-block;
     clear: both;
     line-height: 1em;
@@ -374,7 +376,7 @@ a:active {
   .padinfo {
       padding: 0px 32px 0px 24px;
       position: absolute;
-      bottom: 0;
+      bottom: 2.5%;
       width: 100%;
   }
 
