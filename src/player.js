@@ -21,6 +21,7 @@ var songTitle = document.querySelector('.song-title'); // element where track ti
 var bgTitle = document.querySelector('.bg-title'); // eleent where track title appears
 var controlsImage = document.getElementById('bottom');
 var bgmp4 = document.getElementById('bg-mp4');
+var bgyoutube = document.getElementById('bg-youtube');
 var bggif = document.getElementById('bg-gif');
 // var bgyt = document.getElementById('bg-youtube');
 
@@ -43,11 +44,8 @@ var fauxInput = document.createElement('textarea');
 var videoList = "assets/lists/video/video.txt";
 var animeList = "assets/lists/video/anime.txt";
 var skatingList = "assets/lists/video/skating.txt";
-var myVideoName;
-var videoName;
-var videoPlaylistName;
-var videoPlaylistNameClean;
-var videoNameClean;
+var gamesList = "assets/lists/video/games.txt";
+
 var pPause = document.querySelector('#play-pause'); // element where play and pause image appears
 var player;
 var youtubes = [];
@@ -55,7 +53,8 @@ var videosInPlaylist = [];
 var animebackgrounds = [];
 var skatingbackgrounds = [];
 var videobackgrounds = [];
-var backtypes = [0,1,2];
+var gamesbackgrounds = [];
+var backtypes = [0,1,2,3,4,5];
 var bgTypeIndex;
 var genretypes = [0,1];
 var genreIndex;
@@ -78,6 +77,7 @@ window.onload = function() {
     getVideoBackgrounds();
     getAnimeBackgrounds(); 
     getSkatingBackgrounds();
+    getGamesBackgrounds();
 }
 
 function doStart(){
@@ -150,6 +150,26 @@ function getSkatingBackgrounds() {
     xmlhttp.send()
 }
 
+function getGamesBackgrounds() {
+    var xmlhttp;
+    if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp = new XMLHttpRequest();
+    } else { // code for IE6, IE5
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            var text = xmlhttp.responseText;
+            // Now convert it into array using regex
+            gamesbackgrounds = text.split(/\n|\r/g);
+            gamesbackgroundsMax = gamesbackgrounds.length-1;
+            gamesbackgroundIndex = Math.floor(Math.random() * gamesbackgroundsMax);
+        }
+    }
+    xmlhttp.open("GET", gamesList, true);
+    xmlhttp.send()
+}
+
 function loadBackgroundType() {
     if (localStorage.getItem('backtype') == null){
       bgTypeIndex = 1;
@@ -158,7 +178,7 @@ function loadBackgroundType() {
         let myBackType = localStorage.getItem('backtype');
         bgTypeIndex = myBackType;
     }
-    bgmp4.style.display="block";
+    
 }
 
 function changeBackgroundType() {
@@ -179,6 +199,8 @@ function backgroundTypeCommon(){
         var text = skatingbackgrounds[skatingbackgroundIndex];
         var textclean = text.replace(/^/,'./assets/video/skating/');
         mp4background.src = textclean;
+        bgmp4.style.display="block";
+        bgyoutube.style.display="none";
     }
     else if (bgTypeIndex == 1){//anime
         var typeName = "anime";
@@ -187,6 +209,8 @@ function backgroundTypeCommon(){
         var text = animebackgrounds[animebackgroundIndex];
         var textclean = text.replace(/^/,'./assets/video/anime/');
         mp4background.src = textclean;
+        bgmp4.style.display="block";
+        bgyoutube.style.display="none";
     }
     else if (bgTypeIndex == 2){//video
         var typeName = "video";
@@ -195,17 +219,39 @@ function backgroundTypeCommon(){
         var text = videobackgrounds[videobackgroundIndex];
         var textclean = text.replace(/^/,'./assets/video/video/');
         mp4background.src = textclean;
+        bgmp4.style.display="block";
+        bgyoutube.style.display="none";
     }
-
-    // else if (bgTypeIndex == 3){//youtube
-    //     // info.innerHTML = "<span class='butt' onclick='changeBackgroundType()'>youtube</span>";
-    //     document.getElementById("bg-gif").style.display="none";
-    //     document.getElementById("bg-mp4").style.display="none";
-    //     document.getElementById("bg-start").style.display="none";
-    //     document.getElementById("bg-youtube").style.display="block";
-    //     document.getElementById("background-name").style.display="none";
-
-    // }
+    else if (bgTypeIndex == 3){//games
+        var typeName = "games";
+        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
+        gamesbackgroundIndex = Math.floor(Math.random() * gamesbackgroundsMax);
+        var text = gamesbackgrounds[gamesbackgroundIndex];
+        var textclean = text.replace(/^/,'./assets/video/games/');
+        mp4background.src = textclean;
+        bgmp4.style.display="block";
+        bgyoutube.style.display="none";
+    }
+    else if (bgTypeIndex == 4){//original
+        var typeName = "original";
+        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
+        // gamesbackgroundIndex = Math.floor(Math.random() * gamesbackgroundsMax);
+        // var text = gamesbackgrounds[gamesbackgroundIndex];
+        // var textclean = text.replace(/^/,'./assets/video/games/');
+        mp4background.src = textclean;
+        bgmp4.style.display="none";
+        bgyoutube.style.display="block";
+    }
+    else if (bgTypeIndex == 5){//none
+        var typeName = "none";
+        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
+        // videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
+        // var text = videobackgrounds[videobackgroundIndex];
+        // var textclean = text.replace(/^/,'./assets/video/video/');
+        mp4background.src = "none";
+        bgmp4.style.display="none";
+        bgyoutube.style.display="none";
+    }
     localStorage.setItem('backtype', bgTypeIndex);
     localStorage.getItem('backtype');
     mp4background.play();
@@ -254,28 +300,7 @@ function clearData() {
 function changeBackground() {
     console.log("change background" + bgTypeIndex + " playing:  " + playing);
     if (playing){
-        if (bgTypeIndex == 2){
-            videobackgroundIndex++;
-            if (videobackgroundIndex > videobackgroundsMax) {
-                videobackgroundIndex = 0;
-            };
-            var text = videobackgrounds[videobackgroundIndex];
-            var textclean = text.replace(/^/,'./assets/video/video/');
-
-            mp4background.src = textclean;
-            localStorage.setItem('background', videobackgroundIndex);
-        }
-        else if (bgTypeIndex == 1){
-            animebackgroundIndex++;
-            if (animebackgroundIndex > animebackgroundsMax) {
-                animebackgroundIndex = 0;
-            };
-            var text = animebackgrounds[animebackgroundIndex];
-            var textclean = text.replace(/^/,'./assets/video/anime/');
-            mp4background.src = textclean;
-            localStorage.setItem('background', animebackgroundIndex);
-        }
-        else if (bgTypeIndex == 0){
+        if (bgTypeIndex == 0){//skating
             skatingbackgroundIndex++;
             if (skatingbackgroundIndex > skatingbackgroundsMax) {
                 skatingbackgroundIndex = 0;
@@ -285,6 +310,41 @@ function changeBackground() {
             mp4background.src = textclean;
             localStorage.setItem('background', skatingbackgroundIndex);
         }
+        else if (bgTypeIndex == 1){//anime
+            animebackgroundIndex++;
+            if (animebackgroundIndex > animebackgroundsMax) {
+                animebackgroundIndex = 0;
+            };
+            var text = animebackgrounds[animebackgroundIndex];
+            var textclean = text.replace(/^/,'./assets/video/anime/');
+            mp4background.src = textclean;
+            localStorage.setItem('background', animebackgroundIndex);
+        }
+        else if (bgTypeIndex == 2){//video
+            videobackgroundIndex++;
+            if (videobackgroundIndex > videobackgroundsMax) {
+                videobackgroundIndex = 0;
+            };
+            var text = videobackgrounds[videobackgroundIndex];
+            var textclean = text.replace(/^/,'./assets/video/video/');
+            mp4background.src = textclean;
+            localStorage.setItem('background', videobackgroundIndex);
+        }
+        else if (bgTypeIndex == 3){//games
+            gamesbackgroundIndex++;
+            if (gamesbackgroundIndex > gamesbackgroundsMax) {
+                gamesbackgroundIndex = 0;
+            };
+            var text = gamesbackgrounds[gamesbackgroundIndex];
+            var textclean = text.replace(/^/,'./assets/videogames/');
+            mp4background.src = textclean;
+            localStorage.setItem('background', gamesbackgroundIndex);
+        }
+        else if (bgTypeIndex == 4 || bgTypeIndex == 5){//original or none
+            
+        }
+
+
         localStorage.getItem('background');
         //UpdateBackgroundName();
     }

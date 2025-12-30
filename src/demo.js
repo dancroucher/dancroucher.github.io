@@ -2,7 +2,12 @@ var myVideoName;
 var myVideoPlaylistName;
 var songTitle;
 var songAuthor;
-var ppClicked;
+// var ppClicked;
+// var videoName;
+// var videoPlaylistName;
+// var videoPlaylistNameClean;
+var videoNameClean;
+var videoPlaylistNameClean;
 
 
 var Demo = (function () {
