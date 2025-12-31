@@ -24,7 +24,7 @@ var bgmp4 = document.getElementById('bg-mp4');
 var bgyoutube = document.getElementById('bg-youtube');
 var bggif = document.getElementById('bg-gif');
 // var bgyt = document.getElementById('bg-youtube');
-
+var changingBackground;
 var elem = document.documentElement;
 var fullscreenbool = false;
 var auto = false;
@@ -238,8 +238,8 @@ function backgroundTypeCommon(){
         // gamesbackgroundIndex = Math.floor(Math.random() * gamesbackgroundsMax);
         // var text = gamesbackgrounds[gamesbackgroundIndex];
         // var textclean = text.replace(/^/,'./assets/video/games/');
-        mp4background.src = textclean;
-        bgmp4.style.display="none";
+        mp4background.src = "";
+        bgmp4.style.display="block";
         bgyoutube.style.display="block";
     }
     else if (bgTypeIndex == 5){//none
@@ -248,8 +248,8 @@ function backgroundTypeCommon(){
         // videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
         // var text = videobackgrounds[videobackgroundIndex];
         // var textclean = text.replace(/^/,'./assets/video/video/');
-        mp4background.src = "none";
-        bgmp4.style.display="none";
+        mp4background.src = "";
+        bgmp4.style.display="block";
         bgyoutube.style.display="none";
     }
     localStorage.setItem('backtype', bgTypeIndex);
@@ -298,7 +298,8 @@ function clearData() {
 }
 
 function changeBackground() {
-    console.log("change background" + bgTypeIndex + " playing:  " + playing);
+    changingBackground = true;
+    console.log("change background " + bgTypeIndex + " playing:  " + mp4background.src);
     if (playing){
         if (bgTypeIndex == 0){//skating
             skatingbackgroundIndex++;
@@ -341,10 +342,10 @@ function changeBackground() {
             localStorage.setItem('background', gamesbackgroundIndex);
         }
         else if (bgTypeIndex == 4 || bgTypeIndex == 5){//original or none
-            
+            mp4background.src = "";
         }
 
-
+        var changingBackground = false;
         localStorage.getItem('background');
         //UpdateBackgroundName();
     }
@@ -463,7 +464,7 @@ function doPopup() {
 var interval = null;
 
 function startRepeating(func, seconds) {
-    if (playing && !starting){
+    if (playing && !starting && changingBackground == false){
         // Clear any existing interval
         if (interval) {
             clearInterval(interval);

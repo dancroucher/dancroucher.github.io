@@ -509,7 +509,7 @@ hr.style {
 #bg-youtube iframe {
   position: fixed;
   top: -85vh;
-  left: -25vh;
+  left: -45vh;
   width: 3780px;
   height: 3150px;
   padding: 0;
@@ -617,13 +617,43 @@ input[type=submit] {
 
 }
 
+.main_table_full {
+  color:  rgba(250,249,246,0.9);
+  background-color: rgba(0, 0, 0, 0.6 );
+  font-family: Menlo, monospace;
+  font-weight: 400;
+  font-size: 0.8em;
+  padding:8px 32px 32px 32px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  display: block;
+  line-height: 1.2em;
+  overflow-y: scroll;
+  visibility: hidden ;
+  border-radius: 0px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    min-width: 370px;
+    max-width: 1500px;
+    min-height: 200px;
+    max-height: 1200px;
+    transform: translate(-50%, -50%);
+  z-index: 1;
+
+}
 /* Toggle this class when clicking on the popup container (hide and show the popup) */
 .popup .show {
   visibility: visible;
   -webkit-animation: fadeIn 0.25s;
   animation: fadeIn 0.25s
 }
-
+.main_table_full .show {
+  visibility: visible;
+  -webkit-animation: fadeIn 0.25s;
+  animation: fadeIn 0.25s
+}
 /* Add animation (fade in the popup) */
 @-webkit-keyframes fadeIn {
   from {opacity: 0;}
