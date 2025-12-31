@@ -508,14 +508,15 @@ hr.style {
 }
 #bg-youtube iframe {
   position: fixed;
-  top: -50vh;
+  top: -85vh;
   left: -25vh;
-  width: 2160px;
-  height: 2000px;
+  width: 3780px;
+  height: 3150px;
   padding: 0;
   margin: 0;
   border: none;
   z-index: -22;
+  pointer-events: none;
 }
 
 input:focus,

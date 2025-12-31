@@ -336,7 +336,7 @@ function changeBackground() {
                 gamesbackgroundIndex = 0;
             };
             var text = gamesbackgrounds[gamesbackgroundIndex];
-            var textclean = text.replace(/^/,'./assets/videogames/');
+            var textclean = text.replace(/^/,'./assets/video/games/');
             mp4background.src = textclean;
             localStorage.setItem('background', gamesbackgroundIndex);
         }
