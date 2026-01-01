@@ -207,11 +207,12 @@ function getGamesBackgrounds() {
 
 function loadBackgroundType() {
     if (localStorage.getItem('backtype') == null){
-      bgTypeIndex = 1;
+      bgTypeIndex = 2;
     }
     else{
         let myBackType = localStorage.getItem('backtype');
-        bgTypeIndex = myBackType;
+        //bgTypeIndex = myBackType;
+        bgTypeIndex = 2;
     }
     
 }
