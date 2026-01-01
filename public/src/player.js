@@ -48,13 +48,16 @@ var fauxInput = document.createElement('textarea');
 
 var pPause = document.querySelector('#play-pause'); // element where play and pause image appears
 var player;
-var youtubes = [];
-var videosInPlaylist = [];
+// var youtubes = [];
+// var videosInPlaylist = [];
 var animebackgrounds = [];
 var skatingbackgrounds = [];
 var videobackgrounds = [];
 var gamesbackgrounds = [];
 var backtypes = [0,1,2,3,4,5];
+var changeTimes = [0,1,2,3];
+var changeTimeIndex;
+var changeTimeActual;
 var bgTypeIndex;
 var genretypes = [0,1];
 var genreIndex;
@@ -91,6 +94,8 @@ function doStart(){
         document.getElementById("song-container").style.display="block";
         loadBackgroundType();
         backgroundTypeCommon();
+        loadChangeTime();
+        changeTimeCommon();
         UpdateUI();
         starting = false;
         playing = true;
@@ -225,17 +230,68 @@ function getBackgrounds(folderName) {
 //     xmlhttp.open("GET", "/api/list-files", true);
 //     xmlhttp.send()
 // }
+function loadChangeTime() {
+    if (localStorage.getItem('changeTime') == null){
+      changeTimeIndex = 0;
+    }
+    else{
+        let myChangeTime = localStorage.getItem('changeTime');
+        changeTimeIndex = myChangeTime;
+    }
+}
+
+function changeChangeTime() {
+    //increment change time index
+    changeTimeIndex++;
+    //loop round
+    if (changeTimeIndex > changeTimes.length-1) {
+        changeTimeIndex = 0;
+    };
+    changeTimeCommon();
+}
+
+function changeTimeCommon() {
+
+    if (changeTimeIndex == 0){
+        changeTimeActual = 5;
+        backgroundAuto.innerHTML = "change: 5s";
+        startRepeating(() => {
+        if (playing){
+            changeBackground();
+        //console.log("changing background. " + changeTimeActual + " to " + mp4background.src);
+        }
+    }, changeTimeActual);
+        // console.log("index is: " + changeTimeIndex + " , actual is: " + changeTimeActual + "s");
+    }
+    else if (changeTimeIndex == 1){
+        changeTimeActual = 10;
+        backgroundAuto.innerHTML = "change: 10s";
+        startRepeating(() => {
+        if (playing){
+            changeBackground();
+        //console.log("changing background. " + changeTimeActual + " to " + mp4background.src);
+        }
+    }, changeTimeActual);
+        // console.log("index is: " + changeTimeIndex + " , actual is: " + changeTimeActual + "s");
+    }
+    else if (changeTimeIndex == 2){
+        stopRepeating();
+        changeBackground();
+        backgroundAuto.innerHTML = "change: off";
+    }
+
+    localStorage.setItem('changeTime', changeTimeIndex);
+    localStorage.getItem('changeTime');
+}
 
 function loadBackgroundType() {
     if (localStorage.getItem('backtype') == null){
-      bgTypeIndex = 2;
+      bgTypeIndex = 0;
     }
     else{
         let myBackType = localStorage.getItem('backtype');
-        //bgTypeIndex = myBackType;
-        bgTypeIndex = 2;
+        bgTypeIndex = myBackType;
     }
-    
 }
 
 function changeBackgroundType() {
@@ -254,7 +310,7 @@ function backgroundTypeCommon(){
         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
         skatingbackgroundIndex = Math.floor(Math.random() * skatingbackgroundsMax);
         var text = skatingbackgrounds[skatingbackgroundIndex];
-        var textclean = text.replace(/^/,'./assets/video/skating/');
+        var textclean = `./skating/${text}`; // Point directly to the folder next to index.html
         mp4background.src = textclean;
         bgmp4.style.display="block";
         bgyoutube.style.display="none";
@@ -264,7 +320,7 @@ function backgroundTypeCommon(){
         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
         animebackgroundIndex = Math.floor(Math.random() * animebackgroundsMax);
         var text = animebackgrounds[animebackgroundIndex];
-        var textclean = text.replace(/^/,'./assets/video/anime/');
+        var textclean = `./anime/${text}`; // Point directly to the folder next to index.html
         mp4background.src = textclean;
         bgmp4.style.display="block";
         bgyoutube.style.display="none";
@@ -273,11 +329,8 @@ function backgroundTypeCommon(){
         var typeName = "video";
         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
         videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
-        // var text = videobackgrounds[videobackgroundIndex];
-        // var textclean = text.replace(/^/,'./public/video/');
         var text = videobackgrounds[videobackgroundIndex];
         var textclean = `./video/${text}`; // Point directly to the folder next to index.html
-        mp4background.src = textclean;
         mp4background.src = textclean;
         bgmp4.style.display="block";
         bgyoutube.style.display="none";
@@ -287,7 +340,7 @@ function backgroundTypeCommon(){
         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
         gamesbackgroundIndex = Math.floor(Math.random() * gamesbackgroundsMax);
         var text = gamesbackgrounds[gamesbackgroundIndex];
-        var textclean = text.replace(/^/,'./assets/video/games/');
+        var textclean = `./games/${text}`; // Point directly to the folder next to index.html
         mp4background.src = textclean;
         bgmp4.style.display="block";
         bgyoutube.style.display="none";
@@ -348,14 +401,7 @@ function backgroundTypeCommon(){
 //     }
 // }
 
-function UpdateTrackNumber(){
-        localStorage.setItem('track', youtubeIndex);
-        localStorage.getItem('track');
-}
 
-function clearData() {
-    localStorage.clear();
-}
 
 function changeBackground() {
     changingBackground = true;
@@ -409,6 +455,8 @@ function changeBackground() {
         //UpdateBackgroundName();
     }
 }
+
+
 
 
 function UpdateUI() {
@@ -512,6 +560,14 @@ else if (auto == true){
     }
 }
 
+function UpdateTrackNumber(){
+        localStorage.setItem('track', youtubeIndex);
+        localStorage.getItem('track');
+}
+
+function clearData() {
+    localStorage.clear();
+}
 
 function doPopup() {
   var popup = document.getElementById("myPopup");
@@ -542,16 +598,7 @@ function stopRepeating() {
     interval = null;
   }
 }
-    startRepeating(() => {
-  
-        if (playing){
-            changeBackground();
-        console.log("changing background " + bgTypeIndex + " to " + mp4background.src);
-            console.log(playing);
-        }
-            
 
-    }, 5);
 
 // Stop it when needed:
 // stopRepeating();
