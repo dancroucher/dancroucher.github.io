@@ -82,12 +82,23 @@ window.onload = function() {
     getBackgrounds('anime');
     getBackgrounds('skating');
     getBackgrounds('games');
+    // Now initialize the Demo app safely
+    if (typeof Youtube !== 'undefined') {
+        window.myApp = new Demo();
+        console.log("YouTube Player initialized and assigned to window.myApp");
+    } else {
+        console.warn("YouTube library not found yet. If you are using a wrapper, ensure it loads before player.js");
+    }
     
+
+            
+        
     // getVideoBackgrounds();
     // getAnimeBackgrounds(); 
     // getSkatingBackgrounds();
     // getGamesBackgrounds();
 }
+//window.myApp = new Demo();
 
 function doStart(){
         document.getElementById("start-container").style.display="none";
@@ -257,8 +268,8 @@ function changeTimeCommon() {
         backgroundAuto.innerHTML = "change: 5s";
         startRepeating(() => {
         if (playing){
-            changeBackground();
-        //console.log("changing background. " + changeTimeActual + " to " + mp4background.src);
+           // changeBackground();
+        console.log("changing background. " + changeTimeActual + " to " + mp4background.src);
         }
     }, changeTimeActual);
         // console.log("index is: " + changeTimeIndex + " , actual is: " + changeTimeActual + "s");
@@ -268,18 +279,21 @@ function changeTimeCommon() {
         backgroundAuto.innerHTML = "change: 10s";
         startRepeating(() => {
         if (playing){
-            changeBackground();
-        //console.log("changing background. " + changeTimeActual + " to " + mp4background.src);
+            //changeBackground();
+        console.log("changing background. " + changeTimeActual + " to " + mp4background.src);
         }
     }, changeTimeActual);
         // console.log("index is: " + changeTimeIndex + " , actual is: " + changeTimeActual + "s");
     }
     else if (changeTimeIndex == 2){
         stopRepeating();
-        changeBackground();
+        //changeBackground();
         backgroundAuto.innerHTML = "change: off";
     }
-
+    // if (playing == false)
+    //     {
+    //         window.myApp.togglePlayback();
+    //     }
     localStorage.setItem('changeTime', changeTimeIndex);
     localStorage.getItem('changeTime');
 }
@@ -367,7 +381,9 @@ function backgroundTypeCommon(){
     }
     localStorage.setItem('backtype', bgTypeIndex);
     localStorage.getItem('backtype');
-    mp4background.play();
+    // if(playing == false){
+    //     window.myApp.togglePlayback();
+    // }
     UpdateUI();
 }
 
@@ -514,51 +530,51 @@ else{
     }
 }
 
-function loadAuto () {
-    if (localStorage.getItem('auto') == null){
-      auto = true;
-      autoTypeName = "(auto)";
-    }
-    else if (localStorage.getItem('auto') == 1)
-        {
-            autoTypeName = "(auto)";
-            // backgroundAuto.style.display="inline-block";
-            UpdateUI();
-            //UpdateBackgroundName();
-            auto = true;
-    }
-    else if (localStorage.getItem('auto') == 1)
-        {
-            autoTypeName = "(auto)";
-            // backgroundAuto.style.display="inline-block";
-            UpdateUI();
-            //UpdateBackgroundName();
-            auto = true;
-        }
-}
+// function loadAuto () {
+//     if (localStorage.getItem('auto') == null){
+//       auto = true;
+//       autoTypeName = "(auto)";
+//     }
+//     else if (localStorage.getItem('auto') == 1)
+//         {
+//             autoTypeName = "(auto)";
+//             // backgroundAuto.style.display="inline-block";
+//             UpdateUI();
+//             //UpdateBackgroundName();
+//             auto = true;
+//     }
+//     else if (localStorage.getItem('auto') == 1)
+//         {
+//             autoTypeName = "(auto)";
+//             // backgroundAuto.style.display="inline-block";
+//             UpdateUI();
+//             //UpdateBackgroundName();
+//             auto = true;
+//         }
+// }
 
-function toggleAuto() {
-if (auto == false){
-        autoTypeName = "(auto)";
-        // backgroundAuto.style.display="inline-block";
-        UpdateUI();
-        //UpdateBackgroundName();
-        auto = true;
-        localStorage.setItem('auto', '1');
-        localStorage.getItem('auto');
+// function toggleAuto() {
+// if (auto == false){
+//         autoTypeName = "(auto)";
+//         // backgroundAuto.style.display="inline-block";
+//         UpdateUI();
+//         //UpdateBackgroundName();
+//         auto = true;
+//         localStorage.setItem('auto', '1');
+//         localStorage.getItem('auto');
   
-}
+// }
 
-else if (auto == true){
-        autoTypeName = "(manual)";
-        // backgroundAuto.style.display="inline-block";
-        UpdateUI();
-        UpdateBackgroundName();
-        auto = false;
-        localStorage.setItem('auto', '0');
-        localStorage.getItem('auto');
-    }
-}
+// else if (auto == true){
+//         autoTypeName = "(manual)";
+//         // backgroundAuto.style.display="inline-block";
+//         UpdateUI();
+//         UpdateBackgroundName();
+//         auto = false;
+//         localStorage.setItem('auto', '0');
+//         localStorage.getItem('auto');
+//     }
+// }
 
 function UpdateTrackNumber(){
         localStorage.setItem('track', youtubeIndex);
@@ -602,3 +618,33 @@ function stopRepeating() {
 
 // Stop it when needed:
 // stopRepeating();
+
+window.addEventListener('keydown', function(event) {
+    //const video = document.getElementById("mp4background");
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return;
+    }
+    
+    // 2. Handle the inputs
+    switch (event.key.toLowerCase()) {
+        case " ": // Spacebar
+            event.preventDefault(); // Stop page from scrolling
+            if (window.myApp && typeof window.myApp.togglePlayback === 'function') {
+                        window.myApp.togglePlayback();
+                    }
+            break;
+
+
+        case "arrowright": // Skip forward 5 seconds
+            window.myApp.doPlaylistNext();
+            break;
+
+        case "arrowleft": // Skip back 5 seconds
+            window.myApp.doPlaylistPrevious();
+            break;
+
+        case "x": // Next background type(custom function)
+            changeBackgroundType();
+            break;
+    }
+});

@@ -637,26 +637,26 @@ var singleVideo = false;
 		return false;
 	};
 
-		var on_play_pause_click = function (event) {
-		if (starting == false){
-			if (playing == false) {
-				playing = true;
-				//this.player.play();
-				mp4background.play();
-			}
-			else if (playing == true) {
-				playing = false;
-				//this.player.pause();
-				mp4background.pause();
-			}
-		}
-		console.log("play / pause");
+	// 	var on_play_pause_click = function (event) {
+	// 	if (starting == false){
+	// 		if (playing == false) {
+	// 			playing = true;
+	// 			//this.player.play();
+	// 			mp4background.play();
+	// 		}
+	// 		else if (playing == true) {
+	// 			playing = false;
+	// 			//this.player.pause();
+	// 			mp4background.pause();
+	// 		}
+	// 	}
+	// 	console.log("play / pause");
 	
-		// Stop click
-		event.preventDefault();
-		event.stopPropagation();
-		return false;
-	};
+	// 	// Stop click
+	// 	event.preventDefault();
+	// 	event.stopPropagation();
+	// 	return false;
+	// };
 	// 	var on_new_start_enter = function (event) {
 	// 	// Start demo
 	// 	submitVideoName();
@@ -755,8 +755,9 @@ var singleVideo = false;
 			};
 
 			// Add script
-			script_add("src/youtube_iframe_api.js", bind(on_script_ready, null, data, "Error loading iframe API"));
-			script_add("src/demo.js", bind(on_script_ready, null, data, "Error loading demo script"));
+			// script_add("src/youtube_iframe_api.js", bind(on_script_ready, null, data, "Error loading iframe API"));
+			// script_add("src/demo.js", bind(on_script_ready, null, data, "Error loading demo script"));
+
 			// Update node display
 			if (data.status_node) {
 				data.status_node.classList.add("demo_status_message_visible");
@@ -798,9 +799,9 @@ var singleVideo = false;
 		// if ((i = document.getElementById("demo_start_playlist"))) {
 		// 	i.addEventListener("click", on_demo_start_playlist_click, false);
 		// }
-		if ((i = document.getElementById("genre-number"))) {
-			i.addEventListener("click", on_play_pause_click, false);
-		}
+		// if ((i = document.getElementById("genre-number"))) {
+		// 	i.addEventListener("click", on_play_pause_click, false);
+		// }
 });
 
 function submitVideoName(){
@@ -870,12 +871,17 @@ function submitVideoName(){
 		myVideoName = videoNameClean;
 		singleVideo = true;
 		console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoName);
+
 	}
 	else if (videoNameClean.length > 16){
 		myVideoPlaylistName = videoNameClean;
 		singleVideo = false;
 		console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoPlaylistName);
+
 	}
+	setTimeout(() => {
+            window.myApp.startApp();
+        }, 1000);
 
 }
 

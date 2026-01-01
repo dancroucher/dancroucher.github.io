@@ -58,6 +58,9 @@ var Demo = (function () {
 		this.node_iframe_container = document.querySelector(".bg-youtube");
 		this.node_mp4Background = document.getElementById('bg-mp4');//panel that vids play on
 		this.node_padinfo = document.getElementById("padinfo");
+		this.node_prev = document.getElementById("playlist-prev");
+		this.node_next = document.getElementById("playlist-next");
+		this.node_previous = document.getElementById("padinfo");
 		this.node_songTitle = document.getElementById('song-name'); // element where track name appears
 		this.node_songAuthor = document.getElementById('song-author'); // element where track artist appears
 
@@ -156,74 +159,84 @@ var Demo = (function () {
 		// n1.className = "pp-button";
 		// n1.type = "button";
 		// n1.setAttribute("id", "play-pause");
-
 		this.node_mp4Background.addEventListener("click", () => {
-			if (playing == false) {
-				//console.log(playing);
-				this.player.play();
-				mp4background.play();
-				playing = true;
-			} else {
-				//console.log(playing);
-				this.player.pause();
-				mp4background.pause();
-				playing = false;
-			}
+			this.togglePlayback(); // Call the new function
 		}, false);
+
+		this.node_prev.addEventListener("click", () => {
+			this.doPlaylistPrevious(); 
+		}, false);
+
+		this.node_next.addEventListener("click", () => {
+			this.doPlaylistNext(); 
+		}, false);
+		// this.node_mp4Background.addEventListener("click", () => {
+		// 	if (playing == false) {
+		// 		//console.log(playing);
+		// 		this.player.play();
+		// 		mp4background.play();
+		// 		playing = true;
+		// 	} else {
+		// 		//console.log(playing);
+		// 		this.player.pause();
+		// 		mp4background.pause();
+		// 		playing = false;
+		// 	}
+		// }, false);
 
 
 			// Playlist fwd button
-			if (!singleVideo){
-				list = [//{
-					["<<", this.player, Player.prototype.goto_previous],
-				];//}
-				for (i = 0; i < list.length; ++i) {
-					n1 = document.createElement("div");
-					n1.className = "genre";
-					n1.setAttribute("id", "genre-number");
-					n2 = document.createElement("a");
-					n2.className = "genre-number-link";
+			// if (!singleVideo){
+			// 	list = [//{
+			// 		["<<", this.player, Player.prototype.goto_previous],
+			// 	];//}
+			// 	for (i = 0; i < list.length; ++i) {
+			// 		n1 = document.createElement("div");
+			// 		n1.className = "genre";
+			// 		n1.setAttribute("id", "genre-number");
+			// 		n2 = document.createElement("a");
+			// 		n2.className = "genre-number-link";
 
-					n2.textContent = list[i][0];
-					n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
-					n1.appendChild(n2);
+			// 		n2.textContent = list[i][0];
+			// 		n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
+			// 		n1.appendChild(n2);
 
-					this.node_padinfo.appendChild(n1);
-				}
-							// Playlist fwd and back buttons
-				list = [//{
-					["", this.player, null],
-				];//}
-				for (i = 0; i < list.length; ++i) {
-					n1 = document.createElement("div");
-					n1.className = "genre-nohover";
-					n1.setAttribute("id", "track-number");
-					//n2 = document.createElement("a");
-					//n2.className = "genre-number-link";
-					//n2.textContent = list[i][0];
-					//n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
-					//n1.appendChild(n2);
+			// 		this.node_padinfo.appendChild(n1);
+			// 	}
+			// 				// Playlist fwd and back buttons
+			// 	// list = [//{
+			// 	// 	["", this.player, null],
+			// 	// ];//}
+			// 	// for (i = 0; i < list.length; ++i) {
+			// 	// 	n1 = document.createElement("div");
+			// 	// 	n1.className = "genre-nohover";
+			// 	// 	n1.setAttribute("id", "track-number");
+			// 	// 	//n2 = document.createElement("a");
+			// 	// 	//n2.className = "genre-number-link";
+			// 	// 	//n2.textContent = list[i][0];
+			// 	// 	//n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
+			// 	// 	//n1.appendChild(n2);
 
-					this.node_padinfo.appendChild(n1);
-				}
-							// Playlist back button
-				list = [//{
-					[">>", this.player, Player.prototype.goto_next],
+			// 	// 	this.node_padinfo.appendChild(n1);
+			// 	// }
+			// 				// Playlist back button
+			// 	list = [//{
+			// 		[">>", this.player, Player.prototype.goto_next],
 
-				];//}
-				for (i = 0; i < list.length; ++i) {
-					n1 = document.createElement("div");
-					n1.className = "genre";
-					n1.setAttribute("id", "genre-number");
-					n2 = document.createElement("a");
-					n2.className = "genre-number-link";
-					n2.textContent = list[i][0];
-					n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
-					n1.appendChild(n2);
+			// 	];//}
+			// 	for (i = 0; i < list.length; ++i) {
+			// 		n1 = document.createElement("div");
+			// 		n1.className = "genre";
+			// 		n1.setAttribute("id", "genre-number");
+			// 		n2 = document.createElement("a");
+			// 		n2.className = "genre-number-link";
+			// 		n2.textContent = list[i][0];
+			// 		n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
+			// 		n1.appendChild(n2);
 
-					this.node_padinfo.appendChild(n1);
-				}
-			}
+			// 		this.node_padinfo.appendChild(n1);
+			// 	}
+			// }
 		
 
 		// Setup state
@@ -390,8 +403,44 @@ var Demo = (function () {
 	Demo.prototype = {
 		constructor: Demo,
 
+		togglePlayback: function() {
+			console.log ("playpause");
+			if (playing == false) {
+				this.player.play();
+				mp4background.play();
+				playing = true;
+			} else {
+				this.player.pause();
+				mp4background.pause();
+				playing = false;
+			}
+		},
 
+		startApp: function() {
+        console.log("Manually starting the app sequence...");
+			if (this.player && starting) {
+				// Trigger the video loading only when YOU are ready
+				if (singleVideo) {
+					this.player.load_video(myVideoName, true);
+				} else {
+					this.player.load_playlist(myVideoPlaylistName, "playlist", 0, true);
+				}
+				
+				// Now call your custom start function
+				if (typeof doStart === 'function') {
+					doStart();
+				}
+			}
+    	},
 		
+		doPlaylistPrevious: function() {
+        console.log("playlist previous");
+    	},
+
+		doPlaylistNext: function() {
+        console.log("playlist next");
+    	},
+
 		on_ready_state_setup: function (state_vars, event) {
 			var i, sv;
 
@@ -543,40 +592,40 @@ var Demo = (function () {
 				this.node_playlist.classList.add("demo_playlist_none");
 				this.node_playlist.textContent = JSON.stringify(this.player.get_video_data(), null, 2);
 		
-				if (starting == true ) {
+				// if (starting == true ) {
+				// // 	this.player.load_playlist (myVideoPlaylistName, "playlist", 0, true, null, null);
+				// // 	var playlist = this.player.get_playlist (myVideoPlaylistName, "playlist", 0, true, null, null);
+				// // 	console.log(playlist);
+				// // 	if (playlist.length == null) {
+				// // 		// No playlist
+				// // 		
+				// // 		console.log ("Single Video! ID is " + myVideoPlaylistName);
+				// // 		singleVideo = true;
+				// // 		doStart();
+				// // 		console.log(singleVideo);
+				// // 		//this.on_video_data_change();
+				// // 		return;
+				// // 	}
+				// // 	else{
+				// // 		console.log (playlist.length);
+
+				// // 	}
+
+
+
+
+				// if (singleVideo == true){
+				// 	//this.on_loading_start_new.bind(this.player.load_playlist ("UUI4fJYWKcGa8MvnvLw0qysQ", null, null, false, null, null)), false;
+				// 	this.player.load_video (myVideoName, true, null, null, null);
+				// 	doStart();
+
+				// }
+				// else if (singleVideo == false){
 				// 	this.player.load_playlist (myVideoPlaylistName, "playlist", 0, true, null, null);
-				// 	var playlist = this.player.get_playlist (myVideoPlaylistName, "playlist", 0, true, null, null);
-				// 	console.log(playlist);
-				// 	if (playlist.length == null) {
-				// 		// No playlist
-				// 		
-				// 		console.log ("Single Video! ID is " + myVideoPlaylistName);
-				// 		singleVideo = true;
-				// 		doStart();
-				// 		console.log(singleVideo);
-				// 		//this.on_video_data_change();
-				// 		return;
-				// 	}
-				// 	else{
-				// 		console.log (playlist.length);
+				// 	doStart();
+				// }
 
-				// 	}
-
-
-
-
-				if (singleVideo == true){
-					//this.on_loading_start_new.bind(this.player.load_playlist ("UUI4fJYWKcGa8MvnvLw0qysQ", null, null, false, null, null)), false;
-					this.player.load_video (myVideoName, true, null, null, null);
-					doStart();
-
-				}
-				else if (singleVideo == false){
-					this.player.load_playlist (myVideoPlaylistName, "playlist", 0, true, null, null);
-					doStart();
-				}
-
-				}
+				// }
 			}
 		
 		},
