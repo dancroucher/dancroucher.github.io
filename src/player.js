@@ -92,12 +92,12 @@ function doStart(){
 }
 
 
-// Regenerate the file list
-fetch('src/generate-filelist.php')
+fetch('src/list-files.js')
   .then(response => response.text())
-  .then(message => {
-    console.log(message);
-    // Now your existing code can read the updated filenames.txt
+  .then(fileList => {
+    // fileList is your text with filenames
+    // Use it directly or save it
+    console.log(fileList);
   });
 
 function getVideoBackgrounds() {
