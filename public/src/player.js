@@ -76,6 +76,10 @@ window.onload = function() {
     document.getElementById("info").innerHTML = text;
     playing = false;
     getBackgrounds('video');
+    getBackgrounds('anime');
+    getBackgrounds('skating');
+    getBackgrounds('games');
+    
     // getVideoBackgrounds();
     // getAnimeBackgrounds(); 
     // getSkatingBackgrounds();
@@ -96,8 +100,6 @@ function doStart(){
 fetch('api/list-files')
   .then(response => response.text())
   .then(fileList => {
-    // fileList is your text with filenames
-    // Use it directly or save it
     //console.log(fileList);
   });
   
@@ -109,16 +111,10 @@ function getBackgrounds(folderName) {
             var list = text.split(/\n|\r/g).filter(line => line.trim() !== '');
             
             // Assign to your global arrays
-            if (folderName === 'video') videobackgrounds = list;
-            if (folderName === 'anime') animebackgrounds = list;
-            if (folderName === 'skating') skatingbackgrounds = list;
-            if (folderName === 'games') gamesbackgrounds = list;
-        }
-        if (videobackgrounds){
-            videobackgroundsMax = videobackgrounds.length-1;
-        }
-        else{
-            videobackgroundsMax = 0;
+            if (folderName === 'video'){ videobackgrounds = list; videobackgroundsMax = videobackgrounds.length-1;}
+            if (folderName === 'anime') { animebackgrounds = list; animebackgroundsMax = animebackgrounds.length-1;}
+            if (folderName === 'skating') { skatingbackgrounds = list; skatingbackgroundsMax = skatingbackgrounds.length-1;}
+            if (folderName === 'games') { gamesbackgrounds = list; gamesbackgroundsMax = gamesbackgrounds.length-1;}
         }
 
     }
@@ -170,65 +166,65 @@ function getBackgrounds(folderName) {
 //     xmlhttp.send();
 // }
 
-function getAnimeBackgrounds() {
-    var xmlhttp;
-    if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
-        xmlhttp = new XMLHttpRequest();
-    } else { // code for IE6, IE5
-        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-            var text = xmlhttp.responseText;
-            // Now convert it into array using regex
-            animebackgrounds = text.split(/\n|\r/g);
-            animebackgroundsMax = animebackgrounds.length-1;
-            animebackgroundIndex = Math.floor(Math.random() * animebackgroundsMax);
-        }
-    }
-    xmlhttp.open("GET", "/api/list-files", true);
-    xmlhttp.send()
-}
+// function getAnimeBackgrounds() {
+//     var xmlhttp;
+//     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+//         xmlhttp = new XMLHttpRequest();
+//     } else { // code for IE6, IE5
+//         xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+//     }
+//     xmlhttp.onreadystatechange = function() {
+//         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+//             var text = xmlhttp.responseText;
+//             // Now convert it into array using regex
+//             animebackgrounds = text.split(/\n|\r/g);
+//             animebackgroundsMax = animebackgrounds.length-1;
+//             animebackgroundIndex = Math.floor(Math.random() * animebackgroundsMax);
+//         }
+//     }
+//     xmlhttp.open("GET", "/api/list-files", true);
+//     xmlhttp.send()
+// }
 
-function getSkatingBackgrounds() {
-    var xmlhttp;
-    if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
-        xmlhttp = new XMLHttpRequest();
-    } else { // code for IE6, IE5
-        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-            var text = xmlhttp.responseText;
-            // Now convert it into array using regex
-            skatingbackgrounds = text.split(/\n|\r/g);
-            skatingbackgroundsMax = skatingbackgrounds.length-1;
-            skatingbackgroundIndex = Math.floor(Math.random() * skatingbackgroundsMax);
-        }
-    }
-    xmlhttp.open("GET", "/api/list-files", true);
-    xmlhttp.send()
-}
+// function getSkatingBackgrounds() {
+//     var xmlhttp;
+//     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+//         xmlhttp = new XMLHttpRequest();
+//     } else { // code for IE6, IE5
+//         xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+//     }
+//     xmlhttp.onreadystatechange = function() {
+//         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+//             var text = xmlhttp.responseText;
+//             // Now convert it into array using regex
+//             skatingbackgrounds = text.split(/\n|\r/g);
+//             skatingbackgroundsMax = skatingbackgrounds.length-1;
+//             skatingbackgroundIndex = Math.floor(Math.random() * skatingbackgroundsMax);
+//         }
+//     }
+//     xmlhttp.open("GET", "/api/list-files", true);
+//     xmlhttp.send()
+// }
 
-function getGamesBackgrounds() {
-    var xmlhttp;
-    if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
-        xmlhttp = new XMLHttpRequest();
-    } else { // code for IE6, IE5
-        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-            var text = xmlhttp.responseText;
-            // Now convert it into array using regex
-            gamesbackgrounds = text.split(/\n|\r/g);
-            gamesbackgroundsMax = gamesbackgrounds.length-1;
-            gamesbackgroundIndex = Math.floor(Math.random() * gamesbackgroundsMax);
-        }
-    }
-    xmlhttp.open("GET", "/api/list-files", true);
-    xmlhttp.send()
-}
+// function getGamesBackgrounds() {
+//     var xmlhttp;
+//     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+//         xmlhttp = new XMLHttpRequest();
+//     } else { // code for IE6, IE5
+//         xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+//     }
+//     xmlhttp.onreadystatechange = function() {
+//         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+//             var text = xmlhttp.responseText;
+//             // Now convert it into array using regex
+//             gamesbackgrounds = text.split(/\n|\r/g);
+//             gamesbackgroundsMax = gamesbackgrounds.length-1;
+//             gamesbackgroundIndex = Math.floor(Math.random() * gamesbackgroundsMax);
+//         }
+//     }
+//     xmlhttp.open("GET", "/api/list-files", true);
+//     xmlhttp.send()
+// }
 
 function loadBackgroundType() {
     if (localStorage.getItem('backtype') == null){
