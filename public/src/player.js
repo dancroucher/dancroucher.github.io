@@ -366,7 +366,7 @@ function changeBackground() {
                 skatingbackgroundIndex = 0;
             };
             var text = skatingbackgrounds[skatingbackgroundIndex];
-            var textclean = text.replace(/^/,'./assets/video/skating/');
+            var textclean = text.replace(/^/,'./skating/');
             mp4background.src = textclean;
             localStorage.setItem('background', skatingbackgroundIndex);
         }
@@ -376,7 +376,7 @@ function changeBackground() {
                 animebackgroundIndex = 0;
             };
             var text = animebackgrounds[animebackgroundIndex];
-            var textclean = text.replace(/^/,'./assets/video/anime/');
+            var textclean = text.replace(/^/,'./anime/');
             mp4background.src = textclean;
             localStorage.setItem('background', animebackgroundIndex);
         }
@@ -396,7 +396,7 @@ function changeBackground() {
                 gamesbackgroundIndex = 0;
             };
             var text = gamesbackgrounds[gamesbackgroundIndex];
-            var textclean = text.replace(/^/,'./assets/video/games/');
+            var textclean = text.replace(/^/,'./games/');
             mp4background.src = textclean;
             localStorage.setItem('background', gamesbackgroundIndex);
         }
