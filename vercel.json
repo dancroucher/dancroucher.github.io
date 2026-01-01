@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/list-files.js": {
+      "includeFiles": "public/**"
+    }
+  }
+}
