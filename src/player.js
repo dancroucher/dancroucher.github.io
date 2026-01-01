@@ -75,6 +75,7 @@ window.onload = function() {
     let text = document.lastModified;
     document.getElementById("info").innerHTML = text;
     playing = false;
+
     getVideoBackgrounds();
     getAnimeBackgrounds(); 
     getSkatingBackgrounds();
@@ -333,7 +334,6 @@ function clearData() {
 
 function changeBackground() {
     changingBackground = true;
-    console.log("change background " + bgTypeIndex + " playing:  " + mp4background.src);
     if (playing){
         if (bgTypeIndex == 0){//skating
             skatingbackgroundIndex++;
@@ -498,12 +498,12 @@ function doPopup() {
 var interval = null;
 
 function startRepeating(func, seconds) {
-    if (playing && !starting && changingBackground == false){
+
         // Clear any existing interval
         if (interval) {
             clearInterval(interval);
         }
-    }
+    
   // Start new interval
   interval = setInterval(func, seconds * 1000);
   
@@ -518,7 +518,14 @@ function stopRepeating() {
   }
 }
     startRepeating(() => {
-        changeBackground();
+  
+        if (playing){
+            changeBackground();
+        console.log("changing background " + bgTypeIndex + " to " + mp4background.src);
+            console.log(playing);
+        }
+            
+
     }, 5);
 
 // Stop it when needed:
