@@ -75,11 +75,11 @@ window.onload = function() {
     let text = document.lastModified;
     document.getElementById("info").innerHTML = text;
     playing = false;
-
-    getVideoBackgrounds();
-    getAnimeBackgrounds(); 
-    getSkatingBackgrounds();
-    getGamesBackgrounds();
+    getBackgrounds('video');
+    // getVideoBackgrounds();
+    // getAnimeBackgrounds(); 
+    // getSkatingBackgrounds();
+    // getGamesBackgrounds();
 }
 
 function doStart(){
@@ -100,28 +100,46 @@ fetch('api/list-files')
     // Use it directly or save it
     //console.log(fileList);
   });
-
-  function getVideoBackgrounds() {
-    var xmlhttp;
-    if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
-        xmlhttp = new XMLHttpRequest();
-    } else { // code for IE6, IE5
-        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
+  
+function getBackgrounds(folderName) {
+    var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             var text = xmlhttp.responseText;
-            // Now convert it into array using regex
-            videobackgrounds = text.split(/\n|\r/g);
-            //max item in list one less than length
-            videobackgroundsMax = videobackgrounds.length-1;
-            //randomise which one starts
-            videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
+            var list = text.split(/\n|\r/g).filter(line => line.trim() !== '');
+            
+            // Assign to your global arrays
+            if (folderName === 'video') videobackgrounds = list;
+            if (folderName === 'anime') animebackgrounds = list;
+            if (folderName === 'skating') skatingbackgrounds = list;
+            if (folderName === 'games') gamesbackgrounds = list;
         }
     }
-    xmlhttp.open("GET", "/api/list-files", true);
+    // Call the API with the folder parameter
+    xmlhttp.open("GET", `/api/list-files?folder=${folderName}`, true);
     xmlhttp.send();
 }
+//   function getVideoBackgrounds() {
+//     var xmlhttp;
+//     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+//         xmlhttp = new XMLHttpRequest();
+//     } else { // code for IE6, IE5
+//         xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+//     }
+//     xmlhttp.onreadystatechange = function() {
+//         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+//             var text = xmlhttp.responseText;
+//             // Now convert it into array using regex
+//             videobackgrounds = text.split(/\n|\r/g);
+//             //max item in list one less than length
+//             videobackgroundsMax = videobackgrounds.length-1;
+//             //randomise which one starts
+//             videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
+//         }
+//     }
+//     xmlhttp.open("GET", "/api/list-files", true);
+//     xmlhttp.send();
+// }
 
 // function getVideoBackgrounds() {
 //     var xmlhttp;
@@ -252,8 +270,11 @@ function backgroundTypeCommon(){
         var typeName = "video";
         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
         videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
+        // var text = videobackgrounds[videobackgroundIndex];
+        // var textclean = text.replace(/^/,'./public/video/');
         var text = videobackgrounds[videobackgroundIndex];
-        var textclean = text.replace(/^/,'./public/video/');
+        var textclean = `./video/${text}`; // Point directly to the folder next to index.html
+        mp4background.src = textclean;
         mp4background.src = textclean;
         bgmp4.style.display="block";
         bgyoutube.style.display="none";

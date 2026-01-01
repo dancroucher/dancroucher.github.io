@@ -1,26 +1,37 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 export default function handler(req, res) {
-  // Use process.cwd() to start from the project root
-  const directoryPath = path.join(process.cwd(), 'video')
+  // 1. Get the folder name from the URL query (e.g., ?folder=anime)
+  const folderParam = req.query.folder || 'video';
+
+  // 2. Resolve the path. 
+  // IMPORTANT: Ensure your folders are inside 'public' at the root of your project.
+  const directoryPath = path.join(process.cwd(), 'public', folderParam);
   
   try {
+    if (!fs.existsSync(directoryPath)) {
+      return res.status(404).send(`Directory not found: ${folderParam}`);
+    }
+
     const files = fs.readdirSync(directoryPath);
     
-    const fileNames = files.filter(file => {
-      // Use !file.startsWith('.') to ignore hidden system files like .DS_Store
-      return fs.statSync(path.join(directoryPath, file)).isFile() && !file.startsWith('.');
+    let fileNames = files.filter(file => {
+      const fullPath = path.join(directoryPath, file);
+      // Filter out subdirectories and hidden files like .DS_Store
+      return fs.statSync(fullPath).isFile() && !file.startsWith('.');
     });
+
+    // Fisher-Yates Shuffle
+    for (let i = fileNames.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [fileNames[i], fileNames[j]] = [fileNames[j], fileNames[i]];
+    }
     
-    // Set headers so the browser treats the response as a fresh list every time
     res.setHeader('Content-Type', 'text/plain');
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-
-    const fileList = fileNames.join('\n');
-    res.status(200).send(fileList);
+    res.status(200).send(fileNames.join('\n'));
   } catch (error) {
-    // Return the actual error message to help debug in Vercel logs
     res.status(500).json({ error: error.message });
   }
 }
