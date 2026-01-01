@@ -114,6 +114,13 @@ function getBackgrounds(folderName) {
             if (folderName === 'skating') skatingbackgrounds = list;
             if (folderName === 'games') gamesbackgrounds = list;
         }
+        if (videobackgrounds){
+            videobackgroundsMax = videobackgrounds.length-1;
+        }
+        else{
+            videobackgroundsMax = 0;
+        }
+
     }
     // Call the API with the folder parameter
     xmlhttp.open("GET", `/api/list-files?folder=${folderName}`, true);
