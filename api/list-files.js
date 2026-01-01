@@ -2,38 +2,44 @@ import path from 'path';
 import fs from 'fs';
 
 export default function handler(req, res) {
-  // 1. Force headers to kill all possible caching
+  // 1. Immediate Header Injection
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
-  res.setHeader('Content-Type', 'text/plain');
+  
+  // 2. THIS IS THE TEST: If you don't see this in your terminal, 
+  // the request is being intercepted before it hits this file.
+  console.log(">>> REQUEST RECEIVED AT:", new Date().toUTCString());
 
   const directoryPath = path.join(process.cwd(), 'public', 'video');
   
   try {
+    if (!fs.existsSync(directoryPath)) {
+      console.log("Error: Directory does not exist:", directoryPath);
+      return res.status(404).send("Directory not found");
+    }
+
     const files = fs.readdirSync(directoryPath);
     
-    // 2. Filter the files
+    // 3. Filter
     let fileNames = files.filter(file => {
       const fullPath = path.join(directoryPath, file);
       return fs.statSync(fullPath).isFile() && file !== '.DS_Store';
     });
 
-    // 3. Robust Shuffle (Fisher-Yates)
+    // 4. Shuffle (Fisher-Yates)
     for (let i = fileNames.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [fileNames[i], fileNames[j]] = [fileNames[j], fileNames[i]];
     }
 
-    // 4. Debugging: Log to your server terminal 
-    // If you don't see this log change every refresh, the function isn't running.
-    console.log(`Generating random list at ${new Date().toISOString()}`);
+    console.log("Shuffle successful. First file is now:", fileNames[0]);
 
-    const fileList = fileNames.join('\n');
-    
-    res.status(200).send(fileList);
+    res.setHeader('Content-Type', 'text/plain');
+    res.status(200).send(fileNames.join('\n'));
+
   } catch (error) {
-    console.error("Error reading directory:", error);
-    res.status(500).json({ error: error.message });
+    console.error("Critical Server Error:", error);
+    res.status(500).send(error.message);
   }
 }

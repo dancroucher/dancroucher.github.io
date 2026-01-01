@@ -97,7 +97,7 @@ fetch('api/list-files')
   .then(fileList => {
     // fileList is your text with filenames
     // Use it directly or save it
-    console.log(fileList);
+    //console.log(fileList);
   });
 
   function getVideoBackgrounds() {
