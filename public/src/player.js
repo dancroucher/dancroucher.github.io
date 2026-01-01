@@ -41,10 +41,10 @@ var cursor = true;
 // var youtubeList_none = "assets/lists/none.txt";
 var fauxInput = document.createElement('textarea');
 
-var videoList = "assets/lists/video/video.txt";
-var animeList = "assets/lists/video/anime.txt";
-var skatingList = "assets/lists/video/skating.txt";
-var gamesList = "assets/lists/video/games.txt";
+// var videoList = "assets/lists/video/video.txt";
+// var animeList = "assets/lists/video/anime.txt";
+// var skatingList = "assets/lists/video/skating.txt";
+// var gamesList = "assets/lists/video/games.txt";
 
 var pPause = document.querySelector('#play-pause'); // element where play and pause image appears
 var player;
@@ -161,7 +161,7 @@ function getAnimeBackgrounds() {
             animebackgroundIndex = Math.floor(Math.random() * animebackgroundsMax);
         }
     }
-    xmlhttp.open("GET", animeList, true);
+    xmlhttp.open("GET", "/api/list-files", true);
     xmlhttp.send()
 }
 
@@ -181,7 +181,7 @@ function getSkatingBackgrounds() {
             skatingbackgroundIndex = Math.floor(Math.random() * skatingbackgroundsMax);
         }
     }
-    xmlhttp.open("GET", skatingList, true);
+    xmlhttp.open("GET", "/api/list-files", true);
     xmlhttp.send()
 }
 
@@ -201,7 +201,7 @@ function getGamesBackgrounds() {
             gamesbackgroundIndex = Math.floor(Math.random() * gamesbackgroundsMax);
         }
     }
-    xmlhttp.open("GET", gamesList, true);
+    xmlhttp.open("GET", "/api/list-files", true);
     xmlhttp.send()
 }
 
