@@ -2,7 +2,6 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.2.1"
-  },
-    "type": "module"
+  }
 }
 
