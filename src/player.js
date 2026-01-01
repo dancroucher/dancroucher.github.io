@@ -32,13 +32,13 @@ var autoTypeName;
 var playlistName;
 var infoOpen = true;
 var cursor = true;
-var youtubeList_all = "assets/lists/all.txt";
-var soundcloudList = "assets/lists/sc.txt";
-var youtubeList_lofi = "assets/lists/lofi.txt";
-var youtubeList_synth = "assets/lists/synthwave.txt";
-var youtubeList_game = "assets/lists/game.txt";
-var youtubeList_tdnb = "assets/lists/tdnb.txt";
-var youtubeList_none = "assets/lists/none.txt";
+// var youtubeList_all = "assets/lists/all.txt";
+// var soundcloudList = "assets/lists/sc.txt";
+// var youtubeList_lofi = "assets/lists/lofi.txt";
+// var youtubeList_synth = "assets/lists/synthwave.txt";
+// var youtubeList_game = "assets/lists/game.txt";
+// var youtubeList_tdnb = "assets/lists/tdnb.txt";
+// var youtubeList_none = "assets/lists/none.txt";
 var fauxInput = document.createElement('textarea');
 
 var videoList = "assets/lists/video/video.txt";
@@ -92,7 +92,7 @@ function doStart(){
 }
 
 
-fetch('src/list-files.js')
+fetch('api/list-files')
   .then(response => response.text())
   .then(fileList => {
     // fileList is your text with filenames
@@ -100,7 +100,7 @@ fetch('src/list-files.js')
     console.log(fileList);
   });
 
-function getVideoBackgrounds() {
+  function getVideoBackgrounds() {
     var xmlhttp;
     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
         xmlhttp = new XMLHttpRequest();
@@ -118,9 +118,31 @@ function getVideoBackgrounds() {
             videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
         }
     }
-    xmlhttp.open("GET", videoList, true);
+    xmlhttp.open("GET", "/api/list-files", true);
     xmlhttp.send();
 }
+
+// function getVideoBackgrounds() {
+//     var xmlhttp;
+//     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+//         xmlhttp = new XMLHttpRequest();
+//     } else { // code for IE6, IE5
+//         xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+//     }
+//     xmlhttp.onreadystatechange = function() {
+//         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+//             var text = xmlhttp.responseText;
+//             // Now convert it into array using regex
+//             videobackgrounds = text.split(/\n|\r/g);
+//             //max item in list one less than length
+//             videobackgroundsMax = videobackgrounds.length-1;
+//             //randomise which one starts
+//             videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
+//         }
+//     }
+//     xmlhttp.open("GET", videoList, true);
+//     xmlhttp.send();
+// }
 
 function getAnimeBackgrounds() {
     var xmlhttp;
@@ -229,7 +251,7 @@ function backgroundTypeCommon(){
         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
         videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
         var text = videobackgrounds[videobackgroundIndex];
-        var textclean = text.replace(/^/,'./assets/video/video/');
+        var textclean = text.replace(/^/,'./public/video/');
         mp4background.src = textclean;
         bgmp4.style.display="block";
         bgyoutube.style.display="none";
@@ -339,7 +361,7 @@ function changeBackground() {
                 videobackgroundIndex = 0;
             };
             var text = videobackgrounds[videobackgroundIndex];
-            var textclean = text.replace(/^/,'./assets/video/video/');
+            var textclean = text.replace(/^/,'./public/video/');
             mp4background.src = textclean;
             localStorage.setItem('background', videobackgroundIndex);
         }
