@@ -171,8 +171,6 @@ var Demo = (function () {
 			}
 		}, false);
 
-		// this.node_mp4Background.appendChild(n1);
-
 
 			// Playlist fwd button
 			if (!singleVideo){
@@ -354,35 +352,35 @@ var Demo = (function () {
 		// 	on_play_pause_click(); 
 		// 	});
 
-		var on_play_pause_click = function (event) {
-			// If you have the array [this.player, Player.prototype.play]
-			var playerArray = [this.player, Player.prototype.play];
+	// 	var on_play_pause_click = function (event) {
+	// 		// If you have the array [this.player, Player.prototype.play]
+	// 		var playerArray = [this.player, Player.prototype.play];
 
 
 
-			// ppClicked = true;
-			// console.log(ppClicked);
-			// if (ppClicked == true){
-			if (playing == false) {
-				playing = true;
-				console.log(playing);
-				playerArray[1].call(playerArray[0]);
-				mp4background.play();
-			}
-			else if (playing == true) {
-				playing = false;
-				console.log(playing);
+	// 		// ppClicked = true;
+	// 		// console.log(ppClicked);
+	// 		// if (ppClicked == true){
+	// 		if (playing == false) {
+	// 			playing = true;
+	// 			console.log(playing);
+	// 			playerArray[1].call(playerArray[0]);
+	// 			mp4background.play();
+	// 		}
+	// 		else if (playing == true) {
+	// 			playing = false;
+	// 			console.log(playing);
 				
-			}
+	// 		}
 		
 		
 		
 	
-		// Stop click
-		// event.preventDefault();
-		// event.stopPropagation();
-		return false;
-	};
+	// 	// Stop click
+	// 	// event.preventDefault();
+	// 	// event.stopPropagation();
+	// 	return false;
+	// };
 		
 
 	};
@@ -441,32 +439,6 @@ var Demo = (function () {
 			}
 			this.node_trackNumber = document.getElementById('track-number'); // element where track number in a playlist appears
         	this.node_trackNumber.innerHTML = (JSON.stringify(this.player.get_playlist_index() + 1)+"&nbsp;/&nbsp;"+(playlist.length));
-			
-
-// var on_play_pause_click = function (event) {
-		// if (ppClicked == true){
-		// 	if (playing == false) {
-		// 		playing = true;
-		// 		console.log(playing);
-		// 		this.player.play();
-		// 		mp4background.play();
-		// 		ppClicked = false;
-		// 	}
-		// 	else if (playing == true) {
-		// 		playing = false;
-		// 		console.log(playing);
-		// 		this.player.pause();
-		// 		mp4background.pause();
-		// 		ppClicked = false;
-		// 	}
-		// }
-// 		console.log("play / pause");
-	
-// 		// Stop click
-// 		// event.preventDefault();
-// 		// event.stopPropagation();
-// 		return false;
-// 	};
 
 
 

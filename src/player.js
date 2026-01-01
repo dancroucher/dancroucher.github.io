@@ -74,6 +74,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 window.onload = function() {
     let text = document.lastModified;
     document.getElementById("info").innerHTML = text;
+    playing = false;
     getVideoBackgrounds();
     getAnimeBackgrounds(); 
     getSkatingBackgrounds();
@@ -90,6 +91,15 @@ function doStart(){
         playing = true;
 }
 
+
+// Regenerate the file list
+fetch('src/generate-filelist.php')
+  .then(response => response.text())
+  .then(message => {
+    console.log(message);
+    // Now your existing code can read the updated filenames.txt
+  });
+
 function getVideoBackgrounds() {
     var xmlhttp;
     if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
@@ -102,7 +112,9 @@ function getVideoBackgrounds() {
             var text = xmlhttp.responseText;
             // Now convert it into array using regex
             videobackgrounds = text.split(/\n|\r/g);
+            //max item in list one less than length
             videobackgroundsMax = videobackgrounds.length-1;
+            //randomise which one starts
             videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
         }
     }
