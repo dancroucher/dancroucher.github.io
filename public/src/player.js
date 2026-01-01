@@ -390,7 +390,7 @@ function changeBackground() {
                 videobackgroundIndex = 0;
             };
             var text = videobackgrounds[videobackgroundIndex];
-            var textclean = text.replace(/^/,'./public/video/');
+            var textclean = text.replace(/^/,'./video/');
             mp4background.src = textclean;
             localStorage.setItem('background', videobackgroundIndex);
         }

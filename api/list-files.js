@@ -7,7 +7,7 @@ export default function handler(req, res) {
 
   // 2. Resolve the path. 
   // IMPORTANT: Ensure your folders are inside 'public' at the root of your project.
-  const directoryPath = path.join(process.cwd(), 'public', folderParam);
+  const directoryPath = path.join(process.cwd(), folderParam);
   
   try {
     if (!fs.existsSync(directoryPath)) {
