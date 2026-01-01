@@ -2,24 +2,25 @@ const fs = require('fs');
 const path = require('path');
 
 export default function handler(req, res) {
-  // Path to your folder (relative to project root)
-  const directoryPath = path.join(process.cwd(), 'video', 'video');
+  // Use process.cwd() to start from the project root
+  const directoryPath = path.join(process.cwd(), 'video')
   
   try {
-    // Read directory
     const files = fs.readdirSync(directoryPath);
     
-    // Filter to only include files (not subdirectories)
     const fileNames = files.filter(file => {
-      return fs.statSync(path.join(directoryPath, file)).isFile();
+      // Use !file.startsWith('.') to ignore hidden system files like .DS_Store
+      return fs.statSync(path.join(directoryPath, file)).isFile() && !file.startsWith('.');
     });
     
-    // Join with newlines
+    // Set headers so the browser treats the response as a fresh list every time
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
     const fileList = fileNames.join('\n');
-    
-    // Return as plain text
     res.status(200).send(fileList);
   } catch (error) {
-    res.status(500).json({ error: 'Error reading directory' });
+    // Return the actual error message to help debug in Vercel logs
+    res.status(500).json({ error: error.message });
   }
 }

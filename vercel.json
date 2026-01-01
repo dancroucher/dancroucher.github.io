@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/list-files.js": {
-      "includeFiles": "public/**"
+      "includeFiles": "video/**"
     }
   },
   "cleanUrls": true
