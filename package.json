@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "cors": "^2.8.5",
+    "type": "module",
     "express": "^5.2.1"
   }
+  
 }
