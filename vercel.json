@@ -3,5 +3,6 @@
     "api/list-files.js": {
       "includeFiles": "public/**"
     }
-  }
+  },
+  "cleanUrls": true
 }
