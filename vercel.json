@@ -1,11 +1,14 @@
 {
+  "version": 2,
   "functions": {
     "api/list-files.js": {
       "includeFiles": "file-index.json"
     }
   },
-  "cleanUrls": true,
-  "scripts": {
-  "build": "node build-lists.js"
-}
+  "routes": [
+    {
+      "src": "/api/list-files",
+      "dest": "/api/list-files.js"
+    }
+  ]
 }
