@@ -3,7 +3,7 @@ const path = require('path');
 
 export default function handler(req, res) {
   // Path to your folder (relative to project root)
-  const directoryPath = path.join(process.cwd(), 'video');
+  const directoryPath = path.join(process.cwd(), 'video', 'video');
   
   try {
     // Read directory
