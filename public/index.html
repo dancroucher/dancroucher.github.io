@@ -40,7 +40,7 @@
                 <div class = "padinfo" id="padinfo">
                     <div class ="genre" id="background-type" onclick='changeBackgroundType()'></div>
                     <div class ="background-name" id="background-name" onclick='changeBackground()' style="display: none"></div>
-                    <div class ="background-name" id="background-auto" onclick='changeChangeTime()'></div>
+                    <div class ="background-name" id="background-auto" onclick=''></div>
                     <div class ="info-button" onclick="doPopup()"><i class="fas fa-info-circle"></i></div>
                     <div class="genre" id="playlist-prev"><a><i class="fa fa-fast-backward"></i></a></div>
                     <div class="genre-nohover" id="track-number"></div>
@@ -55,7 +55,9 @@
                                 <input class='videobox' type="text" autocomplete="on" id="idEntry" placeholder=""><br><br>
                                 <input type="submit" value="Submit" id="demo_start_video" onclick=''>
                             </form>
-                        </div>
+                        </div><br><br><br>
+                        <div>Previously Played: <br><br></div>
+                        <div id="saved-videos-container"></div>
 		            </div>
                 </div>
             </div>

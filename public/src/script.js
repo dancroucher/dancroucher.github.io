@@ -818,12 +818,17 @@ function submitVideoName(){
 		var tempVid = videoName.substring(0,68);
 		videoNameClean = tempVid.replaceAll('https://youtube.com/playlist?list=','');
     }
+	//playlist mixes
+	else if (videoName.includes("watch?v=") && videoName.includes("list=") && videoName.includes("start_radio")){
+		var tempVid = videoName.replaceAll('&start_radio=1','');
+		videoNameClean = tempVid.slice(-41);
+    }////
 	//pull out video id from link to 1 video within playlist 
     else if (videoName.includes("watch?v=") && videoName.includes("?list=")){
         var tempVid = videoName.substring(0,43);
 		videoNameClean = tempVid.replaceAll('https://www.youtube.com/watch?v=','');
     }
-	//pull out video id from link to 1 video within playlist, searhc page
+	//pull out video id from link to 1 video within playlist, search page
     else if (videoName.includes("watch?v=") && videoName.includes("?list=") && videoName.includes("pp=")){
         var tempVid = videoName.substring(0,43);
 		videoNameClean = tempVid.replaceAll('https://www.youtube.com/watch?v=','');
@@ -885,6 +890,7 @@ function submitVideoName(){
 
 }
 
+// https://www.youtube.com/watch?v=JtH68PJIQLE&list=RDEMTUXhJfM7NC9Glt6fGbl5fg
 // function submitPlaylistName(){
 //     //console.log("switching to playlist mode");
 

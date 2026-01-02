@@ -358,9 +358,25 @@ a:active {
     animation:0.5s ease 0s forwards slideIn; 
   }
 
+  .history-item{
+      padding: 3px 16px 2px 16px;
+      margin-bottom: 12px;
+      min-height: 48px;
+      color: #ffffff78;
+      border: dotted;
+      border-width: 2px;
+      background-color: #65595900;
+      align-content: center;
+      display: block;
+  }
 
-
-
+    .history-item:hover{
+      color: #ffffffcd;
+  }
+    /* .playlist{
+  }
+    .playlist:hover{
+  } */
   .padtitle {
       padding: 32px 0px 16px 24px;
   }

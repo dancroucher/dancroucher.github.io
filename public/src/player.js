@@ -77,6 +77,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 window.onload = function() {
     let text = document.lastModified;
     document.getElementById("info").innerHTML = text;
+    loadSavedListUI();
     playing = false;
     getBackgrounds('video');
     getBackgrounds('anime');
@@ -108,6 +109,9 @@ function doStart(){
             document.getElementById("track-number").style.display="none";
             document.getElementById("playlist-next").style.display="none";
         }
+ 
+       
+  
         loadBackgroundType();
         backgroundTypeCommon();
         loadChangeTime();
@@ -115,6 +119,21 @@ function doStart(){
         UpdateUI();
         starting = false;
         playing = true;
+         // Trigger the save
+        setTimeout(() => {
+            var trackName = document.getElementById('song-name').innerText;
+            var authorName = document.getElementById('song-author').innerText;
+            
+            if (singleVideo){
+                var type = "single";
+                saveVideoToList(myVideoName, trackName, authorName, type);
+            }
+            else{
+                var type = "playlist";
+                saveVideoToList(myVideoPlaylistName, trackName, authorName, type);
+            }
+        }, 1000);
+
 }
 
 
@@ -269,19 +288,13 @@ function changeChangeTime() {
 function changeTimeCommon() {
 
     if (changeTimeIndex == 0){
-        changeTimeActual = 5;
-        backgroundAuto.innerHTML = "change: 5s";
-        startRepeating(() => {
-        if (playing){
-           // changeBackground();
-        console.log("changing background. " + changeTimeActual + " to " + mp4background.src);
-        }
-    }, changeTimeActual);
+        stopRepeating();
+        backgroundAuto.innerHTML = "change: off";
         // console.log("index is: " + changeTimeIndex + " , actual is: " + changeTimeActual + "s");
     }
     else if (changeTimeIndex == 1){
-        changeTimeActual = 10;
-        backgroundAuto.innerHTML = "change: 10s";
+        changeTimeActual = 5;
+        backgroundAuto.innerHTML = "change: 5s";
         startRepeating(() => {
         if (playing){
             //changeBackground();
@@ -291,9 +304,8 @@ function changeTimeCommon() {
         // console.log("index is: " + changeTimeIndex + " , actual is: " + changeTimeActual + "s");
     }
     else if (changeTimeIndex == 2){
-        stopRepeating();
-        //changeBackground();
-        backgroundAuto.innerHTML = "change: off";
+        changeTimeActual = 10;
+        backgroundAuto.innerHTML = "change: 10s";
     }
     // if (playing == false)
     //     {
@@ -581,10 +593,10 @@ else{
 //     }
 // }
 
-function UpdateTrackNumber(){
-        localStorage.setItem('track', youtubeIndex);
-        localStorage.getItem('track');
-}
+// function UpdateTrackNumber(){
+//         localStorage.setItem('track', youtubeIndex);
+//         localStorage.getItem('track');
+// }
 
 function clearData() {
     localStorage.clear();
@@ -618,6 +630,63 @@ function stopRepeating() {
     clearInterval(interval);
     interval = null;
   }
+}
+
+function saveVideoToList(videoID, videoName, videoAuthor, videoType) {
+    // 1. Get the existing list from localStorage, or an empty array if it doesn't exist
+    let savedVideos = JSON.parse(localStorage.getItem('userVideoHistory')) || [];
+
+    // 2. Check if the video is already in the list
+    const exists = savedVideos.some(v => v.id === videoID);
+
+    if (!exists) {
+        // 3. Add the new video object to the beginning of the array
+        savedVideos.unshift({
+            id: videoID,
+            name: videoName,
+            author: videoAuthor,
+            type: videoType,
+            timestamp: new Date().getTime()
+        });
+
+        // 4. Optional: Limit the list to the last 50 items
+        if (savedVideos.length > 50) savedVideos.pop();
+
+        // 5. Save it back to localStorage
+        localStorage.setItem('userVideoHistory', JSON.stringify(savedVideos));
+        console.log("Saved to history:", videoID, videoName, videoAuthor, videoType);
+    }
+}
+
+function loadSavedListUI() {
+    const savedVideos = JSON.parse(localStorage.getItem('userVideoHistory')) || [];
+    const container = document.getElementById('saved-videos-container');
+    
+    container.innerHTML = ''; // Clear existing
+
+    savedVideos.forEach(video => {
+        const btn = document.createElement('button');
+        
+       //btn.setAttribute("id", "history-item");
+       if (video.type == "single"){
+        btn.className = 'history-item';
+            btn.innerHTML = "<i class=\"fa fa-file-video-o\" aria-hidden=\"true\"></i> " + video.name + " // " + video.author + " // " + video.type;
+       }
+       //
+        else{
+            btn.className = 'history-item playlist';
+            btn.innerHTML = "<i class=\"fa fa-list-alt\" aria-hidden=\"true\"></i> " + video.name + " // " + video.author + " // " + video.type;    
+        }
+        // When clicked, load this video
+        btn.onclick = () => {
+            if (window.myApp) {
+                     //window.myApp.player.load_video(video.id, true);
+                window.myApp.submitVideoNameFromSaved(video.id);
+            }
+        };
+        
+        container.appendChild(btn);
+    });
 }
 
 
@@ -659,6 +728,10 @@ window.addEventListener('keydown', function(event) {
 
         case "f": // Do info popup
             doFullscreen();
+            break;
+
+        case "=": // Do info popup
+            clearData();
             break;
     }
 });

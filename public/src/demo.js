@@ -403,6 +403,8 @@ var Demo = (function () {
 	Demo.prototype = {
 		constructor: Demo,
 
+		
+
 		togglePlayback: function() {
 			console.log ("playpause");
 			if (playing == false) {
@@ -433,6 +435,27 @@ var Demo = (function () {
 			}
     	},
 		
+		submitVideoNameFromSaved: function (videoName){
+			videoNameClean = videoName;
+
+			//console.log(`${videoNameClean} ${videoNameClean.length}`);
+			if (videoNameClean.length == 0){
+			}
+			else if (videoNameClean.length < 16){
+				myVideoName = videoNameClean;
+				singleVideo = true;
+				console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoName);
+			}
+			else if (videoNameClean.length > 16){
+				myVideoPlaylistName = videoNameClean;
+				singleVideo = false;
+				console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoPlaylistName);
+			}
+			setTimeout(() => {
+					window.myApp.startApp();
+				}, 1000);
+		},
+
 		doPlaylistPrevious: function() {
         console.log("playlist previous");
 			this.player.goto_previous();
@@ -442,6 +465,8 @@ var Demo = (function () {
         console.log("playlist next");
 			this.player.goto_next();
     	},
+
+		
 
 		on_ready_state_setup: function (state_vars, event) {
 			var i, sv;
@@ -481,6 +506,7 @@ var Demo = (function () {
 			songAuthor = (this.player.get_video_data().author)
         	this.node_songTitle.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
 			this.node_songAuthor.innerHTML = songAuthor;
+
 			var playlist = this.player.get_playlist(),
 				n1, n2, video_id, i;
 			if (playlist === null) {
