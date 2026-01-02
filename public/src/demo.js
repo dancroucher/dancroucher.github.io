@@ -435,10 +435,12 @@ var Demo = (function () {
 		
 		doPlaylistPrevious: function() {
         console.log("playlist previous");
+			this.player.goto_previous();
     	},
 
 		doPlaylistNext: function() {
         console.log("playlist next");
+			this.player.goto_next();
     	},
 
 		on_ready_state_setup: function (state_vars, event) {

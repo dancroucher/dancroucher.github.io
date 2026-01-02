@@ -103,6 +103,11 @@ window.onload = function() {
 function doStart(){
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
+        if (singleVideo){
+            document.getElementById("playlist-prev").style.display="none";
+            document.getElementById("track-number").style.display="none";
+            document.getElementById("playlist-next").style.display="none";
+        }
         loadBackgroundType();
         backgroundTypeCommon();
         loadChangeTime();
@@ -634,17 +639,26 @@ window.addEventListener('keydown', function(event) {
                     }
             break;
 
-
         case "arrowright": // Skip forward 5 seconds
+        if (!singleVideo)
             window.myApp.doPlaylistNext();
             break;
 
         case "arrowleft": // Skip back 5 seconds
+        if (!singleVideo)
             window.myApp.doPlaylistPrevious();
             break;
 
         case "x": // Next background type(custom function)
             changeBackgroundType();
+            break;
+        
+        case "i": // Do info popup
+            doPopup();
+            break;
+
+        case "f": // Do info popup
+            doFullscreen();
             break;
     }
 });
