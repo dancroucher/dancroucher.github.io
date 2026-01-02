@@ -183,6 +183,19 @@ a:active {
   background-color: rgba(0, 0, 0, 0.5);
   }
 
+  .normal-text {
+    color:  rgba(250,249,246,0.9);
+    display: inline-block;
+    font-size: 1.3em;
+    clear: both;
+    line-height: 1em;
+    padding-bottom: 2px;
+    padding-top: 8px;
+    padding-left: 6px;
+    padding-right: 5px;
+    margin-bottom: 16px;
+    width: auto;
+  }
 
   .song-name {
     color:  rgba(250,249,246,0.9);
@@ -358,19 +371,46 @@ a:active {
     animation:0.5s ease 0s forwards slideIn; 
   }
 
+  .button-row {
+    display: flex;         /* Puts children on one line */
+    align-items: center;   /* Keeps them vertically aligned */
+    margin-bottom: 12px;   /* Acts as the "line break" spacing for the next row */
+}
+
+
+.delete-btn {
+
+}
+
   .history-item{
+      flex-grow: 1;          /* Makes the title button take up remaining space */
+      text-align: left;
       padding: 3px 16px 2px 16px;
-      margin-bottom: 12px;
+  
+      margin-right: 16px;
       min-height: 48px;
       color: #ffffff78;
       border: dotted;
       border-width: 2px;
       background-color: #65595900;
-      align-content: center;
-      display: block;
   }
+  
+    .history-remove{
+    flex-shrink: 0;        /* Prevents the 'X' button from squishing */
+    width: 30px;           /* Keeps the 'X' box square */
+    padding: 3px 24px 2px 16px;
+    margin-bottom: 12px;
+    min-height: 48px;
+    color: #ffffff78;
+    border: dotted;
+    border-width: 2px;
+    background-color: #65595900;
+    }
 
     .history-item:hover{
+      color: #ffffffcd;
+  }
+      .history-remove:hover{
       color: #ffffffcd;
   }
     /* .playlist{

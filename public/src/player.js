@@ -666,17 +666,22 @@ function loadSavedListUI() {
 
     savedVideos.forEach(video => {
         const btn = document.createElement('button');
-        
-       //btn.setAttribute("id", "history-item");
+        const removeBtn = document.createElement('button');
+        const row = document.createElement('div');
+       
+        row.className = 'history-row';
        if (video.type == "single"){
-        btn.className = 'history-item';
+            btn.className = 'history-item';
             btn.innerHTML = "<i class=\"fa fa-file-video-o\" aria-hidden=\"true\"></i> " + video.name + " // " + video.author + " // " + video.type;
        }
        //
         else{
             btn.className = 'history-item playlist';
             btn.innerHTML = "<i class=\"fa fa-list-alt\" aria-hidden=\"true\"></i> " + video.name + " // " + video.author + " // " + video.type;    
+
         }
+        removeBtn.className = "history-remove";
+        removeBtn.textContent = "X";
         // When clicked, load this video
         btn.onclick = () => {
             if (window.myApp) {
@@ -684,8 +689,13 @@ function loadSavedListUI() {
                 window.myApp.submitVideoNameFromSaved(video.id);
             }
         };
-        
-        container.appendChild(btn);
+        //when clicked, remove from here and save data
+        removeBtn.onclick = () => {
+            console.log("remove " + video.name);
+        };
+        container.appendChild(row);
+        row.appendChild(btn);
+        row.appendChild(removeBtn);
     });
 }
 

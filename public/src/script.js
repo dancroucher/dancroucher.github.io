@@ -824,7 +824,7 @@ function submitVideoName(){
 		videoNameClean = tempVid.slice(-41);
     }////
 	//pull out video id from link to 1 video within playlist 
-    else if (videoName.includes("watch?v=") && videoName.includes("?list=")){
+    else if (videoName.includes("watch?v=") && (videoName.includes("?list=") || videoName.includes("&list="))){
         var tempVid = videoName.substring(0,43);
 		videoNameClean = tempVid.replaceAll('https://www.youtube.com/watch?v=','');
     }
@@ -889,7 +889,7 @@ function submitVideoName(){
         }, 1000);
 
 }
-
+//https://www.youtube.com/watch?v=3cBbGcI4NB8&list=RDGMEMJQXQAmqrnmK1SEjY_rKBGAVMiEBTcL74bvc&index=21
 // https://www.youtube.com/watch?v=JtH68PJIQLE&list=RDEMTUXhJfM7NC9Glt6fGbl5fg
 // function submitPlaylistName(){
 //     //console.log("switching to playlist mode");
