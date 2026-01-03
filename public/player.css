@@ -521,8 +521,17 @@ hr.style {
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Edge, Opera and Firefox */
 }
-
-
+/* This class will be removed after the first click */
+.iframe-unlock-shield {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 99999 !important;
+    opacity: 0.01; /* Almost invisible, but still 'there' for the browser */
+    background: transparent;
+}
 
 #bg-mp4 video {
   position: fixed; 

@@ -41,17 +41,18 @@ var Demo = (function () {
             controls: 0,
             loop: 0,
 			mute: 1,
-            disablekb: 0,
+            disablekb: 1,
+			rel: 0,
             fs: 0,
             iv_load_policy: 3,
             modestbranding: 1,
+			enablejsapi: 1,
+        	origin: window.location.origin,
 			},
 			
 			on: {},
 			// Check if your wrapper supports an 'attrs' or 'attributes' key here:
-    		attributes: {
-        	allow: "autoplay; encrypted-media; picture-in-picture"
-    }
+
 		});
 
 		this.node_actions = document.getElementById("demo_actions");
@@ -63,7 +64,7 @@ var Demo = (function () {
 		this.node_log = document.getElementById("demo_log");
 		this.node_iframe_container = document.querySelector(".bg-youtube");
 		this.node_mp4Background = document.getElementById('bg-mp4');//panel that vids play on
-		this.node_padinfo = document.getElementById("padinfo");
+		this.node_noneBackground = document.getElementById('bg-none');//black panel covering youtube behind bgmp4
 		this.node_prev = document.getElementById("playlist-prev");
 		this.node_next = document.getElementById("playlist-next");
 		this.node_previous = document.getElementById("padinfo");
@@ -166,6 +167,9 @@ var Demo = (function () {
 		// n1.type = "button";
 		// n1.setAttribute("id", "play-pause");
 		this.node_mp4Background.addEventListener("click", () => {
+			this.togglePlayback(); // Call the new function
+		}, false);
+		this.node_noneBackground.addEventListener("click", () => {
 			this.togglePlayback(); // Call the new function
 		}, false);
 
@@ -364,8 +368,10 @@ var Demo = (function () {
 		iframe.className = "demo_iframe";
 		this.node_iframe_container.appendChild(iframe);
 		// Add these lines to grant the browser permissions
-		iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
+		iframe.setAttribute("allow", "autoplay; encrypted-media; clipboard-write; microphone;");
+		iframe.setAttribute("picture-in-picture", "");
 		iframe.setAttribute("allowfullscreen", "");
+
 		// Event date start
 		this.init_date = new Date();
 
@@ -415,6 +421,7 @@ var Demo = (function () {
 
 		togglePlayback: function() {
 			console.log ("playpause");
+		
 			if (playing == false) {
 				this.player.play();
 				if (bgTypeIndex <= 3)
@@ -426,10 +433,38 @@ var Demo = (function () {
 				mp4background.pause();
 				playing = false;
 			}
+
 		},
 
 		unMute: function() {
-			this.player.unmute();
+							// 1. Check if the player is muted
+			if (this.player.is_muted()) {
+							this.player.pause();
+				if (bgTypeIndex <= 3)
+				mp4background.pause();
+				playing = false;
+				console.log("Player is currently muted. Attempting to unmute...");
+				this.player.unmute();
+				this.player.set_volume(100);
+				setTimeout(() => {
+					if (playing == false){
+						this.player.play();
+						if (bgTypeIndex <= 3)
+							mp4background.play();
+						playing = true;
+					}
+				}, 1000);
+				setTimeout(() => {
+		
+					
+						this.player.play();
+						if (bgTypeIndex <= 3)
+							mp4background.play();
+						playing = true;
+					
+				}, 5000);
+	
+			}
 		},
 
 		startApp: function() {
@@ -469,7 +504,7 @@ var Demo = (function () {
 			}
 			setTimeout(() => {
 					window.myApp.startApp();
-				}, 250);
+				}, 100);
 		},
 
 		doPlaylistPrevious: function() {

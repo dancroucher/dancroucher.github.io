@@ -74,6 +74,11 @@ tag.src = "https://www.youtube.com/player_api";
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
+// Global variable to track if we've unlocked audio
+window.audioUnlocked = false;
+
+
+
 window.onload = function() {
     // Now initialize the Demo app safely
     if (typeof Youtube !== 'undefined') {
@@ -90,17 +95,7 @@ window.onload = function() {
     getBackgrounds('anime');
     getBackgrounds('skating');
     getBackgrounds('games');
-
-    
-
-            
-        
-    // getVideoBackgrounds();
-    // getAnimeBackgrounds(); 
-    // getSkatingBackgrounds();
-    // getGamesBackgrounds();
 }
-//window.myApp = new Demo();
 
 function doStart(){
         document.getElementById("start-container").style.display="none";
@@ -112,11 +107,11 @@ function doStart(){
         }
         loadBackgroundType();
         backgroundTypeCommon();
-
-
+       
         //UpdateUI();
         starting = false;
         playing = true;
+        
          // Trigger the save and set change backgroun time after 2 sec
         setTimeout(() => {
             var trackName = document.getElementById('song-name').innerText;
@@ -132,11 +127,40 @@ function doStart(){
             }
             loadChangeTime();
             changeTimeCommon();
-            //window.myApp.unMute();
             
-            
+            //doPopup();
         }, 2000);
+        setTimeout(() => {
 
+        }, 4000);
+
+//     window.addEventListener('mousedown', function() {
+//     const iframe = document.querySelector('iframe');
+//     if (iframe && window.myApp && window.myApp.player) {
+        
+//         // 1. DIRECT INJECTION (The "Nuclear" Option)
+//         // We send a raw JSON string to the YouTube iframe. 
+//         // This is the fastest possible way to communicate intent.
+//         const msg = JSON.stringify({
+//             event: 'command',
+//             func: 'unMute',
+//             args: []
+//         });
+//         iframe.contentWindow.postMessage(msg, '*');
+
+//         const msg2 = JSON.stringify({
+//             event: 'command',
+//             func: 'setVolume',
+//             args: [100]
+//         });
+//         iframe.contentWindow.postMessage(msg2, '*');
+
+//         // 2. Fallback to your library
+//         window.myApp.player.play();
+        
+//         console.log("Direct PostMessage sent to Iframe");
+//     }
+// }, { capture: true, once: true });
 }
 
 
@@ -350,7 +374,7 @@ function backgroundTypeCommon(){
         var textclean = `./skating/${text}`; // Point directly to the folder next to index.html
         mp4background.src = textclean;
         bgmp4.style.display="block";
-        bgnone.style.display="block";
+        bgnone.style.background="#000000";
         bgyoutube.style.display="block";
     }
     else if (bgTypeIndex == 1){//anime
@@ -361,7 +385,7 @@ function backgroundTypeCommon(){
         var textclean = `./anime/${text}`; // Point directly to the folder next to index.html
         mp4background.src = textclean;
         bgmp4.style.display="block";
-        bgnone.style.display="block";
+        bgnone.style.background="#000000";
         bgyoutube.style.display="block";
     }
     else if (bgTypeIndex == 2){//video
@@ -372,7 +396,7 @@ function backgroundTypeCommon(){
         var textclean = `./video/${text}`; // Point directly to the folder next to index.html
         mp4background.src = textclean;
         bgmp4.style.display="block";
-        bgnone.style.display="block";
+        bgnone.style.background="#000000";
         bgyoutube.style.display="block";
     }
     else if (bgTypeIndex == 3){//games
@@ -383,7 +407,7 @@ function backgroundTypeCommon(){
         var textclean = `./games/${text}`; // Point directly to the folder next to index.html
         mp4background.src = textclean;
         bgmp4.style.display="block";
-        bgnone.style.display="block";
+        bgnone.style.background="#000000";
         bgyoutube.style.display="block";
     }
     else if (bgTypeIndex == 4){//original
@@ -391,7 +415,7 @@ function backgroundTypeCommon(){
         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
         mp4background.src = "";
         bgmp4.style.display="none";
-        bgnone.style.display="none";
+        bgnone.style.background="#00000000";
         bgyoutube.style.display="block";
     }
     else if (bgTypeIndex == 5){//none
@@ -399,7 +423,7 @@ function backgroundTypeCommon(){
         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
         mp4background.src = "";
         bgmp4.style.display="none";
-        bgnone.style.display="block";
+        bgnone.style.background="#000000";
         bgyoutube.style.display="block";
     }
     localStorage.setItem('backtype', bgTypeIndex);
@@ -684,8 +708,11 @@ function loadSavedListUI() {
     });
 }
 
+
+
 // Stop it when needed:
 // stopRepeating();
+
 
 window.addEventListener('keydown', function(event) {
     //const video = document.getElementById("mp4background");
@@ -728,4 +755,5 @@ window.addEventListener('keydown', function(event) {
             window.myApp.unMute();
             break;
     }
+
 });
