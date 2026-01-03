@@ -3,10 +3,9 @@ var singleVideo = false;
 (function () {
 	"use strict";
 
-
-
 	// Module for performing actions as soon as possible
 	var on_ready = (function () {
+
 
 		// Vars
 		var callbacks = [],
@@ -593,49 +592,53 @@ var singleVideo = false;
 		}
 	};
 
-	var on_demo_start_video_click = function (event) {
+		var on_demo_start_click = function (event) {
 		// Start demo
-		submitVideoName();
-			
-		if (videoNameClean.length == 0){
-			console.log ("Empty ID!");
-		}
-		else
-		{
-			begin_demo();
-		}
-		// var regexp = /^[a-zA-Z0-9_]+$/i;
-		// if (regexp.test(myVideoName)){
-		
-		// }
-		// else{
-		// 	console.log("invalid video ID");
-		// }
+		begin_demo();
+
 		// Update URL
-		//nav.go(this.getAttribute("href") || "", true);
+		nav.go(this.getAttribute("href") || "", true);
+
 		// Stop click
 		event.preventDefault();
 		event.stopPropagation();
 		return false;
 	};
 
-	var on_demo_start_playlist_click = function (event) {
+	var on_demo_start_video_click = function (event) {
 		// Start demo
-		submitPlaylistName();
-		var regexp = /^[a-zA-Z0-9_]+$/i;
-		if (regexp.test(myVideoPlaylistName)){
-			begin_demo();
-		}
-		else{
-			console.log("invalid playlist ID");
-		}
+
+		submitVideoName();
+			
+		// Start demo
+		//begin_demo();
+		console.log("begin demo");
 		// Update URL
 		nav.go(this.getAttribute("href") || "", true);
+		
 		// Stop click
 		event.preventDefault();
 		event.stopPropagation();
 		return false;
 	};
+
+	// var on_demo_start_playlist_click = function (event) {
+	// 	// Start demo
+	// 	submitPlaylistName();
+	// 	var regexp = /^[a-zA-Z0-9_]+$/i;
+	// 	if (regexp.test(myVideoPlaylistName)){
+	// 		begin_demo();
+	// 	}
+	// 	else{
+	// 		console.log("invalid playlist ID");
+	// 	}
+	// 	// Update URL
+	// 	nav.go(this.getAttribute("href") || "", true);
+	// 	// Stop click
+	// 	event.preventDefault();
+	// 	event.stopPropagation();
+	// 	return false;
+	// };
 
 	// 	var on_play_pause_click = function (event) {
 	// 	if (starting == false){
@@ -805,6 +808,7 @@ var singleVideo = false;
 });
 
 function submitVideoName(){
+	
 	let videoName = document.getElementById("idEntry").value;
 	
 	//playlist urls
@@ -884,9 +888,10 @@ function submitVideoName(){
 		console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoPlaylistName);
 
 	}
+
 	setTimeout(() => {
             window.myApp.startApp();
-        }, 1000);
+        }, 250);
 
 }
 //https://www.youtube.com/watch?v=3cBbGcI4NB8&list=RDGMEMJQXQAmqrnmK1SEjY_rKBGAVMiEBTcL74bvc&index=21

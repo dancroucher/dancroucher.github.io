@@ -39,13 +39,19 @@ var Demo = (function () {
 			params: {
             autoplay: 1,
             controls: 0,
-            loop: 1,
-            disablekb: 1,
+            loop: 0,
+			mute: 1,
+            disablekb: 0,
             fs: 0,
             iv_load_policy: 3,
             modestbranding: 1,
 			},
-			on: {}
+			
+			on: {},
+			// Check if your wrapper supports an 'attrs' or 'attributes' key here:
+    		attributes: {
+        	allow: "autoplay; encrypted-media; picture-in-picture"
+    }
 		});
 
 		this.node_actions = document.getElementById("demo_actions");
@@ -357,7 +363,9 @@ var Demo = (function () {
 		iframe = this.player.get_iframe();
 		iframe.className = "demo_iframe";
 		this.node_iframe_container.appendChild(iframe);
-
+		// Add these lines to grant the browser permissions
+		iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
+		iframe.setAttribute("allowfullscreen", "");
 		// Event date start
 		this.init_date = new Date();
 
@@ -409,19 +417,26 @@ var Demo = (function () {
 			console.log ("playpause");
 			if (playing == false) {
 				this.player.play();
+				if (bgTypeIndex <= 3)
 				mp4background.play();
 				playing = true;
 			} else {
 				this.player.pause();
+				if (bgTypeIndex <= 3)
 				mp4background.pause();
 				playing = false;
 			}
 		},
 
+		unMute: function() {
+			this.player.unmute();
+		},
+
 		startApp: function() {
         console.log("Manually starting the app sequence...");
 			if (this.player && starting) {
-				// Trigger the video loading only when YOU are ready
+				// Set volume to 0 before loading to bypass some autoplay blocks
+        		//this.player.set_volume(0);
 				if (singleVideo) {
 					this.player.load_video(myVideoName, true);
 				} else {
@@ -432,6 +447,7 @@ var Demo = (function () {
 				if (typeof doStart === 'function') {
 					doStart();
 				}
+				//this.player.unmute();
 			}
     	},
 		
@@ -453,16 +469,17 @@ var Demo = (function () {
 			}
 			setTimeout(() => {
 					window.myApp.startApp();
-				}, 1000);
+				}, 250);
 		},
 
 		doPlaylistPrevious: function() {
-        console.log("playlist previous");
+        //console.log("playlist previous");
 			this.player.goto_previous();
+			
     	},
 
 		doPlaylistNext: function() {
-        console.log("playlist next");
+        //console.log("playlist next");
 			this.player.goto_next();
     	},
 

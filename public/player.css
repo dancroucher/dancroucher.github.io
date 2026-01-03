@@ -382,37 +382,45 @@ a:active {
 
 }
 
-  .history-item{
-      flex-grow: 1;          /* Makes the title button take up remaining space */
-      text-align: left;
-      padding: 3px 16px 2px 16px;
-  
-      margin-right: 16px;
-      min-height: 48px;
-      color: #ffffff78;
+
+  .history-container{
+    color: #ffffff78;
+    padding: 8px 16px 16px 16px;
       border: dotted;
       border-width: 2px;
+      flex-grow: 1;
+      min-height: 80vh;
+      max-width: 80vw;
+  }
+  .history-item{
+      flex-grow: 1;          /* Makes the title button take up remaining space */
+      min-height: 36px;
+      padding: 16px 8px 16px 8px;
+      color: #ffffff78;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      border-bottom: dotted;
+      border-bottom-width: 2px;
       background-color: #65595900;
   }
   
     .history-remove{
     flex-shrink: 0;        /* Prevents the 'X' button from squishing */
-    width: 30px;           /* Keeps the 'X' box square */
-    padding: 3px 24px 2px 16px;
-    margin-bottom: 12px;
-    min-height: 48px;
-    color: #ffffff78;
+    width: 36px;           /* Keeps the 'X' box square */
+    color: #ff4e4e4d;
     border: dotted;
-    border-width: 2px;
+    border-width: 0px;
     background-color: #65595900;
+    font-size: 0.8em;
     }
 
     .history-item:hover{
       color: #ffffffcd;
-  }
+    }
       .history-remove:hover{
-      color: #ffffffcd;
-  }
+      color: #ff5353cd;
+    }
     /* .playlist{
   }
     .playlist:hover{
@@ -445,7 +453,7 @@ a:active {
     padding-top: 8px;
     padding-left: 6px;
     padding-right: 5px;
-    width: 72vw;
+    width: 80vw;
 
   }
 
@@ -521,7 +529,16 @@ hr.style {
   object-fit: cover;
   width: 120vw;
   height:  120vh;
+  z-index: -21;
+}
+
+#bg-none {
+  position: fixed; 
+  object-fit: cover;
+  width: 120vw;
+  height:  120vh;
   z-index: -22;
+  background-color: #000000;
 }
 
 #bg-start  {
@@ -549,7 +566,7 @@ hr.style {
   z-index: -22;
 }*/
 
-#bg-youtube {
+.bg-youtube {
   /* position: fixed; 
   object-fit: cover;*/
   /* width: 200vw;
@@ -571,7 +588,7 @@ hr.style {
   padding: 0;
   margin: 0;
   border: none;
-  z-index: -22;
+  z-index: -23;
   pointer-events: none;
 }
 
@@ -614,7 +631,7 @@ input[type=submit] {
 .videobox {
     color:  rgba(0, 0, 0, 0.9);
     display: inline-block;
-    width: 60vw;
+    width: 80vw;
     padding-bottom: 3px;
     padding-top: 3px;
     padding-left: 6px;

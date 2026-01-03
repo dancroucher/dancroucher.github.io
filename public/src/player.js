@@ -22,7 +22,7 @@ var bgTitle = document.querySelector('.bg-title'); // eleent where track title a
 var controlsImage = document.getElementById('bottom');
 var bgmp4 = document.getElementById('bg-mp4');
 var bgyoutube = document.getElementById('bg-youtube');
-var bggif = document.getElementById('bg-gif');
+var bgnone = document.getElementById('bg-none');
 // var bgyt = document.getElementById('bg-youtube');
 var changingBackground;
 var elem = document.documentElement;
@@ -55,7 +55,7 @@ var skatingbackgrounds = [];
 var videobackgrounds = [];
 var gamesbackgrounds = [];
 var backtypes = [0,1,2,3,4,5];
-var changeTimes = [0,1,2,3];
+var changeTimes = [0,1,2];
 var changeTimeIndex;
 var changeTimeActual;
 var bgTypeIndex;
@@ -75,6 +75,13 @@ var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 window.onload = function() {
+    // Now initialize the Demo app safely
+    if (typeof Youtube !== 'undefined') {
+        window.myApp = new Demo();
+        console.log("YouTube Player initialized and assigned to window.myApp");
+    } else {
+        console.warn("YouTube library not found yet. If you are using a wrapper, ensure it loads before player.js");
+    }
     let text = document.lastModified;
     document.getElementById("info").innerHTML = text;
     loadSavedListUI();
@@ -83,13 +90,7 @@ window.onload = function() {
     getBackgrounds('anime');
     getBackgrounds('skating');
     getBackgrounds('games');
-    // Now initialize the Demo app safely
-    if (typeof Youtube !== 'undefined') {
-        window.myApp = new Demo();
-        console.log("YouTube Player initialized and assigned to window.myApp");
-    } else {
-        console.warn("YouTube library not found yet. If you are using a wrapper, ensure it loads before player.js");
-    }
+
     
 
             
@@ -109,17 +110,14 @@ function doStart(){
             document.getElementById("track-number").style.display="none";
             document.getElementById("playlist-next").style.display="none";
         }
- 
-       
-  
         loadBackgroundType();
         backgroundTypeCommon();
-        loadChangeTime();
-        changeTimeCommon();
-        UpdateUI();
+
+
+        //UpdateUI();
         starting = false;
         playing = true;
-         // Trigger the save
+         // Trigger the save and set change backgroun time after 2 sec
         setTimeout(() => {
             var trackName = document.getElementById('song-name').innerText;
             var authorName = document.getElementById('song-author').innerText;
@@ -132,7 +130,12 @@ function doStart(){
                 var type = "playlist";
                 saveVideoToList(myVideoPlaylistName, trackName, authorName, type);
             }
-        }, 1000);
+            loadChangeTime();
+            changeTimeCommon();
+            //window.myApp.unMute();
+            
+            
+        }, 2000);
 
 }
 
@@ -288,17 +291,17 @@ function changeChangeTime() {
 function changeTimeCommon() {
 
     if (changeTimeIndex == 0){
-        stopRepeating();
         backgroundAuto.innerHTML = "change: off";
-        // console.log("index is: " + changeTimeIndex + " , actual is: " + changeTimeActual + "s");
+        stopRepeating();
+        //console.log("NOT changing background");
     }
     else if (changeTimeIndex == 1){
-        changeTimeActual = 5;
-        backgroundAuto.innerHTML = "change: 5s";
+        changeTimeActual = 30;
+        backgroundAuto.innerHTML = "change: 30s";
         startRepeating(() => {
         if (playing){
-            //changeBackground();
-        console.log("changing background. " + changeTimeActual + " to " + mp4background.src);
+            changeBackground();
+        //console.log("changing background every " + changeTimeActual + "s");
         }
     }, changeTimeActual);
         // console.log("index is: " + changeTimeIndex + " , actual is: " + changeTimeActual + "s");
@@ -306,11 +309,13 @@ function changeTimeCommon() {
     else if (changeTimeIndex == 2){
         changeTimeActual = 10;
         backgroundAuto.innerHTML = "change: 10s";
+        startRepeating(() => {
+        if (playing){
+            changeBackground();
+        //console.log("changing background every " + changeTimeActual + "s");
+        }
+    }, changeTimeActual);
     }
-    // if (playing == false)
-    //     {
-    //         window.myApp.togglePlayback();
-    //     }
     localStorage.setItem('changeTime', changeTimeIndex);
     localStorage.getItem('changeTime');
 }
@@ -333,6 +338,7 @@ function changeBackgroundType() {
         bgTypeIndex = 0;
     };
     backgroundTypeCommon();
+    
 }
 
 function backgroundTypeCommon(){
@@ -344,7 +350,8 @@ function backgroundTypeCommon(){
         var textclean = `./skating/${text}`; // Point directly to the folder next to index.html
         mp4background.src = textclean;
         bgmp4.style.display="block";
-        bgyoutube.style.display="none";
+        bgnone.style.display="block";
+        bgyoutube.style.display="block";
     }
     else if (bgTypeIndex == 1){//anime
         var typeName = "anime";
@@ -354,7 +361,8 @@ function backgroundTypeCommon(){
         var textclean = `./anime/${text}`; // Point directly to the folder next to index.html
         mp4background.src = textclean;
         bgmp4.style.display="block";
-        bgyoutube.style.display="none";
+        bgnone.style.display="block";
+        bgyoutube.style.display="block";
     }
     else if (bgTypeIndex == 2){//video
         var typeName = "video";
@@ -364,7 +372,8 @@ function backgroundTypeCommon(){
         var textclean = `./video/${text}`; // Point directly to the folder next to index.html
         mp4background.src = textclean;
         bgmp4.style.display="block";
-        bgyoutube.style.display="none";
+        bgnone.style.display="block";
+        bgyoutube.style.display="block";
     }
     else if (bgTypeIndex == 3){//games
         var typeName = "games";
@@ -374,67 +383,32 @@ function backgroundTypeCommon(){
         var textclean = `./games/${text}`; // Point directly to the folder next to index.html
         mp4background.src = textclean;
         bgmp4.style.display="block";
-        bgyoutube.style.display="none";
+        bgnone.style.display="block";
+        bgyoutube.style.display="block";
     }
     else if (bgTypeIndex == 4){//original
         var typeName = "original";
         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-        // gamesbackgroundIndex = Math.floor(Math.random() * gamesbackgroundsMax);
-        // var text = gamesbackgrounds[gamesbackgroundIndex];
-        // var textclean = text.replace(/^/,'./assets/video/games/');
         mp4background.src = "";
-        bgmp4.style.display="block";
+        bgmp4.style.display="none";
+        bgnone.style.display="none";
         bgyoutube.style.display="block";
     }
     else if (bgTypeIndex == 5){//none
         var typeName = "none";
         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-        // videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
-        // var text = videobackgrounds[videobackgroundIndex];
-        // var textclean = text.replace(/^/,'./assets/video/video/');
         mp4background.src = "";
-        bgmp4.style.display="block";
-        bgyoutube.style.display="none";
+        bgmp4.style.display="none";
+        bgnone.style.display="block";
+        bgyoutube.style.display="block";
     }
     localStorage.setItem('backtype', bgTypeIndex);
     localStorage.getItem('backtype');
     // if(playing == false){
     //     window.myApp.togglePlayback();
     // }
-    UpdateUI();
+    //UpdateUI();
 }
-
-// function UpdateBackgroundName (){
-//     if (bgTypeIndex == 0){//skating
-//         var str = skatingbackgrounds[skatingbackgroundIndex];
-//         var typeName = "skating";
-//         str = str.replace('./assets/video/skating/','');
-//         str = str.replace('.mp4','');
-//         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-//         backgroundName.innerHTML = str;
-//         backgroundAuto.innerHTML = autoTypeName;
-//     }
-//     else if (bgTypeIndex == 1){//anime
-//         var str = animebackgrounds[animebackgroundIndex];
-//         var typeName = "anime";
-//         str = str.replace('./assets/video/amime/','');
-//         str = str.replace('.mp4','');
-//         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-//         backgroundName.innerHTML = str;
-//         backgroundAuto.innerHTML = autoTypeName;
-//     }
-//     else if (bgTypeIndex == 2){//video
-//         var str = videobackgrounds[videobackgroundIndex];
-//         var typeName = "video";
-//         str = str.replace('./assets/video/video/','');
-//         str = str.replace('.mp4','');
-//         backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-//         backgroundName.innerHTML = str;
-//         backgroundAuto.innerHTML = autoTypeName;
-//     }
-// }
-
-
 
 function changeBackground() {
     changingBackground = true;
@@ -447,7 +421,6 @@ function changeBackground() {
             var text = skatingbackgrounds[skatingbackgroundIndex];
             var textclean = text.replace(/^/,'./skating/');
             mp4background.src = textclean;
-            localStorage.setItem('background', skatingbackgroundIndex);
         }
         else if (bgTypeIndex == 1){//anime
             animebackgroundIndex++;
@@ -457,7 +430,6 @@ function changeBackground() {
             var text = animebackgrounds[animebackgroundIndex];
             var textclean = text.replace(/^/,'./anime/');
             mp4background.src = textclean;
-            localStorage.setItem('background', animebackgroundIndex);
         }
         else if (bgTypeIndex == 2){//video
             videobackgroundIndex++;
@@ -467,7 +439,6 @@ function changeBackground() {
             var text = videobackgrounds[videobackgroundIndex];
             var textclean = text.replace(/^/,'./video/');
             mp4background.src = textclean;
-            localStorage.setItem('background', videobackgroundIndex);
         }
         else if (bgTypeIndex == 3){//games
             gamesbackgroundIndex++;
@@ -477,14 +448,13 @@ function changeBackground() {
             var text = gamesbackgrounds[gamesbackgroundIndex];
             var textclean = text.replace(/^/,'./games/');
             mp4background.src = textclean;
-            localStorage.setItem('background', gamesbackgroundIndex);
         }
         else if (bgTypeIndex == 4 || bgTypeIndex == 5){//original or none
             mp4background.src = "";
         }
 
         var changingBackground = false;
-        localStorage.getItem('background');
+        //localStorage.getItem('background');
         //UpdateBackgroundName();
     }
 }
@@ -631,16 +601,16 @@ function stopRepeating() {
     interval = null;
   }
 }
-
+//SAVE VIDEO HISTORY STUFF
 function saveVideoToList(videoID, videoName, videoAuthor, videoType) {
-    // 1. Get the existing list from localStorage, or an empty array if it doesn't exist
+    // Get the existing list from localStorage, or an empty array if it doesn't exist
     let savedVideos = JSON.parse(localStorage.getItem('userVideoHistory')) || [];
 
-    // 2. Check if the video is already in the list
+    // Check if the video is already in the list
     const exists = savedVideos.some(v => v.id === videoID);
 
     if (!exists) {
-        // 3. Add the new video object to the beginning of the array
+        // Add the new video object to the beginning of the array
         savedVideos.unshift({
             id: videoID,
             name: videoName,
@@ -648,14 +618,29 @@ function saveVideoToList(videoID, videoName, videoAuthor, videoType) {
             type: videoType,
             timestamp: new Date().getTime()
         });
-
-        // 4. Optional: Limit the list to the last 50 items
+        // Optional: Limit the list to the last 50 items
         if (savedVideos.length > 50) savedVideos.pop();
-
-        // 5. Save it back to localStorage
+        // Save it back to localStorage
         localStorage.setItem('userVideoHistory', JSON.stringify(savedVideos));
         console.log("Saved to history:", videoID, videoName, videoAuthor, videoType);
     }
+}
+
+function removeVideoFromHistory(videoID) {
+    // Get the current list from storage
+    let savedVideos = JSON.parse(localStorage.getItem('userVideoHistory')) || [];
+
+    //Filter out the video that matches the provided ID
+    // We keep every video EXCEPT the one we want to delete
+    savedVideos = savedVideos.filter(video => video.id !== videoID);
+
+    // 3. Save the new filtered list back to localStorage
+    localStorage.setItem('userVideoHistory', JSON.stringify(savedVideos));
+
+    // 4. Refresh the UI so the button disappears immediately
+    loadSavedListUI(); 
+    
+    console.log("Removed video ID:", videoID);
 }
 
 function loadSavedListUI() {
@@ -663,7 +648,6 @@ function loadSavedListUI() {
     const container = document.getElementById('saved-videos-container');
     
     container.innerHTML = ''; // Clear existing
-
     savedVideos.forEach(video => {
         const btn = document.createElement('button');
         const removeBtn = document.createElement('button');
@@ -681,7 +665,7 @@ function loadSavedListUI() {
 
         }
         removeBtn.className = "history-remove";
-        removeBtn.textContent = "X";
+        removeBtn.innerHTML = "<i class=\"fa fa-trash\" aria-hidden=\"true\"></i>";
         // When clicked, load this video
         btn.onclick = () => {
             if (window.myApp) {
@@ -690,15 +674,15 @@ function loadSavedListUI() {
             }
         };
         //when clicked, remove from here and save data
-        removeBtn.onclick = () => {
-            console.log("remove " + video.name);
+        removeBtn.onclick = (e) => {
+            e.stopPropagation(); // Prevents the video from loading when clicking delete
+            removeVideoFromHistory(video.id);
         };
         container.appendChild(row);
         row.appendChild(btn);
-        row.appendChild(removeBtn);
+        btn.appendChild(removeBtn);
     });
 }
-
 
 // Stop it when needed:
 // stopRepeating();
@@ -740,8 +724,8 @@ window.addEventListener('keydown', function(event) {
             doFullscreen();
             break;
 
-        case "=": // Do info popup
-            clearData();
+        case "y": // Do info popup
+            window.myApp.unMute();
             break;
     }
 });
