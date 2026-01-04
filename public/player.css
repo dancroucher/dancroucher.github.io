@@ -67,7 +67,7 @@ a:active {
     border-radius: 1px;                   
     text-align: center;
     clear: both;
-    line-height: 0em;
+    line-height: 16em;
     outline-offset: 0px;
     margin-right: 6px;
     margin-left: 6px;
@@ -589,16 +589,75 @@ hr.style {
 
 }
 #bg-youtube iframe {
-  position: fixed;
+  /* position: fixed;
   top: -85vh;
   left: -45vh;
   width: 3780px;
   height: 3150px;
   padding: 0;
   margin: 0;
-  border: none;
+  border: none; */
   z-index: -23;
-  pointer-events: none;
+  /* pointer-events: none; */
+}
+
+#activation-shield {
+    /* Ensures no other elements can steal the click */
+    pointer-events: auto !important;
+}
+
+
+#audio-toast {
+      /* Make the toast sit ABOVE the shield so they can see the message */
+    z-index: 1000000;
+    pointer-events: none; /* Let the click pass THROUGH the toast to the shield */
+    position: fixed;
+    bottom: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: opacity 0.5s ease;
+}
+
+.toast-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.toast-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#enable-audio-btn {
+    background: #1DB954; /* Spotify Green */
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.demo_action_link{
+      background: #1DB954; /* Spotify Green */
+    border-width: 16px;
+    color: white;
+    border-radius: 2px;
+    cursor: pointer;
+
+}
+
+.demo_action_link:hover{
+      background: #9ab91d; /* Spotify Green */
+
+    font-weight: bold;
 }
 
 input:focus,
@@ -700,7 +759,7 @@ input[type=submit] {
 }
 
 .main_table_full {
-  color:  rgba(250,249,246,0.9);
+color:  rgba(250,249,246,0.9);
   background-color: rgba(0, 0, 0, 0.6 );
   font-family: Menlo, monospace;
   font-weight: 400;
@@ -711,18 +770,19 @@ input[type=submit] {
   display: block;
   line-height: 1.2em;
   overflow-y: scroll;
-  visibility: hidden ;
   border-radius: 0px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-right: -50%;
-    min-width: 370px;
-    max-width: 1500px;
-    min-height: 200px;
-    max-height: 1200px;
-    transform: translate(-50%, -50%);
+  position: fixed;
+  visibility: hidden;
+  bottom: 0;
+  left: 900;
+  right: 0;
+  margin: 0 auto;
+  min-width: 370px;
+  max-width: 1500px;
+  min-height: 200px;
+  max-height: 1200px;
   z-index: 1;
+  display: flex;
 
 }
 /* Toggle this class when clicking on the popup container (hide and show the popup) */
@@ -1061,68 +1121,3 @@ background-color: rgba(0, 0, 0, 0.6 );
 }
 
 
-.main {
-	text-align: left;
-	display: inline-block;
-	width: 60em;
-	vertical-align: middle;
-  	padding: 0;
-	margin: 0;
-	border: none;
-	color: #ffffff;
-	background-color: #b0494900;
-	font-family: Arial;
-	font-size: 16px;
-	overflow-x: hidden;
-	overflow-y: scroll;
-	text-align: center;
-}
-.main_table {
-	display: table;
-	width: 100%;
-	position: relative;
-}
-.main.main_no_overflow {
-	overflow: hidden;
-}
-.main.body {
-	margin: 0.5em 0 4em 0;
-}
-.main.main_full {
-	width: 100%;
-}
-.main_table_full {
-	display: table-cell;
-	width: 100%;
-	vertical-align: top;
-  	color: #ffffff;
-	background-color: #b0494900;
-}
-.main_table_side {
-	display: table-cell;
-	width: 0;
-	vertical-align: top;
-}
-.main_table.main_table_nav_outer {
-	display: block;
-}
-.main_table.main_table_nav_outer>.main_table_full {
-	display: block;
-}
-.main_table.main_table_nav_outer>.main_table_side {
-	display: block;
-	position: absolute;
-	left: 100%;
-	top: 0;
-	bottom: 0;
-	width: auto;
-}
-.main_table.main_table_nav_outer.main_table_nav_left>.main_table_side {
-	display: block;
-	position: absolute;
-	left: auto;
-	right: 100%;
-	top: 0;
-	bottom: 0;
-	width: auto;
-}

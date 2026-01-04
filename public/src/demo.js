@@ -19,10 +19,10 @@ var Demo = (function () {
 
 		this.container = document.querySelector(".demo_region");
 		if (myVideoName != null){
-			this.default_video = "";
+			this.default_video = "2ZrWHtvSog4";
 		}
 		else{
-		this.default_video = "";
+		this.default_video = "2ZrWHtvSog4";
 		}
 	
 		if (myVideoPlaylistName != null){
@@ -39,8 +39,8 @@ var Demo = (function () {
 			params: {
             autoplay: 1,
             controls: 0,
-            loop: 0,
-			mute: 1,
+            loop: 1,
+			mute: 0,
             disablekb: 1,
 			rel: 0,
             fs: 0,
@@ -107,14 +107,14 @@ var Demo = (function () {
 			["Play", this.player, Player.prototype.play],
 			["Pause", this.player, Player.prototype.pause],
 			["Stop", this.player, Player.prototype.stop],
-			// ["Clear", this.player, Player.prototype.clear],
-			// ["Mute", this.player, Player.prototype.mute],
-			// ["Unmute", this.player, Player.prototype.unmute],
+			["Clear", this.player, Player.prototype.clear],
+			["Mute", this.player, Player.prototype.mute],
+			["Unmute", this.player, Player.prototype.unmute],
 			// ["Next in Playlist", this.player, Player.prototype.goto_next],
 			// ["Previous in Playlist", this.player, Player.prototype.goto_previous],
-			// ["Set Volume 0%", this.player, Player.prototype.set_volume, 0],
-			// ["Set Volume 50%", this.player, Player.prototype.set_volume, 50],
-			// ["Set Volume 100%", this.player, Player.prototype.set_volume, 100],
+			["Set Volume 0%", this.player, Player.prototype.set_volume, 0],
+			["Set Volume 50%", this.player, Player.prototype.set_volume, 50],
+			["Set Volume 100%", this.player, Player.prototype.set_volume, 100],
 			// ["Seek To 0%", this, Demo.prototype.seek_to, 0.0],
 			// ["Seek To 50%", this, Demo.prototype.seek_to, 0.5],
 			// ["Seek To 100%", this, Demo.prototype.seek_to, 1.0],
@@ -366,50 +366,13 @@ var Demo = (function () {
 		// Setup iframe
 		iframe = this.player.get_iframe();
 		iframe.className = "demo_iframe";
+		iframe.setAttribute("id", "demo_iframe");
 		this.node_iframe_container.appendChild(iframe);
 		// Add these lines to grant the browser permissions
-		iframe.setAttribute("allow", "autoplay; encrypted-media; clipboard-write; microphone;");
-		iframe.setAttribute("picture-in-picture", "");
-		iframe.setAttribute("allowfullscreen", "");
+		iframe.setAttribute("allow", "autoplay; encrypted-media; clipboard-write; microphone; fullscreen");
 
 		// Event date start
 		this.init_date = new Date();
-
-		// document.getElementById('play-pause').addEventListener('click', function(event) {
-		// 	on_play_pause_click(); 
-		// 	});
-
-	// 	var on_play_pause_click = function (event) {
-	// 		// If you have the array [this.player, Player.prototype.play]
-	// 		var playerArray = [this.player, Player.prototype.play];
-
-
-
-	// 		// ppClicked = true;
-	// 		// console.log(ppClicked);
-	// 		// if (ppClicked == true){
-	// 		if (playing == false) {
-	// 			playing = true;
-	// 			console.log(playing);
-	// 			playerArray[1].call(playerArray[0]);
-	// 			mp4background.play();
-	// 		}
-	// 		else if (playing == true) {
-	// 			playing = false;
-	// 			console.log(playing);
-				
-	// 		}
-		
-		
-		
-	
-	// 	// Stop click
-	// 	// event.preventDefault();
-	// 	// event.stopPropagation();
-	// 	return false;
-	// };
-		
-
 	};
 
 
@@ -417,74 +380,112 @@ var Demo = (function () {
 	Demo.prototype = {
 		constructor: Demo,
 
-		
-
 		togglePlayback: function() {
-			console.log ("playpause");
-		
-			if (playing == false) {
+			var state = this.player.get_player_state(); // or .getPlayerState() depending on your wrapper
+			if (state === 1) {
+				console.log("The video is currently playing. Pausing...");
+			} else if (state === 2) {
+				console.log("The video is paused. Playing..");
+			}
+			if (state === 2) {
 				this.player.play();
 				if (bgTypeIndex <= 3)
 				mp4background.play();
 				playing = true;
-			} else {
+				console.log(state);
+			} else if (state === 1) {
 				this.player.pause();
 				if (bgTypeIndex <= 3)
 				mp4background.pause();
 				playing = false;
+				console.log(state);
 			}
-
 		},
 
 		unMute: function() {
-							// 1. Check if the player is muted
-			if (this.player.is_muted()) {
-							this.player.pause();
-				if (bgTypeIndex <= 3)
-				mp4background.pause();
-				playing = false;
-				console.log("Player is currently muted. Attempting to unmute...");
-				this.player.unmute();
-				this.player.set_volume(100);
-				setTimeout(() => {
-					if (playing == false){
-						this.player.play();
-						if (bgTypeIndex <= 3)
-							mp4background.play();
-						playing = true;
-					}
-				}, 1000);
-				setTimeout(() => {
-		
-					
-						this.player.play();
-						if (bgTypeIndex <= 3)
-							mp4background.play();
-						playing = true;
-					
-				}, 5000);
-	
-			}
-		},
+			var state = this.player.get_player_state(); // or .getPlayerState() depending on your wrapper
+			//this.player.set_volume(0);
 
-		startApp: function() {
-        console.log("Manually starting the app sequence...");
-			if (this.player && starting) {
-				// Set volume to 0 before loading to bypass some autoplay blocks
-        		//this.player.set_volume(0);
-				if (singleVideo) {
-					this.player.load_video(myVideoName, true);
-				} else {
-					this.player.load_playlist(myVideoPlaylistName, "playlist", 0, true);
-				}
-				
-				// Now call your custom start function
-				if (typeof doStart === 'function') {
-					doStart();
-				}
-				//this.player.unmute();
-			}
-    	},
+			
+			// setTimeout(() => {this.player.pause();}, 500);
+			// setTimeout(() => {this.player.unmute();}, 500);
+			// //setTimeout(() => {this.player.play();}, 500);
+			// setTimeout(() => {this.player.play();}, 5000);
+			// // 			setTimeout(() => {
+			// // 	console.log("now play");
+			// // 	this.player.play();
+			// // 	// if (bgTypeIndex <= 3){
+			// // 	// 	mp4background.play();
+			// // 	// }
+			// // }, 2000);
+			
+			
+		},
+		
+startApp: function() {
+    console.log("Manually starting the app sequence...");
+    
+    const toast = document.getElementById("audio-toast");
+    toast.classList.replace("toast-hidden", "toast-visible");
+
+    const shield = document.createElement('div');
+    shield.id = "activation-shield";
+    shield.style = "position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999; cursor:pointer; background:rgba(0,0,0,0.5);";
+    shield.innerHTML = '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:8px; font-size:18px;">▶️ Click Anywhere to Start</div>';
+    document.body.appendChild(shield);
+
+    shield.addEventListener('click', () => {
+        console.log("Creating player with sound enabled...");
+        
+        // Destroy existing muted player
+        if (this.player) {
+            this.player.destroy();
+        }
+        
+        // Recreate player UNMUTED (within user gesture)
+        const Player = Youtube.Player;
+        this.player = new Player({
+            video_id: singleVideo ? myVideoName : null,
+            params: {
+                autoplay: 1,
+                controls: 0,
+                loop: 1,
+                mute: 0,  // UNMUTED from start
+                disablekb: 1,
+                rel: 0,
+                fs: 0,
+                iv_load_policy: 3,
+                modestbranding: 1,
+                enablejsapi: 1,
+                origin: window.location.origin,
+            },
+            on: {},
+        });
+        
+        // Re-attach iframe
+        const iframe = this.player.get_iframe();
+        iframe.className = "demo_iframe";
+        iframe.setAttribute("id", "demo_iframe");
+        iframe.setAttribute("allow", "autoplay; encrypted-media; clipboard-write; microphone; fullscreen");
+        this.node_iframe_container.appendChild(iframe);
+        
+        // Load content
+        if (singleVideo) {
+            this.player.load_video(myVideoName, true);
+        } else {
+            this.player.load_playlist(myVideoPlaylistName, "playlist", 0, true);
+        }
+        
+        this.player.set_volume(100);
+        
+        if (typeof doStart === 'function') {
+            doStart();
+        }
+        
+        toast.classList.replace("toast-visible", "toast-hidden");
+        shield.remove();
+    }, { once: true });
+},
 		
 		submitVideoNameFromSaved: function (videoName){
 			videoNameClean = videoName;
@@ -522,6 +523,7 @@ var Demo = (function () {
 
 		on_ready_state_setup: function (state_vars, event) {
 			var i, sv;
+			this.player.set_volume(0);
 
 			for (i = 0; i < state_vars.length; ++i) {
 				sv = state_vars[i];
@@ -558,7 +560,6 @@ var Demo = (function () {
 			songAuthor = (this.player.get_video_data().author)
         	this.node_songTitle.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
 			this.node_songAuthor.innerHTML = songAuthor;
-
 			var playlist = this.player.get_playlist(),
 				n1, n2, video_id, i;
 			if (playlist === null) {

@@ -80,6 +80,7 @@ window.audioUnlocked = false;
 
 
 window.onload = function() {
+    
     // Now initialize the Demo app safely
     if (typeof Youtube !== 'undefined') {
         window.myApp = new Demo();
@@ -95,6 +96,7 @@ window.onload = function() {
     getBackgrounds('anime');
     getBackgrounds('skating');
     getBackgrounds('games');
+    
 }
 
 function doStart(){
@@ -107,7 +109,8 @@ function doStart(){
         }
         loadBackgroundType();
         backgroundTypeCommon();
-       
+        loadChangeTime();
+        changeTimeCommon();
         //UpdateUI();
         starting = false;
         playing = true;
@@ -125,11 +128,11 @@ function doStart(){
                 var type = "playlist";
                 saveVideoToList(myVideoPlaylistName, trackName, authorName, type);
             }
-            loadChangeTime();
-            changeTimeCommon();
+   
+           
             
             //doPopup();
-        }, 2000);
+        }, 1000);
         setTimeout(() => {
 
         }, 4000);

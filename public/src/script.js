@@ -6,7 +6,7 @@ var singleVideo = false;
 	// Module for performing actions as soon as possible
 	var on_ready = (function () {
 
-
+		
 		// Vars
 		var callbacks = [],
 			check_interval = null,
@@ -594,15 +594,29 @@ var singleVideo = false;
 
 		var on_demo_start_click = function (event) {
 		// Start demo
+		//console.log("demo start");
 		begin_demo();
 
 		// Update URL
 		nav.go(this.getAttribute("href") || "", true);
 
+		setTimeout(() => {
+				console.log("now unmutescript");
+				//this.player.stop();
+				//this.player.seek(1);
+				// if (bgTypeIndex <= 3){
+				// 	mp4background.play();
+				// }
+				//window.myApp.togglePlayback();
+				window.myApp.unMute();
+
+			}, 1000);
+
 		// Stop click
 		event.preventDefault();
 		event.stopPropagation();
 		return false;
+		
 	};
 
 	var on_demo_start_video_click = function (event) {
@@ -792,8 +806,8 @@ var singleVideo = false;
 			i.addEventListener("click", on_doc_expand_all_click, false);
 		}
 
-		if ((i = document.getElementById("doc_shrink_all"))) {
-			i.addEventListener("click", on_doc_shrink_all_click, false);
+		if ((i = document.getElementById("stealth-click"))) {
+			i.addEventListener("click", on_demo_start_click, false);
 		}
 
 		if ((i = document.getElementById("demo_start_video"))) {
@@ -891,7 +905,7 @@ function submitVideoName(){
 
 	setTimeout(() => {
             window.myApp.startApp();
-        }, 250);
+        }, 100);
 
 }
 //https://www.youtube.com/watch?v=3cBbGcI4NB8&list=RDGMEMJQXQAmqrnmK1SEjY_rKBGAVMiEBTcL74bvc&index=21
