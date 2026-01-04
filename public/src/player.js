@@ -67,17 +67,13 @@ var playing = false;
 var starting = true;
 var playerReady = false;
 var widget;
-
+// var trackName;
+//  var authorName;
 var csv;
 var tag = document.createElement('script');
 tag.src = "https://www.youtube.com/player_api";
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-// Global variable to track if we've unlocked audio
-window.audioUnlocked = false;
-
-
 
 window.onload = function() {
     
@@ -115,23 +111,21 @@ function doStart(){
         //UpdateUI();
         starting = false;
         playing = true;
+        // trackName = document.getElementById('song-name').innerText;
+        // authorName = document.getElementById('song-author').innerText;
         
          // Trigger the save and set change backgroun time after 2 sec
         setTimeout(() => {
-            var trackName = document.getElementById('song-name').innerText;
-            var authorName = document.getElementById('song-author').innerText;
-            
+
+            		//console.log(songTitle,songAuthor);
             if (singleVideo){
                 var type = "single";
-                saveVideoToList(myVideoName, trackName, authorName, type);
+                saveVideoToList(myVideoName, songTitle, songAuthor, type);
             }
             else{
                 var type = "playlist";
-                saveVideoToList(myVideoPlaylistName, trackName, authorName, type);
+                saveVideoToList(myVideoPlaylistName, songTitle, songAuthor, type);
             }
-        }, 1000);
-        setTimeout(() => {
-
         }, 4000);
 }
 
@@ -287,13 +281,13 @@ function changeChangeTime() {
 function changeTimeCommon() {
 
     if (changeTimeIndex == 0){
-        backgroundAuto.innerHTML = "change: off";
+        backgroundAuto.innerHTML = "bg change: off";
         stopRepeating();
         //console.log("NOT changing background");
     }
     else if (changeTimeIndex == 1){
         changeTimeActual = 30;
-        backgroundAuto.innerHTML = "change: 30s";
+        backgroundAuto.innerHTML = "bg change: 30s";
         startRepeating(() => {
         if (playing){
             changeBackground();
@@ -304,7 +298,7 @@ function changeTimeCommon() {
     }
     else if (changeTimeIndex == 2){
         changeTimeActual = 10;
-        backgroundAuto.innerHTML = "change: 10s";
+        backgroundAuto.innerHTML = "bg change: 10s";
         startRepeating(() => {
         if (playing){
             changeBackground();

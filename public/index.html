@@ -29,7 +29,7 @@
             </div> -->
             <div id="bg-start" class="bg" style="display: none" onclick=''></div>
             <div id="bg-mp4" class="bg" style="display: block" onclick='' ondblclick="doFullscreen()"><video autoplay muted playsinline loop id="mp4-background"></video></div>
-            <div id="bg-none" class="bg-none" style="display: block" ondblclick="doFullscreen()"></div>
+            <div id="bg-none" class="bg-none" style="display: block"></div>
             <div class="title-container" id="title-container" style="display: block">
                 <div class = "padtitle">
                     <div class ="title" id="title" ><a href=".">// jeem-fm</a></div>
@@ -44,10 +44,13 @@
                     <div class ="genre" id="background-type" onclick='changeBackgroundType()'></div>
                     <div class ="background-name" id="background-name" onclick='changeBackground()' style="display: none"></div>
                     <div class ="background-name" id="background-auto" onclick='changeChangeTime()'></div>
-                    <div class ="info-button" onclick="window.myApp.unMute()"><i class="fas fa-info-circle"></i></div>
                     <div class="genre" id="playlist-prev"><a><i class="fa fa-fast-backward"></i></a></div>
                     <div class="genre-nohover" id="track-number"></div>
                     <div class="genre" id="playlist-next"><a><i class="fa fa-fast-forward"></i></a></div>
+                    <div class ="fullscreen-button" onclick="doFullscreen()"><i class="fas fa-arrows-alt fa-rotate-45"></i></div>
+                    <div class ="info-button" onclick="doPopup()"><i class="fas fa-info-circle"></i></div>
+
+
                 </div>
             </div>
             <div id="bg-youtube" class="bg-youtube" style="display: none" allow="autoplay; encrypted-media; picture-in-picture"></div>

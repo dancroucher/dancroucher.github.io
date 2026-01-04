@@ -501,6 +501,7 @@ startApp: function() {
             songAuthor = this.player.get_video_data().author;
             this.node_songTitle.innerHTML = "<a href='https://www.youtube.com/watch?v=" + (singleVideo ? myVideoName : this.player.get_video_data().video_id) + "' target='_blank'>" + songTitle + "</a>";
             this.node_songAuthor.innerHTML = songAuthor;
+	
             
             // Update track number if playlist
             var playlist = this.player.get_playlist();

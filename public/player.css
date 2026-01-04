@@ -121,7 +121,6 @@ a:active {
   position: static;
   display: block;
   /* width: 100%;  */
-  width: fit-content;
   z-index: 5;
 }
 
@@ -186,7 +185,7 @@ a:active {
     padding-top: 8px;
     padding-right: 5px;
     margin-bottom: 16px;
-    width: auto;
+    width: fit-content;
   }
   .song-name:hover{
   background-color: rgba(0, 0, 0, 0.5);
@@ -202,7 +201,7 @@ a:active {
     padding-top: 4px;
     padding-right: 5px;
     margin-bottom: 16px;
-    width: auto
+    width: fit-content;
   }
     .song-author-empty {
     display: inline-block;
@@ -262,7 +261,8 @@ a:active {
     background-color: rgba(0, 0, 0, 0.3);
     width: fit-content;
     text-align: center;
-
+    align-self: right;
+    right: 0;
   }
   @media (hover: hover) {
     .info-button:hover{
@@ -270,7 +270,25 @@ a:active {
       color:   rgba(250,249,246,1);
     }
   }
-
+    .fullscreen-button {
+    color:  rgba(250,249,246,0.9);
+    display: inline-block;
+    clear: both;
+    line-height: 1.5em;
+    padding-bottom: 0px;
+    padding-top: 4px;
+    padding-left: 8px;
+    padding-right: 8px;
+    background-color: rgba(0, 0, 0, 0.3);
+    width: fit-content;
+    text-align: center;
+  }
+  @media (hover: hover) {
+    .fullscreen-button:hover{
+      background-color: rgba(0, 0, 0, 0.7);
+      color:   rgba(250,249,246,1);
+    }
+  }
     .genre-nohover {
     color:  rgba(250,249,246,0.9);
     display: inline-block;
@@ -306,7 +324,13 @@ a:active {
   }
 
 
-
+.fa-rotate-45 {
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
 
 
   .info-container, .info-container-out, .info-container-in {
@@ -485,16 +509,16 @@ hr.style {
 #bg-mp4 video {
   position: fixed; 
   object-fit: cover;
-  width: 120vw;
-  height:  120vh;
+  width: 100vw;
+  height:  100vh;
   z-index: -21;
 }
 
 #bg-none {
   position: fixed; 
   object-fit: cover;
-  width: 120vw;
-  height:  120vh;
+  width: 100vw;
+  height:  100vh;
   z-index: -22;
   background-color: #000000;
 }
@@ -537,13 +561,10 @@ hr.style {
 #bg-youtube iframe {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100vw;
+  left: -50vw;
+  width: 200vw;
   height: 100vh;
   object-fit: cover;
-  padding: 0;
-  margin: 0;
-  border: none;
   z-index: -23;
   pointer-events: none;
 }
