@@ -589,16 +589,16 @@ hr.style {
 
 }
 #bg-youtube iframe {
-  /* position: fixed;
+  position: fixed;
   top: -85vh;
   left: -45vh;
   width: 3780px;
   height: 3150px;
   padding: 0;
   margin: 0;
-  border: none; */
+  border: none;
   z-index: -23;
-  /* pointer-events: none; */
+  pointer-events: none;
 }
 
 #activation-shield {

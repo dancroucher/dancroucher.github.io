@@ -24,16 +24,16 @@
 
     <body >
         <div class="crt noselect">
+            <!-- <div id="audio-toast" class="toast-hidden">
+                <p>Audio is muted due to browser policy. Click anywhere.</p>
+            </div> -->
             <div id="bg-start" class="bg" style="display: none" onclick=''></div>
             <div id="bg-mp4" class="bg" style="display: block" onclick='' ondblclick="doFullscreen()"><video autoplay muted playsinline loop id="mp4-background"></video></div>
-            <div id="bg-none" class="bg-none" style="display: block"></div>
+            <div id="bg-none" class="bg-none" style="display: block" ondblclick="doFullscreen()"></div>
             <div class="title-container" id="title-container" style="display: block">
                 <div class = "padtitle">
                     <div class ="title" id="title" ><a href=".">// jeem-fm</a></div>
                 </div>
-            </div>
-            <div id="audio-toast" class="toast-hidden">
-                <p>Audio is muted due to browser policy. Click anywhere.</p>
             </div>
             <div class="song-container" id="song-container" style="display: none">
                 <div class = "padsong">
@@ -50,8 +50,7 @@
                     <div class="genre" id="playlist-next"><a><i class="fa fa-fast-forward"></i></a></div>
                 </div>
             </div>
-                        <div id="bg-youtube" class="bg-youtube" style="display: block" allow="autoplay; encrypted-media; picture-in-picture"></div>
-
+            <div id="bg-youtube" class="bg-youtube" style="display: none" allow="autoplay; encrypted-media; picture-in-picture"></div>
             <div class="title-container" id="start-container" style="display: block;">
                 <div class = "padstart">
                     <div class="start" id="start">

@@ -102,6 +102,7 @@ window.onload = function() {
 function doStart(){
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
+        document.getElementById("bg-youtube").style.display="block";
         if (singleVideo){
             document.getElementById("playlist-prev").style.display="none";
             document.getElementById("track-number").style.display="none";
@@ -128,42 +129,10 @@ function doStart(){
                 var type = "playlist";
                 saveVideoToList(myVideoPlaylistName, trackName, authorName, type);
             }
-   
-           
-            
-            //doPopup();
         }, 1000);
         setTimeout(() => {
 
         }, 4000);
-
-//     window.addEventListener('mousedown', function() {
-//     const iframe = document.querySelector('iframe');
-//     if (iframe && window.myApp && window.myApp.player) {
-        
-//         // 1. DIRECT INJECTION (The "Nuclear" Option)
-//         // We send a raw JSON string to the YouTube iframe. 
-//         // This is the fastest possible way to communicate intent.
-//         const msg = JSON.stringify({
-//             event: 'command',
-//             func: 'unMute',
-//             args: []
-//         });
-//         iframe.contentWindow.postMessage(msg, '*');
-
-//         const msg2 = JSON.stringify({
-//             event: 'command',
-//             func: 'setVolume',
-//             args: [100]
-//         });
-//         iframe.contentWindow.postMessage(msg2, '*');
-
-//         // 2. Fallback to your library
-//         window.myApp.player.play();
-        
-//         console.log("Direct PostMessage sent to Iframe");
-//     }
-// }, { capture: true, once: true });
 }
 
 

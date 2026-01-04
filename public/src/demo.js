@@ -19,10 +19,10 @@ var Demo = (function () {
 
 		this.container = document.querySelector(".demo_region");
 		if (myVideoName != null){
-			this.default_video = "2ZrWHtvSog4";
+			this.default_video = "";
 		}
 		else{
-		this.default_video = "2ZrWHtvSog4";
+		this.default_video = "";
 		}
 	
 		if (myVideoPlaylistName != null){
@@ -37,7 +37,7 @@ var Demo = (function () {
 		this.player = new Player({
 			video_id: this.default_video,
 			params: {
-            autoplay: 1,
+            autoplay: 0,
             controls: 0,
             loop: 1,
 			mute: 0,
@@ -425,27 +425,21 @@ var Demo = (function () {
 startApp: function() {
     console.log("Manually starting the app sequence...");
     
-    const toast = document.getElementById("audio-toast");
-    toast.classList.replace("toast-hidden", "toast-visible");
-
-    const shield = document.createElement('div');
-    shield.id = "activation-shield";
-    shield.style = "position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999; cursor:pointer; background:rgba(0,0,0,0.5);";
-    shield.innerHTML = '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:8px; font-size:18px;">▶️ Click Anywhere to Start</div>';
-    document.body.appendChild(shield);
-
-    shield.addEventListener('click', () => {
-        console.log("Creating player with sound enabled...");
+    if (this.player && starting) {
+        console.log("singleVideo:", singleVideo);
+        console.log("myVideoName:", myVideoName);
+        console.log("myVideoPlaylistName:", myVideoPlaylistName);
         
-        // Destroy existing muted player
-        if (this.player) {
-            this.player.destroy();
-        }
+        // Destroy the muted player
+        console.log("Destroying muted player...");
+        this.player.destroy();
         
-        // Recreate player UNMUTED (within user gesture)
+        // Recreate player UNMUTED
         const Player = Youtube.Player;
+        console.log("Creating new unmuted player...");
+        
         this.player = new Player({
-            video_id: singleVideo ? myVideoName : null,
+            video_id: singleVideo ? myVideoName : this.default_video,
             params: {
                 autoplay: 1,
                 controls: 0,
@@ -467,25 +461,74 @@ startApp: function() {
         iframe.className = "demo_iframe";
         iframe.setAttribute("id", "demo_iframe");
         iframe.setAttribute("allow", "autoplay; encrypted-media; clipboard-write; microphone; fullscreen");
+        this.node_iframe_container.innerHTML = "";
         this.node_iframe_container.appendChild(iframe);
         
-        // Load content
-        if (singleVideo) {
-            this.player.load_video(myVideoName, true);
-        } else {
-            this.player.load_playlist(myVideoPlaylistName, "playlist", 0, true);
+        // RE-ATTACH ALL EVENT LISTENERS
+        var list = [
+            "ready",
+            "yt_state_change",
+            "yt_playback_quality_change",
+            "yt_playback_rate_change",
+            "yt_api_change",
+            "yt_error",
+            "state_change",
+            "volume_change",
+            "time_change",
+            "duration_change",
+            "progress",
+            "playback_quality_change",
+            "playback_rate_change",
+            "playback_qualities_available_change",
+            "playback_rates_available_change",
+            "playlist_change",
+            "playlist_index_change",
+            "api_change",
+        ];
+        
+        for (var i = 0; i < list.length; ++i) {
+            this.player.on(list[i], this.log_event.bind(this, list[i]));
         }
         
-        this.player.set_volume(100);
+        // Re-attach playlist listeners
+        this.player.on("playlist_change", this.on_playlist_change.bind(this));
+        this.player.on("playlist_index_change", this.on_playlist_index_change.bind(this));
+        this.player.on("video_data_change", this.on_video_data_change.bind(this));
         
-        if (typeof doStart === 'function') {
-            doStart();
-        }
+        // Re-attach state change listener for song info
+        this.player.on("state_change", () => {
+            songTitle = this.player.get_video_data().title;
+            songAuthor = this.player.get_video_data().author;
+            this.node_songTitle.innerHTML = "<a href='https://www.youtube.com/watch?v=" + (singleVideo ? myVideoName : this.player.get_video_data().video_id) + "' target='_blank'>" + songTitle + "</a>";
+            this.node_songAuthor.innerHTML = songAuthor;
+            
+            // Update track number if playlist
+            var playlist = this.player.get_playlist();
+            if (playlist !== null) {
+                this.node_trackNumber = document.getElementById('track-number');
+                this.node_trackNumber.innerHTML = (this.player.get_playlist_index() + 1) + "&nbsp;/&nbsp;" + playlist.length;
+            }
+        });
         
-        toast.classList.replace("toast-visible", "toast-hidden");
-        shield.remove();
-    }, { once: true });
+        // Wait for player ready, then load content
+        this.player.on('ready', () => {
+            console.log("Player ready, loading content...");
+            
+            if (singleVideo) {
+                this.player.load_video(myVideoName, true);
+            } else {
+                this.player.load_playlist(myVideoPlaylistName, "playlist", 0, true);
+            }
+            
+            this.player.set_volume(100);
+            
+            if (typeof doStart === 'function') {
+                doStart();
+            }
+        });
+    }
 },
+		
 		
 		submitVideoNameFromSaved: function (videoName){
 			videoNameClean = videoName;
@@ -529,6 +572,19 @@ startApp: function() {
 				sv = state_vars[i];
 				this.on_generic_state_change(sv[2], sv[3], sv[4], null);
 			}
+						songTitle = (this.player.get_video_data().title);
+			songAuthor = (this.player.get_video_data().author)
+        	this.node_songTitle.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
+			this.node_songAuthor.innerHTML = songAuthor;
+			var playlist = this.player.get_playlist(),
+				n1, n2, video_id, i;
+			if (playlist === null) {
+				// No playlist
+				this.on_video_data_change();
+				return;
+			}
+			this.node_trackNumber = document.getElementById('track-number'); // element where track number in a playlist appears
+        	this.node_trackNumber.innerHTML = (JSON.stringify(this.player.get_playlist_index() + 1)+"&nbsp;/&nbsp;"+(playlist.length));
 
 			// Update API
 			this.on_api_change(null);
@@ -556,19 +612,7 @@ startApp: function() {
 			var value = formatter.call(this, getter.call(this.player));
 			//console.log('state changed');
 			node.textContent = value;
-			songTitle = (this.player.get_video_data().title);
-			songAuthor = (this.player.get_video_data().author)
-        	this.node_songTitle.innerHTML = "<a href='https://www.youtube.com/watch?v="+myVideoName+"'target='_blank'>"+songTitle+"</a>";
-			this.node_songAuthor.innerHTML = songAuthor;
-			var playlist = this.player.get_playlist(),
-				n1, n2, video_id, i;
-			if (playlist === null) {
-				// No playlist
-				this.on_video_data_change();
-				return;
-			}
-			this.node_trackNumber = document.getElementById('track-number'); // element where track number in a playlist appears
-        	this.node_trackNumber.innerHTML = (JSON.stringify(this.player.get_playlist_index() + 1)+"&nbsp;/&nbsp;"+(playlist.length));
+
 
 
 
