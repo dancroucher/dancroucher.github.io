@@ -140,6 +140,7 @@ a:active {
 }
 */
 .song-container {
+  padding-left: 6px;
   position: static;
   display: block;
   /* width: 100%;  */
@@ -148,6 +149,7 @@ a:active {
 }
 
 .title-container {
+  padding-left: 6px;
   position: static;
   display: block;
   /* width: 100%;  */
@@ -176,7 +178,7 @@ a:active {
   font-size: 3em;
   clear: both;    
   padding-top: 3px;
-  padding-left: 6px;
+  
     width: auto;
   }
   .title:hover{
@@ -205,7 +207,6 @@ a:active {
     line-height: 1em;
     padding-bottom: 2px;
     padding-top: 8px;
-    padding-left: 6px;
     padding-right: 5px;
     margin-bottom: 16px;
     width: auto;
@@ -222,7 +223,6 @@ a:active {
     line-height: 1em;
     padding-bottom: 2px;
     padding-top: 4px;
-    padding-left: 6px;
     padding-right: 5px;
     margin-bottom: 16px;
     width: auto
@@ -521,17 +521,7 @@ hr.style {
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Edge, Opera and Firefox */
 }
-/* This class will be removed after the first click */
-.iframe-unlock-shield {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    z-index: 99999 !important;
-    opacity: 0.01; /* Almost invisible, but still 'there' for the browser */
-    background: transparent;
-}
+
 
 #bg-mp4 video {
   position: fixed; 
@@ -576,10 +566,7 @@ hr.style {
 }*/
 
 .bg-youtube {
-  /* position: fixed; 
-  object-fit: cover;*/
-  /* width: 200vw;
-  height:  200vh; */
+
 
 }
 
@@ -590,10 +577,11 @@ hr.style {
 }
 #bg-youtube iframe {
   position: fixed;
-  top: -85vh;
-  left: -45vh;
-  width: 3780px;
-  height: 3150px;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
   padding: 0;
   margin: 0;
   border: none;
