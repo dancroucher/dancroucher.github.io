@@ -402,27 +402,8 @@ var Demo = (function () {
 			}
 		},
 
-		unMute: function() {
-			var state = this.player.get_player_state(); // or .getPlayerState() depending on your wrapper
-			//this.player.set_volume(0);
-
-			
-			// setTimeout(() => {this.player.pause();}, 500);
-			// setTimeout(() => {this.player.unmute();}, 500);
-			// //setTimeout(() => {this.player.play();}, 500);
-			// setTimeout(() => {this.player.play();}, 5000);
-			// // 			setTimeout(() => {
-			// // 	console.log("now play");
-			// // 	this.player.play();
-			// // 	// if (bgTypeIndex <= 3){
-			// // 	// 	mp4background.play();
-			// // 	// }
-			// // }, 2000);
-			
-			
-		},
 		
-startApp: function() {
+startApp: function(trackIndex = 0) {
     console.log("Manually starting the app sequence...");
     
     if (this.player && starting) {
@@ -517,8 +498,9 @@ startApp: function() {
             
             if (singleVideo) {
                 this.player.load_video(myVideoName, true);
-            } else {
-                this.player.load_playlist(myVideoPlaylistName, "playlist", 0, true);
+            } 
+			else {
+                this.player.load_playlist(myVideoPlaylistName, "playlist", trackIndex, true);
             }
             
             this.player.set_volume(100);
@@ -530,8 +512,9 @@ startApp: function() {
     }
 },
 		
+
 		
-		submitVideoNameFromSaved: function (videoName){
+		submitVideoNameFromSaved: function (videoName, trackIndex = 0){
 			videoNameClean = videoName;
 
 			//console.log(`${videoNameClean} ${videoNameClean.length}`);
@@ -548,14 +531,13 @@ startApp: function() {
 				console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoPlaylistName);
 			}
 			setTimeout(() => {
-					window.myApp.startApp();
+					window.myApp.startApp(trackIndex);
 				}, 100);
 		},
 
 		doPlaylistPrevious: function() {
         //console.log("playlist previous");
 			this.player.goto_previous();
-			
     	},
 
 		doPlaylistNext: function() {
@@ -798,6 +780,10 @@ startApp: function() {
 			if (id >= 0 && id < this.node_playlist.children.length) {
 				this.node_playlist.children[id].classList.add("demo_playlist_entry_current");
 			}
+						console.log ("fire save");
+			const currentIndex = this.player.get_playlist_index() || 0;
+			const currentID = myVideoPlaylistName; // Your global ID variable
+			saveVideoToList(currentID, songTitle, songAuthor, "playlist", currentIndex);
 		},
 		on_playlist_click: function (playlist_index, event) {
 			this.player.goto_at(playlist_index);
