@@ -120,14 +120,15 @@ function doStart(){
 
             		//console.log(songTitle,songAuthor);
             if (singleVideo){
-                var type = "single";
-                saveVideoToList(myVideoName, songTitle, songAuthor, type);
+                // var type = "single";
+                // saveVideoToList(myVideoName, songTitle, songAuthor, type);
+                saveVideoToList(myVideoName, songTitle, songAuthor, "single", 0);
             }
             else{
-                var type = "playlist";
-                saveVideoToList(myVideoPlaylistName, songTitle, songAuthor, type);
+                //var type = "playlist";
+                saveVideoToList(myVideoPlaylistName, songTitle, songAuthor, "playlist", playlistIndex);
             }
-        }, 4000);
+        }, 3000);
 }
 
 
@@ -661,7 +662,7 @@ function loadSavedListUI() {
         let trackInfo = "";
         if (video.type !== "single" && video.track !== undefined) {
             // Adding 1 to the index so it displays as "Track 1" instead of "Track 0"
-            trackInfo = " // Playlist track " + (video.track + 1);
+            trackInfo = " // Playlist // Track " + (video.track + 1);
         }
         else
         {
@@ -705,7 +706,7 @@ function loadSavedListUI() {
 // Inactivity fade functionality
 let inactivityTimer;
 let songContainerVisible = true;
-const FADE_DELAY = 100005000; // 5 seconds of inactivity
+const FADE_DELAY = 5000; // 5 seconds of inactivity
 
 function hideSongContainer() {
     const songContainer = document.getElementById('song-container');

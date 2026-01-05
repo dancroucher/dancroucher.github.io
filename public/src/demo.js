@@ -2,6 +2,7 @@ var myVideoName;
 var myVideoPlaylistName;
 var songTitle;
 var songAuthor;
+var playlistIndex;
 // var ppClicked;
 // var videoName;
 // var videoPlaylistName;
@@ -442,7 +443,7 @@ startApp: function(trackIndex = 0) {
         iframe.className = "demo_iframe";
         iframe.setAttribute("id", "demo_iframe");
         iframe.setAttribute("allow", "autoplay; encrypted-media; clipboard-write; microphone; fullscreen");
-        this.node_iframe_container.innerHTML = "";
+		iframe.setAttribute("sandbox", "allow-forms allow-scripts allow-same-origin allow-presentation allow-popups");
         this.node_iframe_container.appendChild(iframe);
         
         // RE-ATTACH ALL EVENT LISTENERS
@@ -488,6 +489,7 @@ startApp: function(trackIndex = 0) {
             var playlist = this.player.get_playlist();
             if (playlist !== null) {
                 this.node_trackNumber = document.getElementById('track-number');
+				playlistIndex = this.player.get_playlist_index();
                 this.node_trackNumber.innerHTML = (this.player.get_playlist_index() + 1) + "&nbsp;/&nbsp;" + playlist.length;
             }
         });
