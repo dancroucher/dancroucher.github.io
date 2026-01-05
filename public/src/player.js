@@ -104,6 +104,7 @@ function doStart(){
             document.getElementById("track-number").style.display="none";
             document.getElementById("playlist-next").style.display="none";
         }
+        initInactivityFade();
         loadBackgroundType();
         backgroundTypeCommon();
         loadChangeTime();
@@ -674,12 +675,64 @@ function loadSavedListUI() {
     });
 }
 
+// Inactivity fade functionality
+let inactivityTimer;
+let songContainerVisible = true;
+const FADE_DELAY = 100005000; // 5 seconds of inactivity
+
+function hideSongContainer() {
+    const songContainer = document.getElementById('song-container');
+    if (songContainer && songContainerVisible) {
+        songContainer.style.transition = 'opacity 1s ease';
+        songContainer.style.opacity = '0';
+        songContainerVisible = false;
+    }
+}
+
+function showSongContainer() {
+    const songContainer = document.getElementById('song-container');
+    if (songContainer && !songContainerVisible) {
+        songContainer.style.opacity = '1';
+        songContainerVisible = true;
+    }
+}
+
+function resetInactivityTimer() {
+    // Show the container immediately
+    showSongContainer();
+    
+    // Clear existing timer
+    clearTimeout(inactivityTimer);
+    
+    // Set new timer to hide after delay
+    inactivityTimer = setTimeout(hideSongContainer, FADE_DELAY);
+}
+
+// Initialize when page loads
+function initInactivityFade() {
+    const songContainer = document.getElementById('song-container');
+    if (songContainer) {
+        // Make sure transition is set
+        songContainer.style.transition = 'opacity 1s ease';
+        
+        // Start the initial timer
+        resetInactivityTimer();
+        
+        // Listen for user activity
+        document.addEventListener('mousemove', resetInactivityTimer);
+        document.addEventListener('mousedown', resetInactivityTimer);
+        document.addEventListener('keydown', resetInactivityTimer);
+        document.addEventListener('touchstart', resetInactivityTimer);
+        document.addEventListener('touchmove', resetInactivityTimer);
+        document.addEventListener('scroll', resetInactivityTimer);
+        
+        console.log('Inactivity fade initialized');
+    }
+}
 
 
-// Stop it when needed:
-// stopRepeating();
 
-
+// KEYBOARD CONTROLS
 window.addEventListener('keydown', function(event) {
     //const video = document.getElementById("mp4background");
     if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
