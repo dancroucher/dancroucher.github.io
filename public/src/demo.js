@@ -2,6 +2,7 @@ var myVideoName;
 var myVideoPlaylistName;
 var songTitle;
 var songAuthor;
+var playlistIndex;
 // var ppClicked;
 // var videoName;
 // var videoPlaylistName;
@@ -402,7 +403,7 @@ var Demo = (function () {
 			}
 		},
 		
-startApp: function() {
+startApp: function(trackIndex = 0) {
     console.log("Manually starting the app sequence...");
     
     if (this.player && starting) {
@@ -441,7 +442,7 @@ startApp: function() {
         iframe.className = "demo_iframe";
         iframe.setAttribute("id", "demo_iframe");
         iframe.setAttribute("allow", "autoplay; encrypted-media; clipboard-write; microphone; fullscreen");
-        this.node_iframe_container.innerHTML = "";
+		iframe.setAttribute("sandbox", "allow-forms allow-scripts allow-same-origin allow-presentation allow-popups");
         this.node_iframe_container.appendChild(iframe);
         
         // RE-ATTACH ALL EVENT LISTENERS
@@ -487,6 +488,7 @@ startApp: function() {
             var playlist = this.player.get_playlist();
             if (playlist !== null) {
                 this.node_trackNumber = document.getElementById('track-number');
+				playlistIndex = this.player.get_playlist_index();
                 this.node_trackNumber.innerHTML = (this.player.get_playlist_index() + 1) + "&nbsp;/&nbsp;" + playlist.length;
             }
         });
@@ -497,8 +499,9 @@ startApp: function() {
             
             if (singleVideo) {
                 this.player.load_video(myVideoName, true);
-            } else {
-                this.player.load_playlist(myVideoPlaylistName, "playlist", 0, true);
+            } 
+			else {
+                this.player.load_playlist(myVideoPlaylistName, "playlist", trackIndex, true);
             }
             
             this.player.set_volume(100);
@@ -510,8 +513,9 @@ startApp: function() {
     }
 },
 		
+
 		
-		submitVideoNameFromSaved: function (videoName){
+		submitVideoNameFromSaved: function (videoName, trackIndex = 0){
 			videoNameClean = videoName;
 
 			//console.log(`${videoNameClean} ${videoNameClean.length}`);
@@ -528,14 +532,13 @@ startApp: function() {
 				console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoPlaylistName);
 			}
 			setTimeout(() => {
-					window.myApp.startApp();
+					window.myApp.startApp(trackIndex);
 				}, 100);
 		},
 
 		doPlaylistPrevious: function() {
         //console.log("playlist previous");
 			this.player.goto_previous();
-			
     	},
 
 		doPlaylistNext: function() {
@@ -778,6 +781,10 @@ startApp: function() {
 			if (id >= 0 && id < this.node_playlist.children.length) {
 				this.node_playlist.children[id].classList.add("demo_playlist_entry_current");
 			}
+						console.log ("fire save");
+			const currentIndex = this.player.get_playlist_index() || 0;
+			const currentID = myVideoPlaylistName; // Your global ID variable
+			saveVideoToList(currentID, songTitle, songAuthor, "playlist", currentIndex);
 		},
 		on_playlist_click: function (playlist_index, event) {
 			this.player.goto_at(playlist_index);

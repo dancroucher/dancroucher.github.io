@@ -88,6 +88,7 @@ function doStart(){
             document.getElementById("track-number").style.display="none";
             document.getElementById("playlist-next").style.display="none";
         }
+        initInactivityFade();
         loadBackgroundType();
         backgroundTypeCommon();
         loadChangeTime();
@@ -101,14 +102,15 @@ function doStart(){
 
             		//console.log(songTitle,songAuthor);
             if (singleVideo){
-                var type = "single";
-                saveVideoToList(myVideoName, songTitle, songAuthor, type);
+                // var type = "single";
+                // saveVideoToList(myVideoName, songTitle, songAuthor, type);
+                saveVideoToList(myVideoName, songTitle, songAuthor, "single", 0);
             }
             else{
-                var type = "playlist";
-                saveVideoToList(myVideoPlaylistName, songTitle, songAuthor, type);
+                //var type = "playlist";
+                saveVideoToList(myVideoPlaylistName, songTitle, songAuthor, "playlist", playlistIndex);
             }
-        }, 4000);
+        }, 3000);
 }
 
 
@@ -451,28 +453,38 @@ function stopRepeating() {
   }
 }
 //SAVE VIDEO HISTORY STUFF
-function saveVideoToList(videoID, videoName, videoAuthor, videoType) {
-    // Get the existing list from localStorage, or an empty array if it doesn't exist
+function saveVideoToList(videoID, videoName, videoAuthor, videoType, trackIndex = 0) {
     let savedVideos = JSON.parse(localStorage.getItem('userVideoHistory')) || [];
 
-    // Check if the video is already in the list
-    const exists = savedVideos.some(v => v.id === videoID);
+    // Find the index of the video if it already exists in our saved list
+    const existingIndex = savedVideos.findIndex(v => v.id === videoID);
 
-    if (!exists) {
-        // Add the new video object to the beginning of the array
+    if (existingIndex !== -1) {
+        // UPDATE EXISTING: If it exists, update the track number and move to top
+        savedVideos[existingIndex].track = trackIndex;
+        savedVideos[existingIndex].timestamp = new Date().getTime();
+        
+        // Move the updated item to the front of the list
+        const updatedItem = savedVideos.splice(existingIndex, 1)[0];
+        savedVideos.unshift(updatedItem);
+        
+        console.log("Updated playlist track:", videoName, "to index:", trackIndex);
+    } else {
+        // ADD NEW: Create a new entry
         savedVideos.unshift({
             id: videoID,
             name: videoName,
             author: videoAuthor,
             type: videoType,
+            track: trackIndex, // Store the track number (0 for single videos)
             timestamp: new Date().getTime()
         });
-        // Optional: Limit the list to the last 50 items
+
         if (savedVideos.length > 50) savedVideos.pop();
-        // Save it back to localStorage
-        localStorage.setItem('userVideoHistory', JSON.stringify(savedVideos));
-        console.log("Saved to history:", videoID, videoName, videoAuthor, videoType);
+        console.log("Saved new entry:", videoName);
     }
+
+    localStorage.setItem('userVideoHistory', JSON.stringify(savedVideos));
 }
 
 function removeVideoFromHistory(videoID) {
@@ -496,49 +508,118 @@ function loadSavedListUI() {
     const savedVideos = JSON.parse(localStorage.getItem('userVideoHistory')) || [];
     const container = document.getElementById('saved-videos-container');
     
-    container.innerHTML = ''; // Clear existing
+    container.innerHTML = ''; 
+
     savedVideos.forEach(video => {
         const btn = document.createElement('button');
         const removeBtn = document.createElement('button');
         const row = document.createElement('div');
-       
+        
         row.className = 'history-row';
-       if (video.type == "single"){
-            btn.className = 'history-item';
-            btn.innerHTML = "<i class=\"fa fa-file-video-o\" aria-hidden=\"true\"></i> " + video.name + " // " + video.author + " // " + video.type;
-       }
-       //
-        else{
-            btn.className = 'history-item playlist';
-            btn.innerHTML = "<i class=\"fa fa-list-alt\" aria-hidden=\"true\"></i> " + video.name + " // " + video.author + " // " + video.type;    
 
+        // 1. Create the Display Label
+        let trackInfo = "";
+        if (video.type !== "single" && video.track !== undefined) {
+            // Adding 1 to the index so it displays as "Track 1" instead of "Track 0"
+            trackInfo = " // Playlist // Track " + (video.track + 1);
         }
+        else
+        {
+           trackInfo = " // Single video"; 
+        }
+
+        // 2. Set Button Styles and Icons
+        if (video.type == "single") {
+            btn.className = 'history-item';
+            btn.innerHTML = "<i class=\"fa fa-file-video-o\" aria-hidden=\"true\"></i> " + 
+                            video.name + " // " + video.author + trackInfo;
+        } else {
+            btn.className = 'history-item playlist';
+            btn.innerHTML = "<i class=\"fa fa-list-alt\" aria-hidden=\"true\"></i> " + 
+                            video.name + " // " + video.author + trackInfo;    
+        }
+
         removeBtn.className = "history-remove";
         removeBtn.innerHTML = "<i class=\"fa fa-trash\" aria-hidden=\"true\"></i>";
-        // When clicked, load this video
+
+        // 3. Updated Click Logic
         btn.onclick = () => {
             if (window.myApp) {
-                     //window.myApp.player.load_video(video.id, true);
-                window.myApp.submitVideoNameFromSaved(video.id);
+                // Pass both the ID and the saved track index
+                // Note: You'll need to update submitVideoNameFromSaved to accept the second parameter
+                window.myApp.submitVideoNameFromSaved(video.id, video.track || 0);
             }
         };
-        //when clicked, remove from here and save data
+
         removeBtn.onclick = (e) => {
-            e.stopPropagation(); // Prevents the video from loading when clicking delete
+            e.stopPropagation(); 
             removeVideoFromHistory(video.id);
         };
+
         container.appendChild(row);
         row.appendChild(btn);
         btn.appendChild(removeBtn);
     });
 }
 
+// Inactivity fade functionality
+let inactivityTimer;
+let songContainerVisible = true;
+const FADE_DELAY = 5000; // 5 seconds of inactivity
+
+function hideSongContainer() {
+    const songContainer = document.getElementById('song-container');
+    if (songContainer && songContainerVisible) {
+        songContainer.style.transition = 'opacity 1s ease';
+        songContainer.style.opacity = '0';
+        songContainerVisible = false;
+    }
+}
+
+function showSongContainer() {
+    const songContainer = document.getElementById('song-container');
+    if (songContainer && !songContainerVisible) {
+        songContainer.style.opacity = '1';
+        songContainerVisible = true;
+    }
+}
+
+function resetInactivityTimer() {
+    // Show the container immediately
+    showSongContainer();
+    
+    // Clear existing timer
+    clearTimeout(inactivityTimer);
+    
+    // Set new timer to hide after delay
+    inactivityTimer = setTimeout(hideSongContainer, FADE_DELAY);
+}
+
+// Initialize when page loads
+function initInactivityFade() {
+    const songContainer = document.getElementById('song-container');
+    if (songContainer) {
+        // Make sure transition is set
+        songContainer.style.transition = 'opacity 1s ease';
+        
+        // Start the initial timer
+        resetInactivityTimer();
+        
+        // Listen for user activity
+        document.addEventListener('mousemove', resetInactivityTimer);
+        document.addEventListener('mousedown', resetInactivityTimer);
+        document.addEventListener('keydown', resetInactivityTimer);
+        document.addEventListener('touchstart', resetInactivityTimer);
+        document.addEventListener('touchmove', resetInactivityTimer);
+        document.addEventListener('scroll', resetInactivityTimer);
+        
+        console.log('Inactivity fade initialized');
+    }
+}
 
 
-// Stop it when needed:
-// stopRepeating();
 
-
+// KEYBOARD CONTROLS
 window.addEventListener('keydown', function(event) {
     //const video = document.getElementById("mp4background");
     if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {

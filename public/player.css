@@ -208,51 +208,9 @@ a:active {
     clear: both;
   }
 
-  .song-author:hover{
-  /* background-color: rgba(0, 0, 0, 0.5); */
-  }
-
-  .background-name {
-    color:  rgba(250,249,246,0.9);
-    display: inline-block;
-    clear: both;
-    line-height: 1.5em;
-    padding-bottom: 0px;
-    padding-top: 4px;
-    padding-left: 8px;
-    padding-right: 8px;
-    background-color: rgba(0, 0, 0, 0.3);
-    width: fit-content;
-    text-align: center;
-
-  }
-    .background-name:hover{
-    background-color: rgba(0, 0, 0, 0.7);
-    color:  rgba(250,249,246,1);
-  }
-
-    .background-type {
-    color:  rgba(250,249,246,0.9);
-    display: inline-block;
-    clear: both;
-    line-height: 1.5em;
-    padding-bottom: 0px;
-    padding-top: 4px;
-    padding-left: 8px;
-    padding-right: 8px;
-    background-color: rgba(0, 0, 0, 0.3);
-    width: fit-content;
-    text-align: center;
-
-  }
-    .background-type:hover{
-    background-color: rgba(0, 0, 0, 0.7);
-    color:  rgba(250,249,246,1);
-  }
     .info-button {
     color:  rgba(250,249,246,0.9);
     display: inline-block;
-    clear: both;
     line-height: 1.5em;
     padding-bottom: 0px;
     padding-top: 4px;
@@ -261,8 +219,7 @@ a:active {
     background-color: rgba(0, 0, 0, 0.3);
     width: fit-content;
     text-align: center;
-    align-self: right;
-    right: 0;
+    margin-left: 4px;
   }
   @media (hover: hover) {
     .info-button:hover{
@@ -273,7 +230,6 @@ a:active {
     .fullscreen-button {
     color:  rgba(250,249,246,0.9);
     display: inline-block;
-    clear: both;
     line-height: 1.5em;
     padding-bottom: 0px;
     padding-top: 4px;
@@ -282,6 +238,9 @@ a:active {
     background-color: rgba(0, 0, 0, 0.3);
     width: fit-content;
     text-align: center;
+    margin-left: auto;
+    margin-right: 2px;
+    
   }
   @media (hover: hover) {
     .fullscreen-button:hover{
@@ -292,7 +251,6 @@ a:active {
     .genre-nohover {
     color:  rgba(250,249,246,0.9);
     display: inline-block;
-    clear: both;
     line-height: 1.5em;
     padding-bottom: 0px;
     padding-top: 4px;
@@ -301,12 +259,12 @@ a:active {
     background-color: rgba(0, 0, 0, 0.3);
     width: fit-content;
     text-align: center;
+    margin: 2px;
   }
 
     .genre {
     color:  rgba(250,249,246,0.9);
     display: inline-block;
-    clear: both;
     line-height: 1.5em;
     padding-bottom: 0px;
     padding-top: 4px;
@@ -315,6 +273,7 @@ a:active {
     background-color: rgba(0, 0, 0, 0.3);
     width: fit-content;
     text-align: center;
+    margin: 4px;
   }
   @media (hover: hover) {
     .genre:hover{
@@ -358,10 +317,6 @@ a:active {
     margin-bottom: 12px;   /* Acts as the "line break" spacing for the next row */
 }
 
-
-.delete-btn {
-
-}
 
 
   .history-container{
@@ -409,7 +364,7 @@ a:active {
     .playlist:hover{
   } */
   .padtitle {
-      padding: 32px 0px 16px 24px;
+      padding: 32px 0px 16px 32px;
   }
   
   .padstart {
@@ -417,14 +372,17 @@ a:active {
   }
 
   .padsong {
-      padding: 0px 32px 32px 24px;
+      padding: 0px 32px 32px 32px;
   }
 
   .padinfo {
-      padding: 0px 32px 0px 24px;
-      position: absolute;
-      bottom: 2.5%;
-      width: 100%;
+  padding: 0px 32px 0px 32px;
+  position: absolute;
+  bottom: 2.5%;
+  width: 99vw;
+  display: flex;  /* Add this */
+  justify-content: space-between;  /* Add this */
+  align-items: center;  /* Add this */
   }
 
   .start {
@@ -443,7 +401,6 @@ a:active {
   .currentTrack {
     color:  rgba(250,249,246,0.9);
     display: inline-block;
-    clear: both;
     padding-bottom: 2px;
     padding-top: 5px;
     padding-left: 6px;
@@ -575,43 +532,6 @@ hr.style {
 }
 
 
-#audio-toast {
-      /* Make the toast sit ABOVE the shield so they can see the message */
-    z-index: 1000000;
-    pointer-events: none; /* Let the click pass THROUGH the toast to the shield */
-    position: fixed;
-    bottom: 50%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 15px 25px;
-    border-radius: 30px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    transition: opacity 0.5s ease;
-}
-
-.toast-hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.toast-visible {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-#enable-audio-btn {
-    background: #1DB954; /* Spotify Green */
-    border: none;
-    color: white;
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
-}
 
 .demo_action_link{
       background: #1DB954; /* Spotify Green */
