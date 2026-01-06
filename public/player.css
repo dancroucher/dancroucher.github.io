@@ -764,6 +764,14 @@ color:  rgba(250,249,246,0.9);
   -webkit-animation: fadeIn 0.25s;
   animation: fadeIn 0.25s
 }
+
+.vignette {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  box-shadow: 0 0 200px rgba(0,0,0,0.6) inset;
+}
 /* Add animation (fade in the popup) */
 @-webkit-keyframes fadeIn {
   from {opacity: 0;}

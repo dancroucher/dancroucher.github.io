@@ -389,37 +389,17 @@ var Demo = (function () {
 			}
 			if (state === 2) {
 				this.player.play();
-				if (bgTypeIndex <= 3)
+				if (bgTypeIndex <= 2)
 				mp4background.play();
 				playing = true;
 				console.log(state);
 			} else if (state === 1) {
 				this.player.pause();
-				if (bgTypeIndex <= 3)
+				if (bgTypeIndex <= 2)
 				mp4background.pause();
 				playing = false;
 				console.log(state);
 			}
-		},
-
-		unMute: function() {
-			var state = this.player.get_player_state(); // or .getPlayerState() depending on your wrapper
-			//this.player.set_volume(0);
-
-			
-			// setTimeout(() => {this.player.pause();}, 500);
-			// setTimeout(() => {this.player.unmute();}, 500);
-			// //setTimeout(() => {this.player.play();}, 500);
-			// setTimeout(() => {this.player.play();}, 5000);
-			// // 			setTimeout(() => {
-			// // 	console.log("now play");
-			// // 	this.player.play();
-			// // 	// if (bgTypeIndex <= 3){
-			// // 	// 	mp4background.play();
-			// // 	// }
-			// // }, 2000);
-			
-			
 		},
 		
 startApp: function() {
