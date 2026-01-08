@@ -573,6 +573,8 @@ function hideSongContainer() {
         songContainer.style.transition = 'opacity 1s ease';
         songContainer.style.opacity = '0';
         songContainerVisible = false;
+         // Hide mouse cursor
+        document.body.style.cursor = 'none';
     }
 }
 
@@ -581,6 +583,8 @@ function showSongContainer() {
     if (songContainer && !songContainerVisible) {
         songContainer.style.opacity = '1';
         songContainerVisible = true;
+        // Show mouse cursor
+        document.body.style.cursor = 'default';
     }
 }
 
