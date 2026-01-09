@@ -431,9 +431,12 @@ startApp: function(trackIndex = 0) {
             
             if (singleVideo) {
                 this.player.load_video(myVideoName, true);
+				saveVideoToList(myVideoName, songTitle, songAuthor, "single", 0);
             } 
 			else {
                 this.player.load_playlist(myVideoPlaylistName, "playlist", trackIndex, true);
+				saveVideoToList(myVideoPlaylistName, songTitle, songAuthor, "playlist", playlistIndex);
+
             }
             
             this.player.set_volume(100);
@@ -713,7 +716,7 @@ startApp: function(trackIndex = 0) {
 			if (id >= 0 && id < this.node_playlist.children.length) {
 				this.node_playlist.children[id].classList.add("demo_playlist_entry_current");
 			}
-						console.log ("fire save");
+			
 			const currentIndex = this.player.get_playlist_index() || 0;
 			const currentID = myVideoPlaylistName; // Your global ID variable
 			saveVideoToList(currentID, songTitle, songAuthor, "playlist", currentIndex);

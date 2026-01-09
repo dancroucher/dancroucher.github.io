@@ -457,7 +457,6 @@ function stopRepeating() {
 //SAVE VIDEO HISTORY STUFF
 function saveVideoToList(videoID, videoName, videoAuthor, videoType, trackIndex = 0) {
 
-    if (videoName && videoAuthor != null){
         let savedVideos = JSON.parse(localStorage.getItem('userVideoHistory')) || [];
 
         // Find the index of the video if it already exists in our saved list
@@ -468,6 +467,9 @@ function saveVideoToList(videoID, videoName, videoAuthor, videoType, trackIndex 
             savedVideos[existingIndex].track = trackIndex;
             savedVideos[existingIndex].timestamp = new Date().getTime();
             
+            //update name and author amyway
+            savedVideos[existingIndex].name = videoName;
+            savedVideos[existingIndex].author = videoAuthor;
             // Move the updated item to the front of the list
             const updatedItem = savedVideos.splice(existingIndex, 1)[0];
             savedVideos.unshift(updatedItem);
@@ -489,7 +491,7 @@ function saveVideoToList(videoID, videoName, videoAuthor, videoType, trackIndex 
         }
 
         localStorage.setItem('userVideoHistory', JSON.stringify(savedVideos));
-    }
+    
 }
 
 function removeVideoFromHistory(videoID) {
