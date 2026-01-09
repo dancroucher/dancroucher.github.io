@@ -80,6 +80,8 @@ window.onload = function() {
 }
 
 function doStart(){
+        starting = false;
+        playing = true;
         document.getElementById("start-container").style.display="none";
         document.getElementById("song-container").style.display="block";
         document.getElementById("bg-youtube").style.display="block";
@@ -94,8 +96,7 @@ function doStart(){
         loadChangeTime();
         changeTimeCommon();
         //UpdateUI();
-        starting = false;
-        playing = true;
+  
         
          // Trigger the save and set change backgroun time after 2 sec
         setTimeout(() => {
@@ -264,9 +265,10 @@ function backgroundTypeCommon(){
     }
     localStorage.setItem('backtype', bgTypeIndex);
     localStorage.getItem('backtype');
-    // if(playing == false){
-    //     window.myApp.togglePlayback();
-    // }
+
+    if(playing == false){
+        mp4background.pause();
+    }
     //UpdateUI();
 }
 
@@ -454,37 +456,40 @@ function stopRepeating() {
 }
 //SAVE VIDEO HISTORY STUFF
 function saveVideoToList(videoID, videoName, videoAuthor, videoType, trackIndex = 0) {
-    let savedVideos = JSON.parse(localStorage.getItem('userVideoHistory')) || [];
 
-    // Find the index of the video if it already exists in our saved list
-    const existingIndex = savedVideos.findIndex(v => v.id === videoID);
+    if (videoName && videoAuthor != null){
+        let savedVideos = JSON.parse(localStorage.getItem('userVideoHistory')) || [];
 
-    if (existingIndex !== -1) {
-        // UPDATE EXISTING: If it exists, update the track number and move to top
-        savedVideos[existingIndex].track = trackIndex;
-        savedVideos[existingIndex].timestamp = new Date().getTime();
-        
-        // Move the updated item to the front of the list
-        const updatedItem = savedVideos.splice(existingIndex, 1)[0];
-        savedVideos.unshift(updatedItem);
-        
-        console.log("Updated playlist track:", videoName, "to index:", trackIndex);
-    } else {
-        // ADD NEW: Create a new entry
-        savedVideos.unshift({
-            id: videoID,
-            name: videoName,
-            author: videoAuthor,
-            type: videoType,
-            track: trackIndex, // Store the track number (0 for single videos)
-            timestamp: new Date().getTime()
-        });
+        // Find the index of the video if it already exists in our saved list
+        const existingIndex = savedVideos.findIndex(v => v.id === videoID);
 
-        if (savedVideos.length > 50) savedVideos.pop();
-        console.log("Saved new entry:", videoName);
+        if (existingIndex !== -1) {
+            // UPDATE EXISTING: If it exists, update the track number and move to top
+            savedVideos[existingIndex].track = trackIndex;
+            savedVideos[existingIndex].timestamp = new Date().getTime();
+            
+            // Move the updated item to the front of the list
+            const updatedItem = savedVideos.splice(existingIndex, 1)[0];
+            savedVideos.unshift(updatedItem);
+            
+            console.log("Updated playlist track:", videoName, "to index:", trackIndex);
+        } else {
+            // ADD NEW: Create a new entry
+            savedVideos.unshift({
+                id: videoID,
+                name: videoName,
+                author: videoAuthor,
+                type: videoType,
+                track: trackIndex, // Store the track number (0 for single videos)
+                timestamp: new Date().getTime()
+            });
+
+            if (savedVideos.length > 50) savedVideos.pop();
+            console.log("Saved new entry:", videoName);
+        }
+
+        localStorage.setItem('userVideoHistory', JSON.stringify(savedVideos));
     }
-
-    localStorage.setItem('userVideoHistory', JSON.stringify(savedVideos));
 }
 
 function removeVideoFromHistory(videoID) {
@@ -569,7 +574,7 @@ const FADE_DELAY = 5000; // 5 seconds of inactivity
 
 function hideSongContainer() {
     const songContainer = document.getElementById('song-container');
-    if (songContainer && songContainerVisible) {
+    if (songContainer && songContainerVisible && playing) {
         songContainer.style.transition = 'opacity 1s ease';
         songContainer.style.opacity = '0';
         songContainerVisible = false;

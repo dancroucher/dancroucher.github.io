@@ -556,18 +556,6 @@ button:focus {
 }
 
 input[type=text], select {
-/*    width: 85%;
-    border-radius: 1px;
-    text-align: left;
-    align-items: center;
-    clear: both;
-    line-height: 0.85em;*/
-    box-sizing: border-box;
-    color:  rgba(22, 22, 22, 0.9);
-    padding-top: 6px;
-    padding-bottom: 2px;
-    padding-left: 6px;
-
 
 }
 
@@ -589,27 +577,22 @@ input[type=submit] {
     display: inline-block;
     width: 80vw;
     padding-bottom: 3px;
-    padding-top: 3px;
+    padding-top: 6px;
     padding-left: 6px;
     padding-right: 5px;
     line-height: 1em;
     z-index: 4;
+    animation: none;
 }
 
 .videobox-ok {
-    color:  rgba(250,249,246,0.9);
-    display: inline-block;    
-    line-height: 1em;
-    background-color: rgba(0, 100, 0, 0.5);
-    z-index: 4;
+    color:  rgba(130, 164, 94, 0.9);
+    animation: none;
 }
 
 .videobox-notok {
-    color:  rgba(250,249,246,0.9);
-    display: inline-block;    
-    line-height: 1em;
-    background-color: rgba(100, 0, 0, 0.5);
-    z-index: 4;
+    color:  rgba(177, 2, 2, 0.9);
+    animation: none;
 }
 
 /*.popup {
@@ -679,6 +662,36 @@ color:  rgba(250,249,246,0.9);
   -webkit-animation: fadeIn 0.25s;
   animation: fadeIn 0.25s
 }
+
+/* Pause overlay icon */
+.pause-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 6em;
+  color: rgba(250, 249, 246, 0.752);
+  background-color: rgba(0, 0, 0, 0);
+  padding: 40px 50px;
+  /* border-radius: 20px; */
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  /* text-shadow: 
+    0.4389924193300864px 0 1px rgba(0,30,255,0.5), 
+    -0.4389924193300864px 0 1px rgba(255,0,80,0.3), 
+    0 0 2px; */
+}
+
+.pause-overlay.visible {
+  opacity: 1;
+}
+
+.pause-overlay i {
+  display: block;
+}
+
 .main_table_full .show {
   visibility: visible;
   -webkit-animation: fadeIn 0.25s;

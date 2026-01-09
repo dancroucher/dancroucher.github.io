@@ -140,33 +140,7 @@ var Demo = (function () {
 			this.node_actions.appendChild(n1);
 		}
 
-		// Custom actions
-		// list = [//{
-		// 	["Play", this.player, Player.prototype.play],
-		// 	["Pause", this.player, Player.prototype.pause],
-	
-		// ];//}
-		// 		for (i = 0; i < list.length; ++i) {
-		// 			n1 = document.createElement("input");
-		// 			n1.className = "pp-button";
-		// 			n1.type= "button";
-		// 			n2.textContent = "        ";
-		// 			n1.setAttribute("id", "play-pause");
-		// 			n1.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
-		// 			//n1.addEventListener("click", Player.prototype.pause, false);
-		// 			// n2 = document.createElement("a");
-		// 			// n2.className = "genre-number-link";
-		// 			// n2.setAttribute("id", "genre-number")
-		// 			// n2.textContent = list[i][0];
-		// 			// n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
-		// 			// n1.appendChild(n2);
 
-		// 			this.node_mp4Background.appendChild(n1);
-		// }
-		// n1 = document.createElement("div");
-		// n1.className = "pp-button";
-		// n1.type = "button";
-		// n1.setAttribute("id", "play-pause");
 		this.node_mp4Background.addEventListener("click", () => {
 			this.togglePlayback(); // Call the new function
 		}, false);
@@ -181,75 +155,7 @@ var Demo = (function () {
 		this.node_next.addEventListener("click", () => {
 			this.doPlaylistNext(); 
 		}, false);
-		// this.node_mp4Background.addEventListener("click", () => {
-		// 	if (playing == false) {
-		// 		//console.log(playing);
-		// 		this.player.play();
-		// 		mp4background.play();
-		// 		playing = true;
-		// 	} else {
-		// 		//console.log(playing);
-		// 		this.player.pause();
-		// 		mp4background.pause();
-		// 		playing = false;
-		// 	}
-		// }, false);
-
-
-			// Playlist fwd button
-			// if (!singleVideo){
-			// 	list = [//{
-			// 		["<<", this.player, Player.prototype.goto_previous],
-			// 	];//}
-			// 	for (i = 0; i < list.length; ++i) {
-			// 		n1 = document.createElement("div");
-			// 		n1.className = "genre";
-			// 		n1.setAttribute("id", "genre-number");
-			// 		n2 = document.createElement("a");
-			// 		n2.className = "genre-number-link";
-
-			// 		n2.textContent = list[i][0];
-			// 		n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
-			// 		n1.appendChild(n2);
-
-			// 		this.node_padinfo.appendChild(n1);
-			// 	}
-			// 				// Playlist fwd and back buttons
-			// 	// list = [//{
-			// 	// 	["", this.player, null],
-			// 	// ];//}
-			// 	// for (i = 0; i < list.length; ++i) {
-			// 	// 	n1 = document.createElement("div");
-			// 	// 	n1.className = "genre-nohover";
-			// 	// 	n1.setAttribute("id", "track-number");
-			// 	// 	//n2 = document.createElement("a");
-			// 	// 	//n2.className = "genre-number-link";
-			// 	// 	//n2.textContent = list[i][0];
-			// 	// 	//n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
-			// 	// 	//n1.appendChild(n2);
-
-			// 	// 	this.node_padinfo.appendChild(n1);
-			// 	// }
-			// 				// Playlist back button
-			// 	list = [//{
-			// 		[">>", this.player, Player.prototype.goto_next],
-
-			// 	];//}
-			// 	for (i = 0; i < list.length; ++i) {
-			// 		n1 = document.createElement("div");
-			// 		n1.className = "genre";
-			// 		n1.setAttribute("id", "genre-number");
-			// 		n2 = document.createElement("a");
-			// 		n2.className = "genre-number-link";
-			// 		n2.textContent = list[i][0];
-			// 		n2.addEventListener("click", this.on_action_click.bind(this, list[i].slice(1)), false);
-			// 		n1.appendChild(n2);
-
-			// 		this.node_padinfo.appendChild(n1);
-			// 	}
-			// }
 		
-
 		// Setup state
 		list = [//{
 			["Player State", "state_change", Player.prototype.get_player_state, Demo.prototype.format_player_state, null],
@@ -382,7 +288,7 @@ var Demo = (function () {
 		constructor: Demo,
 
 		togglePlayback: function() {
-			var state = this.player.get_player_state(); // or .getPlayerState() depending on your wrapper
+			var state = this.player.get_player_state();
 			if (state === 1) {
 				console.log("The video is currently playing. Pausing...");
 			} else if (state === 2) {
@@ -394,15 +300,33 @@ var Demo = (function () {
 				mp4background.play();
 				playing = true;
 				console.log(state);
+				// Hide pause overlay
+				this.hidePauseOverlay();
 			} else if (state === 1) {
 				this.player.pause();
 				if (bgTypeIndex <= 2)
 				mp4background.pause();
 				playing = false;
 				console.log(state);
+				// Show pause overlay
+				this.showPauseOverlay();
 			}
 		},
-		
+
+		showPauseOverlay: function() {
+			const overlay = document.getElementById('pause-overlay');
+			if (overlay) {
+				overlay.classList.add('visible');
+			}
+		},
+
+		hidePauseOverlay: function() {
+			const overlay = document.getElementById('pause-overlay');
+			if (overlay) {
+				overlay.classList.remove('visible');
+			}
+		},
+				
 startApp: function(trackIndex = 0) {
     console.log("Manually starting the app sequence...");
     
@@ -491,8 +415,16 @@ startApp: function(trackIndex = 0) {
 				playlistIndex = this.player.get_playlist_index();
                 this.node_trackNumber.innerHTML = (this.player.get_playlist_index() + 1) + "&nbsp;/&nbsp;" + playlist.length;
             }
-        });
-        
+       
+			
+		// Handle pause overlay based on player state
+			const currentState = this.player.get_player_state();
+			if (currentState === 2) { // PAUSED
+				this.showPauseOverlay();
+			} else {
+				this.hidePauseOverlay();
+			}
+		});
         // Wait for player ready, then load content
         this.player.on('ready', () => {
             console.log("Player ready, loading content...");

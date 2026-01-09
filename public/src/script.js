@@ -591,32 +591,17 @@ var singleVideo = false;
 			}
 		}
 	};
-
-		var on_demo_start_click = function (event) {
+	var on_demo_start_video_click = async function (event) {
 		// Start demo
-		//console.log("demo start");
-		begin_demo();
-
+		await submitVideoName();
+			
 		// Update URL
 		nav.go(this.getAttribute("href") || "", true);
-
-		setTimeout(() => {
-				console.log("now unmutescript");
-				//this.player.stop();
-				//this.player.seek(1);
-				// if (bgTypeIndex <= 3){
-				// 	mp4background.play();
-				// }
-				//window.myApp.togglePlayback();
-				window.myApp.unMute();
-
-			}, 1000);
-
+		
 		// Stop click
 		event.preventDefault();
 		event.stopPropagation();
 		return false;
-		
 	};
 
 	var on_demo_start_video_click = function (event) {
@@ -811,7 +796,9 @@ var singleVideo = false;
 		}
 
 		if ((i = document.getElementById("demo_start_video"))) {
-			i.addEventListener("click", on_demo_start_video_click, false);
+			i.addEventListener("click", async function(event) {
+				await on_demo_start_video_click.call(this, event);
+			}, false);
 		}
 		// if ((i = document.getElementById("demo_start_playlist"))) {
 		// 	i.addEventListener("click", on_demo_start_playlist_click, false);
@@ -821,10 +808,67 @@ var singleVideo = false;
 		// }
 });
 
-function submitVideoName(){
+async function validateYouTubeContent(id, type) {
+    try {
+        const videoBox = document.getElementById('idEntry');
+        
+        // Show checking state
+        videoBox.className = 'videobox';
+        
+        // Use YouTube oEmbed API to validate
+        const endpoint = type === 'playlist' 
+            ? `https://www.youtube.com/oembed?url=https://www.youtube.com/playlist?list=${id}&format=json`
+            : `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`;
+        
+        const response = await fetch(endpoint);
+        
+        if (response.ok) {
+            // Valid!
+            videoBox.className = 'videobox videobox-ok';
+            console.log(`Valid ${type}:`, id);
+            return true;
+        } else {
+            // Invalid
+            videoBox.className = 'videobox videobox-notok';
+            console.error(`Invalid ${type}:`, id);
+            
+            // Show error message
+            videoBox.placeholder = `Invalid ${type} - please try again`;
+            setTimeout(() => {
+                videoBox.placeholder = '';
+                videoBox.className = 'videobox';
+				videoBox.value = "";
+            }, 1500);
+            
+            return false;
+        }
+    } catch (error) {
+        console.error('Validation error:', error);
+        
+        // Network error or other issue
+        const videoBox = document.getElementById('idEntry');
+        videoBox.className = 'videobox videobox-notok';
+        videoBox.placeholder = 'Connection error - please try again';
+        
+        setTimeout(() => {
+            videoBox.placeholder = '';
+            videoBox.className = 'videobox';
+			videoBox.value = "";
+        }, 1500);
+        
+        return false;
+    }
+}
+
+async function submitVideoName(){
 	
 	let videoName = document.getElementById("idEntry").value;
 	
+	// Return early if empty
+    if (!videoName || videoName.trim().length === 0) {
+        return;
+    }
+
 	//playlist urls
 	if (videoName.includes("playlist?list=") && !videoName.includes("&si=")){
         const getChar = (s, n) => s.slice(-n);
@@ -885,28 +929,41 @@ function submitVideoName(){
         videoNameClean = videoName;
     }
 
-	//console.log(`${videoNameClean} ${videoNameClean.length}`);
-	if (videoNameClean.length == 0){
-		
-	}
+// Determine if single video or playlist
+    if (videoNameClean.length == 0){
+        return;
+    }
+    else if (videoNameClean.length < 16){
+        singleVideo = true;
+        myVideoName = videoNameClean;
+        
+        // VALIDATE BEFORE STARTING
+        const isValid = await validateYouTubeContent(myVideoName, 'video');
+        if (!isValid) {
+            console.error("Invalid video ID, not starting player");
+            return; // Stop here if invalid
+        }
+        
+        console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoName);
+    }
+    else if (videoNameClean.length > 16){
+        singleVideo = false;
+        myVideoPlaylistName = videoNameClean;
+        
+        // VALIDATE BEFORE STARTING
+        const isValid = await validateYouTubeContent(myVideoPlaylistName, 'playlist');
+        if (!isValid) {
+            console.error("Invalid playlist ID, not starting player");
+            return; // Stop here if invalid
+        }
+        
+        console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoPlaylistName);
+    }
 
-	else if (videoNameClean.length < 16){
-		myVideoName = videoNameClean;
-		singleVideo = true;
-		console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoName);
-
-	}
-	else if (videoNameClean.length > 16){
-		myVideoPlaylistName = videoNameClean;
-		singleVideo = false;
-		console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoPlaylistName);
-
-	}
-
-	setTimeout(() => {
-            window.myApp.startApp();
-        }, 100);
-
+    // Only start if validation passed
+    setTimeout(() => {
+        window.myApp.startApp();
+    }, 100);
 }
 //https://www.youtube.com/watch?v=3cBbGcI4NB8&list=RDGMEMJQXQAmqrnmK1SEjY_rKBGAVMiEBTcL74bvc&index=21
 // https://www.youtube.com/watch?v=JtH68PJIQLE&list=RDEMTUXhJfM7NC9Glt6fGbl5fg
