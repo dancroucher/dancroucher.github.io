@@ -33,7 +33,7 @@ var playlistName;
 var infoOpen = true;
 var cursor = true;
 var fauxInput = document.createElement('textarea');
-
+var version ="v0.1";
 var pPause = document.querySelector('#play-pause'); // element where play and pause image appears
 var player;
 var animebackgrounds = [];
@@ -69,8 +69,9 @@ window.onload = function() {
     } else {
         console.warn("YouTube library not found yet. If you are using a wrapper, ensure it loads before player.js");
     }
-    let text = document.lastModified;
-    document.getElementById("info").innerHTML = text;
+    var d = document.lastModified;
+    var n = new Date(document.lastModified).toLocaleString();
+    document.getElementById("info").innerHTML = n + " " + version;
     loadSavedListUI();
     playing = false;
     getBackgrounds('video');
