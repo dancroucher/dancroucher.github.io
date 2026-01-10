@@ -166,12 +166,13 @@ a:active {
     font-size: 1.3em;
     clear: both;
     line-height: 1em;
-    padding-bottom: 2px;
+    padding-bottom: 8px;
     padding-top: 8px;
-    padding-left: 6px;
+    padding-left: 2px;
     padding-right: 5px;
-    margin-bottom: 16px;
+    margin-top: 16px;
     width: auto;
+    animation: none;
   }
 
   .song-name {
@@ -319,7 +320,7 @@ a:active {
 
 
   .history-container{
-    color: #ffffff78;
+    color: rgba(250,249,246,0.9);
     padding: 8px 16px 16px 16px;
       border: dotted;
       border-width: 2px;
@@ -328,10 +329,10 @@ a:active {
       max-width: 80vw;
   }
   .history-item{
+    color: rgba(250,249,246,0.9);
       flex-grow: 1;          /* Makes the title button take up remaining space */
       min-height: 36px;
       padding: 16px 8px 16px 8px;
-      color: #ffffff78;
       border-top: none;
       border-left: none;
       border-right: none;
@@ -353,7 +354,7 @@ a:active {
     }
 
     .history-item:hover{
-      color: #ffffffcd;
+      color: rgb(250, 249, 246);
     }
       .history-remove:hover{
       color: #ff5353cd;
@@ -573,15 +574,20 @@ input[type=submit] {
 
 .videobox {
     color:  rgba(0, 0, 0, 0.9);
+    background-color: rgba(250,249,246,0.9);
     display: inline-block;
-    width: 80vw;
-    padding-bottom: 3px;
+    width: 68vw;
+    padding-bottom:3px;
     padding-top: 6px;
     padding-left: 6px;
     padding-right: 5px;
+    margin-bottom: 16px;
     line-height: 1em;
     z-index: 4;
+        border: dotted;
+    border-width: 2px;
     animation: none;
+    
 }
 
 .videobox-ok {
@@ -594,11 +600,28 @@ input[type=submit] {
     animation: none;
 }
 
-/*.popup {
-  position: relative;
-  display: inline-block;
-  cursor: pointer;
-}*/
+
+.videobox-submit {
+    color:  rgba(250,249,246,0.9);
+    background-color: #00000000;
+    min-width: 10vw;
+    padding-bottom:3px;
+    padding-top: 6px;
+    padding-left: 6px;
+    padding-right: 5px;
+    margin-bottom: 16px;
+    line-height: 1em;
+    z-index: 4;
+    animation: none;
+    border: dotted;
+    border-width: 2px;
+}
+  @media (hover: hover) {
+    .videobox-submit:hover {
+        color:  rgba(0, 0, 0, 0.9);
+        background-color: #ffffffc1;
+    }
+  }
 
 /* The actual popup (appears on top) */
 .popup .popuptext {
@@ -669,7 +692,7 @@ color:  rgba(250,249,246,0.9);
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 6em;
-  color: rgba(250, 249, 246, 0.752);
+  color: rgba(250,249,246,0.9);
   background-color: rgba(0, 0, 0, 0);
   padding: 40px 50px;
   /* border-radius: 20px; */

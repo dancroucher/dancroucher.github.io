@@ -3,16 +3,17 @@
     <head>
         <meta charset="utf-8">
         <title>jeem-fm</title>
-        <meta name="description" content="music description">
+        <meta name="jeem-fm" content="">
         <meta name="author" content="jeem">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <!-- <link rel="stylesheet" href="style.css" /> -->
         <link rel="stylesheet" href="player.css">
         <link rel="stylesheet" href="font.css">
-        <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
-        <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
-        <!-- <script src="src/player.js"></script> -->
+        <link rel="icon" type="image/png" href="/assets/favicon/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/assets/favicon/favicon.svg" />
+        <link rel="shortcut icon" href="/assets/favicon/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-title" content="jeem-fm" />
+        <link rel="manifest" href="/assets/favicon/site.webmanifest" />
         <script src="src/script.js"></script>
         <script src="src/demo.js"></script>
         <script src="https://kit.fontawesome.com/c71940ba40.js" crossorigin="anonymous"></script>
@@ -24,9 +25,6 @@
 
     <body >
         <div class="crt vignette noselect">
-            <!-- <div id="audio-toast" class="toast-hidden">
-                <p>Audio is muted due to browser policy. Click anywhere.</p>
-            </div> -->
             <div id="bg-start" class="bg" style="display: none" onclick=''></div>
             <div id="bg-mp4" class="bg" style="display: block" onclick='' ondblclick="doFullscreen()"><video autoplay muted playsinline loop id="mp4-background"></video></div>
             <div id="bg-none" class="bg-none" style="display: block"></div>
@@ -52,21 +50,17 @@
                 </div>
             </div>
             </div>
-            <!-- Pause overlay icon -->
-            <div class="pause-overlay" id="pause-overlay">
-                <i class="fas fa-pause"></i>
-            </div>
-            <div id="bg-youtube" class="bg-youtube" style="display: none" allow="autoplay; encrypted-media; picture-in-picture"></div>
+            <div class="pause-overlay" id="pause-overlay"><i class="fas fa-pause"></i></div>
             <div id="bg-youtube" class="bg-youtube" style="display: none" allow="autoplay; encrypted-media; picture-in-picture"></div>
             <div class="start-container" id="start-container" style="display: block;">
                 <div class = "padstart">
                     <div class="start" id="start">
-                        <div class="normal-text" >Enter Youtube Video or Playlist URL or ID: <br><br>
+                        <div class="normal-text" >Youtube Video or Playlist URL:<br></div>
+                            <div>
                             <form>
-                                <input class='videobox' type="text" autocomplete="on" id="idEntry" placeholder=""><br><br>
-                                <input type="submit" hidden value="Submit" id="demo_start_video" onclick=''>
+                                <input class='videobox' type="text" autocomplete="on" id="idEntry" placeholder="">
+                                <input class='videobox-submit' type="submit" value="Submit" id="demo_start_video" onclick=''>
                             </form>
-                        <br><br><br>
                         </div>
                         <div class="normal-text" >Remember...<br></div>
                         <div class="history-container" id="saved-videos-container"></div>
@@ -74,8 +68,7 @@
                 </div>
             </div>
         </div>
-                            <div class="main_table_full" >
-				<!-- <h1 id="demo"><span class="hardlink_text">Demo<a class="hardlink" href="#demo"></a></span></h1> -->
+                <div class="main_table_full" >
 				<p>
 					<div class="demo_region_preload demo_region_preload_visible">
 						<!-- <span class="script_enabled">
@@ -120,10 +113,6 @@
 |___/                                 
 
 <span id="info">
-    v0.1
-<!-- Keys
-=== -->
-<!-- <b>Space</b> [Play / Pause] : <b>Left/Right</b> [Change Track] : <b>F</b> [Fullscreen] : <b>X</b> [Change Background Type] : <b>B</b> [New Background] : <b>P</b> [Change Source] : <b>A</b> [Toggle Background Autochange] : <b>=</b> [Clear Saved Prefs.] : <b>I</b> [Open/Close this Popup] -->
 
             </span>
             </span>
