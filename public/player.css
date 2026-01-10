@@ -341,11 +341,12 @@ a:active {
       background-color: #65595900;
       font-family: '04b03', monospace;
       font-size: 1.1em;
+      margin-right: 4px;
   }
   
     .history-remove{
     flex-shrink: 0;        /* Prevents the 'X' button from squishing */
-    width: 36px;           /* Keeps the 'X' box square */
+    width: 24px;           /* Keeps the 'X' box square */
     color: #ff4e4e4d;
     border: dotted;
     border-width: 0px;
@@ -362,18 +363,17 @@ a:active {
 
     .history-share {
     flex-shrink: 0;
-    width: 36px;
-    color: #4e9aff4d;
+    width: 24px;
+    color: #86b5f34d;
     border: dotted;
     border-width: 0px;
     background-color: #65595900;
     font-size: 0.8em;
     margin-left: auto;
-    margin-right: 8px;
     }
 
     .history-share:hover {
-        color: #4e9affcd;
+        color: #8ab3e8cd;
     }
 
     .history-row {

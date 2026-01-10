@@ -548,7 +548,7 @@ function loadSavedListUI() {
 
         // Share button
         shareBtn.className = "history-share";
-        shareBtn.innerHTML = "<i class=\"fa fa-share-alt\" aria-hidden=\"true\"></i>";
+        shareBtn.innerHTML = "<i class=\"fa fa-clipboard\" aria-hidden=\"true\"></i>";
         shareBtn.title = "Share this video";
 
         // Remove button
