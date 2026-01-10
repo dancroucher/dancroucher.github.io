@@ -51,8 +51,13 @@
             </div>
             </div>
             <div class="pause-overlay" id="pause-overlay"><i class="fas fa-pause"></i></div>
+            <!-- Loading overlay -->
+            <div class="loading-overlay" id="loading-overlay">
+                <i class="fas fa-spinner fa-spin"></i>
+                <div class="loading-text"></div>
+            </div>
             <div id="bg-youtube" class="bg-youtube" style="display: none" allow="autoplay; encrypted-media; picture-in-picture"></div>
-            <div class="start-container" id="start-container" style="display: block;">
+            <div class="start-container" id="start-container" style="display: none;">
                 <div class = "padstart">
                     <div class="start" id="start">
                         <div class="normal-text" >Youtube Video or Playlist URL:<br></div>
@@ -118,8 +123,6 @@
             </span>
 
         </div>
-
-
 
 <script type="text/javascript" src="src/youtube_iframe_api.js"></script>
 <script type="text/javascript" src="src/player.js"></script>

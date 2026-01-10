@@ -356,13 +356,63 @@ a:active {
     .history-item:hover{
       color: rgb(250, 249, 246);
     }
-      .history-remove:hover{
+    .history-remove:hover{
       color: #ff5353cd;
     }
-    /* .playlist{
-  }
-    .playlist:hover{
-  } */
+
+    .history-share {
+    flex-shrink: 0;
+    width: 36px;
+    color: #4e9aff4d;
+    border: dotted;
+    border-width: 0px;
+    background-color: #65595900;
+    font-size: 0.8em;
+    margin-left: auto;
+    margin-right: 8px;
+    }
+
+    .history-share:hover {
+        color: #4e9affcd;
+    }
+
+    .history-row {
+        display: flex;
+        align-items: center;
+    }
+/* Loading overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.loading-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.loading-overlay i {
+  font-size: 4em;
+  color: rgba(250, 249, 246, 0.8);
+  margin-bottom: 20px;
+}
+
+.loading-text {
+  font-size: 1.5em;
+  color: rgba(250, 249, 246, 0.8);
+}
   .padtitle {
       padding: 32px 0px 16px 32px;
   }

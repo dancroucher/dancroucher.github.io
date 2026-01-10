@@ -1,5 +1,55 @@
 var singleVideo = false;
 
+// Function to get URL parameters
+function getURLParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+// Function to create shareable URL
+function createShareableURL(videoID, trackIndex = 0) {
+    const baseURL = window.location.origin + window.location.pathname;
+    return `${baseURL}?v=${videoID}&t=${trackIndex}`;
+}
+
+// Function to check and load from URL on page load
+	function checkAndLoadFromURL() {
+		const videoID = getURLParameter('v');
+		const trackIndex = parseInt(getURLParameter('t')) || 0;
+		
+		if (videoID) {
+			console.log("Loading from URL:", videoID, "Track:", trackIndex);
+			
+			// Show loading overlay early
+			const loadingOverlay = document.getElementById('loading-overlay');
+			if (loadingOverlay) {
+				loadingOverlay.classList.add('visible');
+			}
+			
+			// Hide start container
+			const startContainer = document.getElementById('start-container');
+			if (startContainer) {
+				startContainer.style.display = 'none';
+			}
+			
+			// Set the video ID in the input field
+			document.getElementById('idEntry').value = videoID;
+			
+			// Submit and start
+			setTimeout(() => {
+				window.myApp.submitVideoNameFromSaved(videoID, trackIndex);
+			}, 0);
+			
+			return true;
+		}
+		else{
+        document.getElementById("start-container").style.display="block";
+
+		}
+
+		return false;
+	}
+
 (function () {
 	"use strict";
 

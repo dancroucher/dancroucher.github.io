@@ -326,10 +326,36 @@ var Demo = (function () {
 				overlay.classList.remove('visible');
 			}
 		},
+
+		showLoadingOverlay: function() {
+			const overlay = document.getElementById('loading-overlay');
+			const startContainer = document.getElementById('start-container');
+			
+			if (overlay) {
+				overlay.classList.add('visible');
+			}
+			if (startContainer) {
+				startContainer.style.display = 'none';
+			}
+			
+			console.log("Loading overlay shown");
+		},
+
+		hideLoadingOverlay: function() {
+			const overlay = document.getElementById('loading-overlay');
+			
+			if (overlay) {
+				overlay.classList.remove('visible');
+			}
+			
+			console.log("Loading overlay hidden");
+		},
 				
 startApp: function(trackIndex = 0) {
     console.log("Manually starting the app sequence...");
-    
+
+    this.showLoadingOverlay();
+
     if (this.player && starting) {
         console.log("singleVideo:", singleVideo);
         console.log("myVideoName:", myVideoName);
@@ -444,6 +470,10 @@ startApp: function(trackIndex = 0) {
             if (typeof doStart === 'function') {
                 doStart();
             }
+			// Hide loading overlay once everything is ready and playing
+            setTimeout(() => {
+                this.hideLoadingOverlay();
+            }, 1000); // Give it a moment to start playing
         });
     }
 },
@@ -453,18 +483,25 @@ startApp: function(trackIndex = 0) {
 		submitVideoNameFromSaved: function (videoName, trackIndex = 0){
 			videoNameClean = videoName;
 
-			//console.log(`${videoNameClean} ${videoNameClean.length}`);
 			if (videoNameClean.length == 0){
 			}
 			else if (videoNameClean.length < 16){
 				myVideoName = videoNameClean;
 				singleVideo = true;
 				console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoName);
+				
+				// Update URL with current video
+				const newURL = createShareableURL(myVideoName, 0);
+				window.history.pushState({}, '', newURL);
 			}
 			else if (videoNameClean.length > 16){
 				myVideoPlaylistName = videoNameClean;
 				singleVideo = false;
 				console.log ("Single Video is " + (singleVideo) + ". ID is " + myVideoPlaylistName);
+				
+				// Update URL with current playlist and track
+				const newURL = createShareableURL(myVideoPlaylistName, trackIndex);
+				window.history.pushState({}, '', newURL);
 			}
 			setTimeout(() => {
 					window.myApp.startApp(trackIndex);

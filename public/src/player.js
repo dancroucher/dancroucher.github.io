@@ -69,15 +69,21 @@ window.onload = function() {
     } else {
         console.warn("YouTube library not found yet. If you are using a wrapper, ensure it loads before player.js");
     }
-    var d = document.lastModified;
-    var n = new Date(document.lastModified).toLocaleString();
-    document.getElementById("info").innerHTML = n + " " + version;
+    let text = document.lastModified;
+    document.getElementById("info").innerHTML = text;
     loadSavedListUI();
     playing = false;
     getBackgrounds('video');
     getBackgrounds('anime');
     getBackgrounds('vintage');
     
+    // Check if we should load from URL parameters
+    setTimeout(() => {
+        const loadedFromURL = checkAndLoadFromURL();
+        if (loadedFromURL) {
+            console.log("Auto-starting from shared URL");
+        }
+    }, 500);
 }
 
 function doStart(){
@@ -96,20 +102,13 @@ function doStart(){
         backgroundTypeCommon();
         loadChangeTime();
         changeTimeCommon();
-        //UpdateUI();
   
-        
          // Trigger the save and set change backgroun time after 2 sec
         setTimeout(() => {
-
-            		//console.log(songTitle,songAuthor);
             if (singleVideo){
-                // var type = "single";
-                // saveVideoToList(myVideoName, songTitle, songAuthor, type);
                 saveVideoToList(myVideoName, songTitle, songAuthor, "single", 0);
             }
             else{
-                //var type = "playlist";
                 saveVideoToList(myVideoPlaylistName, songTitle, songAuthor, "playlist", playlistIndex);
             }
         }, 3000);
@@ -520,6 +519,7 @@ function loadSavedListUI() {
 
     savedVideos.forEach(video => {
         const btn = document.createElement('button');
+        const shareBtn = document.createElement('button');
         const removeBtn = document.createElement('button');
         const row = document.createElement('div');
         
@@ -528,7 +528,6 @@ function loadSavedListUI() {
         // 1. Create the Display Label
         let trackInfo = "";
         if (video.type !== "single" && video.track !== undefined) {
-            // Adding 1 to the index so it displays as "Track 1" instead of "Track 0"
             trackInfo = " // Playlist // Track " + (video.track + 1);
         }
         else
@@ -547,15 +546,46 @@ function loadSavedListUI() {
                             video.name + " // " + video.author + trackInfo;    
         }
 
+        // Share button
+        shareBtn.className = "history-share";
+        shareBtn.innerHTML = "<i class=\"fa fa-share-alt\" aria-hidden=\"true\"></i>";
+        shareBtn.title = "Share this video";
+
+        // Remove button
         removeBtn.className = "history-remove";
         removeBtn.innerHTML = "<i class=\"fa fa-trash\" aria-hidden=\"true\"></i>";
 
-        // 3. Updated Click Logic
+        // 3. Click handlers
         btn.onclick = () => {
             if (window.myApp) {
-                // Pass both the ID and the saved track index
-                // Note: You'll need to update submitVideoNameFromSaved to accept the second parameter
                 window.myApp.submitVideoNameFromSaved(video.id, video.track || 0);
+            }
+        };
+
+        shareBtn.onclick = (e) => {
+            e.stopPropagation();
+            const shareURL = createShareableURL(video.id, video.track || 0);
+            
+            // Copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(shareURL).then(() => {
+                    // Show feedback
+                    const originalHTML = shareBtn.innerHTML;
+                    shareBtn.innerHTML = "<i class=\"fa fa-check\" aria-hidden=\"true\"></i>";
+                    shareBtn.style.color = "#00ff00";
+                    
+                    setTimeout(() => {
+                        shareBtn.innerHTML = originalHTML;
+                        shareBtn.style.color = "";
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    // Fallback: show URL in prompt
+                    prompt("Copy this link:", shareURL);
+                });
+            } else {
+                // Fallback for older browsers
+                prompt("Copy this link:", shareURL);
             }
         };
 
@@ -566,6 +596,7 @@ function loadSavedListUI() {
 
         container.appendChild(row);
         row.appendChild(btn);
+        btn.appendChild(shareBtn);
         btn.appendChild(removeBtn);
     });
 }
