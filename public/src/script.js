@@ -38,7 +38,7 @@ function createShareableURL(videoID, trackIndex = 0) {
 			// Submit and start
 			setTimeout(() => {
 				window.myApp.submitVideoNameFromSaved(videoID, trackIndex);
-			}, 0);
+			}, 500);
 			
 			return true;
 		}

@@ -83,7 +83,7 @@ window.onload = function() {
         if (loadedFromURL) {
             console.log("Auto-starting from shared URL");
         }
-    }, 500);
+    }, 100);
 }
 
 function doStart(){
