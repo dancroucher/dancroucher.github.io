@@ -168,17 +168,34 @@ function checkAndLoadFromURL() {
     const trackIndex = parseInt(getURLParameter("t")) || 0;
 
     if (videoID) {
-        const loadingOverlay = document.getElementById("loading-overlay");
-        if (loadingOverlay) loadingOverlay.classList.add("visible");
+        const parsed = parseYouTubeInput(videoID);
+        if (parsed) {
+            const isPlaylist = parsed.type === "playlist";
+            const id = parsed.id;
+            const endpoint = isPlaylist
+                ? `https://www.youtube.com/oembed?url=https://www.youtube.com/playlist?list=${id}&format=json`
+                : `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`;
 
-        const startContainer = document.getElementById("start-container");
-        if (startContainer) startContainer.style.display = "none";
+            fetch(endpoint)
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                    if (data && window.TapesBridge) {
+                        window.TapesBridge.addTapeFromSearch(
+                            isPlaylist ? "" : id,
+                            data.title || "",
+                            data.author_name || "",
+                            isPlaylist,
+                            isPlaylist ? id : undefined
+                        );
+                    }
+                })
+                .catch(() => {});
+        }
 
-        document.getElementById("idEntry").value = videoID;
-
-        setTimeout(() => {
-            window.myApp.submitVideoNameFromSaved(videoID, trackIndex);
-        }, 500);
+        // Show start screen with tapes — don't auto-play
+        document.getElementById("start-container").style.display = "flex";
+        document.getElementById("tapes-root").style.display = "flex";
+        document.getElementById("tape-deck").style.display = "block";
         return true;
     }
 
