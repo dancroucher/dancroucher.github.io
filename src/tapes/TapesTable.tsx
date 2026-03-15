@@ -15,7 +15,6 @@ function saveTapesToStorage(tapes: Tape[]) {
 }
 
 // ── Bridge to vanilla JS player ──
-// window.myApp is the Demo instance, window.AppState is the shared state
 
 declare global {
   interface Window {
@@ -29,7 +28,6 @@ declare global {
   }
 }
 
-// ── Canvas dimensions ──
 const CANVAS_W = 3200;
 const CANVAS_H = 2400;
 
@@ -40,12 +38,18 @@ export function TapesTable() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
   const [dragScreenPos, setDragScreenPos] = useState<{ x: number; y: number } | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const [zOrder, setZOrder] = useState<string[]>([]);
   const [rewindingId, setRewindingId] = useState<string | null>(null);
   const [isPanning, setIsPanning] = useState(false);
+  const [loadedTape, setLoadedTape] = useState<Tape | null>(null);
+  const [deckEjecting, setDeckEjecting] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
+  const playerZoneRef = useRef<HTMLDivElement>(null);
   const tapesRef = useRef(tapes);
   tapesRef.current = tapes;
+  const loadedRef = useRef(loadedTape);
+  loadedRef.current = loadedTape;
 
   // Double-tap detection
   const lastTapRef = useRef<{ time: number; id: string }>({ time: 0, id: '' });
@@ -61,7 +65,6 @@ export function TapesTable() {
   useEffect(() => {
     let loaded = loadTapes();
 
-    // Migrate from old userVideoHistory format
     if (loaded.length === 0) {
       try {
         const oldHistory = JSON.parse(localStorage.getItem('userVideoHistory') || '[]');
@@ -96,29 +99,33 @@ export function TapesTable() {
     setMounted(true);
   }, []);
 
-  // Save whenever tapes change (after mount)
   useEffect(() => {
     if (mounted) saveTapesToStorage(tapes);
   }, [tapes, mounted]);
 
-  // Expose bridge for vanilla JS to add tapes + update progress
+  // Bridge for vanilla JS
   useEffect(() => {
     window.TapesBridge = {
-      onTapePlay: (tape: Tape) => {
-        // Called when a tape is played — vanilla JS handles actual playback
-      },
+      onTapePlay: () => {},
       updateProgress: (videoId: string, progress: number) => {
         setTapes(prev => prev.map(t =>
           (t.videoId === videoId || t.playlistId === videoId)
             ? { ...t, progress }
             : t
         ));
+        // Also update loaded tape if it matches
+        setLoadedTape(prev => {
+          if (!prev) return prev;
+          if (prev.videoId === videoId || prev.playlistId === videoId) {
+            return { ...prev, progress };
+          }
+          return prev;
+        });
       },
       addTapeFromSearch: (videoId: string, title: string, author: string, isPlaylist: boolean, playlistId?: string) => {
         setTapes(prev => {
           const dedupKey = isPlaylist ? playlistId! : videoId;
           if (prev.some(t => isPlaylist ? t.playlistId === dedupKey : t.videoId === dedupKey)) {
-            // Already exists — just update timestamp and move to recent
             return prev.map(t => {
               if ((isPlaylist ? t.playlistId === dedupKey : t.videoId === dedupKey)) {
                 return { ...t, timestamp: Date.now() };
@@ -157,13 +164,18 @@ export function TapesTable() {
     return () => { delete window.TapesBridge; };
   }, []);
 
-  const playTape = useCallback((tape: Tape) => {
-    // Bridge to vanilla JS player
+  // ── Play tape via vanilla JS bridge ──
+  const loadIntoPlayer = useCallback((tape: Tape) => {
+    setLoadedTape(tape);
     if (!window.myApp) return;
     const AppState = window.AppState;
     if (!AppState) return;
 
     AppState.starting = true;
+
+    // Show jeem-fm title when playing
+    const titleEl = document.getElementById('title-container');
+    if (titleEl) titleEl.style.display = 'block';
 
     if (tape.isPlaylist && tape.playlistId) {
       AppState.singleVideo = false;
@@ -183,6 +195,7 @@ export function TapesTable() {
   const deleteTape = useCallback((id: string) => {
     setTapes(prev => prev.filter(t => t.id !== id));
     setZOrder(prev => prev.filter(i => i !== id));
+    setLoadedTape(cur => { if (cur?.id === id) return null; return cur; });
     setMenuId(null);
   }, []);
 
@@ -193,11 +206,13 @@ export function TapesTable() {
     setMenuId(null);
   }, []);
 
-  // --- Drag system ---
+  const cancelMenu = useCallback(() => { setMenuId(null); }, []);
+
+  // --- Drag from table ---
   const startDrag = useCallback((e: React.PointerEvent, tape: Tape) => {
     e.preventDefault();
     e.stopPropagation();
-    setMenuId(null);
+    cancelMenu();
 
     const tbl = tableRef.current!;
     const rect = tbl.getBoundingClientRect();
@@ -232,26 +247,104 @@ export function TapesTable() {
       const { sx, sy, cx, cy } = posFromEvent(ev);
       setDragPos({ x: cx, y: cy });
       setDragScreenPos({ x: sx, y: sy });
+      // Check drag over deck
+      const pr = playerZoneRef.current?.getBoundingClientRect();
+      setDragOver(!!pr && ev.clientX >= pr.left && ev.clientX <= pr.right && ev.clientY >= pr.top && ev.clientY <= pr.bottom);
     }
 
     function onUp(ev: PointerEvent) {
+      cancelMenu();
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
       if (!dragging) return;
-      const { cx, cy } = posFromEvent(ev);
-      setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, x: cx, y: cy } : t));
-      setDragId(null);
-      setDragPos(null);
-      setDragScreenPos(null);
+      // Check if dropped on deck
+      const pr = playerZoneRef.current?.getBoundingClientRect();
+      const overPlayer = !!pr && ev.clientX >= pr.left && ev.clientX <= pr.right && ev.clientY >= pr.top && ev.clientY <= pr.bottom;
+      if (overPlayer) {
+        const t = tapesRef.current.find(t => t.id === tape.id);
+        if (t) loadIntoPlayer(t);
+      } else {
+        const { cx, cy } = posFromEvent(ev);
+        setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, x: cx, y: cy } : t));
+      }
+      setDragId(null); setDragPos(null); setDragScreenPos(null); setDragOver(false);
     }
 
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
-  }, []);
+  }, [loadIntoPlayer, cancelMenu]);
+
+  // --- Drag out of deck ---
+  const startDeckDrag = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    const tape = loadedRef.current!;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let holdReady = false;
+    let ejected = false;
+
+    const holdTimer = setTimeout(() => { holdReady = true; }, 100);
+
+    const deckEl = (e.target as HTMLElement).closest('.deck-slot') as HTMLElement | null;
+    const deckRect = deckEl?.getBoundingClientRect();
+    const gx = deckRect ? e.clientX - deckRect.left : 117;
+    const gy = deckRect ? e.clientY - deckRect.top : 72;
+
+    function eject(fromEv: PointerEvent) {
+      ejected = true;
+      setLoadedTape(null);
+      setDeckEjecting(true);
+
+      const tbl = tableRef.current!;
+      const sx = fromEv.clientX - gx;
+      const sy = fromEv.clientY - gy;
+      const r = tbl.getBoundingClientRect();
+      setDragId(tape.id);
+      setDragPos({ x: sx - r.left + tbl.scrollLeft, y: sy - r.top + tbl.scrollTop });
+      setDragScreenPos({ x: sx, y: sy });
+      setZOrder(prev => [...prev.filter(id => id !== tape.id), tape.id]);
+    }
+
+    function posFromEvent(ev: PointerEvent) {
+      const sx = ev.clientX - gx;
+      const sy = ev.clientY - gy;
+      const r = tableRef.current!.getBoundingClientRect();
+      return { sx, sy, cx: sx - r.left + tableRef.current!.scrollLeft, cy: sy - r.top + tableRef.current!.scrollTop };
+    }
+
+    function onMove(ev: PointerEvent) {
+      if (!ejected && holdReady && (Math.abs(ev.clientX - startX) > 5 || Math.abs(ev.clientY - startY) > 5)) {
+        eject(ev);
+      }
+      if (!ejected) return;
+      const { sx, sy, cx, cy } = posFromEvent(ev);
+      setDragPos({ x: cx, y: cy });
+      setDragScreenPos({ x: sx, y: sy });
+    }
+
+    function onUp(ev: PointerEvent) {
+      clearTimeout(holdTimer);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      if (!ejected) {
+        // Quick click on loaded tape — toggle play/pause via jeem-fm
+        if (window.myApp) window.myApp.togglePlayback();
+        return;
+      }
+      const tapeId = tape.id;
+      const { cx, cy } = posFromEvent(ev);
+      setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: cx, y: cy } : t));
+      setDragId(null); setDragPos(null); setDragScreenPos(null); setDragOver(false); setDeckEjecting(false);
+    }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }, [loadIntoPlayer]);
 
   // --- Pan on background ---
   const startPan = useCallback((e: React.PointerEvent) => {
     if ((e.target as HTMLElement).closest('[data-tape]')) return;
+    if ((e.target as HTMLElement).closest('[data-deck]')) return;
     const tbl = tableRef.current!;
     const startX = e.clientX;
     const startY = e.clientY;
@@ -274,7 +367,6 @@ export function TapesTable() {
 
   if (!mounted) return null;
 
-  // Assign positions to tapes that don't have them
   const positionedTapes = tapes.map((tape, i) => {
     if (tape.x !== undefined && tape.y !== undefined) return tape;
     const col = i % 4;
@@ -286,6 +378,9 @@ export function TapesTable() {
       angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
     };
   });
+
+  // Tapes on table = all except what's loaded in the deck
+  const tableTapes = positionedTapes.filter(t => t.id !== loadedTape?.id);
 
   return (
     <>
@@ -299,7 +394,7 @@ export function TapesTable() {
         ref={tableRef}
         onPointerDown={startPan}
         onClick={e => {
-          if (!(e.target as HTMLElement)?.closest('[data-tape]')) setMenuId(null);
+          if (!(e.target as HTMLElement)?.closest('[data-tape]') && !(e.target as HTMLElement)?.closest('[data-deck]')) setMenuId(null);
         }}
         style={{
           flex: 1,
@@ -327,7 +422,68 @@ export function TapesTable() {
             backgroundColor: '#1a1208',
           }}
         >
-          {positionedTapes.map(tape => {
+          {/* Deck slot — top right, sticky position */}
+          <div
+            data-deck="true"
+            ref={playerZoneRef}
+            style={{
+              position: 'sticky',
+              top: 16,
+              float: 'right',
+              marginRight: 16,
+              zIndex: 9000,
+            }}
+          >
+            <div
+              className="deck-slot"
+              onPointerDown={loadedTape ? startDeckDrag : undefined}
+              style={{
+                width: 234, height: 143, position: 'relative',
+                background: loadedTape ? 'transparent' : '#141414',
+                borderRadius: 5,
+                border: !loadedTape && dragId ? '1px solid rgba(249,115,22,0.4)' : loadedTape ? 'none' : '1px solid #333',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+                cursor: loadedTape ? 'grab' : 'default',
+                boxShadow: !loadedTape && dragId
+                  ? 'inset 0 2px 8px rgba(0,0,0,0.3), 0 0 12px rgba(249,115,22,0.15), 0 0 4px rgba(249,115,22,0.1)'
+                  : loadedTape ? '0 4px 20px rgba(0,0,0,0.5)' : 'inset 0 2px 8px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.5)',
+                transition: 'box-shadow 0.2s, border-color 0.2s',
+              }}
+            >
+              {/* Trapezoid indent */}
+              <div style={{ position: 'absolute', bottom: 2, left: 117 - 75, width: 150, height: 28, background: '#111', border: '1px solid #1a1a1a', clipPath: 'polygon(6px 0, 144px 0, 100% 100%, 0 100%)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.6)', zIndex: 0 }} />
+
+              {/* Machinery holes/indents */}
+              <div style={{ position: 'absolute', left: 20, top: 20, width: 8, height: 8, borderRadius: '50%', background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.8)', zIndex: 0 }} />
+              <div style={{ position: 'absolute', right: 20, top: 20, width: 8, height: 8, borderRadius: '50%', background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.8)', zIndex: 0 }} />
+              <div style={{ position: 'absolute', left: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.8)', zIndex: 0 }} />
+              <div style={{ position: 'absolute', right: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.8)', zIndex: 0 }} />
+              <div style={{ position: 'absolute', left: 117 - 4, top: 108, width: 8, height: 5, borderRadius: 1, background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.6)', zIndex: 0 }} />
+
+              {/* Faded gold/silver sticker between spool heads */}
+              <div style={{ position: 'absolute', left: 65 + 22, top: 55, width: 169 - 65 - 44, height: 26, borderRadius: 2, background: 'linear-gradient(135deg, #6b4420 0%, #8a5a28 30%, #7a4a20 50%, #5a3a18 70%, #6b4420 100%)', opacity: 0.5, zIndex: 0 }} />
+
+              {/* Spindle hubs — 3D raised look */}
+              {[65, 169].map((cx, i) => (
+                <div key={i} style={{ position: 'absolute', left: cx - 13, top: 68 - 13, width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(160deg, #2a2a2a 0%, #111 60%, #000 100%)', border: '1px solid #333', boxShadow: '0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08)', zIndex: 0 }}>
+                  <div style={{ position: 'absolute', inset: 3, borderRadius: '50%', background: 'linear-gradient(160deg, #222 0%, #141414 50%, #0a0a0a 100%)', boxShadow: 'inset 0 -1px 2px rgba(255,255,255,0.06), inset 0 1px 2px rgba(0,0,0,0.6)', border: '0.5px solid #2a2a2a' }}>
+                    <div style={{ position: 'absolute', left: '50%', top: 2, bottom: 2, width: 2, transform: 'translateX(-50%)', background: 'linear-gradient(180deg, #333 0%, #1a1a1a 100%)', borderRadius: 1, boxShadow: '0 0 1px rgba(0,0,0,0.5)' }} />
+                    <div style={{ position: 'absolute', top: '50%', left: 2, right: 2, height: 2, transform: 'translateY(-50%)', background: 'linear-gradient(90deg, #333 0%, #1a1a1a 100%)', borderRadius: 1, boxShadow: '0 0 1px rgba(0,0,0,0.5)' }} />
+                    <div style={{ position: 'absolute', left: '50%', top: '50%', width: 7, height: 7, transform: 'translate(-50%, -50%)', borderRadius: '50%', background: 'linear-gradient(145deg, #2a2a2a 0%, #080808 100%)', border: '0.5px solid #333', boxShadow: '0 1px 2px rgba(0,0,0,0.7), inset 0 0.5px 0.5px rgba(255,255,255,0.1)' }} />
+                  </div>
+                </div>
+              ))}
+
+              {loadedTape ? (
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <CassetteTape tape={loadedTape} playing={window.AppState?.playing} />
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Tapes on table */}
+          {tableTapes.map(tape => {
             const isDragging = dragId === tape.id;
             if (isDragging) return null;
             const zi = zOrder.indexOf(tape.id) + 1;
@@ -341,7 +497,7 @@ export function TapesTable() {
                 onPointerDown={e => startDrag(e, tape as Tape & { x: number; y: number })}
                 onClick={() => {
                   if (isDoubleTap(tape.id)) {
-                    playTape(tape);
+                    setMenuId(prev => prev === tape.id ? null : tape.id);
                   }
                 }}
                 onContextMenu={e => {
@@ -364,7 +520,6 @@ export function TapesTable() {
               >
                 <CassetteTape tape={tape} />
 
-                {/* Context menu */}
                 {hasMenu && (
                   <div style={{
                     position: 'absolute', bottom: -40, left: '50%', transform: 'translateX(-50%)',
@@ -372,33 +527,18 @@ export function TapesTable() {
                   }}>
                     <button
                       onPointerDown={e => e.stopPropagation()}
-                      onClick={e => { e.stopPropagation(); playTape(tape); }}
-                      style={{
-                        padding: '4px 10px', borderRadius: 6, border: 'none',
-                        background: '#22c55e', color: '#fff', fontSize: 12,
-                        cursor: 'pointer', whiteSpace: 'nowrap',
-                        fontFamily: "'Courier New', monospace",
-                      }}
+                      onClick={e => { e.stopPropagation(); loadIntoPlayer(tape); setMenuId(null); }}
+                      style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#22c55e', color: '#fff', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}
                     >Play</button>
                     <button
                       onPointerDown={e => e.stopPropagation()}
                       onClick={e => { e.stopPropagation(); rewindTape(tape.id); }}
-                      style={{
-                        padding: '4px 10px', borderRadius: 6, border: 'none',
-                        background: '#333', color: '#fff', fontSize: 12,
-                        cursor: 'pointer', whiteSpace: 'nowrap',
-                        fontFamily: "'Courier New', monospace",
-                      }}
+                      style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#333', color: '#fff', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}
                     >Rewind</button>
                     <button
                       onPointerDown={e => e.stopPropagation()}
                       onClick={e => { e.stopPropagation(); deleteTape(tape.id); }}
-                      style={{
-                        padding: '4px 10px', borderRadius: 6, border: 'none',
-                        background: '#ef4444', color: '#fff', fontSize: 12,
-                        cursor: 'pointer', whiteSpace: 'nowrap',
-                        fontFamily: "'Courier New', monospace",
-                      }}
+                      style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#ef4444', color: '#fff', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}
                     >Remove</button>
                   </div>
                 )}
