@@ -559,6 +559,16 @@ input:focus, select:focus, textarea:focus, button:focus {
   pointer-events: none;
 }
 
+#bg-transition {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #000;
+  opacity: 0;
+  z-index: -20;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
 .noselect {
   -webkit-touch-callout: none;
   -webkit-user-select: none;

@@ -17,6 +17,7 @@ const DOM = {
     bgMp4: document.getElementById("bg-mp4"),
     bgYoutube: document.getElementById("bg-youtube"),
     bgNone: document.getElementById("bg-none"),
+    bgTransition: document.getElementById("bg-transition"),
     pauseOverlay: document.getElementById("pause-overlay"),
     loadingOverlay: document.getElementById("loading-overlay"),
     trackNumber: document.getElementById("track-number"),
@@ -198,6 +199,10 @@ const Backgrounds = {
             if (AppState.playing) DOM.tapesRoot.style.display = "none";
         }
 
+        // Hide bg change interval button for static modes (original, none, tapes)
+        const isMedia = index <= 2;
+        DOM.backgroundAuto.style.display = isMedia ? "" : "none";
+
         localStorage.setItem("backtype", index);
 
         if (!AppState.playing) {
@@ -214,8 +219,20 @@ const Backgrounds = {
     },
 
     cycleType() {
-        this.bgTypeIndex = (this.bgTypeIndex + 1) % BG_TYPES.length;
-        this.setType(this.bgTypeIndex);
+        const next = (this.bgTypeIndex + 1) % BG_TYPES.length;
+        if (!AppState.playing) {
+            // No crossfade on start screen
+            this.bgTypeIndex = next;
+            this.setType(next);
+            return;
+        }
+        // Fade to black, switch, fade back
+        DOM.bgTransition.style.opacity = "1";
+        setTimeout(() => {
+            this.bgTypeIndex = next;
+            this.setType(next);
+            DOM.bgTransition.style.opacity = "0";
+        }, 600);
     },
 
     cycleNext() {
