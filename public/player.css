@@ -248,6 +248,68 @@ input:focus, select:focus, textarea:focus, button:focus {
   width: 80vw;
 }
 
+/* ── Search dropdown ── */
+
+.search-dropdown {
+  max-width: 80vw;
+  max-height: 360px;
+  overflow-y: auto;
+  border: dotted;
+  border-width: 2px;
+  border-top: none;
+  color: rgba(250, 249, 246, 0.9);
+  background-color: rgba(0, 0, 0, 0.85);
+  margin-bottom: 16px;
+}
+
+.search-message {
+  padding: 12px 8px;
+  font-size: 1.1em;
+  color: rgba(250, 249, 246, 0.6);
+}
+
+.search-result {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 8px;
+  border: none;
+  border-bottom: dotted;
+  border-bottom-width: 1px;
+  border-color: rgba(250, 249, 246, 0.15);
+  background-color: transparent;
+  color: rgba(250, 249, 246, 0.9);
+  font-family: '04b03', monospace;
+  font-size: 1.1em;
+  cursor: pointer;
+  animation: none;
+}
+
+.search-result:last-child {
+  border-bottom: none;
+}
+
+.search-result:hover {
+  background-color: rgba(250, 249, 246, 0.08);
+  color: rgba(250, 249, 246, 1);
+}
+
+.search-result-title {
+  line-height: 1.3em;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-result-meta {
+  font-size: 0.85em;
+  color: rgba(250, 249, 246, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ── History / saved videos ── */
 
 .history-container {

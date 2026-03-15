@@ -29,27 +29,20 @@ function parseYouTubeInput(input) {
     if (!input || !input.trim()) return null;
     input = input.trim();
 
-    // Try to parse as a URL
     let url;
     try {
-        // Handle youtu.be and other short forms
         if (input.startsWith("http://") || input.startsWith("https://")) {
             url = new URL(input);
         }
-    } catch (e) {
-        // Not a valid URL, treat as raw ID below
-    }
+    } catch (e) {}
 
     if (url) {
         const hostname = url.hostname.replace("www.", "");
 
-        // youtube.com/playlist?list=XXXX
         if (url.searchParams.has("list") && url.pathname.includes("/playlist")) {
             return { id: url.searchParams.get("list"), type: "playlist" };
         }
 
-        // youtube.com/watch?v=XXXX (may also have &list=)
-        // If it has both v= and list= with start_radio, treat as playlist mix
         if (url.searchParams.has("v")) {
             if (url.searchParams.has("list") && url.searchParams.has("start_radio")) {
                 return { id: url.searchParams.get("list"), type: "playlist" };
@@ -57,20 +50,16 @@ function parseYouTubeInput(input) {
             return { id: url.searchParams.get("v"), type: "video" };
         }
 
-        // youtu.be/XXXX
         if (hostname === "youtu.be" && url.pathname.length > 1) {
             return { id: url.pathname.slice(1).split("/")[0], type: "video" };
         }
 
-        // youtube.com/live/XXXX
         if (url.pathname.startsWith("/live/")) {
             const liveId = url.pathname.replace("/live/", "").split("/")[0];
             return { id: liveId, type: "video" };
         }
     }
 
-    // Raw ID fallback — determine type by character count
-    // YouTube video IDs are 11 chars, playlist IDs are typically 24-34 chars
     if (/^[a-zA-Z0-9_-]+$/.test(input)) {
         if (input.length <= 11) {
             return { id: input, type: "video" };
@@ -137,6 +126,8 @@ async function submitVideoName() {
         AppState.myVideoPlaylistName = parsed.id;
     }
 
+    Search.close();
+
     setTimeout(() => {
         window.myApp.startApp();
     }, 100);
@@ -166,13 +157,135 @@ function checkAndLoadFromURL() {
     return false;
 }
 
+// ── YouTube Search ──
+const Search = {
+    _results: [],
+    _searching: false,
+    _dropdown: null,
+
+    async doSearch(query) {
+        if (!query || !query.trim() || this._searching) return;
+
+        this._searching = true;
+        this._renderDropdown();
+
+        try {
+            const response = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+            this._results = await response.json();
+        } catch (err) {
+            console.error("Search failed:", err);
+            this._results = [];
+        }
+
+        this._searching = false;
+        this._renderDropdown();
+    },
+
+    close() {
+        this._results = [];
+        this._searching = false;
+        if (this._dropdown) {
+            this._dropdown.style.display = "none";
+        }
+    },
+
+    _ensureDropdown() {
+        if (this._dropdown) return;
+
+        this._dropdown = document.createElement("div");
+        this._dropdown.className = "search-dropdown";
+        this._dropdown.style.display = "none";
+
+        // Insert after the form
+        const form = document.getElementById("video-form");
+        if (form && form.parentNode) {
+            form.parentNode.insertBefore(this._dropdown, form.nextSibling);
+        }
+    },
+
+    _renderDropdown() {
+        this._ensureDropdown();
+        this._dropdown.innerHTML = "";
+        this._dropdown.style.display = "block";
+
+        if (this._searching) {
+            const msg = document.createElement("div");
+            msg.className = "search-message";
+            msg.innerHTML = '<i class="fas fa-spinner fa-spin"></i>&nbsp;Searching...';
+            this._dropdown.appendChild(msg);
+            return;
+        }
+
+        if (this._results.length === 0) {
+            const msg = document.createElement("div");
+            msg.className = "search-message";
+            msg.textContent = "No results";
+            this._dropdown.appendChild(msg);
+            return;
+        }
+
+        this._results.forEach((result) => {
+            const item = document.createElement("button");
+            item.className = "search-result";
+
+            const title = document.createElement("div");
+            title.className = "search-result-title";
+            title.textContent = result.title;
+
+            const meta = document.createElement("div");
+            meta.className = "search-result-meta";
+            meta.textContent = `${result.author}  //  ${result.durationText}`;
+
+            item.appendChild(title);
+            item.appendChild(meta);
+
+            item.addEventListener("click", () => {
+                // Set the video ID in the input and submit
+                document.getElementById("idEntry").value = result.videoId;
+                this.close();
+                submitVideoName();
+            });
+
+            this._dropdown.appendChild(item);
+        });
+    },
+};
+
 // ── Form submit binding ──
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("video-form");
+    const input = document.getElementById("idEntry");
+
     if (form) {
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
-            await submitVideoName();
+            const value = input.value.trim();
+            if (!value) return;
+
+            // If it looks like a URL or raw ID, submit directly
+            const parsed = parseYouTubeInput(value);
+            if (parsed) {
+                await submitVideoName();
+            } else {
+                // Otherwise, treat as a search query
+                Search.doSearch(value);
+            }
+        });
+    }
+
+    if (input) {
+        // Close search dropdown on Escape
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                Search.close();
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener("click", (e) => {
+            if (Search._dropdown && !Search._dropdown.contains(e.target) && e.target !== input) {
+                Search.close();
+            }
         });
     }
 });
