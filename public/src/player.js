@@ -114,6 +114,7 @@ const Backgrounds = {
 
         const doSwap = () => {
             // Start glitch animation on the container
+            document.documentElement.classList.add("glitching");
             DOM.bgMp4.classList.add("glitching");
 
             // Swap videos at peak blowout (~270ms into 600ms animation)
@@ -125,6 +126,7 @@ const Backgrounds = {
 
             // Clean up after animation ends
             setTimeout(() => {
+                document.documentElement.classList.remove("glitching");
                 DOM.bgMp4.classList.remove("glitching");
                 outgoing.pause();
                 outgoing.removeAttribute("src");

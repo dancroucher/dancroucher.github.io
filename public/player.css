@@ -529,6 +529,11 @@ input:focus, select:focus, textarea:focus, button:focus {
 
 #bg-mp4.glitching {
   animation: bg-glitch 0.6s ease-in-out;
+  overflow: hidden;
+}
+
+html.glitching, html.glitching body {
+  overflow: hidden;
 }
 
 #bg-none {
