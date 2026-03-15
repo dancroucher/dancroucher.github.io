@@ -84,6 +84,10 @@ var Demo = (function () {
                 const nowPlaying = state === 1;
                 AppState.playing = nowPlaying;
                 if (window.TapesBridge) window.TapesBridge.notifyPlayState(nowPlaying);
+                if (state === 0 && AppState.singleVideo) {
+                    // Single video ended — notify React to rewind & eject
+                    if (window.TapesBridge) window.TapesBridge.onTrackEnded();
+                }
                 if (state === 2) {
                     this._showOverlay("pause-overlay");
                 } else {

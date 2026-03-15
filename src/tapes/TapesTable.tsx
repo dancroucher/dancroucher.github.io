@@ -27,6 +27,7 @@ declare global {
       updateProgress: (videoId: string, progress: number) => void;
       addTapeFromSearch: (videoId: string, title: string, author: string, isPlaylist: boolean, playlistId?: string) => void;
       notifyPlayState: (playing: boolean) => void;
+      onTrackEnded: () => void;
     };
   }
 }
@@ -56,6 +57,7 @@ export function TapesTable() {
   tapesRef.current = tapes;
   const loadedRef = useRef(loadedTape);
   loadedRef.current = loadedTape;
+  const autoEjectRef = useRef<() => void>(() => {});
 
   // Double-tap detection
   const lastTapRef = useRef<{ time: number; id: string }>({ time: 0, id: '' });
@@ -141,6 +143,9 @@ export function TapesTable() {
       notifyPlayState: (playing: boolean) => {
         setIsPlaying(playing);
       },
+      onTrackEnded: () => {
+        autoEjectRef.current();
+      },
       addTapeFromSearch: (videoId: string, title: string, author: string, isPlaylist: boolean, playlistId?: string) => {
         setTapes(prev => {
           const dedupKey = isPlaylist ? playlistId! : videoId;
@@ -224,6 +229,44 @@ export function TapesTable() {
     setTimeout(() => setRewindingId(null), 400);
     setMenuId(null);
   }, []);
+
+  // Auto-eject: rewind tape to 0, clear player, return tape to table
+  const autoEject = useCallback(() => {
+    const tape = loadedRef.current;
+    if (!tape) return;
+
+    // Rewind progress to 0
+    setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, progress: 0 } : t));
+    setRewindingId(tape.id);
+    setTimeout(() => setRewindingId(null), 400);
+
+    setLoadedTape(null);
+    setIsPlaying(false);
+
+    // Clear player UI
+    if (window.myApp) {
+      try { window.myApp.player.pause(); } catch {}
+      const songEl = document.getElementById('song-container');
+      const titleEl = document.getElementById('title-container');
+      const padEl = document.getElementById('padinfo');
+      if (songEl) songEl.style.display = 'none';
+      if (titleEl) titleEl.style.display = 'none';
+      if (padEl) padEl.style.display = 'none';
+      const startEl = document.getElementById('start-container');
+      if (startEl) startEl.style.display = 'flex';
+      if (window.AppState) {
+        window.AppState.playing = false;
+        window.AppState.starting = true;
+      }
+      setTimeout(() => {
+        const pauseEl = document.getElementById('pause-overlay');
+        if (pauseEl) pauseEl.classList.remove('visible');
+      }, 50);
+    }
+
+    if (window.switchBgType) window.switchBgType(5);
+  }, []);
+  autoEjectRef.current = autoEject;
 
   const cancelMenu = useCallback(() => { setMenuId(null); }, []);
 
