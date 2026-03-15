@@ -173,6 +173,9 @@ export function TapesTable() {
 
     AppState.starting = true;
 
+    // Set bg type to tapes so it persists through player restart
+    localStorage.setItem('backtype', '5');
+
     // Show jeem-fm title when playing
     const titleEl = document.getElementById('title-container');
     if (titleEl) titleEl.style.display = 'block';

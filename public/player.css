@@ -25,17 +25,17 @@ a:hover {
 
 .song-container {
   padding-left: 6px;
-  position: static;
+  position: relative;
   display: block;
-  z-index: 5;
+  z-index: 6;
 }
 
 .title-container {
   padding-left: 6px;
-  position: static;
+  position: relative;
   display: block;
   width: fit-content;
-  z-index: 5;
+  z-index: 6;
 }
 
 .start-container {
@@ -43,7 +43,6 @@ a:hover {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
   display: flex;
   flex-direction: column;
   z-index: 5;
@@ -84,11 +83,14 @@ a:hover {
 }
 
 #tapes-root {
-  flex: 1;
-  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
   flex-direction: column;
-  min-height: 0;
-  position: relative;
+  z-index: 3;
 }
 
 .padsong {
@@ -97,12 +99,20 @@ a:hover {
 
 .padinfo {
   padding: 0px 32px 0px 32px;
-  position: absolute;
+  position: fixed;
   bottom: 2.5%;
-  width: 99vw;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  z-index: 50;
+  pointer-events: none;
+  transition: opacity 1s ease;
+}
+
+.padinfo > * {
+  pointer-events: auto;
 }
 
 /* ── Typography ── */

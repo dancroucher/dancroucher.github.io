@@ -183,6 +183,7 @@ function checkAndLoadFromURL() {
     }
 
     document.getElementById("start-container").style.display = "flex";
+    document.getElementById("tapes-root").style.display = "flex";
     return false;
 }
 
