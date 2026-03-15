@@ -79,7 +79,7 @@ a:hover {
 
 .start-form {
   display: block;
-  padding: 0 8px;
+  padding: 8px 8px 0 8px;
 }
 
 #tapes-root {
@@ -323,11 +323,9 @@ input:focus, select:focus, textarea:focus, button:focus {
   text-align: left;
   padding: 10px 8px;
   border: none;
-  border-bottom: dotted;
-  border-bottom-width: 1px;
-  border-color: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.15);
   background-color: transparent;
-  color: rgba(0, 0, 0, 0.9);
+  color: rgba(0, 0, 0, 1);
   font-family: '04b03', monospace;
   font-size: 1.1em;
   cursor: pointer;
@@ -339,8 +337,7 @@ input:focus, select:focus, textarea:focus, button:focus {
 }
 
 .search-result:hover {
-  background-color: rgba(0, 0, 0, 0.08);
-  color: rgba(0, 0, 0, 1);
+  background-color: rgba(0, 0, 0, 0.06);
 }
 
 .search-result-title {
@@ -353,7 +350,7 @@ input:focus, select:focus, textarea:focus, button:focus {
 
 .search-result-meta {
   font-size: 0.85em;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, 0.45);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
