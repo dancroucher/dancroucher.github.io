@@ -12,6 +12,7 @@ const DOM = {
     startContainer: document.getElementById("start-container"),
     titleContainer: document.getElementById("title-container"),
     tapesRoot: document.getElementById("tapes-root"),
+    tapeDeck: document.getElementById("tape-deck"),
     padinfo: document.getElementById("padinfo"),
     bgMp4: document.getElementById("bg-mp4"),
     bgYoutube: document.getElementById("bg-youtube"),
@@ -188,7 +189,6 @@ const Backgrounds = {
             DOM.bgNone.style.background = "#000000";
             DOM.bgYoutube.style.display = "block";
             DOM.tapesRoot.style.display = "flex";
-            DOM.padinfo.style.paddingLeft = "270px";
         } else {
             // none
             this._clearVideos();
@@ -196,11 +196,6 @@ const Backgrounds = {
             DOM.bgNone.style.background = "#000000";
             DOM.bgYoutube.style.display = "block";
             if (AppState.playing) DOM.tapesRoot.style.display = "none";
-        }
-
-        // Reset padinfo padding for non-tapes modes
-        if (index !== 5) {
-            DOM.padinfo.style.paddingLeft = "32px";
         }
 
         localStorage.setItem("backtype", index);
@@ -410,6 +405,7 @@ function doStart() {
     DOM.startContainer.style.display = "none";
     DOM.songContainer.style.display = "block";
     DOM.padinfo.style.display = "flex";
+    DOM.tapeDeck.style.display = "block";
     DOM.bgYoutube.style.display = "block";
 
     if (AppState.singleVideo) {
@@ -471,6 +467,7 @@ const Inactivity = {
         if (DOM.songContainer && this._visible && AppState.playing) {
             DOM.songContainer.style.opacity = "0";
             DOM.padinfo.style.opacity = "0";
+            DOM.tapeDeck.style.opacity = "0";
             this._visible = false;
             document.body.style.cursor = "none";
         }
@@ -480,6 +477,7 @@ const Inactivity = {
         if (DOM.songContainer && !this._visible) {
             DOM.songContainer.style.opacity = "1";
             DOM.padinfo.style.opacity = "1";
+            DOM.tapeDeck.style.opacity = "1";
             this._visible = true;
             document.body.style.cursor = "default";
         }

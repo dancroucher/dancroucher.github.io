@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, STORAGE_KEY } from './types';
 import { CassetteTape } from './CassetteTape';
 
@@ -46,6 +47,7 @@ export function TapesTable() {
   const [deckEjecting, setDeckEjecting] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
   const playerZoneRef = useRef<HTMLDivElement>(null);
+  const deckPortal = typeof document !== 'undefined' ? document.getElementById('tape-deck') : null;
   const tapesRef = useRef(tapes);
   tapesRef.current = tapes;
   const loadedRef = useRef(loadedTape);
@@ -428,65 +430,6 @@ export function TapesTable() {
             backgroundColor: '#1a1208',
           }}
         >
-          {/* Deck slot — fixed bottom left */}
-          <div
-            data-deck="true"
-            ref={playerZoneRef}
-            style={{
-              position: 'fixed',
-              bottom: 16,
-              left: 16,
-              zIndex: 9000,
-            }}
-          >
-            <div
-              className="deck-slot"
-              onPointerDown={loadedTape ? startDeckDrag : undefined}
-              style={{
-                width: 234, height: 143, position: 'relative',
-                background: loadedTape ? 'transparent' : '#141414',
-                borderRadius: 5,
-                border: !loadedTape && dragId ? '1px solid rgba(249,115,22,0.4)' : loadedTape ? 'none' : '1px solid #333',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-                cursor: loadedTape ? 'grab' : 'default',
-                boxShadow: !loadedTape && dragId
-                  ? 'inset 0 2px 8px rgba(0,0,0,0.3), 0 0 12px rgba(249,115,22,0.15), 0 0 4px rgba(249,115,22,0.1)'
-                  : loadedTape ? '0 4px 20px rgba(0,0,0,0.5)' : 'inset 0 2px 8px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.5)',
-                transition: 'box-shadow 0.2s, border-color 0.2s',
-              }}
-            >
-              {/* Trapezoid indent */}
-              <div style={{ position: 'absolute', bottom: 2, left: 117 - 75, width: 150, height: 28, background: '#111', border: '1px solid #1a1a1a', clipPath: 'polygon(6px 0, 144px 0, 100% 100%, 0 100%)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.6)', zIndex: 0 }} />
-
-              {/* Machinery holes/indents */}
-              <div style={{ position: 'absolute', left: 20, top: 20, width: 8, height: 8, borderRadius: '50%', background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.8)', zIndex: 0 }} />
-              <div style={{ position: 'absolute', right: 20, top: 20, width: 8, height: 8, borderRadius: '50%', background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.8)', zIndex: 0 }} />
-              <div style={{ position: 'absolute', left: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.8)', zIndex: 0 }} />
-              <div style={{ position: 'absolute', right: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.8)', zIndex: 0 }} />
-              <div style={{ position: 'absolute', left: 117 - 4, top: 108, width: 8, height: 5, borderRadius: 1, background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.6)', zIndex: 0 }} />
-
-              {/* Faded gold/silver sticker between spool heads */}
-              <div style={{ position: 'absolute', left: 65 + 22, top: 55, width: 169 - 65 - 44, height: 26, borderRadius: 2, background: 'linear-gradient(135deg, #6b4420 0%, #8a5a28 30%, #7a4a20 50%, #5a3a18 70%, #6b4420 100%)', opacity: 0.5, zIndex: 0 }} />
-
-              {/* Spindle hubs — 3D raised look */}
-              {[65, 169].map((cx, i) => (
-                <div key={i} style={{ position: 'absolute', left: cx - 13, top: 68 - 13, width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(160deg, #2a2a2a 0%, #111 60%, #000 100%)', border: '1px solid #333', boxShadow: '0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08)', zIndex: 0 }}>
-                  <div style={{ position: 'absolute', inset: 3, borderRadius: '50%', background: 'linear-gradient(160deg, #222 0%, #141414 50%, #0a0a0a 100%)', boxShadow: 'inset 0 -1px 2px rgba(255,255,255,0.06), inset 0 1px 2px rgba(0,0,0,0.6)', border: '0.5px solid #2a2a2a' }}>
-                    <div style={{ position: 'absolute', left: '50%', top: 2, bottom: 2, width: 2, transform: 'translateX(-50%)', background: 'linear-gradient(180deg, #333 0%, #1a1a1a 100%)', borderRadius: 1, boxShadow: '0 0 1px rgba(0,0,0,0.5)' }} />
-                    <div style={{ position: 'absolute', top: '50%', left: 2, right: 2, height: 2, transform: 'translateY(-50%)', background: 'linear-gradient(90deg, #333 0%, #1a1a1a 100%)', borderRadius: 1, boxShadow: '0 0 1px rgba(0,0,0,0.5)' }} />
-                    <div style={{ position: 'absolute', left: '50%', top: '50%', width: 7, height: 7, transform: 'translate(-50%, -50%)', borderRadius: '50%', background: 'linear-gradient(145deg, #2a2a2a 0%, #080808 100%)', border: '0.5px solid #333', boxShadow: '0 1px 2px rgba(0,0,0,0.7), inset 0 0.5px 0.5px rgba(255,255,255,0.1)' }} />
-                  </div>
-                </div>
-              ))}
-
-              {loadedTape ? (
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                  <CassetteTape tape={loadedTape} playing={window.AppState?.playing} />
-                </div>
-              ) : null}
-            </div>
-          </div>
-
           {/* Tapes on table */}
           {tableTapes.map(tape => {
             const isDragging = dragId === tape.id;
@@ -571,6 +514,62 @@ export function TapesTable() {
           </div>
         );
       })()}
+
+      {/* Deck — portaled outside tapes-root so it's visible in all bg modes */}
+      {deckPortal && createPortal(
+        <div
+          data-deck="true"
+          ref={playerZoneRef}
+        >
+          <div
+            className="deck-slot"
+            onPointerDown={loadedTape ? startDeckDrag : undefined}
+            style={{
+              width: 234, height: 143, position: 'relative',
+              background: loadedTape ? 'transparent' : '#141414',
+              borderRadius: 5,
+              border: !loadedTape && dragId ? '1px solid rgba(249,115,22,0.4)' : loadedTape ? 'none' : '1px solid #333',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+              cursor: loadedTape ? 'grab' : 'default',
+              boxShadow: !loadedTape && dragId
+                ? 'inset 0 2px 8px rgba(0,0,0,0.3), 0 0 12px rgba(249,115,22,0.15), 0 0 4px rgba(249,115,22,0.1)'
+                : loadedTape ? '0 4px 20px rgba(0,0,0,0.5)' : 'inset 0 2px 8px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.5)',
+              transition: 'box-shadow 0.2s, border-color 0.2s',
+            }}
+          >
+            {/* Trapezoid indent */}
+            <div style={{ position: 'absolute', bottom: 2, left: 117 - 75, width: 150, height: 28, background: '#111', border: '1px solid #1a1a1a', clipPath: 'polygon(6px 0, 144px 0, 100% 100%, 0 100%)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.6)', zIndex: 0 }} />
+
+            {/* Machinery holes/indents */}
+            <div style={{ position: 'absolute', left: 20, top: 20, width: 8, height: 8, borderRadius: '50%', background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.8)', zIndex: 0 }} />
+            <div style={{ position: 'absolute', right: 20, top: 20, width: 8, height: 8, borderRadius: '50%', background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.8)', zIndex: 0 }} />
+            <div style={{ position: 'absolute', left: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.8)', zIndex: 0 }} />
+            <div style={{ position: 'absolute', right: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.8)', zIndex: 0 }} />
+            <div style={{ position: 'absolute', left: 117 - 4, top: 108, width: 8, height: 5, borderRadius: 1, background: '#111', border: '1px solid #1a1a1a', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.6)', zIndex: 0 }} />
+
+            {/* Faded gold/silver sticker between spool heads */}
+            <div style={{ position: 'absolute', left: 65 + 22, top: 55, width: 169 - 65 - 44, height: 26, borderRadius: 2, background: 'linear-gradient(135deg, #6b4420 0%, #8a5a28 30%, #7a4a20 50%, #5a3a18 70%, #6b4420 100%)', opacity: 0.5, zIndex: 0 }} />
+
+            {/* Spindle hubs — 3D raised look */}
+            {[65, 169].map((cx, i) => (
+              <div key={i} style={{ position: 'absolute', left: cx - 13, top: 68 - 13, width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(160deg, #2a2a2a 0%, #111 60%, #000 100%)', border: '1px solid #333', boxShadow: '0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08)', zIndex: 0 }}>
+                <div style={{ position: 'absolute', inset: 3, borderRadius: '50%', background: 'linear-gradient(160deg, #222 0%, #141414 50%, #0a0a0a 100%)', boxShadow: 'inset 0 -1px 2px rgba(255,255,255,0.06), inset 0 1px 2px rgba(0,0,0,0.6)', border: '0.5px solid #2a2a2a' }}>
+                  <div style={{ position: 'absolute', left: '50%', top: 2, bottom: 2, width: 2, transform: 'translateX(-50%)', background: 'linear-gradient(180deg, #333 0%, #1a1a1a 100%)', borderRadius: 1, boxShadow: '0 0 1px rgba(0,0,0,0.5)' }} />
+                  <div style={{ position: 'absolute', top: '50%', left: 2, right: 2, height: 2, transform: 'translateY(-50%)', background: 'linear-gradient(90deg, #333 0%, #1a1a1a 100%)', borderRadius: 1, boxShadow: '0 0 1px rgba(0,0,0,0.5)' }} />
+                  <div style={{ position: 'absolute', left: '50%', top: '50%', width: 7, height: 7, transform: 'translate(-50%, -50%)', borderRadius: '50%', background: 'linear-gradient(145deg, #2a2a2a 0%, #080808 100%)', border: '0.5px solid #333', boxShadow: '0 1px 2px rgba(0,0,0,0.7), inset 0 0.5px 0.5px rgba(255,255,255,0.1)' }} />
+                </div>
+              </div>
+            ))}
+
+            {loadedTape ? (
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <CassetteTape tape={loadedTape} playing={window.AppState?.playing} />
+              </div>
+            ) : null}
+          </div>
+        </div>,
+        deckPortal
+      )}
     </>
   );
 }

@@ -97,8 +97,16 @@ a:hover {
   padding: 0px 32px 32px 32px;
 }
 
+#tape-deck {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 50;
+  transition: opacity 1s ease;
+}
+
 .padinfo {
-  padding: 0px 32px 0px 32px;
+  padding: 0px 32px 0px 270px;
   position: fixed;
   bottom: 2.5%;
   left: 0;
