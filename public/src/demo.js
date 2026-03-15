@@ -81,6 +81,9 @@ var Demo = (function () {
                 }
 
                 const state = this.player.get_player_state();
+                const nowPlaying = state === 1;
+                AppState.playing = nowPlaying;
+                if (window.TapesBridge) window.TapesBridge.notifyPlayState(nowPlaying);
                 if (state === 2) {
                     this._showOverlay("pause-overlay");
                 } else {
@@ -107,11 +110,13 @@ var Demo = (function () {
                 this.player.play();
                 if (Backgrounds._isMediaType() && bgVideo) bgVideo.play();
                 AppState.playing = true;
+                if (window.TapesBridge) window.TapesBridge.notifyPlayState(true);
                 this._hideOverlay("pause-overlay");
             } else if (state === 1) {
                 this.player.pause();
                 if (Backgrounds._isMediaType() && bgVideo) bgVideo.pause();
                 AppState.playing = false;
+                if (window.TapesBridge) window.TapesBridge.notifyPlayState(false);
                 this._showOverlay("pause-overlay");
                 // Save progress on pause
                 this._saveProgress();

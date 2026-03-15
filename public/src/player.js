@@ -161,7 +161,7 @@ const Backgrounds = {
         setTimeout(() => this._preloadNext(), 500);
     },
 
-    setType(index) {
+    setType(index, persist = true) {
         this.bgTypeIndex = index;
         const typeName = BG_TYPES[index];
         DOM.backgroundType.innerHTML = `<i class='fas fa-file-image'></i>&nbsp;${typeName}`;
@@ -203,7 +203,7 @@ const Backgrounds = {
         const isMedia = index <= 2;
         DOM.backgroundAuto.style.display = isMedia ? "" : "none";
 
-        localStorage.setItem("backtype", index);
+        if (persist) localStorage.setItem("backtype", index);
 
         if (!AppState.playing) {
             this._activeEl.pause();
@@ -542,9 +542,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Expose bg switch for React bridge
+// Called from React eject — switches display without persisting to localStorage
 window.switchBgType = (index) => {
     Backgrounds.bgTypeIndex = index;
-    Backgrounds.setType(index);
+    Backgrounds.setType(index, false);
 };
 
 // ── Init on load ──

@@ -26,6 +26,7 @@ declare global {
       onTapePlay: (tape: Tape) => void;
       updateProgress: (videoId: string, progress: number) => void;
       addTapeFromSearch: (videoId: string, title: string, author: string, isPlaylist: boolean, playlistId?: string) => void;
+      notifyPlayState: (playing: boolean) => void;
     };
   }
 }
@@ -47,6 +48,7 @@ export function TapesTable() {
   const [isPanning, setIsPanning] = useState(false);
   const [loadedTape, setLoadedTape] = useState<Tape | null>(null);
   const [deckEjecting, setDeckEjecting] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
   const playerZoneRef = useRef<HTMLDivElement>(null);
   const deckPortal = typeof document !== 'undefined' ? document.getElementById('tape-deck') : null;
@@ -126,6 +128,9 @@ export function TapesTable() {
           return prev;
         });
       },
+      notifyPlayState: (playing: boolean) => {
+        setIsPlaying(playing);
+      },
       addTapeFromSearch: (videoId: string, title: string, author: string, isPlaylist: boolean, playlistId?: string) => {
         setTapes(prev => {
           const dedupKey = isPlaylist ? playlistId! : videoId;
@@ -176,9 +181,6 @@ export function TapesTable() {
     if (!AppState) return;
 
     AppState.starting = true;
-
-    // Set bg type to tapes so it persists through player restart
-    localStorage.setItem('backtype', '5');
 
     // Show jeem-fm title when playing
     const titleEl = document.getElementById('title-container');
@@ -601,7 +603,7 @@ export function TapesTable() {
 
             {loadedTape ? (
               <div style={{ position: 'relative', zIndex: 1 }}>
-                <CassetteTape tape={loadedTape} playing={window.AppState?.playing} />
+                <CassetteTape tape={loadedTape} playing={isPlaying} />
               </div>
             ) : null}
           </div>
