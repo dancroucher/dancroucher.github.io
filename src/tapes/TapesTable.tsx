@@ -301,8 +301,24 @@ export function TapesTable() {
       setLoadedTape(null);
       setDeckEjecting(true);
 
-      // Stop playback
-      if (window.AppState?.playing && window.myApp) window.myApp.togglePlayback();
+      // Fully stop and clear the player
+      if (window.myApp) {
+        if (window.AppState?.playing) window.myApp.togglePlayback();
+        // Hide song/title UI
+        const songEl = document.getElementById('song-container');
+        const titleEl = document.getElementById('title-container');
+        const padEl = document.getElementById('padinfo');
+        if (songEl) songEl.style.display = 'none';
+        if (titleEl) titleEl.style.display = 'none';
+        if (padEl) padEl.style.display = 'none';
+        // Show start screen header
+        const startEl = document.getElementById('start-container');
+        if (startEl) startEl.style.display = 'flex';
+        if (window.AppState) {
+          window.AppState.playing = false;
+          window.AppState.starting = true;
+        }
+      }
 
       // Switch to tapes bg so user can see where the tape lands
       if (window.switchBgType) window.switchBgType(5);
