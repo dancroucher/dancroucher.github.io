@@ -113,10 +113,10 @@ const Backgrounds = {
         const needsLoad = incoming.getAttribute("src") !== newSrc;
 
         const doSwap = () => {
-            document.body.style.overflow = "hidden";
+            // Start glitch animation on the container
             DOM.bgMp4.classList.add("glitching");
 
-            // Swap videos at peak blowout
+            // Swap videos at peak blowout (~270ms into 600ms animation)
             setTimeout(() => {
                 if (AppState.playing) incoming.play();
                 incoming.classList.add("active");
@@ -126,7 +126,6 @@ const Backgrounds = {
             // Clean up after animation ends
             setTimeout(() => {
                 DOM.bgMp4.classList.remove("glitching");
-                document.body.style.overflow = "";
                 outgoing.pause();
                 outgoing.removeAttribute("src");
                 outgoing.load();
@@ -220,28 +219,18 @@ const Backgrounds = {
     cycleType() {
         const next = (this.bgTypeIndex + 1) % BG_TYPES.length;
         if (!AppState.playing) {
+            // No crossfade on start screen
             this.bgTypeIndex = next;
             this.setType(next);
             return;
         }
-        // Glitch transition between bg modes
-        this._glitchSwap(() => {
+        // Fade to black, switch, fade back
+        DOM.bgTransition.style.opacity = "1";
+        setTimeout(() => {
             this.bgTypeIndex = next;
             this.setType(next);
-        });
-    },
-
-    // Apply glitch effect to the whole page, call swapFn at peak blowout
-    _glitchSwap(swapFn) {
-        const crt = document.querySelector(".crt");
-        if (!crt) { swapFn(); return; }
-        document.body.style.overflow = "hidden";
-        crt.classList.add("glitching");
-        setTimeout(swapFn, 270);
-        setTimeout(() => {
-            crt.classList.remove("glitching");
-            document.body.style.overflow = "";
-        }, 650);
+            DOM.bgTransition.style.opacity = "0";
+        }, 200);
     },
 
     cycleNext() {
