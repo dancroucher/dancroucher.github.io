@@ -70,7 +70,8 @@ function parseYouTubeInput(input) {
     return null;
 }
 
-// ── YouTube validation via oEmbed ──
+// ── YouTube validation + metadata fetch via oEmbed ──
+// Returns { valid, title, author } so we can save metadata at add-time
 async function validateYouTubeContent(id, type) {
     const videoBox = document.getElementById("idEntry");
     videoBox.className = "videobox";
@@ -84,7 +85,12 @@ async function validateYouTubeContent(id, type) {
         const response = await fetch(endpoint);
         if (response.ok) {
             videoBox.className = "videobox videobox-ok";
-            return true;
+            const data = await response.json();
+            return {
+                valid: true,
+                title: data.title || "",
+                author: data.author_name || "",
+            };
         }
 
         videoBox.className = "videobox videobox-notok";
@@ -94,7 +100,7 @@ async function validateYouTubeContent(id, type) {
             videoBox.className = "videobox";
             videoBox.value = "";
         }, 1500);
-        return false;
+        return { valid: false };
     } catch (error) {
         console.error("Validation error:", error);
         videoBox.className = "videobox videobox-notok";
@@ -104,7 +110,7 @@ async function validateYouTubeContent(id, type) {
             videoBox.className = "videobox";
             videoBox.value = "";
         }, 1500);
-        return false;
+        return { valid: false };
     }
 }
 
@@ -115,16 +121,26 @@ async function submitVideoName() {
 
     if (!parsed) return;
 
-    const isValid = await validateYouTubeContent(parsed.id, parsed.type);
-    if (!isValid) return;
+    const result = await validateYouTubeContent(parsed.id, parsed.type);
+    if (!result.valid) return;
 
+    // Set metadata from oEmbed BEFORE starting player
     if (parsed.type === "video") {
         AppState.singleVideo = true;
         AppState.myVideoName = parsed.id;
+        AppState.songTitle = result.title;
+        AppState.songAuthor = result.author;
     } else {
         AppState.singleVideo = false;
         AppState.myVideoPlaylistName = parsed.id;
+        AppState.songTitle = result.title;
+        AppState.songAuthor = result.author;
     }
+
+    // Save to history immediately with confirmed metadata
+    const videoID = AppState.singleVideo ? AppState.myVideoName : AppState.myVideoPlaylistName;
+    const videoType = AppState.singleVideo ? "single" : "playlist";
+    History.add(videoID, result.title, result.author, videoType, 0);
 
     Search.close();
 
@@ -196,7 +212,6 @@ const Search = {
         this._dropdown.className = "search-dropdown";
         this._dropdown.style.display = "none";
 
-        // Insert after the form
         const form = document.getElementById("video-form");
         if (form && form.parentNode) {
             form.parentNode.insertBefore(this._dropdown, form.nextSibling);
@@ -240,7 +255,6 @@ const Search = {
             item.appendChild(meta);
 
             item.addEventListener("click", () => {
-                // Set the video ID in the input and submit
                 document.getElementById("idEntry").value = result.videoId;
                 this.close();
                 submitVideoName();
@@ -262,26 +276,22 @@ document.addEventListener("DOMContentLoaded", () => {
             const value = input.value.trim();
             if (!value) return;
 
-            // If it looks like a URL or raw ID, submit directly
             const parsed = parseYouTubeInput(value);
             if (parsed) {
                 await submitVideoName();
             } else {
-                // Otherwise, treat as a search query
                 Search.doSearch(value);
             }
         });
     }
 
     if (input) {
-        // Close search dropdown on Escape
         input.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
                 Search.close();
             }
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener("click", (e) => {
             if (Search._dropdown && !Search._dropdown.contains(e.target) && e.target !== input) {
                 Search.close();

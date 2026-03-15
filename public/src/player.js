@@ -263,15 +263,20 @@ const History = {
         localStorage.setItem(this._key, JSON.stringify(list));
     },
 
-    add(videoID, videoName, videoAuthor, videoType, trackIndex = 0) {
+    add(videoID, videoName, videoAuthor, videoType, trackIndex = 0, progress = 0) {
+        // Don't save entries with no metadata
+        if (!videoName && !videoAuthor) return;
+
         const savedVideos = this._load();
         const existingIndex = savedVideos.findIndex((v) => v.id === videoID);
 
         if (existingIndex !== -1) {
             savedVideos[existingIndex].track = trackIndex;
             savedVideos[existingIndex].timestamp = Date.now();
-            savedVideos[existingIndex].name = videoName;
-            savedVideos[existingIndex].author = videoAuthor;
+            // Only update name/author if we have real values (don't overwrite with empty)
+            if (videoName) savedVideos[existingIndex].name = videoName;
+            if (videoAuthor) savedVideos[existingIndex].author = videoAuthor;
+            if (progress > 0) savedVideos[existingIndex].progress = progress;
             const item = savedVideos.splice(existingIndex, 1)[0];
             savedVideos.unshift(item);
         } else {
@@ -281,6 +286,7 @@ const History = {
                 author: videoAuthor,
                 type: videoType,
                 track: trackIndex,
+                progress: progress,
                 timestamp: Date.now(),
             });
             if (savedVideos.length > 50) savedVideos.pop();
@@ -312,9 +318,22 @@ const History = {
                     ? ` // Playlist // Track ${video.track + 1}`
                     : " // Single video";
 
+            const progressPct = Math.round((video.progress || 0) * 100);
+
             const icon = video.type === "single" ? "fa-file-video-o" : "fa-list-alt";
             btn.className = `history-item${video.type !== "single" ? " playlist" : ""}`;
             btn.innerHTML = `<i class="fa ${icon}" aria-hidden="true"></i> ${video.name} // ${video.author}${trackInfo}`;
+
+            // Progress bar
+            if (video.progress && video.progress > 0.01) {
+                const progressBar = document.createElement("div");
+                progressBar.className = "history-progress";
+                const progressFill = document.createElement("div");
+                progressFill.className = "history-progress-fill";
+                progressFill.style.width = `${progressPct}%`;
+                progressBar.appendChild(progressFill);
+                btn.appendChild(progressBar);
+            }
 
             shareBtn.className = "history-share";
             shareBtn.innerHTML = '<i class="fa fa-clipboard" aria-hidden="true"></i>';
@@ -384,15 +403,7 @@ function doStart() {
     Backgrounds.setType(Backgrounds.bgTypeIndex);
     Backgrounds.loadSavedChangeTime();
     Backgrounds.applyChangeTime();
-
-    // Save after metadata loads
-    setTimeout(() => {
-        if (AppState.singleVideo) {
-            History.add(AppState.myVideoName, AppState.songTitle, AppState.songAuthor, "single", 0);
-        } else {
-            History.add(AppState.myVideoPlaylistName, AppState.songTitle, AppState.songAuthor, "playlist", AppState.playlistIndex);
-        }
-    }, 3000);
+    // Metadata save handled by video_data_change event in demo.js — no setTimeout race
 }
 
 function doFullscreen() {

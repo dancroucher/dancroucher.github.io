@@ -1,7 +1,6 @@
 "use strict";
 
 var Demo = (function () {
-    // All player events we listen to
     const PLAYER_EVENTS = [
         "ready", "yt_state_change", "yt_playback_quality_change",
         "yt_playback_rate_change", "yt_api_change", "yt_error",
@@ -11,7 +10,6 @@ var Demo = (function () {
         "playlist_change", "playlist_index_change", "api_change",
     ];
 
-    // Default player config
     function playerConfig(videoId) {
         return {
             video_id: videoId || "",
@@ -36,6 +34,7 @@ var Demo = (function () {
         const Player = Youtube.Player;
         this.player = new Player(playerConfig(""));
         this._iframeContainer = document.querySelector(".bg-youtube");
+        this._progressInterval = null;
 
         this._attachIframe();
         this._attachEventListeners();
@@ -45,7 +44,6 @@ var Demo = (function () {
     Demo.prototype = {
         constructor: Demo,
 
-        // ── Iframe management ──
         _attachIframe: function () {
             const iframe = this.player.get_iframe();
             iframe.className = "demo_iframe";
@@ -54,7 +52,6 @@ var Demo = (function () {
             this._iframeContainer.appendChild(iframe);
         },
 
-        // ── Event listener management ──
         _attachEventListeners: function () {
             PLAYER_EVENTS.forEach((evt) => {
                 this.player.on(evt, () => {});
@@ -68,6 +65,8 @@ var Demo = (function () {
         _attachPlayingListeners: function () {
             this.player.on("state_change", () => {
                 const data = this.player.get_video_data();
+                if (!data || !data.title) return;
+
                 AppState.songTitle = data.title;
                 AppState.songAuthor = data.author;
 
@@ -75,14 +74,12 @@ var Demo = (function () {
                 DOM.songName.innerHTML = `<a href='https://www.youtube.com/watch?v=${videoId}' target='_blank'>${data.title}</a>`;
                 DOM.songAuthor.innerHTML = data.author;
 
-                // Update track number for playlists
                 const playlist = this.player.get_playlist();
                 if (playlist) {
                     AppState.playlistIndex = this.player.get_playlist_index();
                     DOM.trackNumber.innerHTML = `${AppState.playlistIndex + 1}&nbsp;/&nbsp;${playlist.length}`;
                 }
 
-                // Sync pause overlay
                 const state = this.player.get_player_state();
                 if (state === 2) {
                     this._showOverlay("pause-overlay");
@@ -92,7 +89,6 @@ var Demo = (function () {
             });
         },
 
-        // ── Overlays ──
         _showOverlay: function (id) {
             const el = document.getElementById(id);
             if (el) el.classList.add("visible");
@@ -108,17 +104,17 @@ var Demo = (function () {
             const state = this.player.get_player_state();
             const bgVideo = Backgrounds.getActiveVideo();
             if (state === 2) {
-                // Paused → Play
                 this.player.play();
                 if (Backgrounds._isMediaType() && bgVideo) bgVideo.play();
                 AppState.playing = true;
                 this._hideOverlay("pause-overlay");
             } else if (state === 1) {
-                // Playing → Pause
                 this.player.pause();
                 if (Backgrounds._isMediaType() && bgVideo) bgVideo.pause();
                 AppState.playing = false;
                 this._showOverlay("pause-overlay");
+                // Save progress on pause
+                this._saveProgress();
             }
         },
 
@@ -130,44 +126,73 @@ var Demo = (function () {
             this.player.goto_next();
         },
 
-        // ── Start app (destroy muted player, create unmuted one) ──
+        // ── Progress tracking ──
+        _getProgress: function () {
+            const current = this.player.get_current_time();
+            const duration = this.player.get_duration();
+            if (!duration || duration <= 0) return 0;
+            return Math.min(current / duration, 1);
+        },
+
+        _saveProgress: function () {
+            const videoID = AppState.singleVideo ? AppState.myVideoName : AppState.myVideoPlaylistName;
+            if (!videoID || !AppState.songTitle) return;
+
+            const videoType = AppState.singleVideo ? "single" : "playlist";
+            const trackIndex = AppState.singleVideo ? 0 : AppState.playlistIndex;
+            History.add(videoID, AppState.songTitle, AppState.songAuthor, videoType, trackIndex, this._getProgress());
+        },
+
+        _startProgressSaving: function () {
+            this._stopProgressSaving();
+            // Save progress every 30 seconds while playing
+            this._progressInterval = setInterval(() => {
+                if (AppState.playing) {
+                    this._saveProgress();
+                }
+            }, 30000);
+        },
+
+        _stopProgressSaving: function () {
+            if (this._progressInterval) {
+                clearInterval(this._progressInterval);
+                this._progressInterval = null;
+            }
+        },
+
+        // ── Start app ──
         startApp: function (trackIndex = 0) {
             this._showOverlay("loading-overlay");
             DOM.startContainer.style.display = "none";
 
             if (!this.player || !AppState.starting) return;
 
-            // Destroy old player
+            this._stopProgressSaving();
             this.player.destroy();
 
-            // Create new unmuted player
             const config = playerConfig(AppState.singleVideo ? AppState.myVideoName : "");
             config.params.autoplay = 1;
             this.player = new Youtube.Player(config);
 
-            // Attach iframe
             this._attachIframe();
             this.player.get_iframe().setAttribute(
                 "sandbox",
                 "allow-forms allow-scripts allow-same-origin allow-presentation allow-popups"
             );
 
-            // Attach listeners
             this._attachEventListeners();
             this._attachPlayingListeners();
 
-            // On ready → load content
             this.player.on("ready", () => {
                 if (AppState.singleVideo) {
                     this.player.load_video(AppState.myVideoName, true);
-                    History.add(AppState.myVideoName, AppState.songTitle, AppState.songAuthor, "single", 0);
                 } else {
                     this.player.load_playlist(AppState.myVideoPlaylistName, "playlist", trackIndex, true);
-                    History.add(AppState.myVideoPlaylistName, AppState.songTitle, AppState.songAuthor, "playlist", AppState.playlistIndex);
                 }
 
                 this.player.set_volume(100);
                 doStart();
+                this._startProgressSaving();
 
                 setTimeout(() => this._hideOverlay("loading-overlay"), 1000);
             });
@@ -192,31 +217,57 @@ var Demo = (function () {
                 window.history.pushState({}, "", newURL);
             }
 
+            // Fetch metadata via oEmbed before starting (like Tapes does)
+            const type = parsed.type;
+            const id = parsed.id;
+            const endpoint =
+                type === "playlist"
+                    ? `https://www.youtube.com/oembed?url=https://www.youtube.com/playlist?list=${id}&format=json`
+                    : `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`;
+
+            fetch(endpoint)
+                .then((r) => r.ok ? r.json() : null)
+                .then((data) => {
+                    if (data) {
+                        AppState.songTitle = data.title || "";
+                        AppState.songAuthor = data.author_name || "";
+                        History.add(id, data.title || "", data.author_name || "", type === "video" ? "single" : "playlist", trackIndex);
+                    }
+                })
+                .catch(() => {});
+
             setTimeout(() => this.startApp(trackIndex), 100);
         },
 
-        // ── Playlist event handlers ──
+        // ── Event handlers ──
+
+        // Called when video metadata is confirmed available from the player
+        _onVideoDataChange: function () {
+            const data = this.player.get_video_data();
+            if (!data || !data.title) return;
+
+            AppState.songTitle = data.title;
+            AppState.songAuthor = data.author;
+
+            // Now we have confirmed metadata — update the history entry
+            const videoID = AppState.singleVideo ? AppState.myVideoName : AppState.myVideoPlaylistName;
+            if (videoID) {
+                const videoType = AppState.singleVideo ? "single" : "playlist";
+                const trackIndex = AppState.singleVideo ? 0 : AppState.playlistIndex;
+                History.add(videoID, data.title, data.author, videoType, trackIndex, this._getProgress());
+            }
+        },
+
         _onPlaylistChange: function () {
             const playlist = this.player.get_playlist();
             if (!playlist) return;
-            this._onPlaylistIndexChange();
+            // Don't save here — wait for video_data_change which has the correct metadata
         },
 
         _onPlaylistIndexChange: function () {
             const currentIndex = this.player.get_playlist_index() || 0;
             AppState.playlistIndex = currentIndex;
-            if (AppState.myVideoPlaylistName) {
-                History.add(AppState.myVideoPlaylistName, AppState.songTitle, AppState.songAuthor, "playlist", currentIndex);
-            }
-        },
-
-        _onVideoDataChange: function () {
-            // Update metadata display when video data changes
-            const data = this.player.get_video_data();
-            if (data && data.title) {
-                AppState.songTitle = data.title;
-                AppState.songAuthor = data.author;
-            }
+            // Don't save here — video_data_change will fire next with the correct title/author
         },
     };
 
