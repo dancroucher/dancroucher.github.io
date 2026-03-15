@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, STORAGE_KEY } from './types';
 import { CassetteTape } from './CassetteTape';
 
-// ── Persistence (KV primary, localStorage fallback) ──
+// ── Persistence (localStorage + KV sync) ──
 
 function loadTapesLocal(): Tape[] {
   try {
@@ -11,37 +11,101 @@ function loadTapesLocal(): Tape[] {
   } catch { return []; }
 }
 
-function saveTapesLocal(tapes: Tape[]) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tapes)); } catch {}
+// Dirty tracking for merge conflict resolution
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let saveInFlight = false;
+let pendingSave = false;
+const locallyDirtyIds = new Set<string>();
+const locallyDeletedIds = new Set<string>();
+let lastKnownVersion = '';
+let lastUploadedVersion = '';
+
+// Merge: dirty local wins, clean local takes remote
+function mergeState(
+  localItems: Map<string, any>,
+  remoteItems: any[],
+  dirtySnapshot: Set<string>,
+  deletedSnapshot: Set<string>,
+) {
+  const remoteIds = new Set<string>();
+  for (const ri of remoteItems) {
+    remoteIds.add(ri.id);
+    if (deletedSnapshot.has(ri.id)) continue;
+    if (localItems.has(ri.id)) {
+      if (!dirtySnapshot.has(ri.id)) localItems.set(ri.id, ri);
+    } else {
+      localItems.set(ri.id, ri);
+    }
+  }
+  for (const [id] of localItems) {
+    if (!remoteIds.has(id) && !dirtySnapshot.has(id)) localItems.delete(id);
+  }
+  return Array.from(localItems.values());
 }
 
-async function loadTapesFromKV(): Promise<Tape[] | null> {
+function scheduleRemoteSave() {
+  pendingSave = true;
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => flushRemote(), 500);
+}
+
+async function flushRemote(retries = 2) {
+  if (saveInFlight || !pendingSave) return;
+  saveInFlight = true;
+  pendingSave = false;
+  const dirtySnapshot = new Set(locallyDirtyIds);
   try {
-    const res = await fetch('/api/tapes');
-    if (!res.ok) return null;
-    const data = await res.json();
-    return Array.isArray(data?.tapes) ? data.tapes : null;
-  } catch { return null; }
-}
+    let localTapes: Tape[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
-let _kvSaveTimer: ReturnType<typeof setTimeout> | null = null;
-function saveTapesToKV(tapes: Tape[]) {
-  // Debounce KV writes to avoid excessive API calls
-  if (_kvSaveTimer) clearTimeout(_kvSaveTimer);
-  _kvSaveTimer = setTimeout(async () => {
+    // Pre-flight merge with remote
     try {
-      await fetch('/api/tapes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tapes }),
-      });
+      const rr = await fetch(`/api/tapes?t=${Date.now()}`, { cache: 'no-store' });
+      if (rr.ok) {
+        const remote = await rr.json();
+        const v = remote._v || '';
+        if (v && v > lastKnownVersion) {
+          const remoteTapes: Tape[] = remote.tapes || [];
+          localTapes = mergeState(new Map(localTapes.map((t: Tape) => [t.id, t])), remoteTapes, dirtySnapshot, locallyDeletedIds);
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(localTapes)); } catch {}
+        }
+      }
     } catch {}
-  }, 2000);
+
+    const r = await fetch('/api/tapes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tapes: localTapes }),
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+    for (const id of dirtySnapshot) locallyDirtyIds.delete(id);
+    locallyDeletedIds.clear();
+
+    try {
+      const res = await r.json();
+      if (res._v) { lastKnownVersion = res._v; lastUploadedVersion = res._v; }
+    } catch {}
+  } catch (e) {
+    console.error('saveRemote failed:', e);
+    if (retries > 0) {
+      pendingSave = true;
+      setTimeout(() => { saveInFlight = false; flushRemote(retries - 1); }, 2000);
+      return;
+    }
+  }
+  saveInFlight = false;
+  if (pendingSave) setTimeout(() => flushRemote(), 100);
 }
 
-function saveTapesToStorage(tapes: Tape[]) {
-  saveTapesLocal(tapes);
-  saveTapesToKV(tapes);
+function saveTapesToStorage(tapes: Tape[], dirtyIds?: string[]) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tapes)); } catch {}
+  if (dirtyIds) dirtyIds.forEach(id => locallyDirtyIds.add(id));
+  else tapes.forEach(t => locallyDirtyIds.add(t.id));
+  scheduleRemoteSave();
+}
+
+function markDeleted(id: string) {
+  locallyDeletedIds.add(id);
 }
 
 // ── Bridge to vanilla JS player ──
@@ -122,65 +186,91 @@ export function TapesTable() {
     return isDbl;
   }, []);
 
-  // Load tapes: KV first, localStorage fallback, old history migration last
+  // Load tapes: localStorage first, then KV merge, then 2s polling
   useEffect(() => {
-    (async () => {
-      // Try KV first
-      let loaded = await loadTapesFromKV();
+    // 1. Immediate load from localStorage
+    let loaded = loadTapesLocal();
 
-      // Fall back to localStorage
-      if (!loaded || loaded.length === 0) {
-        loaded = loadTapesLocal();
-      }
+    // Migrate from old history format if empty
+    if (!loaded || loaded.length === 0) {
+      try {
+        const oldHistory = JSON.parse(localStorage.getItem('userVideoHistory') || '[]');
+        if (Array.isArray(oldHistory) && oldHistory.length > 0) {
+          loaded = oldHistory.map((v: any, i: number) => {
+            const isPlaylist = v.type !== 'single';
+            const col = i % 4;
+            const row = Math.floor(i / 4);
+            return {
+              id: crypto.randomUUID?.() ?? `${Date.now()}-${i}`,
+              videoId: isPlaylist ? '' : v.id,
+              playlistId: isPlaylist ? v.id : undefined,
+              isPlaylist,
+              title: v.name || 'Untitled',
+              author: v.author || '',
+              tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+              progress: v.progress || 0,
+              playlistIndex: v.track || 0,
+              timestamp: v.timestamp || Date.now(),
+              x: 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
+              y: HEADER_BLOCK_H + row * 170 + Math.round((Math.random() - 0.5) * 30),
+              angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
+            } as Tape;
+          });
+          saveTapesToStorage(loaded);
+        }
+      } catch {}
+    }
 
-      // Migrate from old history format
-      if (!loaded || loaded.length === 0) {
-        try {
-          const oldHistory = JSON.parse(localStorage.getItem('userVideoHistory') || '[]');
-          if (Array.isArray(oldHistory) && oldHistory.length > 0) {
-            loaded = oldHistory.map((v: any, i: number) => {
-              const isPlaylist = v.type !== 'single';
-              const col = i % 4;
-              const row = Math.floor(i / 4);
-              return {
-                id: crypto.randomUUID?.() ?? `${Date.now()}-${i}`,
-                videoId: isPlaylist ? '' : v.id,
-                playlistId: isPlaylist ? v.id : undefined,
-                isPlaylist,
-                title: v.name || 'Untitled',
-                author: v.author || '',
-                tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
-                progress: v.progress || 0,
-                playlistIndex: v.track || 0,
-                timestamp: v.timestamp || Date.now(),
-                x: 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
-                y: HEADER_BLOCK_H + row * 170 + Math.round((Math.random() - 0.5) * 30),
-                angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
-              } as Tape;
-            });
-            saveTapesToStorage(loaded);
-          }
-        } catch {}
-      }
+    if (!loaded) loaded = [];
 
-      if (!loaded) loaded = [];
+    // Apply "keep tidy" on load if enabled
+    if (localStorage.getItem('jeem_keep_tidy') === '1') {
+      loaded = tidyTapes(loaded);
+    }
 
-      // Apply "keep tidy" on load if enabled
-      if (localStorage.getItem('jeem_keep_tidy') === '1') {
-        loaded = tidyTapes(loaded);
-      }
+    setTapes(loaded);
+    setZOrder(loaded.map(t => t.id));
+    setMounted(true);
 
-      // Sync KV data to localStorage
-      saveTapesLocal(loaded);
+    // 2. Initial KV fetch + merge, then start polling
+    async function pollSync() {
+      try {
+        const r = await fetch(`/api/tapes?t=${Date.now()}`, { cache: 'no-store' });
+        if (!r.ok) return;
+        const remote = await r.json();
+        const v = remote._v || '';
+        // Skip if this is our own save or version hasn't changed
+        if (!v || v === lastKnownVersion || v === lastUploadedVersion) return;
+        lastKnownVersion = v;
+        const remoteTapes: Tape[] = remote.tapes || [];
+        const localTapes = loadTapesLocal();
+        const merged = mergeState(
+          new Map(localTapes.map((t: Tape) => [t.id, t])),
+          remoteTapes,
+          new Set(locallyDirtyIds),
+          new Set(locallyDeletedIds),
+        );
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(merged)); } catch {}
+        setTapes(merged);
+        setZOrder(prev => {
+          const ids = new Set(merged.map((t: Tape) => t.id));
+          const kept = prev.filter(id => ids.has(id));
+          const newIds = merged.filter((t: Tape) => !prev.includes(t.id)).map((t: Tape) => t.id);
+          return [...newIds, ...kept];
+        });
+      } catch {}
+    }
 
-      setTapes(loaded);
-      setZOrder(loaded.map(t => t.id));
-      setMounted(true);
-    })();
+    pollSync(); // initial fetch
+    const interval = setInterval(pollSync, 2000);
+    return () => clearInterval(interval);
   }, []);
 
+  // Persist to localStorage on every state change (instant, no remote sync)
   useEffect(() => {
-    if (mounted) saveTapesToStorage(tapes);
+    if (mounted) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tapes)); } catch {}
+    }
   }, [tapes, mounted]);
 
   // Bridge for vanilla JS
@@ -188,11 +278,17 @@ export function TapesTable() {
     window.TapesBridge = {
       onTapePlay: () => {},
       updateProgress: (videoId: string, progress: number) => {
-        setTapes(prev => prev.map(t =>
-          (t.videoId === videoId || t.playlistId === videoId)
-            ? { ...t, progress }
-            : t
-        ));
+        setTapes(prev => {
+          const updated = prev.map(t => {
+            if (t.videoId === videoId || t.playlistId === videoId) {
+              locallyDirtyIds.add(t.id);
+              return { ...t, progress };
+            }
+            return t;
+          });
+          scheduleRemoteSave();
+          return updated;
+        });
         // Also update loaded tape if it matches
         setLoadedTape(prev => {
           if (!prev) return prev;
@@ -212,12 +308,15 @@ export function TapesTable() {
         setTapes(prev => {
           const dedupKey = isPlaylist ? playlistId! : videoId;
           if (prev.some(t => isPlaylist ? t.playlistId === dedupKey : t.videoId === dedupKey)) {
-            return prev.map(t => {
+            const updated = prev.map(t => {
               if ((isPlaylist ? t.playlistId === dedupKey : t.videoId === dedupKey)) {
+                locallyDirtyIds.add(t.id);
                 return { ...t, timestamp: Date.now() };
               }
               return t;
             });
+            scheduleRemoteSave();
+            return updated;
           }
 
           const tbl = document.getElementById('tapes-table-canvas');
@@ -244,6 +343,8 @@ export function TapesTable() {
           const next = [tape, ...prev];
           if (next.length > 50) next.pop();
           setZOrder(o => [tape.id, ...o]);
+          locallyDirtyIds.add(tape.id);
+          scheduleRemoteSave();
           return next;
         });
       },
@@ -280,14 +381,18 @@ export function TapesTable() {
   }, []);
 
   const deleteTape = useCallback((id: string) => {
+    markDeleted(id);
     setTapes(prev => prev.filter(t => t.id !== id));
+    scheduleRemoteSave();
     setZOrder(prev => prev.filter(i => i !== id));
     setLoadedTape(cur => { if (cur?.id === id) return null; return cur; });
     setMenuId(null);
   }, []);
 
   const rewindTape = useCallback((id: string) => {
+    locallyDirtyIds.add(id);
     setTapes(prev => prev.map(t => t.id === id ? { ...t, progress: 0 } : t));
+    scheduleRemoteSave();
     setRewindingId(id);
     setTimeout(() => setRewindingId(null), 400);
     setMenuId(null);
@@ -299,7 +404,9 @@ export function TapesTable() {
     if (!tape) return;
 
     // Rewind progress to 0
+    locallyDirtyIds.add(tape.id);
     setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, progress: 0 } : t));
+    scheduleRemoteSave();
     setRewindingId(tape.id);
     setTimeout(() => setRewindingId(null), 400);
 
@@ -390,7 +497,9 @@ export function TapesTable() {
         if (t) loadIntoPlayer(t);
       } else {
         const { cx, cy } = posFromEvent(ev);
+        locallyDirtyIds.add(tape.id);
         setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, x: cx, y: Math.max(cy, HEADER_BLOCK_H) } : t));
+        scheduleRemoteSave();
       }
       setDragId(null); setDragPos(null); setDragScreenPos(null); setDragOver(false);
     }
@@ -423,7 +532,9 @@ export function TapesTable() {
         try { window.myApp._saveProgress(); } catch {}
         const progress = (() => { try { return window.myApp._getProgress(); } catch { return 0; } })();
         if (progress > 0) {
+          locallyDirtyIds.add(tape.id);
           setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, progress } : t));
+          scheduleRemoteSave();
         }
       }
 
@@ -495,7 +606,9 @@ export function TapesTable() {
       }
       const tapeId = tape.id;
       const { cx, cy } = posFromEvent(ev);
+      locallyDirtyIds.add(tapeId);
       setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: cx, y: Math.max(cy, HEADER_BLOCK_H) } : t));
+      scheduleRemoteSave();
       setDragId(null); setDragPos(null); setDragScreenPos(null); setDragOver(false); setDeckEjecting(false);
     }
 
@@ -738,8 +851,8 @@ export function TapesTable() {
         deckPortal
       )}
 
-      {/* Settings cog — top right, level with title */}
-      {createPortal(
+      {/* Settings cog — top right, level with title, hidden during playback */}
+      {!loadedTape && createPortal(
         <div style={{ position: 'fixed', top: 44, right: 40, zIndex: 10001 }}>
           <button
             onClick={() => setSettingsOpen(p => !p)}
@@ -780,7 +893,12 @@ export function TapesTable() {
                     setKeepTidy(on);
                     localStorage.setItem('jeem_keep_tidy', on ? '1' : '0');
                     if (on) {
-                      setTapes(prev => tidyTapes(prev));
+                      setTapes(prev => {
+                        const tidied = tidyTapes(prev);
+                        tidied.forEach(t => locallyDirtyIds.add(t.id));
+                        scheduleRemoteSave();
+                        return tidied;
+                      });
                     }
                   }}
                   style={{ accentColor: '#888' }}
