@@ -6,7 +6,8 @@ const DOM = {
     songAuthor: document.getElementById("song-author"),
     backgroundType: document.getElementById("background-type"),
     backgroundAuto: document.getElementById("background-auto"),
-    mp4Background: document.getElementById("mp4-background"),
+    mp4BackgroundA: document.getElementById("mp4-background-a"),
+    mp4BackgroundB: document.getElementById("mp4-background-b"),
     songContainer: document.getElementById("song-container"),
     startContainer: document.getElementById("start-container"),
     titleContainer: document.getElementById("title-container"),
@@ -35,6 +36,21 @@ const Backgrounds = {
     bgTypeIndex: 0,
     changeTimeIndex: 0,
     _interval: null,
+    _transitioning: false,
+
+    // Dual-video crossfade state
+    _activeEl: null,   // currently visible <video>
+    _inactiveEl: null, // hidden <video>, used for preloading
+
+    _initVideos() {
+        this._activeEl = DOM.mp4BackgroundA;
+        this._inactiveEl = DOM.mp4BackgroundB;
+    },
+
+    // Get the currently active background video element (for play/pause sync)
+    getActiveVideo() {
+        return this._activeEl;
+    },
 
     async fetchList(folder) {
         try {
@@ -47,18 +63,98 @@ const Backgrounds = {
     },
 
     loadAll() {
+        this._initVideos();
         this.fetchList("video");
         this.fetchList("anime");
         this.fetchList("vintage");
     },
 
-    // Get the folder name for the current type index
     _folder() {
-        return BG_TYPES[this.bgTypeIndex]; // "vintage", "anime", or "video"
+        return BG_TYPES[this.bgTypeIndex];
     },
 
     _isMediaType() {
         return this.bgTypeIndex <= 2;
+    },
+
+    // Build the src path for a given folder + index
+    _srcFor(folder, index) {
+        return `./${folder}/${this[folder][index]}`;
+    },
+
+    // Preload the next video into the inactive element so it's ready for instant crossfade
+    _preloadNext() {
+        if (!this._isMediaType()) return;
+        const folder = this._folder();
+        const list = this[folder];
+        if (list.length < 2) return;
+
+        const nextIndex = (this.indices[folder] + 1) % list.length;
+        const nextSrc = this._srcFor(folder, nextIndex);
+
+        // Only set src if it's different from what's already loaded
+        if (this._inactiveEl.getAttribute("src") !== nextSrc) {
+            this._inactiveEl.src = nextSrc;
+            this._inactiveEl.load();
+        }
+    },
+
+    // Crossfade: swap active/inactive videos with opacity transition
+    _crossfade(newSrc, callback) {
+        if (this._transitioning) return;
+        this._transitioning = true;
+
+        const incoming = this._inactiveEl;
+        const outgoing = this._activeEl;
+
+        // If the incoming video already has the right src (preloaded), skip loading
+        const needsLoad = incoming.getAttribute("src") !== newSrc;
+
+        const doSwap = () => {
+            // Start playing the incoming video
+            if (AppState.playing) incoming.play();
+
+            // Fade in incoming, fade out outgoing
+            incoming.classList.add("active");
+            outgoing.classList.remove("active");
+
+            // After transition completes, clean up
+            setTimeout(() => {
+                outgoing.pause();
+                outgoing.removeAttribute("src");
+                outgoing.load(); // release memory for old video
+
+                // Swap references
+                this._activeEl = incoming;
+                this._inactiveEl = outgoing;
+                this._transitioning = false;
+
+                // Preload the next one
+                this._preloadNext();
+
+                if (callback) callback();
+            }, 1300); // slightly longer than CSS transition (1.2s)
+        };
+
+        if (needsLoad) {
+            incoming.src = newSrc;
+            // Wait until enough data is buffered to play
+            incoming.addEventListener("canplay", doSwap, { once: true });
+            incoming.load();
+        } else {
+            doSwap();
+        }
+    },
+
+    // Load a video directly into the active element (no crossfade, used for initial load)
+    _loadDirect(src) {
+        this._activeEl.src = src;
+        this._activeEl.classList.add("active");
+        this._activeEl.load();
+        if (AppState.playing) this._activeEl.play();
+
+        // Preload next
+        setTimeout(() => this._preloadNext(), 500);
     },
 
     setType(index) {
@@ -71,20 +167,18 @@ const Backgrounds = {
             const list = this[folder];
             if (list.length > 0) {
                 this.indices[folder] = Math.floor(Math.random() * list.length);
-                DOM.mp4Background.src = `./${folder}/${list[this.indices[folder]]}`;
+                this._loadDirect(this._srcFor(folder, this.indices[folder]));
             }
             DOM.bgMp4.style.display = "block";
             DOM.bgNone.style.background = "#000000";
             DOM.bgYoutube.style.display = "block";
         } else if (index === 3) {
-            // original (show YouTube video)
-            DOM.mp4Background.src = "";
+            this._clearVideos();
             DOM.bgMp4.style.display = "none";
             DOM.bgNone.style.background = "#00000000";
             DOM.bgYoutube.style.display = "block";
         } else {
-            // none
-            DOM.mp4Background.src = "";
+            this._clearVideos();
             DOM.bgMp4.style.display = "none";
             DOM.bgNone.style.background = "#000000";
             DOM.bgYoutube.style.display = "block";
@@ -93,8 +187,16 @@ const Backgrounds = {
         localStorage.setItem("backtype", index);
 
         if (!AppState.playing) {
-            DOM.mp4Background.pause();
+            this._activeEl.pause();
         }
+    },
+
+    _clearVideos() {
+        this._activeEl.classList.remove("active");
+        this._activeEl.removeAttribute("src");
+        this._activeEl.load();
+        this._inactiveEl.removeAttribute("src");
+        this._inactiveEl.load();
     },
 
     cycleType() {
@@ -103,14 +205,14 @@ const Backgrounds = {
     },
 
     cycleNext() {
-        if (!AppState.playing || !this._isMediaType()) return;
+        if (!AppState.playing || !this._isMediaType() || this._transitioning) return;
 
         const folder = this._folder();
         const list = this[folder];
         if (list.length === 0) return;
 
         this.indices[folder] = (this.indices[folder] + 1) % list.length;
-        DOM.mp4Background.src = `./${folder}/${list[this.indices[folder]]}`;
+        this._crossfade(this._srcFor(folder, this.indices[folder]));
     },
 
     loadSavedType() {
@@ -118,7 +220,6 @@ const Backgrounds = {
         this.bgTypeIndex = saved !== null ? parseInt(saved) : 0;
     },
 
-    // Change time management
     loadSavedChangeTime() {
         const saved = localStorage.getItem("changeTime");
         this.changeTimeIndex = saved !== null ? parseInt(saved) : 0;
@@ -130,7 +231,6 @@ const Backgrounds = {
     },
 
     applyChangeTime() {
-        // Clear existing interval
         if (this._interval) {
             clearInterval(this._interval);
             this._interval = null;

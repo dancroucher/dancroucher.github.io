@@ -106,16 +106,17 @@ var Demo = (function () {
         // ── Playback controls ──
         togglePlayback: function () {
             const state = this.player.get_player_state();
+            const bgVideo = Backgrounds.getActiveVideo();
             if (state === 2) {
                 // Paused → Play
                 this.player.play();
-                if (Backgrounds.bgTypeIndex <= 2) DOM.mp4Background.play();
+                if (Backgrounds._isMediaType() && bgVideo) bgVideo.play();
                 AppState.playing = true;
                 this._hideOverlay("pause-overlay");
             } else if (state === 1) {
                 // Playing → Pause
                 this.player.pause();
-                if (Backgrounds.bgTypeIndex <= 2) DOM.mp4Background.pause();
+                if (Backgrounds._isMediaType() && bgVideo) bgVideo.pause();
                 AppState.playing = false;
                 this._showOverlay("pause-overlay");
             }

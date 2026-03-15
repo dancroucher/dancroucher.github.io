@@ -10,5 +10,13 @@
       "src": "/api/list-files",
       "dest": "/api/list-files.js"
     }
+  ],
+  "headers": [
+    {
+      "source": "/(video|anime|vintage)/(.*)\\.mp4",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
   ]
 }
