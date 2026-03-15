@@ -303,14 +303,16 @@ export function TapesTable() {
 
       // Fully stop and clear the player
       if (window.myApp) {
-        if (window.AppState?.playing) window.myApp.togglePlayback();
-        // Hide song/title UI
+        try { window.myApp.player.pause(); } catch {}
+        // Hide song/title/pause UI
         const songEl = document.getElementById('song-container');
         const titleEl = document.getElementById('title-container');
         const padEl = document.getElementById('padinfo');
+        const pauseEl = document.getElementById('pause-overlay');
         if (songEl) songEl.style.display = 'none';
         if (titleEl) titleEl.style.display = 'none';
         if (padEl) padEl.style.display = 'none';
+        if (pauseEl) pauseEl.classList.remove('visible');
         // Show start screen header
         const startEl = document.getElementById('start-container');
         if (startEl) startEl.style.display = 'flex';

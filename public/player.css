@@ -101,7 +101,7 @@ a:hover {
   position: fixed;
   bottom: 16px;
   left: 16px;
-  z-index: 4;
+  z-index: 10000;
   transition: opacity 1s ease;
 }
 
@@ -256,7 +256,7 @@ input:focus, select:focus, textarea:focus, button:focus {
   color: rgba(0, 0, 0, 0.9);
   background-color: rgba(250, 249, 246, 0.9);
   display: inline-block;
-  width: 68vw;
+  width: 40vw;
   padding: 6px 5px 3px 6px;
   margin-bottom: 16px;
   line-height: 1em;
@@ -307,21 +307,21 @@ input:focus, select:focus, textarea:focus, button:focus {
 /* ── Search dropdown ── */
 
 .search-dropdown {
-  max-width: 80vw;
+  max-width: 40vw;
   max-height: 360px;
   overflow-y: auto;
   border: dotted;
   border-width: 2px;
   border-top: none;
-  color: rgba(250, 249, 246, 0.9);
-  background-color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(250, 249, 246, 0.9);
   margin-bottom: 16px;
 }
 
 .search-message {
   padding: 12px 8px;
   font-size: 1.1em;
-  color: rgba(250, 249, 246, 0.6);
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .search-result {
@@ -332,9 +332,9 @@ input:focus, select:focus, textarea:focus, button:focus {
   border: none;
   border-bottom: dotted;
   border-bottom-width: 1px;
-  border-color: rgba(250, 249, 246, 0.15);
+  border-color: rgba(0, 0, 0, 0.15);
   background-color: transparent;
-  color: rgba(250, 249, 246, 0.9);
+  color: rgba(0, 0, 0, 0.9);
   font-family: '04b03', monospace;
   font-size: 1.1em;
   cursor: pointer;
@@ -346,8 +346,8 @@ input:focus, select:focus, textarea:focus, button:focus {
 }
 
 .search-result:hover {
-  background-color: rgba(250, 249, 246, 0.08);
-  color: rgba(250, 249, 246, 1);
+  background-color: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 1);
 }
 
 .search-result-title {
@@ -360,7 +360,7 @@ input:focus, select:focus, textarea:focus, button:focus {
 
 .search-result-meta {
   font-size: 0.85em;
-  color: rgba(250, 249, 246, 0.5);
+  color: rgba(0, 0, 0, 0.5);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
