@@ -253,7 +253,7 @@ input:focus, select:focus, textarea:focus, button:focus {
 }
 
 .videobox {
-  color: rgba(0, 0, 0, 0.9);
+  color: rgba(0, 0, 0, 1);
   background-color: rgba(250, 249, 246, 0.9);
   display: inline-block;
   width: 40vw;
@@ -262,8 +262,7 @@ input:focus, select:focus, textarea:focus, button:focus {
   margin-bottom: 16px;
   line-height: 1em;
   z-index: 4;
-  border: dotted;
-  border-width: 2px;
+  border: 1.5px dashed rgba(250, 249, 246, 0.5);
   animation: none;
 }
 
@@ -305,10 +304,9 @@ input:focus, select:focus, textarea:focus, button:focus {
   max-width: 500px;
   max-height: 360px;
   overflow-y: auto;
-  border: dotted;
-  border-width: 2px;
+  border: 1.5px dashed rgba(250, 249, 246, 0.5);
   border-top: none;
-  color: rgba(0, 0, 0, 0.9);
+  color: rgba(0, 0, 0, 1);
   background-color: rgba(250, 249, 246, 0.9);
   margin-bottom: 16px;
 }
