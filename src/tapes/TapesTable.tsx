@@ -388,10 +388,13 @@ export function TapesTable() {
         @keyframes tape-spin-slow { to { transform: rotate(-360deg) } }
         @keyframes tape-spin-fast { to { transform: rotate(-360deg) } }
         @keyframes tape-rewind { 0%,100% { transform: rotate(0deg) } 20% { transform: rotate(-4deg) } 40% { transform: rotate(4deg) } 60% { transform: rotate(-3deg) } 80% { transform: rotate(2deg) } }
+        .tapes-scroll::-webkit-scrollbar { display: none; }
+        .tapes-scroll { scrollbar-width: none; -ms-overflow-style: none; }
       `}</style>
 
       <div
         ref={tableRef}
+        className="tapes-scroll"
         onPointerDown={startPan}
         onClick={e => {
           if (!(e.target as HTMLElement)?.closest('[data-tape]') && !(e.target as HTMLElement)?.closest('[data-deck]')) setMenuId(null);
@@ -422,15 +425,14 @@ export function TapesTable() {
             backgroundColor: '#1a1208',
           }}
         >
-          {/* Deck slot — top right, sticky position */}
+          {/* Deck slot — fixed bottom left */}
           <div
             data-deck="true"
             ref={playerZoneRef}
             style={{
-              position: 'sticky',
-              top: 16,
-              float: 'right',
-              marginRight: 16,
+              position: 'fixed',
+              bottom: 16,
+              left: 16,
               zIndex: 9000,
             }}
           >

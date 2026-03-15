@@ -59,7 +59,7 @@ a:hover {
 
 .start-header {
   flex-shrink: 0;
-  padding: 16px 24px 12px 24px;
+  padding: 32px 0px 12px 32px;
   z-index: 10;
 }
 
