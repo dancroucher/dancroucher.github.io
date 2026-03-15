@@ -301,6 +301,9 @@ export function TapesTable() {
       setLoadedTape(null);
       setDeckEjecting(true);
 
+      // Stop playback
+      if (window.AppState?.playing && window.myApp) window.myApp.togglePlayback();
+
       // Switch to tapes bg so user can see where the tape lands
       if (window.switchBgType) window.switchBgType(5);
 

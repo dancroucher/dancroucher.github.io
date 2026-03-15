@@ -156,10 +156,7 @@ async function submitVideoName() {
     }
 
     Search.close();
-
-    setTimeout(() => {
-        window.myApp.startApp();
-    }, 100);
+    document.getElementById("idEntry").value = "";
 }
 
 // ── Auto-load from URL params ──
