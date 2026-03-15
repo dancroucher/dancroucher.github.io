@@ -2,232 +2,341 @@ import React from 'react';
 import { Tape, TAPE_STYLES } from './types';
 import { Spool } from './Spool';
 
-interface CassetteTapeProps {
-  tape: Tape;
-  playing?: boolean;
-  scale?: number;
-}
+export function CassetteTape({ tape, playing, big }: { tape: Tape; playing?: boolean; big?: boolean }) {
+  const st = TAPE_STYLES[(tape.tapeStyle ?? 0) % TAPE_STYLES.length];
+  const s = big ? 1.35 : 1;
+  const R = (v: number) => Math.round(v * s);
 
-export function CassetteTape({ tape, playing = false, scale = 1 }: CassetteTapeProps) {
-  const style = TAPE_STYLES[tape.tapeStyle % TAPE_STYLES.length];
-  const progress = tape.progress || 0;
+  const w = R(234), h = R(143);
+  const padT = R(16), padLR = R(16);
+  const labelH = R(28);
+  const spoolSz = R(28);
+  const spoolY = R(68);
+  const spoolSpread = R(52);
+  const winW = R(66), winH = R(26);
+  const screwSz = R(14);
+  const botH = R(30);
+  const botProtrW = R(150), botProtrH = R(28);
+  const spoolAreaTop = padT + labelH + R(2);
+  const spoolAreaBot = h - botH - R(14) - R(6) - R(2);
 
-  // Base dimensions (at scale 1 = 234x143)
-  const W = 234;
-  const H = 143;
-  const R = (v: number) => v * scale;
+  // CSS mask: cut holes inside the teeth tips
+  const holeR = spoolSz * (7.36 / 32);
+  const hole1x = w / 2 - spoolSpread, hole2x = w / 2 + spoolSpread;
+  const maskLayers = [
+    `radial-gradient(circle ${holeR}px at ${hole1x}px ${spoolY}px, transparent ${holeR}px, black ${holeR + 0.5}px)`,
+    `radial-gradient(circle ${holeR}px at ${hole2x}px ${spoolY}px, transparent ${holeR}px, black ${holeR + 0.5}px)`,
+  ].join(', ');
 
-  const labelH = H * 0.38;
-  const labelY = H * 0.08;
-  const labelX = W * 0.08;
-  const labelW = W * 0.84;
-
-  const windowY = labelY + labelH + R(4);
-  const windowH = H * 0.22;
-  const windowX = W * 0.12;
-  const windowW = W * 0.76;
-
-  const spoolR = windowH * 0.42;
-  const spoolLX = windowX + windowW * 0.27;
-  const spoolRX = windowX + windowW * 0.73;
-  const spoolY = windowY + windowH * 0.5;
-
-  const botH = H * 0.14;
-  const botProtrW = W * 0.64;
-  const botProtrH = botH * 0.75;
-
-  // Label shape variant based on tape style
-  const labelVariant = tape.tapeStyle % 6;
-
-  // Truncate title to fit label
-  const maxChars = 28;
-  const displayTitle = tape.title.length > maxChars
-    ? tape.title.slice(0, maxChars - 1) + '...'
-    : tape.title;
-
-  const displayAuthor = tape.author.length > 18
-    ? tape.author.slice(0, 17) + '...'
-    : tape.author;
+  const seed = tape.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
 
   return (
-    <div style={{
-      width: W, height: H,
-      position: 'relative',
-      borderRadius: R(5),
-      background: `linear-gradient(160deg, ${style.housing} 0%, ${style.housingAlt} 100%)`,
-      boxShadow: `inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.15)`,
-      overflow: 'hidden',
-      userSelect: 'none',
-    }}>
-      {/* Housing texture — subtle noise */}
-      <div style={{
-        position: 'absolute', inset: 0, borderRadius: R(5),
-        background: 'repeating-linear-gradient(90deg, transparent 0px, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px)',
-        pointerEvents: 'none',
-      }} />
+    <div style={{ width: w, height: h, borderRadius: R(4), position: 'relative', boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+      WebkitMaskImage: maskLayers, WebkitMaskComposite: 'destination-in',
+      maskImage: maskLayers, maskComposite: 'intersect',
+    } as React.CSSProperties}>
 
-      {/* Wear marks */}
-      <div style={{
-        position: 'absolute', left: '10%', top: '15%', width: '30%', height: '8%',
-        background: 'rgba(255,255,255,0.06)', borderRadius: '50%',
-        transform: 'rotate(-5deg)', pointerEvents: 'none',
-      }} />
+      {/* Housing background — with spool holes cut */}
+      {(() => {
+        const ringInnerR = spoolSz * (10.6 / 32);
+        const housingMask = [
+          `radial-gradient(circle ${ringInnerR}px at ${hole1x}px ${spoolY}px, transparent ${ringInnerR}px, black ${ringInnerR + 0.5}px)`,
+          `radial-gradient(circle ${ringInnerR}px at ${hole2x}px ${spoolY}px, transparent ${ringInnerR}px, black ${ringInnerR + 0.5}px)`,
+        ].join(', ');
+        return <div style={{ position: 'absolute', inset: 0, backgroundColor: st.housing, borderRadius: R(4),
+          WebkitMaskImage: housingMask, WebkitMaskComposite: 'destination-in',
+          maskImage: housingMask, maskComposite: 'intersect',
+        } as React.CSSProperties} />;
+      })()}
 
-      {/* Screw holes */}
-      {[[R(8), R(8)], [W - R(8), R(8)], [R(8), H - R(8)], [W - R(8), H - R(8)]].map(([x, y], i) => (
-        <div key={i} style={{
-          position: 'absolute', left: x - R(3), top: y - R(3),
-          width: R(6), height: R(6), borderRadius: '50%',
-          background: 'rgba(0,0,0,0.15)',
-          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.3), 0 0.5px 0 rgba(255,255,255,0.1)',
-        }} />
-      ))}
+      {/* Ridged texture — varies per tape */}
+      {(() => {
+        const textureVariant = seed % 5;
+        const textures = [
+          `repeating-linear-gradient(90deg, transparent 0px, transparent 3px, rgba(255,255,255,0.04) 3px, rgba(255,255,255,0.04) 4px)`,
+          `repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 3px)`,
+          `repeating-linear-gradient(90deg, transparent 0px, transparent 4px, rgba(255,255,255,0.025) 4px, rgba(255,255,255,0.025) 5px), repeating-linear-gradient(0deg, transparent 0px, transparent 4px, rgba(255,255,255,0.025) 4px, rgba(255,255,255,0.025) 5px)`,
+          `repeating-linear-gradient(135deg, transparent 0px, transparent 3px, rgba(255,255,255,0.03) 3px, rgba(255,255,255,0.03) 4px)`,
+          'none',
+        ];
+        return <div style={{ position: 'absolute', inset: 0, background: textures[textureVariant], borderRadius: R(4), pointerEvents: 'none' }} />;
+      })()}
 
-      {/* Label */}
-      <div style={{
-        position: 'absolute', left: labelX, top: labelY,
-        width: labelW, height: labelH,
-        background: `linear-gradient(170deg, ${style.label} 0%, ${style.labelAlt} 100%)`,
-        borderRadius: labelVariant === 0 ? R(3)
-          : labelVariant === 1 ? `${R(3)}px ${R(3)}px ${R(8)}px ${R(8)}px`
-          : labelVariant === 2 ? `${R(8)}px ${R(8)}px ${R(3)}px ${R(3)}px`
-          : labelVariant === 3 ? R(1)
-          : labelVariant === 4 ? `${R(6)}px`
-          : R(2),
-        overflow: 'hidden',
-        border: '0.5px solid rgba(0,0,0,0.1)',
-      }}>
-        {/* Label lines */}
-        {[0.35, 0.5, 0.65, 0.8].map((pct, i) => (
-          <div key={i} style={{
-            position: 'absolute', left: '8%', right: '8%',
-            top: `${pct * 100}%`, height: 0.5,
-            background: i === 0 ? style.accent : 'rgba(0,0,0,0.08)',
-            opacity: i === 0 ? 0.6 : 1,
-          }} />
-        ))}
+      {/* Aged wear marks */}
+      {(() => {
+        const showScuff = (seed >> 4) % 3 === 0;
+        const showCornerWear = (seed >> 5) % 4 === 0;
+        const showEdgeHighlight = (seed >> 6) % 3 === 0;
+        return <>
+          {showScuff && <div style={{ position: 'absolute', top: R(30 + (seed % 20)), left: R(10 + (seed % 40)), width: R(30 + (seed % 50)), height: 1, background: 'rgba(255,255,255,0.06)', transform: `rotate(${(seed % 10) - 5}deg)`, pointerEvents: 'none' }} />}
+          {showCornerWear && <div style={{ position: 'absolute', top: 0, right: 0, width: R(20), height: R(20), background: 'radial-gradient(circle at top right, rgba(255,255,255,0.05) 0%, transparent 70%)', borderRadius: `0 ${R(4)}px 0 0`, pointerEvents: 'none' }} />}
+          {showEdgeHighlight && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'rgba(255,255,255,0.08)', borderRadius: `${R(4)}px ${R(4)}px 0 0`, pointerEvents: 'none' }} />}
+        </>;
+      })()}
 
-        {/* Title text */}
-        <div style={{
-          position: 'absolute', left: '10%', right: '10%', top: '12%',
-          fontSize: R(11), fontWeight: 700,
-          color: style.textColor,
-          fontFamily: "'Courier New', monospace",
-          letterSpacing: -0.3,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
-          {displayTitle}
+      {/* Coloured mid-section between labels — with spool holes cut */}
+      {(() => {
+        const ringInnerR = spoolSz * (10.6 / 32);
+        const mx1 = hole1x - padLR, mx2 = hole2x - padLR;
+        const my = spoolY - spoolAreaTop;
+        const midMask = [
+          `radial-gradient(circle ${ringInnerR}px at ${mx1}px ${my}px, transparent ${ringInnerR}px, black ${ringInnerR + 0.5}px)`,
+          `radial-gradient(circle ${ringInnerR}px at ${mx2}px ${my}px, transparent ${ringInnerR}px, black ${ringInnerR + 0.5}px)`,
+        ].join(', ');
+        return (
+        <div style={{ position: 'absolute', top: spoolAreaTop, left: padLR, right: padLR, bottom: h - spoolAreaBot, background: st.midBg, borderRadius: R(2), overflow: 'hidden',
+          WebkitMaskImage: midMask, WebkitMaskComposite: 'destination-in',
+          maskImage: midMask, maskComposite: 'intersect',
+        } as React.CSSProperties}>
+          {/* Mid-section texture */}
+          {(() => {
+            const midVariant = (seed >> 2) % 6;
+            const midTextures = [
+              'repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 3px)',
+              'repeating-linear-gradient(45deg, transparent 0px, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px)',
+              'repeating-linear-gradient(90deg, transparent 0px, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px)',
+              'radial-gradient(circle 0.5px at 2px 2px, rgba(0,0,0,0.08) 0.5px, transparent 0.5px)',
+              'linear-gradient(180deg, rgba(0,0,0,0.08) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.08) 100%)',
+              'none',
+            ];
+            return <div style={{ position: 'absolute', inset: 0, background: midTextures[midVariant], backgroundSize: midVariant === 3 ? '4px 4px' : undefined, pointerEvents: 'none' }} />;
+          })()}
+          {/* Brand-style text on mid-section */}
+          {(() => {
+            const showBrandText = (seed >> 3) % 3 === 0;
+            const brandTexts = ['HIGH FIDELITY', 'SUPER AVILYN', 'EPITAXIAL', 'EXTRA SLIM CASE', 'PROFESSIONAL', 'ACOUSTIC DYNAMIC', 'PREMIUM', 'ULTRA', 'COBALT', 'DIGITAL READY', 'MULTI USE'];
+            const brandText = brandTexts[seed % brandTexts.length];
+            if (!showBrandText) return null;
+            return <span style={{ position: 'absolute', bottom: R(1), right: R(4), fontSize: R(4), color: 'rgba(0,0,0,0.12)', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', pointerEvents: 'none' }}>{brandText}</span>;
+          })()}
         </div>
+      ); })()}
 
-        {/* Author text */}
-        <div style={{
-          position: 'absolute', left: '10%', right: '10%', top: '50%',
-          fontSize: R(8.5), fontWeight: 400,
-          color: style.textColor,
-          fontFamily: "'Courier New', monospace",
-          opacity: 0.7,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
-          {displayAuthor}
-        </div>
+      {/* Black sprocket/window area — with spool holes cut */}
+      {(() => {
+        const spoolBoxW = spoolSpread * 2 + spoolSz + R(10);
+        const boxLeft = w / 2 - spoolBoxW / 2;
+        const boxTop = spoolAreaTop + R(3);
+        const s1x = hole1x - boxLeft, s2x = hole2x - boxLeft;
+        const sy = spoolY - boxTop;
+        const ringInnerR = spoolSz * (10.6 / 32);
+        const boxMask = [
+          `radial-gradient(circle ${ringInnerR}px at ${s1x}px ${sy}px, transparent ${ringInnerR}px, black ${ringInnerR + 0.5}px)`,
+          `radial-gradient(circle ${ringInnerR}px at ${s2x}px ${sy}px, transparent ${ringInnerR}px, black ${ringInnerR + 0.5}px)`,
+        ].join(', ');
+        return (
+        <div style={{ position: 'absolute', top: boxTop, bottom: h - spoolAreaBot + R(3), left: boxLeft, width: spoolBoxW, background: st.housing, borderRadius: R(3), border: '1px solid rgba(0,0,0,0.3)',
+          WebkitMaskImage: boxMask, WebkitMaskComposite: 'destination-in',
+          maskImage: boxMask, maskComposite: 'intersect',
+        } as React.CSSProperties} />
+      ); })()}
 
-        {/* Type indicator */}
-        <div style={{
-          position: 'absolute', right: '8%', top: '10%',
-          fontSize: R(7), fontWeight: 600,
-          color: style.accent,
-          fontFamily: "sans-serif",
-          opacity: 0.8,
-        }}>
-          {tape.isPlaylist ? 'PL' : ''}
-        </div>
+      {/* Corner screws */}
+      {(() => {
+        const screwVariant = (seed >> 4) % 5;
+        if (screwVariant === 4) return null;
+        const screwSymbol = ['+', '+', '\u2014', '\u2B21'][screwVariant];
+        const screwRotation = screwVariant === 2 ? `rotate(${(seed % 180)}deg)` : screwVariant === 1 ? `rotate(${(seed % 45)}deg)` : 'none';
+        return [{ top: R(2), left: R(2) }, { top: R(2), right: R(2) }, { bottom: R(2), left: R(2) }, { bottom: R(2), right: R(2) }].map((pos, i) => (
+          <div key={i} style={{ position: 'absolute', ...pos, width: screwSz, height: screwSz, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: '0.5px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: R(screwVariant === 3 ? 6 : 8), color: 'rgba(255,255,255,0.2)', lineHeight: 1 }}>
+            <span style={{ transform: screwRotation }}>{screwSymbol}</span>
+          </div>
+        ));
+      })()}
 
-        {/* Decorative accent stripe */}
-        <div style={{
-          position: 'absolute', left: 0, top: 0,
-          width: R(3), height: '100%',
-          background: style.accent, opacity: 0.4,
-        }} />
+      {/* Title label strip */}
+      {(() => {
+        const side = seed % 3 === 0 ? 'B' : 'A';
+        const cornerTexts = ['C-90', '90', 'IEC I', 'EQ', '120\u03BCs', 'TYPE I', 'HiFi', 'CR', 'Fe', 'NR', 'TYPE II', 'CrO\u2082', 'METAL', 'IEC IV', '70\u03BCs', 'TYPE IV'];
+        const cornerText = cornerTexts[seed % cornerTexts.length];
+        const showArrow = seed % 4 === 0;
+        const arrowDir = seed % 2 === 0 ? '\u25B6' : '\u25C0';
+        const showDot = seed % 5 === 0;
+        const tinyTexts = ['STEREO', 'NORMAL', 'LOW NOISE', 'HIGH OUTPUT', 'LN', 'EHF', 'SF', 'CHROME', 'SUPER AVILYN', 'EPITAXIAL', 'EXTRA SLIM', 'GAMMA', 'HIGH FIDELITY'];
+        const showTiny = seed % 3 === 1;
+        const tinyText = tinyTexts[seed % tinyTexts.length];
+
+        const labelVariant = seed % 6;
+        const labelRadius = labelVariant === 1 ? R(8) : R(2);
+        const labelBorder = labelVariant === 5 ? `1.5px solid ${st.midBg}` : 'none';
+        const labelBg = labelVariant === 5 ? 'rgba(255,255,255,0.6)' : st.titleBg;
+
+        const markerVariant = (seed >> 2) % 5;
+        const markerIsPlainText = markerVariant === 2;
+
+        const lineVariant = (seed >> 3) % 4;
+        const lineStyle = lineVariant === 2 ? '1px dashed rgba(0,0,0,0.1)' : '0.5px solid rgba(0,0,0,0.15)';
+
+        const showTopStripe = labelVariant === 3;
+        const showNotch = labelVariant === 2;
+        const showDoubleArrow = (seed >> 4) % 7 === 0;
+        const showBarcode = (seed >> 5) % 8 === 0;
+        const showSmallLogo = (seed >> 6) % 5 === 0;
+        const logoChars = ['\u25C6', '\u25CF', '\u25A0', '\u2605', '\u25B2', '\u25CE', '\u2B21', '\u25C7'];
+        const logoChar = logoChars[(seed >> 7) % logoChars.length];
+
+        return (
+          <div style={{ position: 'absolute', top: padT, left: padLR, right: padLR, height: labelH, background: labelBg, borderRadius: labelRadius, border: labelBorder, overflow: 'hidden', transform: `rotate(${((tape.id.charCodeAt(0) % 5) - 2) * 0.4}deg)` }}>
+            {/* Notched corners */}
+            {showNotch && <>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: R(4), height: R(4), background: st.housing }} />
+              <div style={{ position: 'absolute', top: 0, right: 0, width: R(4), height: R(4), background: st.housing }} />
+            </>}
+            {/* Top accent stripe */}
+            {showTopStripe && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: R(3), background: st.midBg, opacity: 0.6 }} />}
+            {/* Split two-tone background */}
+            {labelVariant === 4 && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', background: st.midBg, opacity: 0.15 }} />}
+            {/* Writing lines */}
+            {lineVariant !== 3 && <>
+              <div style={{ position: 'absolute', top: R(7), left: R(6), right: R(6), borderBottom: lineStyle }} />
+              <div style={{ position: 'absolute', top: R(16), left: R(6), right: R(6), borderBottom: lineStyle }} />
+              {lineVariant === 1 && <div style={{ position: 'absolute', top: R(22), left: R(6), right: R(6), borderBottom: lineStyle }} />}
+            </>}
+            {/* Side marker */}
+            {markerIsPlainText ? (
+              <span style={{ position: 'absolute', top: '50%', left: R(5), transform: 'translateY(-50%)', fontSize: R(14), fontWeight: 900, color: '#111', lineHeight: 1 }}>{side}</span>
+            ) : (() => {
+              const markerRadius = markerVariant === 1 || markerVariant === 4 ? '50%' : markerVariant === 3 ? `${R(4)}px` : `${R(1.5)}px`;
+              const markerSize = markerVariant === 4 ? R(12) : R(15);
+              const markerFontSize = markerVariant === 4 ? R(8) : R(11);
+              return (
+                <div style={{ position: 'absolute', top: '50%', left: R(4), transform: 'translateY(-50%)', width: markerSize, height: markerSize, background: '#111', borderRadius: markerRadius, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: markerFontSize, fontWeight: 900, color: st.titleBg, lineHeight: 1 }}>{side}</span>
+                </div>
+              );
+            })()}
+            {/* Corner text — top right */}
+            <span style={{ position: 'absolute', top: R(2), right: R(5), fontSize: R(5.5), color: 'rgba(0,0,0,0.3)', fontWeight: 700, letterSpacing: '0.03em' }}>{cornerText}</span>
+            {/* Optional arrow indicator */}
+            {showArrow && <span style={{ position: 'absolute', bottom: R(2), right: R(5), fontSize: R(5), color: 'rgba(0,0,0,0.25)' }}>{arrowDir}</span>}
+            {/* Double arrow */}
+            {showDoubleArrow && <span style={{ position: 'absolute', bottom: R(2), left: R(22), fontSize: R(4.5), color: 'rgba(0,0,0,0.15)', letterSpacing: -1 }}>{'\u25B6\u25B6'}</span>}
+            {/* Optional dot */}
+            {showDot && <div style={{ position: 'absolute', bottom: R(3), right: R(16), width: R(3), height: R(3), borderRadius: '50%', background: 'rgba(0,0,0,0.2)' }} />}
+            {/* Optional tiny text */}
+            {showTiny && <span style={{ position: 'absolute', bottom: R(1.5), left: R(22), fontSize: R(4.5), color: 'rgba(0,0,0,0.2)', fontWeight: 600, letterSpacing: '0.08em' }}>{tinyText}</span>}
+            {/* Barcode */}
+            {showBarcode && <div style={{ position: 'absolute', bottom: R(2), right: R(20), display: 'flex', gap: 0.5 }}>
+              {[3,1,2,1,3,1,1,2,1,3,1,2].map((w2, i) => <div key={i} style={{ width: w2 * 0.5, height: R(5), background: `rgba(0,0,0,${i % 2 === 0 ? 0.2 : 0})` }} />)}
+            </div>}
+            {/* Small decorative logo mark */}
+            {showSmallLogo && <span style={{ position: 'absolute', top: R(1), left: R(22), fontSize: R(5), color: 'rgba(0,0,0,0.12)' }}>{logoChar}</span>}
+            {/* Title text */}
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: R(24), right: R(6), display: 'flex', alignItems: 'center' }}>
+              <p style={{ fontSize: big ? 12 : 10, fontWeight: 700, color: '#333', lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', width: '100%' } as React.CSSProperties}>
+                {tape.title}
+              </p>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Spools — left (supply) faster, right (take-up) slower */}
+      <div style={{ position: 'absolute', left: w / 2 - spoolSpread - spoolSz / 2, top: spoolY - spoolSz / 2 }}>
+        <Spool spinning={playing} size={spoolSz} rpm={15} />
+      </div>
+      <div style={{ position: 'absolute', left: w / 2 + spoolSpread - spoolSz / 2, top: spoolY - spoolSz / 2 }}>
+        <Spool spinning={playing} size={spoolSz} rpm={30} />
       </div>
 
-      {/* Tape window with CSS mask for spool holes */}
-      <div style={{
-        position: 'absolute', left: windowX, top: windowY,
-        width: windowW, height: windowH,
-        background: style.windowTint,
-        borderRadius: `${R(3)}px ${R(3)}px ${R(6)}px ${R(6)}px`,
-        border: '0.5px solid rgba(0,0,0,0.2)',
-        overflow: 'hidden',
-      }}>
-        {/* Inner shadow */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)',
-          borderRadius: 'inherit',
-          pointerEvents: 'none',
-          zIndex: 2,
-        }} />
+      {/* Tape window between spools — with reels sized by progress */}
+      {(() => {
+        const winLeft = w / 2 - winW / 2;
+        const winTop = spoolY - winH / 2;
+        const prog = tape.progress ?? 0;
+        const leftCx = (w / 2 - spoolSpread) - winLeft;
+        const rightCx = (w / 2 + spoolSpread) - winLeft;
+        const reelCy = spoolY - winTop;
+        const maxR = R(60);
+        const minR = R(8);
+        const leftReelR = maxR - (maxR - minR) * prog;
+        const rightReelR = minR + (maxR - minR) * prog;
 
-        {/* SVG spools */}
-        <svg width={windowW} height={windowH} style={{ position: 'absolute', left: 0, top: 0 }}>
-          <Spool
-            cx={windowW * 0.27} cy={windowH * 0.5} r={spoolR}
-            color={style.spoolColor} tapeColor={style.tapeColor}
-            progress={progress} playing={playing} side="L"
-          />
-          <Spool
-            cx={windowW * 0.73} cy={windowH * 0.5} r={spoolR}
-            color={style.spoolColor} tapeColor={style.tapeColor}
-            progress={progress} playing={playing} side="R"
-          />
-          {/* Tape path between spools */}
-          <path
-            d={`M ${windowW * 0.27} ${windowH * 0.5 + spoolR}
-                Q ${windowW * 0.5} ${windowH * 0.95}
-                  ${windowW * 0.73} ${windowH * 0.5 + spoolR}`}
-            fill="none"
-            stroke={style.tapeColor}
-            strokeWidth={1.5}
-            opacity={0.6}
-          />
-        </svg>
+        return (
+          <div style={{ position: 'absolute', left: winLeft, top: winTop, width: winW, height: winH, borderRadius: R(3), border: '1.5px solid rgba(0,0,0,0.4)', overflow: 'hidden', background: 'rgba(0,0,0,0.15)' }}>
+            {/* Left reel */}
+            <div style={{
+              position: 'absolute',
+              left: leftCx - leftReelR, top: reelCy - leftReelR,
+              width: leftReelR * 2, height: leftReelR * 2,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, #6b3a1a 20%, #7a4422 40%, #8b4e28 60%, #6b3a1a 80%)',
+              opacity: 0.85,
+              transition: 'all 1s linear',
+            }} />
+            <div style={{
+              position: 'absolute',
+              left: leftCx - leftReelR, top: reelCy - leftReelR,
+              width: leftReelR * 2, height: leftReelR * 2,
+              borderRadius: '50%',
+              background: 'repeating-radial-gradient(circle at center, transparent 0px, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 3px)',
+              transition: 'all 1s linear',
+            }} />
+            {/* Right reel */}
+            <div style={{
+              position: 'absolute',
+              left: rightCx - rightReelR, top: reelCy - rightReelR,
+              width: rightReelR * 2, height: rightReelR * 2,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, #6b3a1a 20%, #7a4422 40%, #8b4e28 60%, #6b3a1a 80%)',
+              opacity: 0.85,
+              transition: 'all 1s linear',
+            }} />
+            <div style={{
+              position: 'absolute',
+              left: rightCx - rightReelR, top: reelCy - rightReelR,
+              width: rightReelR * 2, height: rightReelR * 2,
+              borderRadius: '50%',
+              background: 'repeating-radial-gradient(circle at center, transparent 0px, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 3px)',
+              transition: 'all 1s linear',
+            }} />
+            {/* Transparent plastic overlay */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: [
+                'linear-gradient(160deg, rgba(255,255,255,0.12) 0%, transparent 40%)',
+                'linear-gradient(200deg, rgba(255,255,255,0.06) 60%, transparent 80%)',
+                'repeating-linear-gradient(95deg, transparent 0px, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 5px)',
+              ].join(','),
+              borderRadius: R(3),
+            }} />
+          </div>
+        );
+      })()}
 
-        {/* Mid-section guide posts */}
-        <div style={{
-          position: 'absolute', left: '46%', top: '70%', width: R(3), height: R(6),
-          background: 'rgba(0,0,0,0.25)', borderRadius: R(1),
-        }} />
-        <div style={{
-          position: 'absolute', left: '52%', top: '70%', width: R(3), height: R(6),
-          background: 'rgba(0,0,0,0.25)', borderRadius: R(1),
-        }} />
-      </div>
+      {/* Bottom info strip */}
+      {(() => {
+        const biasTexts = ['Normal Bias', 'Normal', 'IEC Type I', 'EQ 120\u03BCs', 'Low Noise', 'Chrome Bias', 'High Bias', 'IEC II / Type II', 'IEC Type IV', 'Metal Position', 'Ferro', 'Normal Position'];
+        const biasText = biasTexts[seed % biasTexts.length];
+        const typeTexts = ['C-90', 'C-60', 'C-46', 'AD 90', 'D 90', 'UR 90', 'HF 90', 'SA 90', 'C-120', 'C-30', 'FR 90', 'MA 90', 'XL-II 90', 'UX 90'];
+        const typeText = typeTexts[(seed + 3) % typeTexts.length];
+
+        const stripVariant = (seed >> 3) % 4;
+        const stripBorderRadius = (seed >> 5) % 3 === 0 ? R(4) : R(1);
+
+        return (
+          <div style={{ position: 'absolute', bottom: botH + R(6), left: padLR, right: padLR, height: R(14), background: st.label, borderRadius: stripBorderRadius, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: `0 ${R(6)}px`, overflow: 'hidden' }}>
+            {stripVariant === 1 && <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40%', background: 'rgba(0,0,0,0.15)' }} />}
+            {stripVariant === 2 && <div style={{ position: 'absolute', left: '50%', top: R(2), bottom: R(2), width: 1, background: 'rgba(255,255,255,0.15)' }} />}
+            {stripVariant === 3 && <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: R(4), height: R(4), borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '0.5px solid rgba(255,255,255,0.15)' }} />}
+            {tape.isPlaylist ? <>
+              <span style={{ fontSize: R(6), color: 'rgba(255,255,255,0.4)', fontWeight: 500, position: 'relative' }}>{biasText}</span>
+              <span style={{ fontSize: R(8), color: st.titleBg, fontWeight: 800, letterSpacing: '0.05em', position: 'relative' }}>PLAYLIST</span>
+            </> : <>
+              <span style={{ fontSize: R(6), color: 'rgba(255,255,255,0.4)', fontWeight: 500, position: 'relative' }}>{biasText}</span>
+              <span style={{ fontSize: R(7), color: 'rgba(255,255,255,0.35)', fontWeight: 700, letterSpacing: '0.04em', position: 'relative' }}>{typeText}</span>
+            </>}
+          </div>
+        );
+      })()}
 
       {/* Bottom protruding section — trapezoid */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: botH,
-      }}>
-        <div style={{
-          position: 'absolute', bottom: R(2),
-          left: W / 2 - botProtrW / 2,
-          width: botProtrW, height: botProtrH,
-          background: 'rgba(0,0,0,0.25)',
-          border: '1px solid rgba(0,0,0,0.15)',
-          clipPath: `polygon(${R(6)}px 0, ${botProtrW - R(6)}px 0, 100% 100%, 0 100%)`,
-        }}>
-          {/* 4 holes */}
-          {[[R(22), '70%'], [R(42), '55%'], [botProtrW - R(42) - R(10), '55%'], [botProtrW - R(22) - R(10), '70%']].map(([left, top], i) => (
-            <div key={i} style={{
-              position: 'absolute', left: left as number, top: top as string,
-              transform: 'translateY(-50%)',
-              width: R(10), height: R(10),
-              background: 'rgba(0,0,0,0.5)', borderRadius: '50%',
-            }} />
-          ))}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: botH }}>
+        <div style={{ position: 'absolute', bottom: R(2), left: w / 2 - botProtrW / 2, width: botProtrW, height: botProtrH, background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(0,0,0,0.15)', clipPath: `polygon(${R(6)}px 0, ${botProtrW - R(6)}px 0, 100% 100%, 0 100%)` }}>
+          <div style={{ position: 'absolute', left: R(22), top: '70%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: 'rgba(0,0,0,0.5)', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', left: R(42), top: '55%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: 'rgba(0,0,0,0.5)', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', right: R(42), top: '55%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: 'rgba(0,0,0,0.5)', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', right: R(22), top: '70%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: 'rgba(0,0,0,0.5)', borderRadius: '50%' }} />
         </div>
       </div>
     </div>

@@ -291,6 +291,7 @@ export function TapesTable() {
     <>
       <style>{`
         @keyframes tape-spin-slow { to { transform: rotate(-360deg) } }
+        @keyframes tape-spin-fast { to { transform: rotate(-360deg) } }
         @keyframes tape-rewind { 0%,100% { transform: rotate(0deg) } 20% { transform: rotate(-4deg) } 40% { transform: rotate(4deg) } 60% { transform: rotate(-3deg) } 80% { transform: rotate(2deg) } }
       `}</style>
 
