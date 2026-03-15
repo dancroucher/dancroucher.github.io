@@ -484,16 +484,15 @@ input:focus, select:focus, textarea:focus, button:focus {
   overflow-y: scroll;
   visibility: hidden;
   border-radius: 0;
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
-  margin-right: -50%;
   min-width: 370px;
   max-width: 1500px;
   min-height: 200px;
   max-height: 1200px;
   transform: translate(-50%, -50%);
-  z-index: 1;
+  z-index: 100000;
 }
 .popup .show {
   visibility: visible;

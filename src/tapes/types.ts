@@ -12,6 +12,7 @@ export interface Tape {
   x?: number;
   y?: number;
   angle?: number;
+  ownerId?: string;
 }
 
 export const TAPE_STYLES: {

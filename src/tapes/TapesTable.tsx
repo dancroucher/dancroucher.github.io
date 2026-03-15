@@ -61,9 +61,29 @@ declare global {
   }
 }
 
-const CANVAS_W = 3200;
+const CANVAS_W = 4000;
 const CANVAS_H = 2400;
-const HEADER_BLOCK_H = 160; // px from top of canvas where tapes can't be placed
+const HEADER_BLOCK_H = 160;
+
+// Persistent browser identity for "mine only" filter
+function getOwnerId(): string {
+  let id = localStorage.getItem('jeem_owner_id');
+  if (!id) {
+    id = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    localStorage.setItem('jeem_owner_id', id);
+  }
+  return id;
+}
+
+function tidyTapes(tapes: Tape[]): Tape[] {
+  const cols = 4;
+  return tapes.map((t, i) => ({
+    ...t,
+    x: 30 + (i % cols) * 260,
+    y: HEADER_BLOCK_H + Math.floor(i / cols) * 170,
+    angle: Math.round((Math.random() * 10 - 5) * 10) / 10,
+  }));
+}
 
 export function TapesTable() {
   const [tapes, setTapes] = useState<Tape[]>([]);
@@ -79,6 +99,10 @@ export function TapesTable() {
   const [loadedTape, setLoadedTape] = useState<Tape | null>(null);
   const [deckEjecting, setDeckEjecting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [mineOnly, setMineOnly] = useState(() => localStorage.getItem('jeem_mine_only') === '1');
+  const [keepTidy, setKeepTidy] = useState(() => localStorage.getItem('jeem_keep_tidy') === '1');
+  const ownerId = useRef(getOwnerId()).current;
   const tableRef = useRef<HTMLDivElement>(null);
   const playerZoneRef = useRef<HTMLDivElement>(null);
   const deckPortal = typeof document !== 'undefined' ? document.getElementById('tape-deck') : null;
@@ -140,6 +164,11 @@ export function TapesTable() {
       }
 
       if (!loaded) loaded = [];
+
+      // Apply "keep tidy" on load if enabled
+      if (localStorage.getItem('jeem_keep_tidy') === '1') {
+        loaded = tidyTapes(loaded);
+      }
 
       // Sync KV data to localStorage
       saveTapesLocal(loaded);
@@ -210,6 +239,7 @@ export function TapesTable() {
             x: sl + 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
             y: Math.max(st + HEADER_BLOCK_H + row2 * 170 + Math.round((Math.random() - 0.5) * 30), HEADER_BLOCK_H),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
+            ownerId: getOwnerId(),
           };
           const next = [tape, ...prev];
           if (next.length > 50) next.pop();
@@ -511,8 +541,12 @@ export function TapesTable() {
     };
   });
 
-  // Tapes on table = all except what's loaded in the deck
-  const tableTapes = positionedTapes.filter(t => t.id !== loadedTape?.id);
+  // Tapes on table = all except what's loaded in the deck, filtered by settings
+  const tableTapes = positionedTapes.filter(t => {
+    if (t.id === loadedTape?.id) return false;
+    if (mineOnly && t.ownerId && t.ownerId !== ownerId) return false;
+    return true;
+  });
 
   return (
     <>
@@ -702,6 +736,61 @@ export function TapesTable() {
           </div>
         </div>,
         deckPortal
+      )}
+
+      {/* Settings cog — top right, level with title */}
+      {createPortal(
+        <div style={{ position: 'fixed', top: 44, right: 40, zIndex: 10001 }}>
+          <button
+            onClick={() => setSettingsOpen(p => !p)}
+            style={{
+              background: 'none', border: 'none', color: 'rgba(250, 249, 246, 0.6)',
+              fontSize: 18, cursor: 'pointer', padding: 6,
+            }}
+            title="Settings"
+          >
+            <i className="fas fa-cog" />
+          </button>
+
+          {settingsOpen && (
+            <div style={{
+              position: 'absolute', top: 36, right: 0, background: 'rgba(0, 0, 0, 0.85)',
+              border: '1px solid rgba(250, 249, 246, 0.15)', padding: '12px 16px',
+              minWidth: 180, fontFamily: "'04b03', monospace", fontSize: 12,
+              color: 'rgba(250, 249, 246, 0.8)',
+            }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 10 }}>
+                <input
+                  type="checkbox"
+                  checked={mineOnly}
+                  onChange={e => {
+                    setMineOnly(e.target.checked);
+                    localStorage.setItem('jeem_mine_only', e.target.checked ? '1' : '0');
+                  }}
+                  style={{ accentColor: '#888' }}
+                />
+                mine only
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={keepTidy}
+                  onChange={e => {
+                    const on = e.target.checked;
+                    setKeepTidy(on);
+                    localStorage.setItem('jeem_keep_tidy', on ? '1' : '0');
+                    if (on) {
+                      setTapes(prev => tidyTapes(prev));
+                    }
+                  }}
+                  style={{ accentColor: '#888' }}
+                />
+                keep tidy
+              </label>
+            </div>
+          )}
+        </div>,
+        document.body
       )}
     </>
   );
