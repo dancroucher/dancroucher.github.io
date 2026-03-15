@@ -61,11 +61,14 @@ function parseYouTubeInput(input) {
         }
     }
 
+    // Bare YouTube video ID (exactly 11 chars) or playlist ID (starts with PL/UU/RD/OL)
     if (/^[a-zA-Z0-9_-]+$/.test(input)) {
-        if (input.length <= 11) {
+        if (input.length === 11) {
             return { id: input, type: "video" };
         }
-        return { id: input, type: "playlist" };
+        if (input.length > 11 && /^(PL|UU|RD|OL|FL)/.test(input)) {
+            return { id: input, type: "playlist" };
+        }
     }
 
     return null;

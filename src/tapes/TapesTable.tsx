@@ -503,9 +503,17 @@ export function TapesTable() {
                   }}>
                     <button
                       onPointerDown={e => e.stopPropagation()}
-                      onClick={e => { e.stopPropagation(); loadIntoPlayer(tape); setMenuId(null); }}
-                      style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#22c55e', color: '#fff', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}
-                    >Play</button>
+                      onClick={e => {
+                        e.stopPropagation();
+                        const id = tape.isPlaylist ? tape.playlistId : tape.videoId;
+                        const url = `${window.location.origin}${window.location.pathname}?v=${id}&t=${tape.playlistIndex ?? 0}`;
+                        navigator.clipboard.writeText(url).then(() => {
+                          (e.target as HTMLButtonElement).textContent = 'Copied!';
+                          setTimeout(() => { (e.target as HTMLButtonElement).textContent = 'Link'; }, 1500);
+                        }).catch(() => { prompt('Copy this link:', url); });
+                      }}
+                      style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#3b82f6', color: '#fff', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}
+                    >Link</button>
                     <button
                       onPointerDown={e => e.stopPropagation()}
                       onClick={e => { e.stopPropagation(); rewindTape(tape.id); }}

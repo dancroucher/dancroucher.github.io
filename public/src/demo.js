@@ -213,20 +213,16 @@ var Demo = (function () {
             if (parsed.type === "video") {
                 AppState.myVideoName = parsed.id;
                 AppState.singleVideo = true;
-                const newURL = createShareableURL(parsed.id, 0);
-                window.history.pushState({}, "", newURL);
             } else {
                 AppState.myVideoPlaylistName = parsed.id;
                 AppState.singleVideo = false;
-                const newURL = createShareableURL(parsed.id, trackIndex);
-                window.history.pushState({}, "", newURL);
             }
 
-            // Fetch metadata via oEmbed before starting (like Tapes does)
+            // Fetch metadata via oEmbed before starting
             const type = parsed.type;
             const id = parsed.id;
-            const endpoint =
-                type === "playlist"
+            const isPlaylist = type === "playlist";
+            const endpoint = isPlaylist
                     ? `https://www.youtube.com/oembed?url=https://www.youtube.com/playlist?list=${id}&format=json`
                     : `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`;
 
@@ -236,7 +232,17 @@ var Demo = (function () {
                     if (data) {
                         AppState.songTitle = data.title || "";
                         AppState.songAuthor = data.author_name || "";
-                        History.add(id, data.title || "", data.author_name || "", type === "video" ? "single" : "playlist", trackIndex);
+                        History.add(id, data.title || "", data.author_name || "", isPlaylist ? "playlist" : "single", trackIndex);
+                        // Create a tape if loaded from URL
+                        if (window.TapesBridge) {
+                            window.TapesBridge.addTapeFromSearch(
+                                isPlaylist ? "" : id,
+                                data.title || "",
+                                data.author_name || "",
+                                isPlaylist,
+                                isPlaylist ? id : undefined
+                            );
+                        }
                     }
                 })
                 .catch(() => {});
