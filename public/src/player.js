@@ -103,46 +103,44 @@ const Backgrounds = {
         }
     },
 
-    // Crossfade: swap active/inactive videos with opacity transition
+    // Glitch blowout transition between background videos
     _crossfade(newSrc, callback) {
         if (this._transitioning) return;
         this._transitioning = true;
 
         const incoming = this._inactiveEl;
         const outgoing = this._activeEl;
-
-        // If the incoming video already has the right src (preloaded), skip loading
         const needsLoad = incoming.getAttribute("src") !== newSrc;
 
         const doSwap = () => {
-            // Start playing the incoming video
-            if (AppState.playing) incoming.play();
+            // Start glitch animation on the container
+            DOM.bgMp4.classList.add("glitching");
 
-            // Fade in incoming, fade out outgoing
-            incoming.classList.add("active");
-            outgoing.classList.remove("active");
-
-            // After transition completes, clean up
+            // Swap videos at peak blowout (~270ms into 600ms animation)
             setTimeout(() => {
+                if (AppState.playing) incoming.play();
+                incoming.classList.add("active");
+                outgoing.classList.remove("active");
+            }, 270);
+
+            // Clean up after animation ends
+            setTimeout(() => {
+                DOM.bgMp4.classList.remove("glitching");
                 outgoing.pause();
                 outgoing.removeAttribute("src");
-                outgoing.load(); // release memory for old video
+                outgoing.load();
 
-                // Swap references
                 this._activeEl = incoming;
                 this._inactiveEl = outgoing;
                 this._transitioning = false;
 
-                // Preload the next one
                 this._preloadNext();
-
                 if (callback) callback();
-            }, 1300); // slightly longer than CSS transition (1.2s)
+            }, 650);
         };
 
         if (needsLoad) {
             incoming.src = newSrc;
-            // Wait until enough data is buffered to play
             incoming.addEventListener("canplay", doSwap, { once: true });
             incoming.load();
         } else {
@@ -540,9 +538,17 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("info-btn")?.addEventListener("click", doPopup);
     DOM.playlistPrev.addEventListener("click", () => { if (window.myApp) window.myApp.doPlaylistPrevious(); });
     DOM.playlistNext.addEventListener("click", () => { if (window.myApp) window.myApp.doPlaylistNext(); });
-    DOM.bgMp4.addEventListener("click", () => { if (window.myApp) window.myApp.togglePlayback(); });
-    DOM.bgMp4.addEventListener("dblclick", doFullscreen);
-    DOM.bgNone.addEventListener("click", () => { if (window.myApp) window.myApp.togglePlayback(); });
+    let clickTimer = null;
+    DOM.bgMp4.addEventListener("click", () => {
+        if (clickTimer) return;
+        clickTimer = setTimeout(() => { clickTimer = null; if (window.myApp) window.myApp.togglePlayback(); }, 250);
+    });
+    DOM.bgMp4.addEventListener("dblclick", () => { clearTimeout(clickTimer); clickTimer = null; doFullscreen(); });
+    DOM.bgNone.addEventListener("click", () => {
+        if (clickTimer) return;
+        clickTimer = setTimeout(() => { clickTimer = null; if (window.myApp) window.myApp.togglePlayback(); }, 250);
+    });
+    DOM.bgNone.addEventListener("dblclick", () => { clearTimeout(clickTimer); clickTimer = null; doFullscreen(); });
 });
 
 // Expose bg switch for React bridge

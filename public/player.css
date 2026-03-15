@@ -514,11 +514,27 @@ input:focus, select:focus, textarea:focus, button:focus {
   height: 100vh;
   z-index: -21;
   opacity: 0;
-  transition: opacity 1.2s ease;
+  transition: opacity 0.15s ease;
 }
 
 #bg-mp4 video.active {
   opacity: 1;
+}
+
+/* Glitch blowout transition between background videos */
+@keyframes bg-glitch {
+  0%   { filter: brightness(1) contrast(1) saturate(1); transform: translate(0) scale(1); }
+  15%  { filter: brightness(2) contrast(1.6) saturate(2); transform: translate(-3px, 1px) scale(1.01); }
+  30%  { filter: brightness(4) contrast(0.4) saturate(0) hue-rotate(20deg); transform: translate(4px, -2px) scale(1.02); }
+  45%  { filter: brightness(5) contrast(0.2); transform: translate(-2px, 2px) scale(1.01); }
+  55%  { filter: brightness(5) contrast(0.2); transform: translate(2px, -1px) scale(1.02); }
+  70%  { filter: brightness(3) contrast(1.5) saturate(1.5) hue-rotate(-10deg); transform: translate(-1px, 1px) scale(1.01); }
+  85%  { filter: brightness(1.5) contrast(1.3); transform: translate(1px, 0) scale(1); }
+  100% { filter: brightness(1) contrast(1) saturate(1); transform: translate(0) scale(1); }
+}
+
+#bg-mp4.glitching {
+  animation: bg-glitch 0.6s ease-in-out;
 }
 
 #bg-none {

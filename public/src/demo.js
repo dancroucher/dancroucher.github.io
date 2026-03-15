@@ -202,6 +202,9 @@ var Demo = (function () {
             this._attachPlayingListeners();
 
             this.player.on("ready", () => {
+                // Mute before loading if we need to seek, to avoid hearing the start
+                if (seekProgress > 0) this.player.mute();
+
                 if (AppState.singleVideo) {
                     this.player.load_video(AppState.myVideoName, true);
                 } else {
@@ -212,21 +215,24 @@ var Demo = (function () {
                 doStart();
                 this._startProgressSaving();
 
-                // Seek to saved progress once duration is available
+                // Seek to saved progress once duration is available, then unmute
                 if (seekProgress > 0) {
                     const player = this.player;
                     const trySeek = () => {
                         const duration = player.get_duration();
                         if (duration > 0) {
                             player.seek(duration * seekProgress, true);
+                            player.unmute();
                             return true;
                         }
                         return false;
                     };
-                    // Retry until duration is available
                     let attempts = 0;
                     const interval = setInterval(() => {
-                        if (trySeek() || ++attempts > 10) clearInterval(interval);
+                        if (trySeek() || ++attempts > 10) {
+                            player.unmute();
+                            clearInterval(interval);
+                        }
                     }, 500);
                 }
 

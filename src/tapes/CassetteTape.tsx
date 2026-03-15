@@ -223,7 +223,7 @@ export function CassetteTape({ tape, playing, big }: { tape: Tape; playing?: boo
             {showSmallLogo && <span style={{ position: 'absolute', top: R(1), left: R(22), fontSize: R(5), color: 'rgba(0,0,0,0.12)' }}>{logoChar}</span>}
             {/* Title text */}
             <div style={{ position: 'absolute', top: 0, bottom: 0, left: R(24), right: R(6), display: 'flex', alignItems: 'center' }}>
-              <p style={{ fontFamily: "'Patrick Hand', cursive", fontSize: big ? 16 : 13, fontWeight: 400, color: '#333', lineHeight: 1.2, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', width: '100%' } as React.CSSProperties}>
+              <p style={{ fontFamily: "'Patrick Hand', cursive", fontSize: big ? 16 : 13, fontWeight: 400, color: '#333', lineHeight: 1.0, margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', width: '100%' } as React.CSSProperties}>
                 {tape.title}
               </p>
             </div>

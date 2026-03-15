@@ -499,10 +499,7 @@ export function TapesTable() {
                     setMenuId(prev => prev === tape.id ? null : tape.id);
                   }
                 }}
-                onContextMenu={e => {
-                  e.preventDefault();
-                  setMenuId(prev => prev === tape.id ? null : tape.id);
-                }}
+                onContextMenu={e => e.preventDefault()}
                 style={{
                   position: 'absolute',
                   left: tape.x,
