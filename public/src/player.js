@@ -541,6 +541,12 @@ document.addEventListener("DOMContentLoaded", () => {
     DOM.bgNone.addEventListener("click", () => { if (window.myApp) window.myApp.togglePlayback(); });
 });
 
+// Expose bg switch for React bridge
+window.switchBgType = (index) => {
+    Backgrounds.bgTypeIndex = index;
+    Backgrounds.setType(index);
+};
+
 // ── Init on load ──
 window.onload = function () {
     if (typeof Youtube !== "undefined") {

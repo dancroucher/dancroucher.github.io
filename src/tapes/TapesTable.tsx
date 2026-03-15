@@ -21,6 +21,7 @@ declare global {
   interface Window {
     myApp?: any;
     AppState?: any;
+    switchBgType?: (index: number) => void;
     TapesBridge?: {
       onTapePlay: (tape: Tape) => void;
       updateProgress: (videoId: string, progress: number) => void;
@@ -299,6 +300,9 @@ export function TapesTable() {
       ejected = true;
       setLoadedTape(null);
       setDeckEjecting(true);
+
+      // Switch to tapes bg so user can see where the tape lands
+      if (window.switchBgType) window.switchBgType(5);
 
       const tbl = tableRef.current!;
       const sx = fromEv.clientX - gx;
