@@ -257,6 +257,7 @@ input:focus, select:focus, textarea:focus, button:focus {
   background-color: rgba(250, 249, 246, 0.9);
   display: inline-block;
   width: 40vw;
+  max-width: 500px;
   padding: 6px 5px 3px 6px;
   margin-bottom: 16px;
   line-height: 1em;
@@ -264,6 +265,17 @@ input:focus, select:focus, textarea:focus, button:focus {
   border: dotted;
   border-width: 2px;
   animation: none;
+}
+
+@media (max-width: 768px) {
+  .videobox {
+    width: calc(100vw - 80px);
+    max-width: none;
+  }
+  .search-dropdown {
+    width: calc(100vw - 80px);
+    max-width: none;
+  }
 }
 
 .videobox-ok {
@@ -276,24 +288,6 @@ input:focus, select:focus, textarea:focus, button:focus {
   animation: none;
 }
 
-.videobox-submit {
-  color: rgba(250, 249, 246, 0.9);
-  background-color: transparent;
-  min-width: 10vw;
-  padding: 6px 5px 3px 6px;
-  margin-bottom: 16px;
-  line-height: 1em;
-  z-index: 4;
-  animation: none;
-  border: dotted;
-  border-width: 2px;
-}
-@media (hover: hover) {
-  .videobox-submit:hover {
-    color: rgba(0, 0, 0, 0.9);
-    background-color: #ffffffc1;
-  }
-}
 
 .start {
   color: rgba(250, 249, 246, 0.9);
@@ -307,7 +301,8 @@ input:focus, select:focus, textarea:focus, button:focus {
 /* ── Search dropdown ── */
 
 .search-dropdown {
-  max-width: 40vw;
+  width: 40vw;
+  max-width: 500px;
   max-height: 360px;
   overflow-y: auto;
   border: dotted;

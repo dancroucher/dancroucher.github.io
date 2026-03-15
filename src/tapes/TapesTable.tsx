@@ -32,6 +32,7 @@ declare global {
 
 const CANVAS_W = 3200;
 const CANVAS_H = 2400;
+const HEADER_BLOCK_H = 160; // px from top of canvas where tapes can't be placed
 
 export function TapesTable() {
   const [tapes, setTapes] = useState<Tape[]>([]);
@@ -88,7 +89,7 @@ export function TapesTable() {
               playlistIndex: v.track || 0,
               timestamp: v.timestamp || Date.now(),
               x: 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
-              y: 20 + row * 170 + Math.round((Math.random() - 0.5) * 30),
+              y: HEADER_BLOCK_H + row * 170 + Math.round((Math.random() - 0.5) * 30),
               angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
             } as Tape;
           });
@@ -154,7 +155,7 @@ export function TapesTable() {
             progress: 0,
             timestamp: Date.now(),
             x: sl + 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
-            y: st + 20 + row2 * 170 + Math.round((Math.random() - 0.5) * 30),
+            y: Math.max(st + HEADER_BLOCK_H + row2 * 170 + Math.round((Math.random() - 0.5) * 30), HEADER_BLOCK_H),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
           };
           const next = [tape, ...prev];
@@ -271,7 +272,7 @@ export function TapesTable() {
         if (t) loadIntoPlayer(t);
       } else {
         const { cx, cy } = posFromEvent(ev);
-        setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, x: cx, y: cy } : t));
+        setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, x: cx, y: Math.max(cy, HEADER_BLOCK_H) } : t));
       }
       setDragId(null); setDragPos(null); setDragScreenPos(null); setDragOver(false);
     }
@@ -366,7 +367,7 @@ export function TapesTable() {
       }
       const tapeId = tape.id;
       const { cx, cy } = posFromEvent(ev);
-      setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: cx, y: cy } : t));
+      setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: cx, y: Math.max(cy, HEADER_BLOCK_H) } : t));
       setDragId(null); setDragPos(null); setDragScreenPos(null); setDragOver(false); setDeckEjecting(false);
     }
 
@@ -407,7 +408,7 @@ export function TapesTable() {
     return {
       ...tape,
       x: 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
-      y: 20 + row * 170 + Math.round((Math.random() - 0.5) * 30),
+      y: Math.max(HEADER_BLOCK_H + row * 170 + Math.round((Math.random() - 0.5) * 30), HEADER_BLOCK_H),
       angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
     };
   });
