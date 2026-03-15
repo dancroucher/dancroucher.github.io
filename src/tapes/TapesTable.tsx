@@ -3,16 +3,45 @@ import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, STORAGE_KEY } from './types';
 import { CassetteTape } from './CassetteTape';
 
-// ── Persistence ──
+// ── Persistence (KV primary, localStorage fallback) ──
 
-function loadTapes(): Tape[] {
+function loadTapesLocal(): Tape[] {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   } catch { return []; }
 }
 
-function saveTapesToStorage(tapes: Tape[]) {
+function saveTapesLocal(tapes: Tape[]) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tapes)); } catch {}
+}
+
+async function loadTapesFromKV(): Promise<Tape[] | null> {
+  try {
+    const res = await fetch('/api/tapes');
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data?.tapes) ? data.tapes : null;
+  } catch { return null; }
+}
+
+let _kvSaveTimer: ReturnType<typeof setTimeout> | null = null;
+function saveTapesToKV(tapes: Tape[]) {
+  // Debounce KV writes to avoid excessive API calls
+  if (_kvSaveTimer) clearTimeout(_kvSaveTimer);
+  _kvSaveTimer = setTimeout(async () => {
+    try {
+      await fetch('/api/tapes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tapes }),
+      });
+    } catch {}
+  }, 2000);
+}
+
+function saveTapesToStorage(tapes: Tape[]) {
+  saveTapesLocal(tapes);
+  saveTapesToKV(tapes);
 }
 
 // ── Bridge to vanilla JS player ──
@@ -69,52 +98,56 @@ export function TapesTable() {
     return isDbl;
   }, []);
 
-  // Load tapes from localStorage on mount (migrate from old history if needed)
+  // Load tapes: KV first, localStorage fallback, old history migration last
   useEffect(() => {
-    let loaded = loadTapes();
+    (async () => {
+      // Try KV first
+      let loaded = await loadTapesFromKV();
 
-    if (loaded.length === 0) {
-      try {
-        const oldHistory = JSON.parse(localStorage.getItem('userVideoHistory') || '[]');
-        if (Array.isArray(oldHistory) && oldHistory.length > 0) {
-          loaded = oldHistory.map((v: any, i: number) => {
-            const isPlaylist = v.type !== 'single';
-            const col = i % 4;
-            const row = Math.floor(i / 4);
-            return {
-              id: crypto.randomUUID?.() ?? `${Date.now()}-${i}`,
-              videoId: isPlaylist ? '' : v.id,
-              playlistId: isPlaylist ? v.id : undefined,
-              isPlaylist,
-              title: v.name || 'Untitled',
-              author: v.author || '',
-              tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
-              progress: v.progress || 0,
-              playlistIndex: v.track || 0,
-              timestamp: v.timestamp || Date.now(),
-              x: 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
-              y: HEADER_BLOCK_H + row * 170 + Math.round((Math.random() - 0.5) * 30),
-              angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
-            } as Tape;
-          });
-          saveTapesToStorage(loaded);
-        }
-      } catch {}
-    }
+      // Fall back to localStorage
+      if (!loaded || loaded.length === 0) {
+        loaded = loadTapesLocal();
+      }
 
-    // Re-randomize angles if they were all saved with a previous bias
-    if (!localStorage.getItem('tapes_angles_fixed')) {
-      loaded = loaded.map(t => ({
-        ...t,
-        angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
-      }));
-      saveTapesToStorage(loaded);
-      localStorage.setItem('tapes_angles_fixed', '1');
-    }
+      // Migrate from old history format
+      if (!loaded || loaded.length === 0) {
+        try {
+          const oldHistory = JSON.parse(localStorage.getItem('userVideoHistory') || '[]');
+          if (Array.isArray(oldHistory) && oldHistory.length > 0) {
+            loaded = oldHistory.map((v: any, i: number) => {
+              const isPlaylist = v.type !== 'single';
+              const col = i % 4;
+              const row = Math.floor(i / 4);
+              return {
+                id: crypto.randomUUID?.() ?? `${Date.now()}-${i}`,
+                videoId: isPlaylist ? '' : v.id,
+                playlistId: isPlaylist ? v.id : undefined,
+                isPlaylist,
+                title: v.name || 'Untitled',
+                author: v.author || '',
+                tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+                progress: v.progress || 0,
+                playlistIndex: v.track || 0,
+                timestamp: v.timestamp || Date.now(),
+                x: 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
+                y: HEADER_BLOCK_H + row * 170 + Math.round((Math.random() - 0.5) * 30),
+                angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
+              } as Tape;
+            });
+            saveTapesToStorage(loaded);
+          }
+        } catch {}
+      }
 
-    setTapes(loaded);
-    setZOrder(loaded.map(t => t.id));
-    setMounted(true);
+      if (!loaded) loaded = [];
+
+      // Sync KV data to localStorage
+      saveTapesLocal(loaded);
+
+      setTapes(loaded);
+      setZOrder(loaded.map(t => t.id));
+      setMounted(true);
+    })();
   }, []);
 
   useEffect(() => {
