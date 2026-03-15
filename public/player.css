@@ -585,9 +585,9 @@ input:focus, select:focus, textarea:focus, button:focus {
   position: fixed;
   top: 0; left: 0; bottom: 0; right: 0;
   background:
-    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%),
-    linear-gradient(90deg, rgba(255, 0, 0, 0.07), rgba(0, 255, 0, 0.03), rgba(0, 0, 255, 0.07));
-  z-index: 9999;
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+  z-index: 99999;
   background-size: 100% 4px, 6px 100%;
   pointer-events: none;
 }
@@ -599,7 +599,7 @@ input:focus, select:focus, textarea:focus, button:focus {
   top: 0; left: 0; bottom: 0; right: 0;
   background: radial-gradient(circle, transparent 55%, rgba(0, 0, 0, 0.4) 120%);
   opacity: 1;
-  z-index: 9998;
+  z-index: 99998;
   pointer-events: none;
 }
 
