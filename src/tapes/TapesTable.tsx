@@ -201,13 +201,13 @@ export function TapesTable() {
       AppState.myVideoPlaylistName = tape.playlistId;
       AppState.songTitle = tape.title;
       AppState.songAuthor = tape.author;
-      window.myApp.submitVideoNameFromSaved(tape.playlistId, tape.playlistIndex ?? 0);
+      window.myApp.submitVideoNameFromSaved(tape.playlistId, tape.playlistIndex ?? 0, tape.progress ?? 0);
     } else {
       AppState.singleVideo = true;
       AppState.myVideoName = tape.videoId;
       AppState.songTitle = tape.title;
       AppState.songAuthor = tape.author;
-      window.myApp.submitVideoNameFromSaved(tape.videoId, 0);
+      window.myApp.submitVideoNameFromSaved(tape.videoId, 0, tape.progress ?? 0);
     }
   }, []);
 
@@ -311,6 +311,16 @@ export function TapesTable() {
 
     function eject(fromEv: PointerEvent) {
       ejected = true;
+
+      // Save progress before stopping
+      if (window.myApp) {
+        try { window.myApp._saveProgress(); } catch {}
+        const progress = (() => { try { return window.myApp._getProgress(); } catch { return 0; } })();
+        if (progress > 0) {
+          setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, progress } : t));
+        }
+      }
+
       setLoadedTape(null);
       setDeckEjecting(true);
 

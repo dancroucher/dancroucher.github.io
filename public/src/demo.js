@@ -179,7 +179,7 @@ var Demo = (function () {
         },
 
         // ── Start app ──
-        startApp: function (trackIndex = 0) {
+        startApp: function (trackIndex = 0, seekProgress = 0) {
             this._showOverlay("loading-overlay");
             DOM.startContainer.style.display = "none";
 
@@ -212,12 +212,30 @@ var Demo = (function () {
                 doStart();
                 this._startProgressSaving();
 
+                // Seek to saved progress once duration is available
+                if (seekProgress > 0) {
+                    const player = this.player;
+                    const trySeek = () => {
+                        const duration = player.get_duration();
+                        if (duration > 0) {
+                            player.seek_to(duration * seekProgress, true);
+                            return true;
+                        }
+                        return false;
+                    };
+                    // Retry until duration is available
+                    let attempts = 0;
+                    const interval = setInterval(() => {
+                        if (trySeek() || ++attempts > 10) clearInterval(interval);
+                    }, 500);
+                }
+
                 setTimeout(() => this._hideOverlay("loading-overlay"), 1000);
             });
         },
 
         // ── Load from saved history ──
-        submitVideoNameFromSaved: function (videoName, trackIndex = 0) {
+        submitVideoNameFromSaved: function (videoName, trackIndex = 0, seekProgress = 0) {
             if (!videoName || videoName.length === 0) return;
 
             const parsed = parseYouTubeInput(videoName);
@@ -260,7 +278,7 @@ var Demo = (function () {
                 })
                 .catch(() => {});
 
-            setTimeout(() => this.startApp(trackIndex), 100);
+            setTimeout(() => this.startApp(trackIndex, seekProgress), 100);
         },
 
         // ── Event handlers ──
