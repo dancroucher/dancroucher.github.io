@@ -304,15 +304,13 @@ export function TapesTable() {
       // Fully stop and clear the player
       if (window.myApp) {
         try { window.myApp.player.pause(); } catch {}
-        // Hide song/title/pause UI
+        // Hide song/title UI
         const songEl = document.getElementById('song-container');
         const titleEl = document.getElementById('title-container');
         const padEl = document.getElementById('padinfo');
-        const pauseEl = document.getElementById('pause-overlay');
         if (songEl) songEl.style.display = 'none';
         if (titleEl) titleEl.style.display = 'none';
         if (padEl) padEl.style.display = 'none';
-        if (pauseEl) pauseEl.classList.remove('visible');
         // Show start screen header
         const startEl = document.getElementById('start-container');
         if (startEl) startEl.style.display = 'flex';
@@ -320,6 +318,11 @@ export function TapesTable() {
           window.AppState.playing = false;
           window.AppState.starting = true;
         }
+        // Suppress pause overlay (state_change fires async after pause)
+        setTimeout(() => {
+          const pauseEl = document.getElementById('pause-overlay');
+          if (pauseEl) pauseEl.classList.remove('visible');
+        }, 50);
       }
 
       // Switch to tapes bg so user can see where the tape lands
@@ -521,22 +524,23 @@ export function TapesTable() {
         </div>
       </div>
 
-      {/* Drag overlay */}
+      {/* Drag overlay — portaled to body so it's above everything */}
       {dragId && dragScreenPos && (() => {
         const tape = positionedTapes.find(t => t.id === dragId);
         if (!tape) return null;
-        return (
+        return createPortal(
           <div style={{
             position: 'fixed',
             left: dragScreenPos.x,
             top: dragScreenPos.y,
-            zIndex: 99999,
+            zIndex: 90000,
             pointerEvents: 'none',
             transform: `rotate(${tape.angle ?? 0}deg) scale(1.06)`,
             filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.4))',
           }}>
             <CassetteTape tape={tape} />
-          </div>
+          </div>,
+          document.body
         );
       })()}
 
