@@ -427,6 +427,10 @@ function doStart() {
         DOM.playlistPrev.style.display = "none";
         DOM.trackNumber.style.display = "none";
         DOM.playlistNext.style.display = "none";
+    } else {
+        DOM.playlistPrev.style.display = "";
+        DOM.trackNumber.style.display = "";
+        DOM.playlistNext.style.display = "";
     }
 
     Inactivity.init();
