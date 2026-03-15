@@ -511,10 +511,14 @@ window.addEventListener("keydown", (event) => {
             if (window.myApp) window.myApp.togglePlayback();
             break;
         case "arrowright":
-            if (!AppState.singleVideo && window.myApp) window.myApp.doPlaylistNext();
+            if (!window.myApp) break;
+            if (AppState.singleVideo) window.myApp.seekBy(60);
+            else window.myApp.doPlaylistNext();
             break;
         case "arrowleft":
-            if (!AppState.singleVideo && window.myApp) window.myApp.doPlaylistPrevious();
+            if (!window.myApp) break;
+            if (AppState.singleVideo) window.myApp.seekBy(-60);
+            else window.myApp.doPlaylistPrevious();
             break;
         case "x":
             Backgrounds.cycleType();

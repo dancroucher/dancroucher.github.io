@@ -131,6 +131,14 @@ var Demo = (function () {
             this.player.goto_next();
         },
 
+        seekBy: function (seconds) {
+            const current = this.player.get_current_time();
+            const duration = this.player.get_duration();
+            if (duration <= 0) return;
+            const target = Math.max(0, Math.min(current + seconds, duration));
+            this.player.seek_to(target, true);
+        },
+
         // ── Progress tracking ──
         _getProgress: function () {
             const current = this.player.get_current_time();
