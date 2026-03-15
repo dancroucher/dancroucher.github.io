@@ -232,7 +232,7 @@ const Backgrounds = {
             this.bgTypeIndex = next;
             this.setType(next);
             DOM.bgTransition.style.opacity = "0";
-        }, 600);
+        }, 200);
     },
 
     cycleNext() {
