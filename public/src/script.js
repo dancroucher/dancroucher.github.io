@@ -1,7 +1,8 @@
 "use strict";
 
 // ── Shared state (single source of truth) ──
-const AppState = {
+// Exposed on window for React tapes bridge
+const AppState = window.AppState = {
     singleVideo: false,
     myVideoName: null,
     myVideoPlaylistName: null,
@@ -142,6 +143,18 @@ async function submitVideoName() {
     const videoType = AppState.singleVideo ? "single" : "playlist";
     History.add(videoID, result.title, result.author, videoType, 0);
 
+    // Create a tape in the React tapes table
+    if (window.TapesBridge) {
+        const isPlaylist = parsed.type === "playlist";
+        window.TapesBridge.addTapeFromSearch(
+            isPlaylist ? "" : parsed.id,
+            result.title,
+            result.author,
+            isPlaylist,
+            isPlaylist ? parsed.id : undefined
+        );
+    }
+
     Search.close();
 
     setTimeout(() => {
@@ -169,7 +182,7 @@ function checkAndLoadFromURL() {
         return true;
     }
 
-    document.getElementById("start-container").style.display = "block";
+    document.getElementById("start-container").style.display = "flex";
     return false;
 }
 

@@ -140,7 +140,12 @@ var Demo = (function () {
 
             const videoType = AppState.singleVideo ? "single" : "playlist";
             const trackIndex = AppState.singleVideo ? 0 : AppState.playlistIndex;
-            History.add(videoID, AppState.songTitle, AppState.songAuthor, videoType, trackIndex, this._getProgress());
+            const progress = this._getProgress();
+            History.add(videoID, AppState.songTitle, AppState.songAuthor, videoType, trackIndex, progress);
+            // Update tape progress in React tapes table
+            if (window.TapesBridge) {
+                window.TapesBridge.updateProgress(videoID, progress);
+            }
         },
 
         _startProgressSaving: function () {

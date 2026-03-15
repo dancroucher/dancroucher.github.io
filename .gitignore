@@ -1,3 +1,5 @@
 #ignore npm express files
 /node_modules
 .DS_Store
+*.sync-conflict-*
+OfficeJeem65/

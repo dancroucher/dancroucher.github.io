@@ -25,7 +25,7 @@
             </div>
             <div id="bg-none" class="bg-none"></div>
 
-            <div class="title-container" id="title-container">
+            <div class="title-container" id="title-container" style="display: none">
                 <div class="padtitle">
                     <div class="title" id="title"><a href=".">// jeem-fm</a></div>
                 </div>
@@ -57,19 +57,17 @@
             <div id="bg-youtube" class="bg-youtube" style="display: none"></div>
 
             <div class="start-container" id="start-container" style="display: none;">
-                <div class="padstart">
-                    <div class="start" id="start">
-                        <div class="normal-text">Youtube URL or Search:<br></div>
-                        <div>
-                            <form id="video-form">
-                                <input class="videobox" type="text" autocomplete="on" id="idEntry" placeholder="">
-                                <input class="videobox-submit" type="submit" value="Submit" id="demo_start_video">
-                            </form>
-                        </div>
-                        <div class="normal-text">Remember...<br></div>
-                        <div class="history-container" id="saved-videos-container"></div>
+                <div class="start-header">
+                    <div class="start-title"><a href=".">// jeem-fm</a></div>
+                    <div class="start-form">
+                        <form id="video-form">
+                            <input class="videobox" type="text" autocomplete="on" id="idEntry" placeholder="paste url or search...">
+                            <input class="videobox-submit" type="submit" value="Submit" id="demo_start_video">
+                        </form>
                     </div>
                 </div>
+                <div id="tapes-root"></div>
+                <div class="history-container" id="saved-videos-container" style="display:none"></div>
             </div>
         </div>
 
@@ -89,5 +87,6 @@ __/ / \__/ \__//_/_/_/    /_/ /_/_/_/
         <script src="src/script.js"></script>
         <script src="src/demo.js"></script>
         <script src="src/player.js"></script>
+        <script type="module" src="dist/tapes.js"></script>
     </body>
 </html>

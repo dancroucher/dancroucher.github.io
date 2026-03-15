@@ -39,9 +39,13 @@ a:hover {
 }
 
 .start-container {
-  position: static;
-  display: block;
-  width: fit-content;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
   z-index: 5;
 }
 
@@ -51,6 +55,40 @@ a:hover {
 
 .padstart {
   padding: 0px 32px 32px 24px;
+}
+
+.start-header {
+  flex-shrink: 0;
+  padding: 16px 24px 12px 24px;
+  z-index: 10;
+}
+
+.start-title {
+  color: rgba(250, 249, 246, 0.9);
+  display: inline-block;
+  font-size: 3em;
+  padding: 8px 8px 12px 8px;
+  animation: textShadow 3.6s infinite;
+}
+.start-title:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.start-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.start-form {
+  display: block;
+  padding: 0 8px;
+}
+
+#tapes-root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
 }
 
 .padsong {

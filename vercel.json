@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
   "functions": {
     "api/list-files.js": {
       "includeFiles": "file-index.json"
