@@ -136,7 +136,7 @@ var Demo = (function () {
             const duration = this.player.get_duration();
             if (duration <= 0) return;
             const target = Math.max(0, Math.min(current + seconds, duration));
-            this.player.seek_to(target, true);
+            this.player.seek(target, true);
         },
 
         // ── Progress tracking ──
@@ -218,7 +218,7 @@ var Demo = (function () {
                     const trySeek = () => {
                         const duration = player.get_duration();
                         if (duration > 0) {
-                            player.seek_to(duration * seekProgress, true);
+                            player.seek(duration * seekProgress, true);
                             return true;
                         }
                         return false;
