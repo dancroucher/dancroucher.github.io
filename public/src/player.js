@@ -1,705 +1,412 @@
-var songName = document.getElementById('song-name'); // element where track name appears
-var songAuthor = document.getElementById('song-author'); // element where track artist appears
-var songURL = document.getElementById('song-url'); // element where track url appears
-var info = document.querySelector('.info'); // background display type
-var backgroundType = document.getElementById('background-type'); // type of background
-var backgroundName = document.getElementById('background-name'); // current backgrounds name
-var backgroundAuto = document.getElementById('background-auto'); // background auto change or not
-var mp4background =  document.getElementById('mp4-background');
-var mp4altbackground =  document.getElementById('mp4-alt-background');
-var song = document.querySelector('#song'); // audio object
-var genreNumber = document.getElementById('genre-number');
-var startContainer = document.getElementById('start-container');
-var start = document.getElementById('start');
-var songContainer = document.getElementById('song-container');
-var infoContainer = document.getElementById('info-container');
-var titleContainer = document.getElementById('title-container');
-var infoButton = document.querySelector('.info-button'); // background display type
-var fullscreen = document.querySelector('.fullscreen');
-var title = document.getElementById('title'); // page/site title
-var songTitle = document.querySelector('.song-title'); // element where track title appears
-var bgTitle = document.querySelector('.bg-title'); // eleent where track title appears
-var controlsImage = document.getElementById('bottom');
-var bgmp4 = document.getElementById('bg-mp4');
-var bgyoutube = document.getElementById('bg-youtube');
-var bgnone = document.getElementById('bg-none');
-// var bgyt = document.getElementById('bg-youtube');
-var changingBackground;
-var elem = document.documentElement;
-var fullscreenbool = false;
-var auto = false;
-var autoTypeName;
-var playlistName;
-var infoOpen = true;
-var cursor = true;
-var fauxInput = document.createElement('textarea');
-var version ="v0.1";
-var pPause = document.querySelector('#play-pause'); // element where play and pause image appears
-var player;
-var animebackgrounds = [];
-var vintagebackgrounds = [];
-var videobackgrounds = [];
-var backtypes = [0,1,2,3,4];
-var changeTimes = [0,1,2];
-var changeTimeIndex;
-var changeTimeActual;
-var bgTypeIndex;
-var genretypes = [0,1];
-var genreIndex;
-var youtubeIndex = 1;
+"use strict";
 
-var playing = false;
-var starting = true;
-var playerReady = false;
-var widget;
-// var trackName;
-//  var authorName;
-var csv;
-var tag = document.createElement('script');
-tag.src = "https://www.youtube.com/player_api";
-var firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-window.onload = function() {
-    
-    // Now initialize the Demo app safely
-    if (typeof Youtube !== 'undefined') {
-        window.myApp = new Demo();
-        console.log("YouTube Player initialized and assigned to window.myApp");
-    } else {
-        console.warn("YouTube library not found yet. If you are using a wrapper, ensure it loads before player.js");
-    }
-    let text = document.lastModified;
-    document.getElementById("info").innerHTML = text;
-    loadSavedListUI();
-    playing = false;
-    getBackgrounds('video');
-    getBackgrounds('anime');
-    getBackgrounds('vintage');
-    
-    // Check if we should load from URL parameters
-    setTimeout(() => {
-        const loadedFromURL = checkAndLoadFromURL();
-        if (loadedFromURL) {
-            console.log("Auto-starting from shared URL");
-        }
-    }, 100);
-}
-
-function doStart(){
-        starting = false;
-        playing = true;
-        document.getElementById("start-container").style.display="none";
-        document.getElementById("song-container").style.display="block";
-        document.getElementById("bg-youtube").style.display="block";
-        if (singleVideo){
-            document.getElementById("playlist-prev").style.display="none";
-            document.getElementById("track-number").style.display="none";
-            document.getElementById("playlist-next").style.display="none";
-        }
-        initInactivityFade();
-        loadBackgroundType();
-        backgroundTypeCommon();
-        loadChangeTime();
-        changeTimeCommon();
-  
-         // Trigger the save and set change backgroun time after 2 sec
-        setTimeout(() => {
-            if (singleVideo){
-                saveVideoToList(myVideoName, songTitle, songAuthor, "single", 0);
-            }
-            else{
-                saveVideoToList(myVideoPlaylistName, songTitle, songAuthor, "playlist", playlistIndex);
-            }
-        }, 3000);
-}
-
-
-fetch('api/list-files')
-  .then(response => response.text())
-  .then(fileList => {
-    //console.log(fileList);
-  });
-  
-function getBackgrounds(folderName) {
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-            var text = xmlhttp.responseText;
-            var list = text.split(/\n|\r/g).filter(line => line.trim() !== '');
-            
-            // Assign to your global arrays
-            if (folderName === 'video'){ videobackgrounds = list; videobackgroundsMax = videobackgrounds.length-1;}
-            if (folderName === 'anime') { animebackgrounds = list; animebackgroundsMax = animebackgrounds.length-1;}
-            if (folderName === 'vintage') { vintagebackgrounds = list; vintagebackgroundsMax = vintagebackgrounds.length-1;}
-        }
-
-    }
-    // Call the API with the folder parameter
-    xmlhttp.open("GET", `/api/list-files?folder=${folderName}`, true);
-    xmlhttp.send();
-}
-
-function loadChangeTime() {
-    if (localStorage.getItem('changeTime') == null){
-      changeTimeIndex = 0;
-    }
-    else{
-        let myChangeTime = localStorage.getItem('changeTime');
-        changeTimeIndex = myChangeTime;
-    }
-}
-
-function changeChangeTime() {
-    //increment change time index
-    changeTimeIndex++;
-    //loop round
-    if (changeTimeIndex > changeTimes.length-1) {
-        changeTimeIndex = 0;
-    };
-    changeTimeCommon();
-}
-
-function changeTimeCommon() {
-
-    if (changeTimeIndex == 0){
-        backgroundAuto.innerHTML = "bg change: off";
-        stopRepeating();
-        //console.log("NOT changing background");
-    }
-    else if (changeTimeIndex == 1){
-        changeTimeActual = 30;
-        backgroundAuto.innerHTML = "bg change: 30s";
-        startRepeating(() => {
-        if (playing){
-            changeBackground();
-        //console.log("changing background every " + changeTimeActual + "s");
-        }
-    }, changeTimeActual);
-        // console.log("index is: " + changeTimeIndex + " , actual is: " + changeTimeActual + "s");
-    }
-    else if (changeTimeIndex == 2){
-        changeTimeActual = 10;
-        backgroundAuto.innerHTML = "bg change: 10s";
-        startRepeating(() => {
-        if (playing){
-            changeBackground();
-        //console.log("changing background every " + changeTimeActual + "s");
-        }
-    }, changeTimeActual);
-    }
-    localStorage.setItem('changeTime', changeTimeIndex);
-    localStorage.getItem('changeTime');
-}
-
-function loadBackgroundType() {
-    if (localStorage.getItem('backtype') == null){
-      bgTypeIndex = 0;
-    }
-    else{
-        let myBackType = localStorage.getItem('backtype');
-        bgTypeIndex = myBackType;
-    }
-}
-
-function changeBackgroundType() {
-    //increment background type
-    bgTypeIndex++;
-    //loop round
-    if (bgTypeIndex > backtypes.length-1) {
-        bgTypeIndex = 0;
-    };
-    backgroundTypeCommon();
-    
-}
-
-function backgroundTypeCommon(){
-    if (bgTypeIndex == 0){//vintage
-        var typeName = "vintage";
-        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-        vintagebackgroundIndex = Math.floor(Math.random() * vintagebackgroundsMax);
-        var text = vintagebackgrounds[vintagebackgroundIndex];
-        var textclean = `./vintage/${text}`; // Point directly to the folder next to index.html
-        mp4background.src = textclean;
-        bgmp4.style.display="block";
-        bgnone.style.background="#000000";
-        bgyoutube.style.display="block";
-    }
-    else if (bgTypeIndex == 1){//anime
-        var typeName = "anime";
-        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-        animebackgroundIndex = Math.floor(Math.random() * animebackgroundsMax);
-        var text = animebackgrounds[animebackgroundIndex];
-        var textclean = `./anime/${text}`; // Point directly to the folder next to index.html
-        mp4background.src = textclean;
-        bgmp4.style.display="block";
-        bgnone.style.background="#000000";
-        bgyoutube.style.display="block";
-    }
-    else if (bgTypeIndex == 2){//video
-        var typeName = "video";
-        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-        videobackgroundIndex = Math.floor(Math.random() * videobackgroundsMax);
-        var text = videobackgrounds[videobackgroundIndex];
-        var textclean = `./video/${text}`; // Point directly to the folder next to index.html
-        mp4background.src = textclean;
-        bgmp4.style.display="block";
-        bgnone.style.background="#000000";
-        bgyoutube.style.display="block";
-    }
-    else if (bgTypeIndex == 3){//original youtube
-        var typeName = "original";
-        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-        mp4background.src = "";
-        bgmp4.style.display="none";
-        bgnone.style.background="#00000000";
-        bgyoutube.style.display="block";
-    }
-    else if (bgTypeIndex == 4){//none
-        var typeName = "none";
-        backgroundType.innerHTML = "<i class='fas fa-file-image'></i>&nbsp;"+typeName;
-        mp4background.src = "";
-        bgmp4.style.display="none";
-        bgnone.style.background="#000000";
-        bgyoutube.style.display="block";
-    }
-    localStorage.setItem('backtype', bgTypeIndex);
-    localStorage.getItem('backtype');
-
-    if(playing == false){
-        mp4background.pause();
-    }
-    //UpdateUI();
-}
-
-function changeBackground() {
-    changingBackground = true;
-    if (playing){
-        if (bgTypeIndex == 0){//vintage
-            vintagebackgroundIndex++;
-            if (vintagebackgroundIndex > vintagebackgroundsMax) {
-                vintagebackgroundIndex = 0;
-            };
-            var text = vintagebackgrounds[vintagebackgroundIndex];
-            var textclean = text.replace(/^/,'./vintage/');
-            mp4background.src = textclean;
-        }
-        else if (bgTypeIndex == 1){//anime
-            animebackgroundIndex++;
-            if (animebackgroundIndex > animebackgroundsMax) {
-                animebackgroundIndex = 0;
-            };
-            var text = animebackgrounds[animebackgroundIndex];
-            var textclean = text.replace(/^/,'./anime/');
-            mp4background.src = textclean;
-        }
-        else if (bgTypeIndex == 2){//video
-            videobackgroundIndex++;
-            if (videobackgroundIndex > videobackgroundsMax) {
-                videobackgroundIndex = 0;
-            };
-            var text = videobackgrounds[videobackgroundIndex];
-            var textclean = text.replace(/^/,'./video/');
-            mp4background.src = textclean;
-        }
-        else if (bgTypeIndex == 3 || bgTypeIndex == 4){//original or none
-            mp4background.src = "";
-        }
-
-        var changingBackground = false;
-        //localStorage.getItem('background');
-        //UpdateBackgroundName();
-    }
-}
-
-
-
-
-function UpdateUI() {
-  setTimeout(function(){
-    // songContainer.className = 'song-container fadein';
-    // startContainer.className = 'start-container fadein';
-    // titleContainer.className = 'title-container fadein';
-    // if (infoContainer.className == 'info-container fadeout'){
-    //     infoContainer.className = 'info-container fadein';
-    // }
-    }, 0);
-    setTimeout(function(){ 
-
-    // if (infoContainer.className == 'info-container fadein'){
-    //     infoContainer.className = 'info-container fadeout';
-    // }
-    }, 500);
-}
-
-// convert song.currentTime and song.duration into MM:SS format
-function formatTime(seconds) {
-    let min = Math.floor((seconds / 60));
-    let sec = Math.floor(seconds - (min * 60));
-    if (sec < 10){
-        sec  = `0${sec}`;
-    };
-    return `${min}:${sec}`;
+// ── DOM refs (cached once) ──
+const DOM = {
+    songName: document.getElementById("song-name"),
+    songAuthor: document.getElementById("song-author"),
+    backgroundType: document.getElementById("background-type"),
+    backgroundAuto: document.getElementById("background-auto"),
+    mp4Background: document.getElementById("mp4-background"),
+    songContainer: document.getElementById("song-container"),
+    startContainer: document.getElementById("start-container"),
+    titleContainer: document.getElementById("title-container"),
+    bgMp4: document.getElementById("bg-mp4"),
+    bgYoutube: document.getElementById("bg-youtube"),
+    bgNone: document.getElementById("bg-none"),
+    pauseOverlay: document.getElementById("pause-overlay"),
+    loadingOverlay: document.getElementById("loading-overlay"),
+    trackNumber: document.getElementById("track-number"),
+    playlistPrev: document.getElementById("playlist-prev"),
+    playlistNext: document.getElementById("playlist-next"),
+    savedVideosContainer: document.getElementById("saved-videos-container"),
+    info: document.getElementById("info"),
+    popup: document.getElementById("myPopup"),
 };
 
-function doFullscreen() {
-if (fullscreenbool == false){
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-      }
-      else if (elem.webkitRequestFullscreen) { /* Safari */
-        elem.webkitRequestFullscreen();
-      }
-      else if (elem.msRequestFullscreen) { /* IE11 */
-        elem.msRequestFullscreen();
-      }
-      fullscreenbool = true;
-}
+// ── Background management ──
+const BG_TYPES = ["vintage", "anime", "video", "original", "none"];
+const CHANGE_TIMES = [0, 30, 10]; // seconds (0 = off)
 
-else{
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-      else if (document.webkitExitFullscreen) { /* Safari */
-        document.webkitExitFullscreen();
-      }
-      else if (document.msExitFullscreen) { /* IE11 */
-        document.msExitFullscreen();
-      }
-      fullscreenbool = false;
-    }
-}
+const Backgrounds = {
+    video: [],
+    anime: [],
+    vintage: [],
+    indices: { video: 0, anime: 0, vintage: 0 },
+    bgTypeIndex: 0,
+    changeTimeIndex: 0,
+    _interval: null,
 
-// function loadAuto () {
-//     if (localStorage.getItem('auto') == null){
-//       auto = true;
-//       autoTypeName = "(auto)";
-//     }
-//     else if (localStorage.getItem('auto') == 1)
-//         {
-//             autoTypeName = "(auto)";
-//             // backgroundAuto.style.display="inline-block";
-//             UpdateUI();
-//             //UpdateBackgroundName();
-//             auto = true;
-//     }
-//     else if (localStorage.getItem('auto') == 1)
-//         {
-//             autoTypeName = "(auto)";
-//             // backgroundAuto.style.display="inline-block";
-//             UpdateUI();
-//             //UpdateBackgroundName();
-//             auto = true;
-//         }
-// }
-
-// function toggleAuto() {
-// if (auto == false){
-//         autoTypeName = "(auto)";
-//         // backgroundAuto.style.display="inline-block";
-//         UpdateUI();
-//         //UpdateBackgroundName();
-//         auto = true;
-//         localStorage.setItem('auto', '1');
-//         localStorage.getItem('auto');
-  
-// }
-
-// else if (auto == true){
-//         autoTypeName = "(manual)";
-//         // backgroundAuto.style.display="inline-block";
-//         UpdateUI();
-//         UpdateBackgroundName();
-//         auto = false;
-//         localStorage.setItem('auto', '0');
-//         localStorage.getItem('auto');
-//     }
-// }
-
-// function UpdateTrackNumber(){
-//         localStorage.setItem('track', youtubeIndex);
-//         localStorage.getItem('track');
-// }
-
-function clearData() {
-    localStorage.clear();
-}
-
-function doPopup() {
-  var popup = document.getElementById("myPopup");
-  popup.classList.toggle("show");
-}
- 
-
-
-var interval = null;
-
-function startRepeating(func, seconds) {
-
-        // Clear any existing interval
-        if (interval) {
-            clearInterval(interval);
+    async fetchList(folder) {
+        try {
+            const response = await fetch(`/api/list-files?folder=${folder}`);
+            const text = await response.text();
+            this[folder] = text.split(/\n|\r/g).filter((line) => line.trim() !== "");
+        } catch (err) {
+            console.error(`Failed to load ${folder} backgrounds:`, err);
         }
-    
-  // Start new interval
-  interval = setInterval(func, seconds * 1000);
-  
-  // Optionally run once immediately
-//   func();
-}
+    },
 
-function stopRepeating() {
-  if (interval) {
-    clearInterval(interval);
-    interval = null;
-  }
-}
-//SAVE VIDEO HISTORY STUFF
-function saveVideoToList(videoID, videoName, videoAuthor, videoType, trackIndex = 0) {
+    loadAll() {
+        this.fetchList("video");
+        this.fetchList("anime");
+        this.fetchList("vintage");
+    },
 
-        let savedVideos = JSON.parse(localStorage.getItem('userVideoHistory')) || [];
+    // Get the folder name for the current type index
+    _folder() {
+        return BG_TYPES[this.bgTypeIndex]; // "vintage", "anime", or "video"
+    },
 
-        // Find the index of the video if it already exists in our saved list
-        const existingIndex = savedVideos.findIndex(v => v.id === videoID);
+    _isMediaType() {
+        return this.bgTypeIndex <= 2;
+    },
+
+    setType(index) {
+        this.bgTypeIndex = index;
+        const typeName = BG_TYPES[index];
+        DOM.backgroundType.innerHTML = `<i class='fas fa-file-image'></i>&nbsp;${typeName}`;
+
+        if (this._isMediaType()) {
+            const folder = this._folder();
+            const list = this[folder];
+            if (list.length > 0) {
+                this.indices[folder] = Math.floor(Math.random() * list.length);
+                DOM.mp4Background.src = `./${folder}/${list[this.indices[folder]]}`;
+            }
+            DOM.bgMp4.style.display = "block";
+            DOM.bgNone.style.background = "#000000";
+            DOM.bgYoutube.style.display = "block";
+        } else if (index === 3) {
+            // original (show YouTube video)
+            DOM.mp4Background.src = "";
+            DOM.bgMp4.style.display = "none";
+            DOM.bgNone.style.background = "#00000000";
+            DOM.bgYoutube.style.display = "block";
+        } else {
+            // none
+            DOM.mp4Background.src = "";
+            DOM.bgMp4.style.display = "none";
+            DOM.bgNone.style.background = "#000000";
+            DOM.bgYoutube.style.display = "block";
+        }
+
+        localStorage.setItem("backtype", index);
+
+        if (!AppState.playing) {
+            DOM.mp4Background.pause();
+        }
+    },
+
+    cycleType() {
+        this.bgTypeIndex = (this.bgTypeIndex + 1) % BG_TYPES.length;
+        this.setType(this.bgTypeIndex);
+    },
+
+    cycleNext() {
+        if (!AppState.playing || !this._isMediaType()) return;
+
+        const folder = this._folder();
+        const list = this[folder];
+        if (list.length === 0) return;
+
+        this.indices[folder] = (this.indices[folder] + 1) % list.length;
+        DOM.mp4Background.src = `./${folder}/${list[this.indices[folder]]}`;
+    },
+
+    loadSavedType() {
+        const saved = localStorage.getItem("backtype");
+        this.bgTypeIndex = saved !== null ? parseInt(saved) : 0;
+    },
+
+    // Change time management
+    loadSavedChangeTime() {
+        const saved = localStorage.getItem("changeTime");
+        this.changeTimeIndex = saved !== null ? parseInt(saved) : 0;
+    },
+
+    cycleChangeTime() {
+        this.changeTimeIndex = (this.changeTimeIndex + 1) % CHANGE_TIMES.length;
+        this.applyChangeTime();
+    },
+
+    applyChangeTime() {
+        // Clear existing interval
+        if (this._interval) {
+            clearInterval(this._interval);
+            this._interval = null;
+        }
+
+        const seconds = CHANGE_TIMES[this.changeTimeIndex];
+
+        if (seconds === 0) {
+            DOM.backgroundAuto.innerHTML = "bg change: off";
+        } else {
+            DOM.backgroundAuto.innerHTML = `bg change: ${seconds}s`;
+            this._interval = setInterval(() => {
+                if (AppState.playing) this.cycleNext();
+            }, seconds * 1000);
+        }
+
+        localStorage.setItem("changeTime", this.changeTimeIndex);
+    },
+};
+
+// ── Video history (localStorage) ──
+const History = {
+    _key: "userVideoHistory",
+
+    _load() {
+        return JSON.parse(localStorage.getItem(this._key)) || [];
+    },
+
+    _save(list) {
+        localStorage.setItem(this._key, JSON.stringify(list));
+    },
+
+    add(videoID, videoName, videoAuthor, videoType, trackIndex = 0) {
+        const savedVideos = this._load();
+        const existingIndex = savedVideos.findIndex((v) => v.id === videoID);
 
         if (existingIndex !== -1) {
-            // UPDATE EXISTING: If it exists, update the track number and move to top
             savedVideos[existingIndex].track = trackIndex;
-            savedVideos[existingIndex].timestamp = new Date().getTime();
-            
-            //update name and author amyway
+            savedVideos[existingIndex].timestamp = Date.now();
             savedVideos[existingIndex].name = videoName;
             savedVideos[existingIndex].author = videoAuthor;
-            // Move the updated item to the front of the list
-            const updatedItem = savedVideos.splice(existingIndex, 1)[0];
-            savedVideos.unshift(updatedItem);
-            
-            console.log("Updated playlist track:", videoName, "to index:", trackIndex);
+            const item = savedVideos.splice(existingIndex, 1)[0];
+            savedVideos.unshift(item);
         } else {
-            // ADD NEW: Create a new entry
             savedVideos.unshift({
                 id: videoID,
                 name: videoName,
                 author: videoAuthor,
                 type: videoType,
-                track: trackIndex, // Store the track number (0 for single videos)
-                timestamp: new Date().getTime()
+                track: trackIndex,
+                timestamp: Date.now(),
             });
-
             if (savedVideos.length > 50) savedVideos.pop();
-            console.log("Saved new entry:", videoName);
         }
 
-        localStorage.setItem('userVideoHistory', JSON.stringify(savedVideos));
-    
-}
+        this._save(savedVideos);
+    },
 
-function removeVideoFromHistory(videoID) {
-    // Get the current list from storage
-    let savedVideos = JSON.parse(localStorage.getItem('userVideoHistory')) || [];
+    remove(videoID) {
+        const savedVideos = this._load().filter((v) => v.id !== videoID);
+        this._save(savedVideos);
+        this.renderUI();
+    },
 
-    //Filter out the video that matches the provided ID
-    // We keep every video EXCEPT the one we want to delete
-    savedVideos = savedVideos.filter(video => video.id !== videoID);
+    renderUI() {
+        const savedVideos = this._load();
+        DOM.savedVideosContainer.innerHTML = "";
 
-    // 3. Save the new filtered list back to localStorage
-    localStorage.setItem('userVideoHistory', JSON.stringify(savedVideos));
+        savedVideos.forEach((video) => {
+            const row = document.createElement("div");
+            row.className = "history-row";
 
-    // 4. Refresh the UI so the button disappears immediately
-    loadSavedListUI(); 
-    
-    console.log("Removed video ID:", videoID);
-}
+            const btn = document.createElement("button");
+            const shareBtn = document.createElement("button");
+            const removeBtn = document.createElement("button");
 
-function loadSavedListUI() {
-    const savedVideos = JSON.parse(localStorage.getItem('userVideoHistory')) || [];
-    const container = document.getElementById('saved-videos-container');
-    
-    container.innerHTML = ''; 
+            const trackInfo =
+                video.type !== "single" && video.track !== undefined
+                    ? ` // Playlist // Track ${video.track + 1}`
+                    : " // Single video";
 
-    savedVideos.forEach(video => {
-        const btn = document.createElement('button');
-        const shareBtn = document.createElement('button');
-        const removeBtn = document.createElement('button');
-        const row = document.createElement('div');
-        
-        row.className = 'history-row';
+            const icon = video.type === "single" ? "fa-file-video-o" : "fa-list-alt";
+            btn.className = `history-item${video.type !== "single" ? " playlist" : ""}`;
+            btn.innerHTML = `<i class="fa ${icon}" aria-hidden="true"></i> ${video.name} // ${video.author}${trackInfo}`;
 
-        // 1. Create the Display Label
-        let trackInfo = "";
-        if (video.type !== "single" && video.track !== undefined) {
-            trackInfo = " // Playlist // Track " + (video.track + 1);
-        }
-        else
-        {
-           trackInfo = " // Single video"; 
-        }
+            shareBtn.className = "history-share";
+            shareBtn.innerHTML = '<i class="fa fa-clipboard" aria-hidden="true"></i>';
+            shareBtn.title = "Share this video";
 
-        // 2. Set Button Styles and Icons
-        if (video.type == "single") {
-            btn.className = 'history-item';
-            btn.innerHTML = "<i class=\"fa fa-file-video-o\" aria-hidden=\"true\"></i> " + 
-                            video.name + " // " + video.author + trackInfo;
-        } else {
-            btn.className = 'history-item playlist';
-            btn.innerHTML = "<i class=\"fa fa-list-alt\" aria-hidden=\"true\"></i> " + 
-                            video.name + " // " + video.author + trackInfo;    
-        }
+            removeBtn.className = "history-remove";
+            removeBtn.innerHTML = '<i class="fa fa-trash" aria-hidden="true"></i>';
 
-        // Share button
-        shareBtn.className = "history-share";
-        shareBtn.innerHTML = "<i class=\"fa fa-clipboard\" aria-hidden=\"true\"></i>";
-        shareBtn.title = "Share this video";
+            btn.onclick = () => {
+                if (window.myApp) {
+                    window.myApp.submitVideoNameFromSaved(video.id, video.track || 0);
+                }
+            };
 
-        // Remove button
-        removeBtn.className = "history-remove";
-        removeBtn.innerHTML = "<i class=\"fa fa-trash\" aria-hidden=\"true\"></i>";
+            shareBtn.onclick = (e) => {
+                e.stopPropagation();
+                const shareURL = createShareableURL(video.id, video.track || 0);
 
-        // 3. Click handlers
-        btn.onclick = () => {
-            if (window.myApp) {
-                window.myApp.submitVideoNameFromSaved(video.id, video.track || 0);
-            }
-        };
-
-        shareBtn.onclick = (e) => {
-            e.stopPropagation();
-            const shareURL = createShareableURL(video.id, video.track || 0);
-            
-            // Copy to clipboard
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(shareURL).then(() => {
-                    // Show feedback
-                    const originalHTML = shareBtn.innerHTML;
-                    shareBtn.innerHTML = "<i class=\"fa fa-check\" aria-hidden=\"true\"></i>";
-                    shareBtn.style.color = "#00ff00";
-                    
-                    setTimeout(() => {
-                        shareBtn.innerHTML = originalHTML;
-                        shareBtn.style.color = "";
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Failed to copy:', err);
-                    // Fallback: show URL in prompt
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(shareURL).then(() => {
+                        const originalHTML = shareBtn.innerHTML;
+                        shareBtn.innerHTML = '<i class="fa fa-check" aria-hidden="true"></i>';
+                        shareBtn.style.color = "#00ff00";
+                        setTimeout(() => {
+                            shareBtn.innerHTML = originalHTML;
+                            shareBtn.style.color = "";
+                        }, 2000);
+                    }).catch(() => {
+                        prompt("Copy this link:", shareURL);
+                    });
+                } else {
                     prompt("Copy this link:", shareURL);
-                });
-            } else {
-                // Fallback for older browsers
-                prompt("Copy this link:", shareURL);
-            }
-        };
+                }
+            };
 
-        removeBtn.onclick = (e) => {
-            e.stopPropagation(); 
-            removeVideoFromHistory(video.id);
-        };
+            removeBtn.onclick = (e) => {
+                e.stopPropagation();
+                History.remove(video.id);
+            };
 
-        container.appendChild(row);
-        row.appendChild(btn);
-        btn.appendChild(shareBtn);
-        btn.appendChild(removeBtn);
-    });
+            DOM.savedVideosContainer.appendChild(row);
+            row.appendChild(btn);
+            btn.appendChild(shareBtn);
+            btn.appendChild(removeBtn);
+        });
+    },
+};
+
+// ── UI helpers ──
+let fullscreenActive = false;
+
+function doStart() {
+    AppState.starting = false;
+    AppState.playing = true;
+    DOM.startContainer.style.display = "none";
+    DOM.songContainer.style.display = "block";
+    DOM.bgYoutube.style.display = "block";
+
+    if (AppState.singleVideo) {
+        DOM.playlistPrev.style.display = "none";
+        DOM.trackNumber.style.display = "none";
+        DOM.playlistNext.style.display = "none";
+    }
+
+    Inactivity.init();
+    Backgrounds.loadSavedType();
+    Backgrounds.setType(Backgrounds.bgTypeIndex);
+    Backgrounds.loadSavedChangeTime();
+    Backgrounds.applyChangeTime();
+
+    // Save after metadata loads
+    setTimeout(() => {
+        if (AppState.singleVideo) {
+            History.add(AppState.myVideoName, AppState.songTitle, AppState.songAuthor, "single", 0);
+        } else {
+            History.add(AppState.myVideoPlaylistName, AppState.songTitle, AppState.songAuthor, "playlist", AppState.playlistIndex);
+        }
+    }, 3000);
 }
 
-// Inactivity fade functionality
-let inactivityTimer;
-let songContainerVisible = true;
-const FADE_DELAY = 5000; // 5 seconds of inactivity
-
-function hideSongContainer() {
-    const songContainer = document.getElementById('song-container');
-    if (songContainer && songContainerVisible && playing) {
-        songContainer.style.transition = 'opacity 1s ease';
-        songContainer.style.opacity = '0';
-        songContainerVisible = false;
-         // Hide mouse cursor
-        document.body.style.cursor = 'none';
+function doFullscreen() {
+    const elem = document.documentElement;
+    if (!fullscreenActive) {
+        (elem.requestFullscreen || elem.webkitRequestFullscreen || elem.msRequestFullscreen).call(elem);
+        fullscreenActive = true;
+    } else {
+        (document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen).call(document);
+        fullscreenActive = false;
     }
 }
 
-function showSongContainer() {
-    const songContainer = document.getElementById('song-container');
-    if (songContainer && !songContainerVisible) {
-        songContainer.style.opacity = '1';
-        songContainerVisible = true;
-        // Show mouse cursor
-        document.body.style.cursor = 'default';
-    }
+function doPopup() {
+    DOM.popup.classList.toggle("show");
 }
 
-function resetInactivityTimer() {
-    // Show the container immediately
-    showSongContainer();
-    
-    // Clear existing timer
-    clearTimeout(inactivityTimer);
-    
-    // Set new timer to hide after delay
-    inactivityTimer = setTimeout(hideSongContainer, FADE_DELAY);
+function formatTime(seconds) {
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds % 60);
+    return `${min}:${sec < 10 ? "0" : ""}${sec}`;
 }
 
-// Initialize when page loads
-function initInactivityFade() {
-    const songContainer = document.getElementById('song-container');
-    if (songContainer) {
-        // Make sure transition is set
-        songContainer.style.transition = 'opacity 1s ease';
-        
-        // Start the initial timer
-        resetInactivityTimer();
-        
-        // Listen for user activity
-        document.addEventListener('mousemove', resetInactivityTimer);
-        document.addEventListener('mousedown', resetInactivityTimer);
-        document.addEventListener('keydown', resetInactivityTimer);
-        document.addEventListener('touchstart', resetInactivityTimer);
-        document.addEventListener('touchmove', resetInactivityTimer);
-        document.addEventListener('scroll', resetInactivityTimer);
-        
-        console.log('Inactivity fade initialized');
-    }
-}
+// ── Inactivity fade ──
+const Inactivity = {
+    _timer: null,
+    _visible: true,
+    DELAY: 5000,
 
+    init() {
+        DOM.songContainer.style.transition = "opacity 1s ease";
+        this.reset();
 
+        const events = ["mousemove", "mousedown", "keydown", "touchstart", "touchmove", "scroll"];
+        events.forEach((evt) => document.addEventListener(evt, () => this.reset()));
+    },
 
-// KEYBOARD CONTROLS
-window.addEventListener('keydown', function(event) {
-    //const video = document.getElementById("mp4background");
-    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-        return;
-    }
-    
-    // 2. Handle the inputs
+    reset() {
+        this._show();
+        clearTimeout(this._timer);
+        this._timer = setTimeout(() => this._hide(), this.DELAY);
+    },
+
+    _hide() {
+        if (DOM.songContainer && this._visible && AppState.playing) {
+            DOM.songContainer.style.opacity = "0";
+            this._visible = false;
+            document.body.style.cursor = "none";
+        }
+    },
+
+    _show() {
+        if (DOM.songContainer && !this._visible) {
+            DOM.songContainer.style.opacity = "1";
+            this._visible = true;
+            document.body.style.cursor = "default";
+        }
+    },
+};
+
+// ── Keyboard controls ──
+window.addEventListener("keydown", (event) => {
+    if (event.target.tagName === "INPUT" || event.target.tagName === "TEXTAREA") return;
+
     switch (event.key.toLowerCase()) {
-        case " ": // Spacebar
-            event.preventDefault(); // Stop page from scrolling
-            if (window.myApp && typeof window.myApp.togglePlayback === 'function') {
-                        window.myApp.togglePlayback();
-                    }
+        case " ":
+            event.preventDefault();
+            if (window.myApp) window.myApp.togglePlayback();
             break;
-
-        case "arrowright": // Skip forward 5 seconds
-        if (!singleVideo)
-            window.myApp.doPlaylistNext();
+        case "arrowright":
+            if (!AppState.singleVideo && window.myApp) window.myApp.doPlaylistNext();
             break;
-
-        case "arrowleft": // Skip back 5 seconds
-        if (!singleVideo)
-            window.myApp.doPlaylistPrevious();
+        case "arrowleft":
+            if (!AppState.singleVideo && window.myApp) window.myApp.doPlaylistPrevious();
             break;
-
-        case "x": // Next background type(custom function)
-            changeBackgroundType();
+        case "x":
+            Backgrounds.cycleType();
             break;
-        
-        case "i": // Do info popup
+        case "i":
             doPopup();
             break;
-
-        case "f": // Do info popup
+        case "f":
             doFullscreen();
             break;
+    }
+});
 
+// ── Click handlers for UI buttons ──
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("background-type")?.addEventListener("click", () => Backgrounds.cycleType());
+    document.getElementById("background-auto")?.addEventListener("click", () => Backgrounds.cycleChangeTime());
+    document.getElementById("fullscreen-btn")?.addEventListener("click", doFullscreen);
+    document.getElementById("info-btn")?.addEventListener("click", doPopup);
+    DOM.playlistPrev.addEventListener("click", () => { if (window.myApp) window.myApp.doPlaylistPrevious(); });
+    DOM.playlistNext.addEventListener("click", () => { if (window.myApp) window.myApp.doPlaylistNext(); });
+    DOM.bgMp4.addEventListener("click", () => { if (window.myApp) window.myApp.togglePlayback(); });
+    DOM.bgMp4.addEventListener("dblclick", doFullscreen);
+    DOM.bgNone.addEventListener("click", () => { if (window.myApp) window.myApp.togglePlayback(); });
+});
+
+// ── Init on load ──
+window.onload = function () {
+    if (typeof Youtube !== "undefined") {
+        window.myApp = new Demo();
+    } else {
+        console.warn("YouTube library not loaded yet");
     }
 
-});
+    DOM.info.innerHTML = document.lastModified;
+    History.renderUI();
+    AppState.playing = false;
+    Backgrounds.loadAll();
+
+    setTimeout(() => {
+        checkAndLoadFromURL();
+    }, 100);
+};
