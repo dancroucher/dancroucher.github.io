@@ -100,6 +100,16 @@ export function TapesTable() {
       } catch {}
     }
 
+    // Re-randomize angles if they were all saved with a previous bias
+    if (!localStorage.getItem('tapes_angles_fixed')) {
+      loaded = loaded.map(t => ({
+        ...t,
+        angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
+      }));
+      saveTapesToStorage(loaded);
+      localStorage.setItem('tapes_angles_fixed', '1');
+    }
+
     setTapes(loaded);
     setZOrder(loaded.map(t => t.id));
     setMounted(true);
