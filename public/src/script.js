@@ -205,7 +205,7 @@ function checkAndLoadFromURL() {
     return false;
 }
 
-// ── YouTube Search ──
+// ── Music Video Search (IMVDb + YouTube fallback) ──
 const Search = {
     _results: [],
     _searching: false,
@@ -218,8 +218,17 @@ const Search = {
         this._renderDropdown();
 
         try {
-            const response = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
-            this._results = await response.json();
+            // Try IMVDb first
+            const imvdbRes = await fetch(`/api/imvdb-search?q=${encodeURIComponent(query.trim())}`);
+            const imvdbData = await imvdbRes.json();
+
+            if (imvdbData.results && imvdbData.results.length > 0) {
+                this._results = imvdbData.results;
+            } else {
+                // Fall back to YouTube search
+                const ytRes = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+                this._results = await ytRes.json();
+            }
         } catch (err) {
             console.error("Search failed:", err);
             this._results = [];
@@ -281,7 +290,10 @@ const Search = {
 
             const meta = document.createElement("div");
             meta.className = "search-result-meta";
-            meta.textContent = `${result.author}  //  ${result.durationText}`;
+            const parts = [result.author];
+            if (result.year) parts.push(result.year);
+            if (result.durationText) parts.push(result.durationText);
+            meta.textContent = parts.filter(Boolean).join('  //  ');
 
             item.appendChild(title);
             item.appendChild(meta);
