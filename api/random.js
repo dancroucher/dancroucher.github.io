@@ -34,15 +34,23 @@ const ARTISTS_90s = [
 
 const ALL_ARTISTS = [...ARTISTS_80s, ...ARTISTS_90s];
 
+const HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (compatible; jeem-fm/1.0)',
+  'Accept': 'application/json',
+};
+
+function imvdbFetch(url, timeout = 8000) {
+  return fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(timeout) });
+}
+
 export default async function handler(req, res) {
   try {
     // Pick a random artist
     const artist = ALL_ARTISTS[Math.floor(Math.random() * ALL_ARTISTS.length)];
 
     // Search IMVDb for their music videos
-    const searchRes = await fetch(
-      `https://imvdb.com/api/v1/search/videos?q=${encodeURIComponent(artist)}`,
-      { signal: AbortSignal.timeout(8000) }
+    const searchRes = await imvdbFetch(
+      `https://imvdb.com/api/v1/search/videos?q=${encodeURIComponent(artist)}`
     );
     if (!searchRes.ok) throw new Error(`IMVDb search failed: ${searchRes.status}`);
     const searchData = await searchRes.json();
@@ -52,50 +60,30 @@ export default async function handler(req, res) {
       return res.status(200).json({ error: 'No videos found', artist });
     }
 
-    // Pick a random video from results
-    const pick = videos[Math.floor(Math.random() * videos.length)];
+    // Shuffle and try videos until we find one with a YouTube source
+    const shuffled = videos.sort(() => Math.random() - 0.5);
 
-    // Fetch full video details with YouTube source
-    const detailRes = await fetch(
-      `https://imvdb.com/api/v1/video/${pick.id}?include=sources`,
-      { signal: AbortSignal.timeout(8000) }
-    );
-    if (!detailRes.ok) throw new Error(`IMVDb detail failed: ${detailRes.status}`);
-    const detail = await detailRes.json();
-
-    // Find YouTube source
-    const ytSource = (detail.sources || []).find(s => s.source === 'youtube');
-    if (!ytSource || !ytSource.source_data) {
-      // No YouTube source — try another video from the same results
-      for (const fallback of videos) {
-        if (fallback.id === pick.id) continue;
-        const fbRes = await fetch(
-          `https://imvdb.com/api/v1/video/${fallback.id}?include=sources`,
-          { signal: AbortSignal.timeout(5000) }
+    for (const video of shuffled.slice(0, 5)) {
+      try {
+        const detailRes = await imvdbFetch(
+          `https://imvdb.com/api/v1/video/${video.id}?include=sources`, 5000
         );
-        if (!fbRes.ok) continue;
-        const fbDetail = await fbRes.json();
-        const fbYt = (fbDetail.sources || []).find(s => s.source === 'youtube');
-        if (fbYt?.source_data) {
+        if (!detailRes.ok) continue;
+        const detail = await detailRes.json();
+
+        const ytSource = (detail.sources || []).find(s => s.source === 'youtube');
+        if (ytSource?.source_data) {
           return res.status(200).json({
-            videoId: fbYt.source_data,
-            title: fbDetail.song_title || '',
-            artist: (fbDetail.artists || [])[0]?.name || artist,
-            year: fbDetail.year || null,
-            imvdbUrl: fbDetail.url || '',
+            videoId: ytSource.source_data,
+            title: detail.song_title || '',
+            artist: (detail.artists || [])[0]?.name || artist,
+            year: detail.year || null,
           });
         }
-      }
-      return res.status(200).json({ error: 'No YouTube source found', artist });
+      } catch { continue; }
     }
 
-    return res.status(200).json({
-      videoId: ytSource.source_data,
-      title: detail.song_title || '',
-      artist: (detail.artists || [])[0]?.name || artist,
-      year: detail.year || null,
-      imvdbUrl: detail.url || '',
-    });
+    return res.status(200).json({ error: 'No YouTube source found', artist });
   } catch (error) {
     console.error('Random video error:', error);
     return res.status(500).json({ error: 'Failed to find random video' });
