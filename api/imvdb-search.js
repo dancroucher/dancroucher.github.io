@@ -44,11 +44,11 @@ export default async function handler(req, res) {
       return res.status(200).json({ results: [], total: 0 });
     }
 
-    // Fetch YouTube sources for each result (in parallel, max 8)
-    const batch = videos.slice(0, 8);
+    // Fetch YouTube sources + popularity for each result (in parallel, max 20)
+    const batch = videos.slice(0, 20);
     const details = await Promise.allSettled(
       batch.map(v =>
-        imvdbFetch(`https://imvdb.com/api/v1/video/${v.id}?include=sources`, 5000)
+        imvdbFetch(`https://imvdb.com/api/v1/video/${v.id}?include=sources,popularity`, 5000)
           .then(r => r.ok ? r.json() : null)
       )
     );
@@ -62,18 +62,23 @@ export default async function handler(req, res) {
       if (!ytSource?.source_data) continue;
 
       const artistName = (detail.artists || [])[0]?.name || '';
+      const views = detail.popularity?.views_all_time || 0;
       results.push({
         videoId: ytSource.source_data,
         title: detail.song_title || batch[i].song_title || '',
         author: artistName,
         year: detail.year || batch[i].year || null,
+        views,
         imvdbId: detail.id,
         durationText: '',
       });
     }
 
+    // Sort by popularity (most views first)
+    results.sort((a, b) => b.views - a.views);
+
     return res.status(200).json({
-      results,
+      results: results.slice(0, 16),
       total: searchData.total_results || 0,
       totalPages: searchData.total_pages || 1,
       page,

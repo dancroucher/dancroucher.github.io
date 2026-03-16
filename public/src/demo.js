@@ -88,7 +88,7 @@ var Demo = (function () {
                     // Single video ended — notify React to rewind & eject
                     if (window.TapesBridge) window.TapesBridge.onTrackEnded();
                 }
-                if (state === 2) {
+                if (state === 2 && !AppState.starting) {
                     this._showOverlay("pause-overlay");
                 } else {
                     this._hideOverlay("pause-overlay");

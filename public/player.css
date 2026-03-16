@@ -79,30 +79,31 @@ a:hover {
 
 .start-form {
   display: flex;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
   padding: 8px 8px 0 8px;
 }
 
 .search-source-toggle {
   display: flex;
-  gap: 12px;
-  padding: 4px 0 0 2px;
+  gap: 16px;
+  padding: 0 2px;
 }
 
 .search-source-toggle label {
-  color: rgba(250, 249, 246, 0.6);
-  font-size: 11px;
+  color: rgba(250, 249, 246, 0.7);
+  font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .search-source-toggle input[type="radio"] {
   margin: 0;
-  width: auto;
-  height: auto;
+  width: 16px;
+  height: 16px;
   accent-color: rgba(250, 249, 246, 0.8);
 }
 

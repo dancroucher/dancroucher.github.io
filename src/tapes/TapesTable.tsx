@@ -428,10 +428,6 @@ export function TapesTable() {
         window.AppState.playing = false;
         window.AppState.starting = true;
       }
-      setTimeout(() => {
-        const pauseEl = document.getElementById('pause-overlay');
-        if (pauseEl) pauseEl.classList.remove('visible');
-      }, 50);
     }
 
     if (window.switchBgType) window.switchBgType(6);

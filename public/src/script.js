@@ -256,9 +256,9 @@ const Search = {
         this._dropdown.className = "search-dropdown";
         this._dropdown.style.display = "none";
 
-        const form = document.getElementById("video-form");
-        if (form && form.parentNode) {
-            form.parentNode.insertBefore(this._dropdown, form.nextSibling);
+        const startForm = document.querySelector(".start-form");
+        if (startForm && startForm.parentNode) {
+            startForm.parentNode.insertBefore(this._dropdown, startForm.nextSibling);
         }
     },
 
