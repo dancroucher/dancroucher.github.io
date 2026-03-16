@@ -52,16 +52,23 @@ export default async function handler(req, res) {
       else if (parts.length === 2) durationSeconds = parts[0] * 60 + parts[1];
       else if (parts.length === 1) durationSeconds = parts[0];
 
+      // Parse view count like "1,234,567 views" or "1.2M views"
+      const viewText = video.viewCountText?.simpleText || "";
+      const viewNum = parseInt(viewText.replace(/[^0-9]/g, "")) || 0;
+
       results.push({
         videoId: video.videoId,
         title: video.title?.runs?.[0]?.text || "",
         author: video.ownerText?.runs?.[0]?.text || "",
         duration: durationSeconds,
         durationText: durationText,
+        views: viewNum,
       });
 
-      if (results.length >= 8) break;
+      if (results.length >= 16) break;
     }
+
+    results.sort((a, b) => b.views - a.views);
 
     res.setHeader("Cache-Control", "public, max-age=300");
     return res.status(200).json(results);
