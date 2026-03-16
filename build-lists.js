@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const folders = ['video', 'anime', 'vintage'];
+const folders = ['video', 'anime', 'vintage', 'test'];
 const output = {};
 
 folders.forEach(folder => {

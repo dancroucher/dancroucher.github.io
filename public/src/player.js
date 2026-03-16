@@ -29,14 +29,15 @@ const DOM = {
 };
 
 // ── Background management ──
-const BG_TYPES = ["vintage", "anime", "video", "original", "none", "tapes"];
+const BG_TYPES = ["vintage", "anime", "video", "test", "original", "none", "tapes"];
 const CHANGE_TIMES = [0, 30, 10]; // seconds (0 = off)
 
 const Backgrounds = {
     video: [],
     anime: [],
     vintage: [],
-    indices: { video: 0, anime: 0, vintage: 0 },
+    test: [],
+    indices: { video: 0, anime: 0, vintage: 0, test: 0 },
     bgTypeIndex: 0,
     changeTimeIndex: 0,
     _interval: null,
@@ -71,6 +72,7 @@ const Backgrounds = {
         this.fetchList("video");
         this.fetchList("anime");
         this.fetchList("vintage");
+        this.fetchList("test");
     },
 
     _folder() {
@@ -78,7 +80,7 @@ const Backgrounds = {
     },
 
     _isMediaType() {
-        return this.bgTypeIndex <= 2;
+        return this.bgTypeIndex <= 3;
     },
 
     // Build the src path for a given folder + index
@@ -177,13 +179,13 @@ const Backgrounds = {
             DOM.bgNone.style.background = "#000000";
             DOM.bgYoutube.style.display = "block";
             if (AppState.playing) DOM.tapesRoot.style.display = "none";
-        } else if (index === 3) {
+        } else if (index === 4) {
             this._clearVideos();
             DOM.bgMp4.style.display = "none";
             DOM.bgNone.style.background = "#00000000";
             DOM.bgYoutube.style.display = "block";
             if (AppState.playing) DOM.tapesRoot.style.display = "none";
-        } else if (index === 5) {
+        } else if (index === 6) {
             // tapes
             this._clearVideos();
             DOM.bgMp4.style.display = "none";
@@ -200,7 +202,7 @@ const Backgrounds = {
         }
 
         // Hide bg change interval button for static modes (original, none, tapes)
-        const isMedia = index <= 2;
+        const isMedia = index <= 3;
         DOM.backgroundAuto.style.display = isMedia ? "" : "none";
 
         if (persist) localStorage.setItem("backtype", index);

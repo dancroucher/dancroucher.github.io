@@ -22,7 +22,7 @@
   ],
   "headers": [
     {
-      "source": "/(video|anime|vintage)/(.*)\\.mp4",
+      "source": "/(video|anime|vintage|test)/(.*)\\.mp4",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
