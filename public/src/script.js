@@ -205,11 +205,16 @@ function checkAndLoadFromURL() {
     return false;
 }
 
-// ── Music Video Search (IMVDb + YouTube fallback) ──
+// ── Music Video Search ──
 const Search = {
     _results: [],
     _searching: false,
     _dropdown: null,
+
+    _getSource() {
+        const radio = document.querySelector('input[name="search-source"]:checked');
+        return radio ? radio.value : 'youtube';
+    },
 
     async doSearch(query) {
         if (!query || !query.trim() || this._searching) return;
@@ -218,16 +223,14 @@ const Search = {
         this._renderDropdown();
 
         try {
-            // Try IMVDb first
-            const imvdbRes = await fetch(`/api/imvdb-search?q=${encodeURIComponent(query.trim())}`);
-            const imvdbData = await imvdbRes.json();
-
-            if (imvdbData.results && imvdbData.results.length > 0) {
-                this._results = imvdbData.results;
+            const source = this._getSource();
+            if (source === 'imvdb') {
+                const res = await fetch(`/api/imvdb-search?q=${encodeURIComponent(query.trim())}`);
+                const data = await res.json();
+                this._results = data.results || [];
             } else {
-                // Fall back to YouTube search
-                const ytRes = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
-                this._results = await ytRes.json();
+                const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+                this._results = await res.json();
             }
         } catch (err) {
             console.error("Search failed:", err);
@@ -343,32 +346,4 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Random music video button
-    const randomBtn = document.getElementById("random-btn");
-    if (randomBtn) {
-        let randomLoading = false;
-        randomBtn.addEventListener("click", async () => {
-            if (randomLoading) return;
-            randomLoading = true;
-            randomBtn.style.opacity = "0.5";
-            randomBtn.style.cursor = "wait";
-            try {
-                const res = await fetch("/api/random");
-                const data = await res.json();
-                if (data.videoId && window.TapesBridge) {
-                    window.TapesBridge.addTapeFromSearch(
-                        data.videoId,
-                        data.title || "Unknown",
-                        data.artist || "Unknown",
-                        false
-                    );
-                }
-            } catch (err) {
-                console.warn("Random tape failed:", err);
-            }
-            randomLoading = false;
-            randomBtn.style.opacity = "1";
-            randomBtn.style.cursor = "pointer";
-        });
-    }
 });

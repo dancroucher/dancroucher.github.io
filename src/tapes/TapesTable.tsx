@@ -434,7 +434,7 @@ export function TapesTable() {
       }, 50);
     }
 
-    if (window.switchBgType) window.switchBgType(5);
+    if (window.switchBgType) window.switchBgType(6);
   }, []);
   autoEjectRef.current = autoEject;
 
@@ -566,7 +566,7 @@ export function TapesTable() {
       }
 
       // Switch to tapes bg so user can see where the tape lands
-      if (window.switchBgType) window.switchBgType(5);
+      if (window.switchBgType) window.switchBgType(6);
 
       const tbl = tableRef.current!;
       const sx = fromEv.clientX - gx;
