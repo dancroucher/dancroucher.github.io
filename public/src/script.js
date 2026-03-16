@@ -330,4 +330,33 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // Random music video button
+    const randomBtn = document.getElementById("random-btn");
+    if (randomBtn) {
+        let randomLoading = false;
+        randomBtn.addEventListener("click", async () => {
+            if (randomLoading) return;
+            randomLoading = true;
+            randomBtn.style.opacity = "0.5";
+            randomBtn.style.cursor = "wait";
+            try {
+                const res = await fetch("/api/random");
+                const data = await res.json();
+                if (data.videoId && window.TapesBridge) {
+                    window.TapesBridge.addTapeFromSearch(
+                        data.videoId,
+                        data.title || "Unknown",
+                        data.artist || "Unknown",
+                        false
+                    );
+                }
+            } catch (err) {
+                console.warn("Random tape failed:", err);
+            }
+            randomLoading = false;
+            randomBtn.style.opacity = "1";
+            randomBtn.style.cursor = "pointer";
+        });
+    }
 });

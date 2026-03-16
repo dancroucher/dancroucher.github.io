@@ -18,6 +18,10 @@
     {
       "src": "/api/tapes",
       "dest": "/api/tapes.js"
+    },
+    {
+      "src": "/api/random",
+      "dest": "/api/random.js"
     }
   ],
   "headers": [
