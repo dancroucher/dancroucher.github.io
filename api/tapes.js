@@ -1,6 +1,6 @@
 import { kv } from '@vercel/kv';
 
-const KV_KEY = 'tapes:state';
+const KV_KEY = process.env.VERCEL_ENV === 'production' ? 'tapes:state' : 'tapes:state:test';
 const EMPTY = { tapes: [], _v: '' };
 
 export default async function handler(req, res) {
