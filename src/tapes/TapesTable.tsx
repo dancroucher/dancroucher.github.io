@@ -208,6 +208,7 @@ export function TapesTable() {
   const [loadedTape, setLoadedTape] = useState<Tape | null>(null);
   const [deckEjecting, setDeckEjecting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [infiniteLoading, setInfiniteLoading] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mineOnly, setMineOnly] = useState(() => localStorage.getItem('jeem_mine_only') === '1');
   const [keepTidy, setKeepTidy] = useState(() => localStorage.getItem('jeem_keep_tidy') === '1');
@@ -492,6 +493,7 @@ export function TapesTable() {
 
     // Otherwise fetch more tracks
     infiniteFetchingRef.current = true;
+    setInfiniteLoading(true);
     infinitePageRef.current += 1;
     const newTracks = await fetchInfiniteTracks(tape.infiniteConfig, infinitePageRef.current);
     infiniteFetchingRef.current = false;
@@ -500,23 +502,24 @@ export function TapesTable() {
       // If no more tracks from next page, try page 1 again with different results
       infinitePageRef.current = 1;
       const fallback = await fetchInfiniteTracks(tape.infiniteConfig, 1);
-      if (fallback.length === 0) return;
+      if (fallback.length === 0) { setInfiniteLoading(false); return; }
       // Filter out tracks already in history
       const existingIds = new Set(history.map(t => t.videoId));
       const fresh = fallback.filter(t => !existingIds.has(t.videoId));
-      if (fresh.length === 0) return;
+      if (fresh.length === 0) { setInfiniteLoading(false); return; }
       newTracks.push(...fresh);
     }
 
     // Filter duplicates
     const existingIds = new Set(history.map(t => t.videoId));
     const uniqueNew = newTracks.filter(t => !existingIds.has(t.videoId));
-    if (uniqueNew.length === 0) return;
+    if (uniqueNew.length === 0) { setInfiniteLoading(false); return; }
 
     const updatedHistory = [...history, ...uniqueNew];
     const nextIdx = idx + 1;
     const track = updatedHistory[nextIdx];
 
+    setInfiniteLoading(false);
     setLoadedTape(prev => prev ? { ...prev, infiniteHistory: updatedHistory, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : prev);
     setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, infiniteHistory: updatedHistory, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : t));
     locallyDirtyIds.add(tape.id);
@@ -576,7 +579,9 @@ export function TapesTable() {
       }
 
       // Fetch first batch
+      setInfiniteLoading(true);
       fetchInfiniteTracks(tape.infiniteConfig).then(tracks => {
+        setInfiniteLoading(false);
         if (tracks.length === 0) return;
         const updatedTape = { ...tape, infiniteHistory: tracks, infiniteIndex: 0, videoId: tracks[0].videoId };
         setLoadedTape(updatedTape);
@@ -890,6 +895,7 @@ export function TapesTable() {
         @keyframes tape-spin-slow { to { transform: rotate(-360deg) } }
         @keyframes tape-spin-fast { to { transform: rotate(-360deg) } }
         @keyframes tape-rewind { 0%,100% { transform: rotate(0deg) } 20% { transform: rotate(-4deg) } 40% { transform: rotate(4deg) } 60% { transform: rotate(-3deg) } 80% { transform: rotate(2deg) } }
+        @keyframes tape-loading-spin { to { transform: rotate(360deg) } }
         .tapes-scroll::-webkit-scrollbar { display: none; }
         .tapes-scroll { scrollbar-width: none; -ms-overflow-style: none; }
       `}</style>
@@ -1066,7 +1072,7 @@ export function TapesTable() {
 
             {loadedTape ? (
               <div style={{ position: 'relative', zIndex: 1 }}>
-                <CassetteTape tape={loadedTape} playing={isPlaying} />
+                <CassetteTape tape={loadedTape} playing={isPlaying} loading={infiniteLoading} />
               </div>
             ) : null}
           </div>

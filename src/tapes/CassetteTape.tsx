@@ -2,7 +2,7 @@ import React from 'react';
 import { Tape, TAPE_STYLES } from './types';
 import { Spool } from './Spool';
 
-export function CassetteTape({ tape, playing, big }: { tape: Tape; playing?: boolean; big?: boolean }) {
+export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; playing?: boolean; big?: boolean; loading?: boolean }) {
   const st = TAPE_STYLES[(tape.tapeStyle ?? 0) % TAPE_STYLES.length];
   const s = big ? 1.35 : 1;
   const R = (v: number) => Math.round(v * s);
@@ -232,12 +232,17 @@ export function CassetteTape({ tape, playing, big }: { tape: Tape; playing?: boo
       })()}
 
       {/* Spools — left (supply) faster, right (take-up) slower */}
-      <div style={{ position: 'absolute', left: w / 2 - spoolSpread - spoolSz / 2, top: spoolY - spoolSz / 2 }}>
-        <Spool spinning={playing} size={spoolSz} rpm={15} />
-      </div>
-      <div style={{ position: 'absolute', left: w / 2 + spoolSpread - spoolSz / 2, top: spoolY - spoolSz / 2 }}>
-        <Spool spinning={playing} size={spoolSz} rpm={30} />
-      </div>
+      {(() => {
+        const spoolColor = tape.isInfinite ? '#e8c840' : undefined;
+        return <>
+          <div style={{ position: 'absolute', left: w / 2 - spoolSpread - spoolSz / 2, top: spoolY - spoolSz / 2 }}>
+            <Spool spinning={playing} size={spoolSz} rpm={15} color={spoolColor} />
+          </div>
+          <div style={{ position: 'absolute', left: w / 2 + spoolSpread - spoolSz / 2, top: spoolY - spoolSz / 2 }}>
+            <Spool spinning={playing} size={spoolSz} rpm={30} color={spoolColor} />
+          </div>
+        </>;
+      })()}
 
       {/* Tape window between spools — with reels sized by progress */}
       {(() => {
@@ -335,19 +340,19 @@ export function CassetteTape({ tape, playing, big }: { tape: Tape; playing?: boo
 
       {/* Infinity sticker for infinite tapes */}
       {tape.isInfinite && (() => {
-        const stickerW = R(28), stickerH = R(20);
+        const stickerW = R(36), stickerH = R(26);
         return (
           <div style={{
-            position: 'absolute', top: R(46), right: R(18),
+            position: 'absolute', top: R(42), right: R(14),
             width: stickerW, height: stickerH,
-            background: 'linear-gradient(135deg, #e8e4d8 0%, #d8d4c8 100%)',
-            borderRadius: R(2),
+            background: 'linear-gradient(135deg, #f0d848 0%, #e8c830 100%)',
+            borderRadius: R(3),
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             transform: `rotate(${((seed >> 3) % 7) - 3}deg)`,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-            border: '0.5px solid rgba(0,0,0,0.15)',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+            border: '0.5px solid rgba(180,150,30,0.4)',
           }}>
-            <span style={{ fontSize: R(14), fontWeight: 700, color: '#333', lineHeight: 1 }}>∞</span>
+            <span style={{ fontSize: R(20), fontWeight: 700, color: '#5a4a10', lineHeight: 1 }}>∞</span>
           </div>
         );
       })()}
@@ -361,6 +366,24 @@ export function CassetteTape({ tape, playing, big }: { tape: Tape; playing?: boo
           <div style={{ position: 'absolute', right: R(22), top: '70%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: 'rgba(0,0,0,0.5)', borderRadius: '50%' }} />
         </div>
       </div>
+
+      {/* Loading spinner overlay */}
+      {loading && (
+        <div style={{
+          position: 'absolute', inset: 0, borderRadius: R(4),
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 10,
+        }}>
+          <div style={{
+            width: R(24), height: R(24),
+            border: `${R(3)}px solid rgba(255,255,255,0.2)`,
+            borderTopColor: '#e8c840',
+            borderRadius: '50%',
+            animation: 'tape-loading-spin 0.8s linear infinite',
+          }} />
+        </div>
+      )}
     </div>
   );
 }

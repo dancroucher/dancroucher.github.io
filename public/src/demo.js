@@ -60,6 +60,7 @@ var Demo = (function () {
             this.player.on("playlist_change", () => this._onPlaylistChange());
             this.player.on("playlist_index_change", () => this._onPlaylistIndexChange());
             this.player.on("video_data_change", () => this._onVideoDataChange());
+            this.player.on("yt_error", () => this._onError());
         },
 
         _attachPlayingListeners: function () {
@@ -314,6 +315,14 @@ var Demo = (function () {
             const playlist = this.player.get_playlist();
             if (!playlist) return;
             // Don't save here — wait for video_data_change which has the correct metadata
+        },
+
+        _onError: function () {
+            console.warn('YouTube player error — video may be blocked or unavailable');
+            // For infinite tapes, skip to next track
+            if (AppState.infiniteTape && window.TapesBridge) {
+                setTimeout(() => window.TapesBridge.loadNextInfiniteTrack(), 500);
+            }
         },
 
         _onPlaylistIndexChange: function () {
