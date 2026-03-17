@@ -352,7 +352,7 @@ const InfinitePopup = {
     _getValue() {
         const type = document.getElementById("inf-type").value;
         if (type === "decade") return document.getElementById("inf-value-decade").value;
-        if (type === "genre") return document.getElementById("inf-value-genre").value;
+        if (type === "genre") return document.getElementById("inf-value-genre").value.trim();
         return document.getElementById("inf-value-text").value.trim();
     },
 

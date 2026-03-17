@@ -352,7 +352,7 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
             boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
             border: '0.5px solid rgba(180,150,30,0.4)',
           }}>
-            <span style={{ fontSize: R(20), fontWeight: 700, color: '#5a4a10', lineHeight: 1 }}>∞</span>
+            <span style={{ fontSize: R(26), fontWeight: 700, color: '#5a4a10', lineHeight: 1 }}>∞</span>
           </div>
         );
       })()}
