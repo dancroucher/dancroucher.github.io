@@ -319,13 +319,35 @@ export function CassetteTape({ tape, playing, big }: { tape: Tape; playing?: boo
             {stripVariant === 1 && <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40%', background: 'rgba(0,0,0,0.15)' }} />}
             {stripVariant === 2 && <div style={{ position: 'absolute', left: '50%', top: R(2), bottom: R(2), width: 1, background: 'rgba(255,255,255,0.15)' }} />}
             {stripVariant === 3 && <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: R(4), height: R(4), borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '0.5px solid rgba(255,255,255,0.15)' }} />}
-            {tape.isPlaylist ? <>
+            {tape.isInfinite ? <>
+              <span style={{ fontSize: R(6), color: 'rgba(255,255,255,0.4)', fontWeight: 500, position: 'relative' }}>{tape.infiniteConfig?.source?.toUpperCase() || 'IMVDB'}</span>
+              <span style={{ fontSize: R(8), color: st.titleBg, fontWeight: 800, letterSpacing: '0.05em', position: 'relative' }}>∞ INFINITE</span>
+            </> : tape.isPlaylist ? <>
               <span style={{ fontSize: R(6), color: 'rgba(255,255,255,0.4)', fontWeight: 500, position: 'relative' }}>{biasText}</span>
               <span style={{ fontSize: R(8), color: st.titleBg, fontWeight: 800, letterSpacing: '0.05em', position: 'relative' }}>PLAYLIST</span>
             </> : <>
               <span style={{ fontSize: R(6), color: 'rgba(255,255,255,0.4)', fontWeight: 500, position: 'relative' }}>{biasText}</span>
               <span style={{ fontSize: R(7), color: 'rgba(255,255,255,0.35)', fontWeight: 700, letterSpacing: '0.04em', position: 'relative' }}>{typeText}</span>
             </>}
+          </div>
+        );
+      })()}
+
+      {/* Infinity sticker for infinite tapes */}
+      {tape.isInfinite && (() => {
+        const stickerW = R(28), stickerH = R(20);
+        return (
+          <div style={{
+            position: 'absolute', top: R(46), right: R(18),
+            width: stickerW, height: stickerH,
+            background: 'linear-gradient(135deg, #e8e4d8 0%, #d8d4c8 100%)',
+            borderRadius: R(2),
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transform: `rotate(${((seed >> 3) % 7) - 3}deg)`,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+            border: '0.5px solid rgba(0,0,0,0.15)',
+          }}>
+            <span style={{ fontSize: R(14), fontWeight: 700, color: '#333', lineHeight: 1 }}>∞</span>
           </div>
         );
       })()}

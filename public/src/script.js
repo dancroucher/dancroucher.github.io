@@ -4,6 +4,7 @@
 // Exposed on window for React tapes bridge
 const AppState = window.AppState = {
     singleVideo: false,
+    infiniteTape: false,
     myVideoName: null,
     myVideoPlaylistName: null,
     songTitle: null,
@@ -312,6 +313,74 @@ const Search = {
     },
 };
 
+// ── Infinite tape popup ──
+const InfinitePopup = {
+    _open: false,
+
+    init() {
+        const btn = document.getElementById("infinite-btn");
+        const popup = document.getElementById("infinite-popup");
+        const typeSelect = document.getElementById("inf-type");
+        const createBtn = document.getElementById("inf-create");
+
+        btn.addEventListener("click", () => {
+            this._open = !this._open;
+            popup.style.display = this._open ? "block" : "none";
+        });
+
+        typeSelect.addEventListener("change", () => this._updateValueField());
+        createBtn.addEventListener("click", () => this._create());
+
+        // Close popup on outside click
+        document.addEventListener("click", (e) => {
+            if (this._open && !popup.contains(e.target) && e.target !== btn) {
+                this._open = false;
+                popup.style.display = "none";
+            }
+        });
+    },
+
+    _updateValueField() {
+        const type = document.getElementById("inf-type").value;
+        document.getElementById("inf-value-decade").style.display = type === "decade" ? "" : "none";
+        document.getElementById("inf-value-genre").style.display = type === "genre" ? "" : "none";
+        document.getElementById("inf-value-text").style.display = (type === "year" || type === "artist") ? "" : "none";
+        if (type === "year") document.getElementById("inf-value-text").placeholder = "e.g. 1985";
+        if (type === "artist") document.getElementById("inf-value-text").placeholder = "e.g. Depeche Mode";
+    },
+
+    _getValue() {
+        const type = document.getElementById("inf-type").value;
+        if (type === "decade") return document.getElementById("inf-value-decade").value;
+        if (type === "genre") return document.getElementById("inf-value-genre").value;
+        return document.getElementById("inf-value-text").value.trim();
+    },
+
+    _create() {
+        const source = document.getElementById("inf-source").value;
+        const type = document.getElementById("inf-type").value;
+        const value = this._getValue();
+
+        if (!value) return;
+
+        const config = { source, type, value };
+
+        // Build label for the tape
+        let label = value;
+        if (type === "decade") label = value + "s";
+        if (type === "genre") label = value.charAt(0).toUpperCase() + value.slice(1);
+
+        const title = `∞ ${label} / ${source === "imvdb" ? "IMVDb" : "YouTube"}`;
+
+        if (window.TapesBridge) {
+            window.TapesBridge.addInfiniteTape(config, title);
+        }
+
+        this._open = false;
+        document.getElementById("infinite-popup").style.display = "none";
+    },
+};
+
 // ── Form submit binding ──
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("video-form");
@@ -331,6 +400,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    InfinitePopup.init();
 
     if (input) {
         input.addEventListener("keydown", (e) => {

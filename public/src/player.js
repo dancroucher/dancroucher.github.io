@@ -425,7 +425,11 @@ function doStart() {
     DOM.tapeDeck.style.display = "block";
     DOM.bgYoutube.style.display = "block";
 
-    if (AppState.singleVideo) {
+    if (AppState.infiniteTape) {
+        DOM.playlistPrev.style.display = "";
+        DOM.trackNumber.style.display = "none";
+        DOM.playlistNext.style.display = "";
+    } else if (AppState.singleVideo) {
         DOM.playlistPrev.style.display = "none";
         DOM.trackNumber.style.display = "none";
         DOM.playlistNext.style.display = "none";
@@ -516,12 +520,14 @@ window.addEventListener("keydown", (event) => {
             break;
         case "arrowright":
             if (!window.myApp) break;
-            if (AppState.singleVideo) window.myApp.seekBy(60);
+            if (AppState.infiniteTape && window.TapesBridge) window.TapesBridge.loadNextInfiniteTrack();
+            else if (AppState.singleVideo) window.myApp.seekBy(60);
             else window.myApp.doPlaylistNext();
             break;
         case "arrowleft":
             if (!window.myApp) break;
-            if (AppState.singleVideo) window.myApp.seekBy(-60);
+            if (AppState.infiniteTape && window.TapesBridge) window.TapesBridge.loadPrevInfiniteTrack();
+            else if (AppState.singleVideo) window.myApp.seekBy(-60);
             else window.myApp.doPlaylistPrevious();
             break;
         case "x":
@@ -542,8 +548,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("background-auto")?.addEventListener("click", () => Backgrounds.cycleChangeTime());
     document.getElementById("fullscreen-btn")?.addEventListener("click", doFullscreen);
     document.getElementById("info-btn")?.addEventListener("click", doPopup);
-    DOM.playlistPrev.addEventListener("click", () => { if (window.myApp) window.myApp.doPlaylistPrevious(); });
-    DOM.playlistNext.addEventListener("click", () => { if (window.myApp) window.myApp.doPlaylistNext(); });
+    DOM.playlistPrev.addEventListener("click", () => {
+        if (AppState.infiniteTape && window.TapesBridge) window.TapesBridge.loadPrevInfiniteTrack();
+        else if (window.myApp) window.myApp.doPlaylistPrevious();
+    });
+    DOM.playlistNext.addEventListener("click", () => {
+        if (AppState.infiniteTape && window.TapesBridge) window.TapesBridge.loadNextInfiniteTrack();
+        else if (window.myApp) window.myApp.doPlaylistNext();
+    });
     let clickTimer = null;
     DOM.bgMp4.addEventListener("click", () => {
         if (clickTimer) return;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Tape, TAPE_STYLES, STORAGE_KEY } from './types';
+import { Tape, TAPE_STYLES, STORAGE_KEY, InfiniteConfig, InfiniteTrack } from './types';
 import { CassetteTape } from './CassetteTape';
 
 // ── Persistence (localStorage + KV sync) ──
@@ -119,8 +119,11 @@ declare global {
       onTapePlay: (tape: Tape) => void;
       updateProgress: (videoId: string, progress: number) => void;
       addTapeFromSearch: (videoId: string, title: string, author: string, isPlaylist: boolean, playlistId?: string) => void;
+      addInfiniteTape: (config: InfiniteConfig, title: string) => void;
       notifyPlayState: (playing: boolean) => void;
       onTrackEnded: () => void;
+      loadNextInfiniteTrack: () => void;
+      loadPrevInfiniteTrack: () => void;
     };
   }
 }
@@ -149,6 +152,48 @@ function tidyTapes(tapes: Tape[]): Tape[] {
   }));
 }
 
+// Fetch tracks for infinite tape from IMVDb or YouTube search
+async function fetchInfiniteTracks(config: InfiniteConfig, page = 1): Promise<InfiniteTrack[]> {
+  try {
+    if (config.source === 'imvdb') {
+      let query = config.value;
+      const params = new URLSearchParams({ q: query, page: String(page) });
+      if (config.type === 'decade') params.set('decade', config.value);
+      if (config.type === 'year') params.set('year', config.value);
+      // For genre/artist, the query itself is the filter term
+      if (config.type === 'genre') params.set('q', config.value + ' music video');
+      if (config.type === 'artist') params.set('q', config.value);
+      if (config.type === 'decade') params.set('q', config.value + 's music');
+
+      const res = await fetch(`/api/imvdb-search?${params}`);
+      const data = await res.json();
+      return (data.results || []).map((r: any) => ({
+        videoId: r.videoId,
+        title: r.title,
+        author: r.author,
+      }));
+    } else {
+      // YouTube search
+      let query = config.value;
+      if (config.type === 'decade') query = config.value + 's music videos';
+      if (config.type === 'genre') query = config.value + ' music videos';
+      if (config.type === 'year') query = config.value + ' music videos';
+      if (config.type === 'artist') query = config.value + ' music video';
+
+      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      return (data || []).map((r: any) => ({
+        videoId: r.videoId,
+        title: r.title,
+        author: r.author,
+      }));
+    }
+  } catch (err) {
+    console.error('Failed to fetch infinite tracks:', err);
+    return [];
+  }
+}
+
 export function TapesTable() {
   const [tapes, setTapes] = useState<Tape[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -175,6 +220,8 @@ export function TapesTable() {
   const loadedRef = useRef(loadedTape);
   loadedRef.current = loadedTape;
   const autoEjectRef = useRef<() => void>(() => {});
+  const infinitePageRef = useRef(1);
+  const infiniteFetchingRef = useRef(false);
 
   // Double-tap detection
   const lastTapRef = useRef<{ time: number; id: string }>({ time: 0, id: '' });
@@ -302,7 +349,53 @@ export function TapesTable() {
         setIsPlaying(playing);
       },
       onTrackEnded: () => {
-        autoEjectRef.current();
+        const tape = loadedRef.current;
+        if (tape?.isInfinite) {
+          // Auto-load next track instead of ejecting
+          loadNextRef.current();
+        } else {
+          autoEjectRef.current();
+        }
+      },
+      loadNextInfiniteTrack: () => {
+        loadNextRef.current();
+      },
+      loadPrevInfiniteTrack: () => {
+        loadPrevRef.current();
+      },
+      addInfiniteTape: (config: InfiniteConfig, title: string) => {
+        setTapes(prev => {
+          const tbl = document.getElementById('tapes-table-canvas');
+          const sl = tbl?.parentElement?.scrollLeft ?? 0;
+          const st2 = tbl?.parentElement?.scrollTop ?? 0;
+          const col = prev.length % 4;
+          const row2 = Math.floor(prev.length / 4);
+
+          const tape: Tape = {
+            id: crypto.randomUUID?.() ?? `${Date.now()}`,
+            videoId: '',
+            isPlaylist: false,
+            isInfinite: true,
+            infiniteConfig: config,
+            infiniteHistory: [],
+            infiniteIndex: 0,
+            title,
+            author: '',
+            tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+            progress: 0,
+            timestamp: Date.now(),
+            x: sl + 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
+            y: Math.max(st2 + HEADER_BLOCK_H + row2 * 170 + Math.round((Math.random() - 0.5) * 30), HEADER_BLOCK_H),
+            angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
+            ownerId: getOwnerId(),
+          };
+          const next = [tape, ...prev];
+          if (next.length > 50) next.pop();
+          setZOrder(o => [tape.id, ...o]);
+          locallyDirtyIds.add(tape.id);
+          scheduleRemoteSave();
+          return next;
+        });
       },
       addTapeFromSearch: (videoId: string, title: string, author: string, isPlaylist: boolean, playlistId?: string) => {
         setTapes(prev => {
@@ -352,6 +445,109 @@ export function TapesTable() {
     return () => { delete window.TapesBridge; };
   }, []);
 
+  // ── Play a single video by ID (used for infinite tape tracks) ──
+  const playVideoById = useCallback((videoId: string, title: string, author: string, seekProgress = 0) => {
+    if (!window.myApp || !window.AppState) return;
+    const AppState = window.AppState;
+    AppState.starting = true;
+    AppState.singleVideo = true;
+    AppState.infiniteTape = true;
+    AppState.myVideoName = videoId;
+    AppState.songTitle = title;
+    AppState.songAuthor = author;
+
+    const titleEl = document.getElementById('title-container');
+    if (titleEl) titleEl.style.display = 'block';
+
+    // Show prev/next buttons for infinite tapes
+    const prevEl = document.getElementById('playlist-prev');
+    const nextEl = document.getElementById('playlist-next');
+    const trackEl = document.getElementById('track-number');
+    if (prevEl) prevEl.style.display = '';
+    if (nextEl) nextEl.style.display = '';
+    if (trackEl) trackEl.style.display = '';
+
+    window.myApp.submitVideoNameFromSaved(videoId, 0, seekProgress);
+  }, []);
+
+  // ── Load next track for infinite tape ──
+  const loadNextInfiniteTrack = useCallback(async () => {
+    const tape = loadedRef.current;
+    if (!tape?.isInfinite || !tape.infiniteConfig || infiniteFetchingRef.current) return;
+
+    const history = tape.infiniteHistory || [];
+    const idx = tape.infiniteIndex ?? -1;
+
+    // If we have a next track in history, play it
+    if (idx + 1 < history.length) {
+      const nextIdx = idx + 1;
+      const track = history[nextIdx];
+      setLoadedTape(prev => prev ? { ...prev, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : prev);
+      setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : t));
+      locallyDirtyIds.add(tape.id);
+      scheduleRemoteSave();
+      playVideoById(track.videoId, track.title, track.author);
+      return;
+    }
+
+    // Otherwise fetch more tracks
+    infiniteFetchingRef.current = true;
+    infinitePageRef.current += 1;
+    const newTracks = await fetchInfiniteTracks(tape.infiniteConfig, infinitePageRef.current);
+    infiniteFetchingRef.current = false;
+
+    if (newTracks.length === 0) {
+      // If no more tracks from next page, try page 1 again with different results
+      infinitePageRef.current = 1;
+      const fallback = await fetchInfiniteTracks(tape.infiniteConfig, 1);
+      if (fallback.length === 0) return;
+      // Filter out tracks already in history
+      const existingIds = new Set(history.map(t => t.videoId));
+      const fresh = fallback.filter(t => !existingIds.has(t.videoId));
+      if (fresh.length === 0) return;
+      newTracks.push(...fresh);
+    }
+
+    // Filter duplicates
+    const existingIds = new Set(history.map(t => t.videoId));
+    const uniqueNew = newTracks.filter(t => !existingIds.has(t.videoId));
+    if (uniqueNew.length === 0) return;
+
+    const updatedHistory = [...history, ...uniqueNew];
+    const nextIdx = idx + 1;
+    const track = updatedHistory[nextIdx];
+
+    setLoadedTape(prev => prev ? { ...prev, infiniteHistory: updatedHistory, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : prev);
+    setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, infiniteHistory: updatedHistory, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : t));
+    locallyDirtyIds.add(tape.id);
+    scheduleRemoteSave();
+    playVideoById(track.videoId, track.title, track.author);
+  }, [playVideoById]);
+
+  // ── Load previous track for infinite tape ──
+  const loadPrevInfiniteTrack = useCallback(() => {
+    const tape = loadedRef.current;
+    if (!tape?.isInfinite) return;
+
+    const history = tape.infiniteHistory || [];
+    const idx = tape.infiniteIndex ?? 0;
+    if (idx <= 0 || history.length === 0) return;
+
+    const prevIdx = idx - 1;
+    const track = history[prevIdx];
+
+    setLoadedTape(prev => prev ? { ...prev, infiniteIndex: prevIdx, videoId: track.videoId, progress: 0 } : prev);
+    setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, infiniteIndex: prevIdx, videoId: track.videoId, progress: 0 } : t));
+    locallyDirtyIds.add(tape.id);
+    scheduleRemoteSave();
+    playVideoById(track.videoId, track.title, track.author);
+  }, [playVideoById]);
+
+  const loadNextRef = useRef(loadNextInfiniteTrack);
+  loadNextRef.current = loadNextInfiniteTrack;
+  const loadPrevRef = useRef(loadPrevInfiniteTrack);
+  loadPrevRef.current = loadPrevInfiniteTrack;
+
   // ── Play tape via vanilla JS bridge ──
   const loadIntoPlayer = useCallback((tape: Tape) => {
     setLoadedTape(tape);
@@ -364,6 +560,35 @@ export function TapesTable() {
     // Show jeem-fm title when playing
     const titleEl = document.getElementById('title-container');
     if (titleEl) titleEl.style.display = 'block';
+
+    if (tape.isInfinite && tape.infiniteConfig) {
+      // Infinite tape: load from history or fetch first batch
+      AppState.infiniteTape = true;
+      infinitePageRef.current = 1;
+
+      if (tape.infiniteHistory && tape.infiniteHistory.length > 0 && tape.infiniteIndex !== undefined) {
+        // Resume from saved position
+        const track = tape.infiniteHistory[tape.infiniteIndex];
+        if (track) {
+          playVideoById(track.videoId, track.title, track.author, tape.progress ?? 0);
+          return;
+        }
+      }
+
+      // Fetch first batch
+      fetchInfiniteTracks(tape.infiniteConfig).then(tracks => {
+        if (tracks.length === 0) return;
+        const updatedTape = { ...tape, infiniteHistory: tracks, infiniteIndex: 0, videoId: tracks[0].videoId };
+        setLoadedTape(updatedTape);
+        setTapes(prev => prev.map(t => t.id === tape.id ? updatedTape : t));
+        locallyDirtyIds.add(tape.id);
+        scheduleRemoteSave();
+        playVideoById(tracks[0].videoId, tracks[0].title, tracks[0].author);
+      });
+      return;
+    }
+
+    AppState.infiniteTape = false;
 
     if (tape.isPlaylist && tape.playlistId) {
       AppState.singleVideo = false;
@@ -378,7 +603,7 @@ export function TapesTable() {
       AppState.songAuthor = tape.author;
       window.myApp.submitVideoNameFromSaved(tape.videoId, 0, tape.progress ?? 0);
     }
-  }, []);
+  }, [playVideoById]);
 
   const deleteTape = useCallback((id: string) => {
     markDeleted(id);
@@ -427,6 +652,7 @@ export function TapesTable() {
       if (window.AppState) {
         window.AppState.playing = false;
         window.AppState.starting = true;
+        window.AppState.infiniteTape = false;
       }
     }
 
@@ -553,6 +779,7 @@ export function TapesTable() {
         if (window.AppState) {
           window.AppState.playing = false;
           window.AppState.starting = true;
+          window.AppState.infiniteTape = false;
         }
         // Suppress pause overlay (state_change fires async after pause)
         setTimeout(() => {

@@ -322,6 +322,82 @@ input:focus, select:focus, textarea:focus, button:focus {
   width: 80vw;
 }
 
+/* ── Infinite tape button + popup ── */
+
+.infinite-btn {
+  color: rgba(250, 249, 246, 0.9);
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1.5px dashed rgba(250, 249, 246, 0.5);
+  font-size: 1.4em;
+  padding: 2px 10px 0;
+  cursor: pointer;
+  line-height: 1.2em;
+  font-family: '04b03', monospace;
+  margin-bottom: 16px;
+}
+.infinite-btn:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+  color: rgba(250, 249, 246, 1);
+}
+
+.infinite-popup {
+  background-color: rgba(250, 249, 246, 0.9);
+  color: rgba(0, 0, 0, 1);
+  border: 1.5px dashed rgba(250, 249, 246, 0.5);
+  padding: 12px 14px;
+  margin-left: 8px;
+  margin-bottom: 16px;
+  width: 280px;
+  font-family: '04b03', monospace;
+  font-size: 1.1em;
+}
+
+.infinite-popup-title {
+  font-size: 1.1em;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.infinite-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.infinite-row label {
+  width: 50px;
+  font-size: 0.9em;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.infinite-row select,
+.infinite-row input[type="text"] {
+  flex: 1;
+  padding: 4px 6px 2px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.8);
+  font-family: '04b03', monospace;
+  font-size: 1em;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.infinite-create {
+  width: 100%;
+  padding: 6px 0 4px;
+  margin-top: 4px;
+  background: rgba(0, 0, 0, 0.8);
+  color: rgba(250, 249, 246, 0.9);
+  border: none;
+  font-family: '04b03', monospace;
+  font-size: 1em;
+  cursor: pointer;
+}
+.infinite-create:hover {
+  background: rgba(0, 0, 0, 1);
+}
+
 /* ── Search dropdown ── */
 
 .search-dropdown {

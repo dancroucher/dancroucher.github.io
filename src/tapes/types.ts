@@ -1,3 +1,15 @@
+export interface InfiniteConfig {
+  source: 'imvdb' | 'youtube';
+  type: 'decade' | 'genre' | 'year' | 'artist';
+  value: string;
+}
+
+export interface InfiniteTrack {
+  videoId: string;
+  title: string;
+  author: string;
+}
+
 export interface Tape {
   id: string;
   videoId: string;
@@ -13,6 +25,11 @@ export interface Tape {
   y?: number;
   angle?: number;
   ownerId?: string;
+  // Infinite tape fields
+  isInfinite?: boolean;
+  infiniteConfig?: InfiniteConfig;
+  infiniteHistory?: InfiniteTrack[];
+  infiniteIndex?: number;
 }
 
 export const TAPE_STYLES: {
