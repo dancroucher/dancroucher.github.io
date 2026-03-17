@@ -209,9 +209,6 @@ export function TapesTable() {
   const [deckEjecting, setDeckEjecting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [infiniteLoading, setInfiniteLoading] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [mineOnly, setMineOnly] = useState(() => localStorage.getItem('jeem_mine_only') === '1');
-  const [keepTidy, setKeepTidy] = useState(() => localStorage.getItem('jeem_keep_tidy') === '1');
   const ownerId = useRef(getOwnerId()).current;
   const tableRef = useRef<HTMLDivElement>(null);
   const playerZoneRef = useRef<HTMLDivElement>(null);
@@ -466,7 +463,7 @@ export function TapesTable() {
     const trackEl = document.getElementById('track-number');
     if (prevEl) prevEl.style.display = '';
     if (nextEl) nextEl.style.display = '';
-    if (trackEl) trackEl.style.display = '';
+    if (trackEl) trackEl.style.display = 'none';
 
     window.myApp.submitVideoNameFromSaved(videoId, 0, seekProgress);
   }, []);
@@ -882,12 +879,8 @@ export function TapesTable() {
     };
   });
 
-  // Tapes on table = all except what's loaded in the deck, filtered by settings
-  const tableTapes = positionedTapes.filter(t => {
-    if (t.id === loadedTape?.id) return false;
-    if (mineOnly && t.ownerId && t.ownerId !== ownerId) return false;
-    return true;
-  });
+  // Tapes on table = all except what's loaded in the deck
+  const tableTapes = positionedTapes.filter(t => t.id !== loadedTape?.id);
 
   return (
     <>
@@ -1080,65 +1073,6 @@ export function TapesTable() {
         deckPortal
       )}
 
-      {/* Settings cog — top right, level with title, hidden during playback */}
-      {!loadedTape && createPortal(
-        <div style={{ position: 'fixed', top: 44, right: 40, zIndex: 10001 }}>
-          <button
-            onClick={() => setSettingsOpen(p => !p)}
-            style={{
-              background: 'none', border: 'none', color: 'rgba(250, 249, 246, 0.6)',
-              fontSize: 18, cursor: 'pointer', padding: 6,
-            }}
-            title="Settings"
-          >
-            <i className="fas fa-cog" />
-          </button>
-
-          {settingsOpen && (
-            <div style={{
-              position: 'absolute', top: 36, right: 0, background: 'rgba(0, 0, 0, 0.85)',
-              border: '1px solid rgba(250, 249, 246, 0.15)', padding: '12px 16px',
-              minWidth: 180, fontFamily: "'04b03', monospace", fontSize: 12,
-              color: 'rgba(250, 249, 246, 0.8)',
-            }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 10 }}>
-                <input
-                  type="checkbox"
-                  checked={mineOnly}
-                  onChange={e => {
-                    setMineOnly(e.target.checked);
-                    localStorage.setItem('jeem_mine_only', e.target.checked ? '1' : '0');
-                  }}
-                  style={{ accentColor: '#888' }}
-                />
-                mine only
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={keepTidy}
-                  onChange={e => {
-                    const on = e.target.checked;
-                    setKeepTidy(on);
-                    localStorage.setItem('jeem_keep_tidy', on ? '1' : '0');
-                    if (on) {
-                      setTapes(prev => {
-                        const tidied = tidyTapes(prev);
-                        tidied.forEach(t => locallyDirtyIds.add(t.id));
-                        scheduleRemoteSave();
-                        return tidied;
-                      });
-                    }
-                  }}
-                  style={{ accentColor: '#888' }}
-                />
-                keep tidy
-              </label>
-            </div>
-          )}
-        </div>,
-        document.body
-      )}
     </>
   );
 }

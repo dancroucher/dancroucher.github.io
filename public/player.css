@@ -344,7 +344,7 @@ input:focus, select:focus, textarea:focus, button:focus {
 .infinite-popup {
   position: absolute;
   top: 100%;
-  right: 0;
+  left: 0;
   z-index: 100;
   background-color: rgba(250, 249, 246, 0.95);
   color: rgba(0, 0, 0, 1);
