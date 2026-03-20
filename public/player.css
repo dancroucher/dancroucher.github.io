@@ -149,6 +149,10 @@ a:hover {
   pointer-events: auto;
 }
 
+.padinfo-row {
+  display: contents;
+}
+
 @media (max-width: 745px) {
   .padinfo {
     padding: 0 8px;
@@ -157,6 +161,11 @@ a:hover {
     left: auto;
     flex-direction: column;
     align-items: flex-end;
+    gap: 2px;
+  }
+
+  .padinfo-row {
+    display: flex;
     gap: 2px;
   }
 
