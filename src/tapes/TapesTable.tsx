@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Tape, TAPE_STYLES, STORAGE_KEY, InfiniteConfig, InfiniteTrack } from './types';
+import { Tape, TAPE_STYLES, getStorageKey, InfiniteConfig, InfiniteTrack } from './types';
 import { CassetteTape } from './CassetteTape';
 
 // ── Persistence (localStorage + KV sync) ──
@@ -15,7 +15,7 @@ function userParam(prefix = '?') {
 
 function loadTapesLocal(): Tape[] {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    return JSON.parse(localStorage.getItem(getStorageKey()) || '[]');
   } catch { return []; }
 }
 
@@ -64,7 +64,7 @@ async function flushRemote(retries = 2) {
   pendingSave = false;
   const dirtySnapshot = new Set(locallyDirtyIds);
   try {
-    let localTapes: Tape[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    let localTapes: Tape[] = JSON.parse(localStorage.getItem(getStorageKey()) || '[]');
 
     // Skip remote sync if no username set
     if (!currentUsername) { saveInFlight = false; return; }
@@ -78,7 +78,7 @@ async function flushRemote(retries = 2) {
         if (v && v > lastKnownVersion) {
           const remoteTapes: Tape[] = remote.tapes || [];
           localTapes = mergeState(new Map(localTapes.map((t: Tape) => [t.id, t])), remoteTapes, dirtySnapshot, locallyDeletedIds);
-          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(localTapes)); } catch {}
+          try { localStorage.setItem(getStorageKey(), JSON.stringify(localTapes)); } catch {}
         }
       }
     } catch {}
@@ -111,7 +111,7 @@ async function flushRemote(retries = 2) {
 
 function saveTapesToStorage(tapes: Tape[], dirtyIds?: string[]) {
   if (!currentUsername) return; // No persistence without a username
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tapes)); } catch {}
+  try { localStorage.setItem(getStorageKey(), JSON.stringify(tapes)); } catch {}
   if (dirtyIds) dirtyIds.forEach(id => locallyDirtyIds.add(id));
   else tapes.forEach(t => locallyDirtyIds.add(t.id));
   scheduleRemoteSave();
@@ -256,7 +256,7 @@ export function TapesTable() {
       loaded = loadTapesLocal();
     } else {
       // Clear any stale tapes when not logged in
-      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      try { localStorage.removeItem(getStorageKey()); } catch {}
     }
 
     // Migrate from old history format if empty
@@ -319,7 +319,7 @@ export function TapesTable() {
           new Set(locallyDirtyIds),
           new Set(locallyDeletedIds),
         );
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(merged)); } catch {}
+        try { localStorage.setItem(getStorageKey(), JSON.stringify(merged)); } catch {}
         setTapes(merged);
         setZOrder(prev => {
           const ids = new Set(merged.map((t: Tape) => t.id));
@@ -338,7 +338,7 @@ export function TapesTable() {
   // Persist to localStorage on every state change (instant, no remote sync)
   useEffect(() => {
     if (mounted && currentUsername) {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tapes)); } catch {}
+      try { localStorage.setItem(getStorageKey(), JSON.stringify(tapes)); } catch {}
     }
   }, [tapes, mounted]);
 
@@ -740,7 +740,7 @@ export function TapesTable() {
           // Remote has tapes — use them (logging in on new device)
           setTapes(remoteTapes);
           setZOrder(remoteTapes.map(t => t.id));
-          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteTapes)); } catch {}
+          try { localStorage.setItem(getStorageKey(), JSON.stringify(remoteTapes)); } catch {}
           if (remote._v) { lastKnownVersion = remote._v; lastUploadedVersion = remote._v; }
         } else {
           // No remote tapes — push current local tapes up
@@ -758,9 +758,10 @@ export function TapesTable() {
   }, []);
 
   const handleLogout = useCallback(() => {
+    // Remove user tapes before clearing username (getStorageKey reads it)
+    localStorage.removeItem(getStorageKey());
     currentUsername = null;
     localStorage.removeItem('jeem_username');
-    localStorage.removeItem(STORAGE_KEY);
     window.location.reload();
   }, []);
 
