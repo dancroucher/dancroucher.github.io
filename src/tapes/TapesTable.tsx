@@ -3,6 +3,108 @@ import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, getStorageKey, InfiniteConfig, InfiniteTrack } from './types';
 import { CassetteTape } from './CassetteTape';
 
+// ── Tape sounds (Web Audio API) ──
+
+const _audioCtx = () => {
+  const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  return ctx;
+};
+let _ac: AudioContext | null = null;
+const ac = () => { if (!_ac) _ac = _audioCtx(); return _ac; };
+
+function playTapeInsert() {
+  const c = ac();
+  // Low thud
+  const osc = c.createOscillator();
+  const gain = c.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(80, c.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(40, c.currentTime + 0.15);
+  gain.gain.setValueAtTime(0.4, c.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.2);
+  osc.connect(gain).connect(c.destination);
+  osc.start(c.currentTime);
+  osc.stop(c.currentTime + 0.2);
+  // Click/clunk noise
+  const buf = c.createBuffer(1, c.sampleRate * 0.05, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (c.sampleRate * 0.008));
+  const noise = c.createBufferSource();
+  noise.buffer = buf;
+  const ng = c.createGain();
+  ng.gain.setValueAtTime(0.3, c.currentTime);
+  noise.connect(ng).connect(c.destination);
+  noise.start(c.currentTime);
+}
+
+function playTapeWhirr() {
+  const c = ac();
+  const duration = 4;
+  // Tape motor hum
+  const osc = c.createOscillator();
+  const gain = c.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(55, c.currentTime);
+  osc.frequency.setValueAtTime(58, c.currentTime + 0.5);
+  osc.frequency.linearRampToValueAtTime(56, c.currentTime + duration);
+  gain.gain.setValueAtTime(0.001, c.currentTime);
+  gain.gain.linearRampToValueAtTime(0.08, c.currentTime + 0.3);
+  gain.gain.setValueAtTime(0.08, c.currentTime + 1.0);
+  gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + duration);
+  // Bandpass to make it sound mechanical
+  const bp = c.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.setValueAtTime(200, c.currentTime);
+  bp.Q.setValueAtTime(2, c.currentTime);
+  osc.connect(bp).connect(gain).connect(c.destination);
+  osc.start(c.currentTime);
+  osc.stop(c.currentTime + duration);
+  // Tape hiss layer
+  const buf = c.createBuffer(1, c.sampleRate * duration, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1);
+  const noise = c.createBufferSource();
+  noise.buffer = buf;
+  const ng = c.createGain();
+  ng.gain.setValueAtTime(0.001, c.currentTime);
+  ng.gain.linearRampToValueAtTime(0.04, c.currentTime + 0.3);
+  ng.gain.setValueAtTime(0.04, c.currentTime + 1.0);
+  ng.gain.exponentialRampToValueAtTime(0.001, c.currentTime + duration);
+  const hp = c.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.setValueAtTime(3000, c.currentTime);
+  noise.connect(hp).connect(ng).connect(c.destination);
+  noise.start(c.currentTime);
+  noise.stop(c.currentTime + duration);
+}
+
+function playTapeEject() {
+  const c = ac();
+  // Rising mechanical whir
+  const osc = c.createOscillator();
+  const gain = c.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(60, c.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(200, c.currentTime + 0.12);
+  gain.gain.setValueAtTime(0.15, c.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.18);
+  osc.connect(gain).connect(c.destination);
+  osc.start(c.currentTime);
+  osc.stop(c.currentTime + 0.18);
+  // Spring click
+  const osc2 = c.createOscillator();
+  const g2 = c.createGain();
+  osc2.type = 'triangle';
+  osc2.frequency.setValueAtTime(800, c.currentTime + 0.06);
+  osc2.frequency.exponentialRampToValueAtTime(200, c.currentTime + 0.15);
+  g2.gain.setValueAtTime(0.001, c.currentTime);
+  g2.gain.setValueAtTime(0.25, c.currentTime + 0.06);
+  g2.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.18);
+  osc2.connect(g2).connect(c.destination);
+  osc2.start(c.currentTime);
+  osc2.stop(c.currentTime + 0.18);
+}
+
 // ── Persistence (localStorage + KV sync) ──
 
 // Module-level username for sync URLs
@@ -575,6 +677,8 @@ export function TapesTable() {
   // ── Play tape via vanilla JS bridge ──
   const loadIntoPlayer = useCallback((tape: Tape) => {
     setLoadedTape(tape);
+    playTapeInsert();
+    setTimeout(playTapeWhirr, 200);
     if (!window.myApp) return;
     const AppState = window.AppState;
     if (!AppState) return;
@@ -853,6 +957,7 @@ export function TapesTable() {
 
     function eject(fromEv: PointerEvent) {
       ejected = true;
+      playTapeEject();
 
       // Save progress before stopping
       if (window.myApp) {
