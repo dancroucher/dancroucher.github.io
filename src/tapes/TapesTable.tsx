@@ -251,7 +251,13 @@ export function TapesTable() {
   // Load tapes: localStorage first, then KV merge, then 2s polling
   useEffect(() => {
     // 1. Immediate load from localStorage (only if logged in)
-    let loaded = currentUsername ? loadTapesLocal() : [];
+    let loaded: Tape[] = [];
+    if (currentUsername) {
+      loaded = loadTapesLocal();
+    } else {
+      // Clear any stale tapes when not logged in
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    }
 
     // Migrate from old history format if empty
     if (!loaded || loaded.length === 0) {
