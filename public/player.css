@@ -353,6 +353,53 @@ input:focus, select:focus, textarea:focus, button:focus {
   width: 80vw;
 }
 
+/* ── Username bar ── */
+
+#username-area {
+  padding: 4px 8px 0;
+}
+
+.username-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: '04b03', monospace;
+  font-size: 1em;
+}
+
+.username-bar input[type="text"] {
+  background-color: rgba(250, 249, 246, 0.9);
+  color: rgba(0, 0, 0, 1);
+  border: 1.5px dashed rgba(250, 249, 246, 0.5);
+  padding: 4px 6px 2px;
+  font-family: '04b03', monospace;
+  font-size: 1em;
+  width: 140px;
+}
+
+.username-bar button {
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(250, 249, 246, 0.9);
+  border: none;
+  padding: 4px 10px 2px;
+  font-family: '04b03', monospace;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.username-bar button:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.username-bar .username-display {
+  color: rgba(250, 249, 246, 0.7);
+}
+
+.username-bar .username-error {
+  color: rgba(177, 2, 2, 0.9);
+  font-size: 0.9em;
+}
+
 /* ── Infinite tape button + popup ── */
 
 .infinite-btn {

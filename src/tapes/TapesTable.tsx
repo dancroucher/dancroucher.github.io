@@ -5,6 +5,14 @@ import { CassetteTape } from './CassetteTape';
 
 // ── Persistence (localStorage + KV sync) ──
 
+// Module-level username for sync URLs
+let currentUsername: string | null = localStorage.getItem('jeem_username') || null;
+
+function userParam(prefix = '?') {
+  if (!currentUsername) return '';
+  return `${prefix}user=${encodeURIComponent(currentUsername)}`;
+}
+
 function loadTapesLocal(): Tape[] {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -57,9 +65,12 @@ async function flushRemote(retries = 2) {
   try {
     let localTapes: Tape[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
+    // Skip remote sync if no username set
+    if (!currentUsername) { saveInFlight = false; return; }
+
     // Pre-flight merge with remote
     try {
-      const rr = await fetch(`/api/tapes?t=${Date.now()}`, { cache: 'no-store' });
+      const rr = await fetch(`/api/tapes?t=${Date.now()}${userParam('&')}`, { cache: 'no-store' });
       if (rr.ok) {
         const remote = await rr.json();
         const v = remote._v || '';
@@ -71,7 +82,7 @@ async function flushRemote(retries = 2) {
       }
     } catch {}
 
-    const r = await fetch('/api/tapes', {
+    const r = await fetch(`/api/tapes${userParam()}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tapes: localTapes }),
@@ -209,6 +220,10 @@ export function TapesTable() {
   const [deckEjecting, setDeckEjecting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [infiniteLoading, setInfiniteLoading] = useState(false);
+  const [username, setUsername] = useState<string | null>(() => localStorage.getItem('jeem_username') || null);
+  const [usernameInput, setUsernameInput] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [usernameLoading, setUsernameLoading] = useState(false);
   const ownerId = useRef(getOwnerId()).current;
   const tableRef = useRef<HTMLDivElement>(null);
   const playerZoneRef = useRef<HTMLDivElement>(null);
@@ -279,8 +294,9 @@ export function TapesTable() {
 
     // 2. Initial KV fetch + merge, then start polling
     async function pollSync() {
+      if (!currentUsername) return; // No sync without a username
       try {
-        const r = await fetch(`/api/tapes?t=${Date.now()}`, { cache: 'no-store' });
+        const r = await fetch(`/api/tapes?t=${Date.now()}${userParam('&')}`, { cache: 'no-store' });
         if (!r.ok) return;
         const remote = await r.json();
         const v = remote._v || '';
@@ -662,6 +678,88 @@ export function TapesTable() {
   }, []);
   autoEjectRef.current = autoEject;
 
+  // ── Username login/logout ──
+  const handleLogin = useCallback(async (name: string) => {
+    const normalized = name.toLowerCase().trim();
+    if (!/^[a-z0-9-]{3,20}$/.test(normalized)) {
+      setUsernameError('3-20 chars, a-z 0-9 -');
+      return;
+    }
+    setUsernameLoading(true);
+    setUsernameError('');
+    try {
+      // Check if username exists
+      const checkRes = await fetch(`/api/user?username=${encodeURIComponent(normalized)}`);
+      const checkData = await checkRes.json();
+
+      if (!checkData.exists) {
+        // Claim it
+        const claimRes = await fetch('/api/user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: normalized }),
+        });
+        const claimData = await claimRes.json();
+        if (claimData.error === 'taken') {
+          setUsernameError('name taken');
+          setUsernameLoading(false);
+          return;
+        }
+        if (!claimRes.ok) {
+          setUsernameError(claimData.error || 'failed');
+          setUsernameLoading(false);
+          return;
+        }
+      }
+
+      // Set username
+      currentUsername = normalized;
+      localStorage.setItem('jeem_username', normalized);
+      setUsername(normalized);
+
+      // Reset sync state
+      locallyDirtyIds.clear();
+      locallyDeletedIds.clear();
+      lastKnownVersion = '';
+      lastUploadedVersion = '';
+
+      // Try to fetch existing tapes for this user
+      const r = await fetch(`/api/tapes?t=${Date.now()}${userParam('&')}`, { cache: 'no-store' });
+      if (r.ok) {
+        const remote = await r.json();
+        const remoteTapes: Tape[] = remote.tapes || [];
+        if (remoteTapes.length > 0) {
+          // Remote has tapes — use them (logging in on new device)
+          setTapes(remoteTapes);
+          setZOrder(remoteTapes.map(t => t.id));
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteTapes)); } catch {}
+          if (remote._v) { lastKnownVersion = remote._v; lastUploadedVersion = remote._v; }
+        } else {
+          // No remote tapes — push current local tapes up
+          const local = loadTapesLocal();
+          if (local.length > 0) {
+            local.forEach(t => locallyDirtyIds.add(t.id));
+            scheduleRemoteSave();
+          }
+        }
+      }
+    } catch (e) {
+      setUsernameError('network error');
+    }
+    setUsernameLoading(false);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    currentUsername = null;
+    localStorage.removeItem('jeem_username');
+    setUsername(null);
+    // Reset sync state — go local-only
+    locallyDirtyIds.clear();
+    locallyDeletedIds.clear();
+    lastKnownVersion = '';
+    lastUploadedVersion = '';
+  }, []);
+
   const cancelMenu = useCallback(() => { setMenuId(null); }, []);
 
   // --- Drag from table ---
@@ -1018,6 +1116,35 @@ export function TapesTable() {
       })()}
 
       {/* Deck — portaled outside tapes-root so it's visible in all bg modes */}
+      {/* Username bar — portaled into start-header */}
+      {typeof document !== 'undefined' && document.getElementById('username-area') && createPortal(
+        <div className="username-bar">
+          {username ? (
+            <>
+              <span className="username-display">@ {username}</span>
+              <button onClick={handleLogout}>x</button>
+            </>
+          ) : (
+            <>
+              <form onSubmit={e => { e.preventDefault(); handleLogin(usernameInput); }} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <span className="username-display">@</span>
+                <input
+                  type="text"
+                  value={usernameInput}
+                  onChange={e => { setUsernameInput(e.target.value); setUsernameError(''); }}
+                  placeholder="set username..."
+                  maxLength={20}
+                  disabled={usernameLoading}
+                />
+                <button type="submit" disabled={usernameLoading}>{usernameLoading ? '...' : 'set'}</button>
+              </form>
+              {usernameError && <span className="username-error">{usernameError}</span>}
+            </>
+          )}
+        </div>,
+        document.getElementById('username-area')!
+      )}
+
       {deckPortal && createPortal(
         <div
           data-deck="true"

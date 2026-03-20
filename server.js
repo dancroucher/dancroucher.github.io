@@ -91,6 +91,9 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+// Note: /api/tapes and /api/user require @vercel/kv and only work on Vercel.
+// Local dev uses localStorage only (no remote sync without a username).
+
 app.listen(PORT, () => {
   console.log(`🚀 Local server running at http://localhost:${PORT}`);
 });

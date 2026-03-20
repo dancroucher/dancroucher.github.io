@@ -26,6 +26,10 @@
     {
       "src": "/api/imvdb-search",
       "dest": "/api/imvdb-search.js"
+    },
+    {
+      "src": "/api/user",
+      "dest": "/api/user.js"
     }
   ],
   "headers": [
