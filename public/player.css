@@ -152,7 +152,7 @@ a:hover {
 @media (max-width: 745px) {
   .padinfo {
     padding: 0 8px;
-    bottom: 8px;
+    bottom: 16px;
     right: 8px;
     left: auto;
     flex-direction: column;
