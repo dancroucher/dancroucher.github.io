@@ -52,6 +52,7 @@ function mergeState(
 }
 
 function scheduleRemoteSave() {
+  if (!currentUsername) return; // No persistence without a username
   pendingSave = true;
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => flushRemote(), 500);
@@ -109,6 +110,7 @@ async function flushRemote(retries = 2) {
 }
 
 function saveTapesToStorage(tapes: Tape[], dirtyIds?: string[]) {
+  if (!currentUsername) return; // No persistence without a username
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tapes)); } catch {}
   if (dirtyIds) dirtyIds.forEach(id => locallyDirtyIds.add(id));
   else tapes.forEach(t => locallyDirtyIds.add(t.id));
@@ -248,8 +250,8 @@ export function TapesTable() {
 
   // Load tapes: localStorage first, then KV merge, then 2s polling
   useEffect(() => {
-    // 1. Immediate load from localStorage
-    let loaded = loadTapesLocal();
+    // 1. Immediate load from localStorage (only if logged in)
+    let loaded = currentUsername ? loadTapesLocal() : [];
 
     // Migrate from old history format if empty
     if (!loaded || loaded.length === 0) {
@@ -329,7 +331,7 @@ export function TapesTable() {
 
   // Persist to localStorage on every state change (instant, no remote sync)
   useEffect(() => {
-    if (mounted) {
+    if (mounted && currentUsername) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tapes)); } catch {}
     }
   }, [tapes, mounted]);
