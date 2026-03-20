@@ -752,12 +752,8 @@ export function TapesTable() {
   const handleLogout = useCallback(() => {
     currentUsername = null;
     localStorage.removeItem('jeem_username');
-    setUsername(null);
-    // Reset sync state — go local-only
-    locallyDirtyIds.clear();
-    locallyDeletedIds.clear();
-    lastKnownVersion = '';
-    lastUploadedVersion = '';
+    localStorage.removeItem(STORAGE_KEY);
+    window.location.reload();
   }, []);
 
   const cancelMenu = useCallback(() => { setMenuId(null); }, []);

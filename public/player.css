@@ -58,8 +58,12 @@ a:hover {
 
 .start-header {
   flex-shrink: 0;
-  padding: 32px 0px 12px 32px;
+  padding: 32px 32px 12px 32px;
   z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .start-title {
@@ -82,14 +86,16 @@ a:hover {
   flex-wrap: nowrap;
   align-items: stretch;
   gap: 8px;
-  padding: 8px 8px 0 8px;
+  padding: 8px 8px 0 0;
   position: relative;
+  width: 100%;
 }
 
 .search-source-toggle {
   display: flex;
   gap: 16px;
   padding: 0 2px;
+  width: 100%;
 }
 
 .search-source-toggle label {
@@ -306,6 +312,7 @@ input:focus, select:focus, textarea:focus, button:focus {
 #video-form {
   flex: 1;
   min-width: 0;
+  max-width: 500px;
 }
 
 .videobox {
@@ -356,7 +363,9 @@ input:focus, select:focus, textarea:focus, button:focus {
 /* ── Username bar ── */
 
 #username-area {
-  padding: 4px 8px 0;
+  padding: 8px 0 0;
+  display: flex;
+  align-items: center;
 }
 
 .username-bar {
