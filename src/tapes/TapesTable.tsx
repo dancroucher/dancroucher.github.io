@@ -1132,7 +1132,6 @@ export function TapesTable() {
           ) : (
             <>
               <form onSubmit={e => { e.preventDefault(); handleLogin(usernameInput); }} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <span className="username-display">@</span>
                 <input
                   type="text"
                   value={usernameInput}

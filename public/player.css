@@ -377,8 +377,8 @@ input:focus, select:focus, textarea:focus, button:focus {
 }
 
 .username-bar input[type="text"] {
-  background-color: rgba(250, 249, 246, 0.9);
-  color: rgba(0, 0, 0, 1);
+  background-color: transparent;
+  color: rgba(250, 249, 246, 0.9);
   border: 1.5px dashed rgba(250, 249, 246, 0.5);
   padding: 4px 6px 2px;
   font-family: '04b03', monospace;
