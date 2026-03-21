@@ -5,13 +5,19 @@ import { CassetteTape } from './CassetteTape';
 
 // ── Tape sounds (real samples) ──
 
-function playSfx(src: string, volume = 1) {
+function playSfx(src: string, volume = 1, trimEnd = 0) {
   const a = new Audio(src);
   a.volume = volume;
   a.play().catch(() => {});
+  if (trimEnd > 0) {
+    a.addEventListener('loadedmetadata', () => {
+      const stopAt = Math.max(0, a.duration - trimEnd);
+      setTimeout(() => { if (!a.paused) a.pause(); }, stopAt * 1000);
+    });
+  }
 }
 
-function playTapeInsert() { playSfx('/sfx/tape-insert.mp3', 0.6); }
+function playTapeInsert() { playSfx('/sfx/tape-insert.mp3', 0.6, 0.4); }
 function playTapeEject() { playSfx('/sfx/tape-eject.mp3', 0.6); }
 function playTapeWhirr() { playSfx('/sfx/tape-play.mp3', 0.5); }
 
@@ -229,6 +235,7 @@ export function TapesTable() {
   const [dragOver, setDragOver] = useState(false);
   const [zOrder, setZOrder] = useState<string[]>([]);
   const [rewindingId, setRewindingId] = useState<string | null>(null);
+  const [landingId, setLandingId] = useState<string | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [loadedTape, setLoadedTape] = useState<Tape | null>(null);
   const [deckEjecting, setDeckEjecting] = useState(false);
@@ -841,6 +848,9 @@ export function TapesTable() {
         locallyDirtyIds.add(tape.id);
         setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, x: cx, y: Math.max(cy, HEADER_BLOCK_H) } : t));
         scheduleRemoteSave();
+        playSfx('/sfx/tape-land.mp3', 0.5);
+        setLandingId(tape.id);
+        setTimeout(() => setLandingId(null), 500);
       }
       setDragId(null); setDragPos(null); setDragScreenPos(null); setDragOver(false);
     }
@@ -952,6 +962,9 @@ export function TapesTable() {
       locallyDirtyIds.add(tapeId);
       setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: cx, y: Math.max(cy, HEADER_BLOCK_H) } : t));
       scheduleRemoteSave();
+      playSfx('/sfx/tape-land.mp3', 0.5);
+      setLandingId(tapeId);
+      setTimeout(() => setLandingId(null), 500);
       setDragId(null); setDragPos(null); setDragScreenPos(null); setDragOver(false); setDeckEjecting(false);
     }
 
@@ -1069,7 +1082,7 @@ export function TapesTable() {
                   top: tape.y,
                   transform: `rotate(${tape.angle ?? 0}deg)`,
                   transition: 'transform 0.15s',
-                  animation: rewindingId === tape.id ? 'tape-rewind 0.4s ease' : 'none',
+                  animation: rewindingId === tape.id ? 'tape-rewind 0.4s ease' : landingId === tape.id ? 'tape-land 0.5s ease-out' : 'none',
                   zIndex: hasMenu ? 9999 : zi,
                   cursor: 'grab',
                   userSelect: 'none',
