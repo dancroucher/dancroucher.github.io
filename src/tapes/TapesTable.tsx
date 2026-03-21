@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, getStorageKey, InfiniteConfig, InfiniteTrack } from './types';
 import { CassetteTape } from './CassetteTape';
+const Tape3DDemo = lazy(() => import('./Tape3D').then(m => ({ default: m.Tape3DDemo })));
 
 // ── Tape sounds (real samples) ──
 
@@ -236,6 +237,7 @@ export function TapesTable() {
   const [zOrder, setZOrder] = useState<string[]>([]);
   const [rewindingId, setRewindingId] = useState<string | null>(null);
   const [landingId, setLandingId] = useState<string | null>(null);
+  const [show3D, setShow3D] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [loadedTape, setLoadedTape] = useState<Tape | null>(null);
   const [deckEjecting, setDeckEjecting] = useState(false);
@@ -1127,6 +1129,22 @@ export function TapesTable() {
           })}
         </div>
       </div>
+
+      {/* 3D tape demo — temporary test */}
+      {tapes.length > 0 && createPortal(
+        <div style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 80000 }}>
+          <button
+            onClick={() => setShow3D(p => !p)}
+            style={{ padding: '6px 12px', background: '#333', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: "'04b03', monospace", fontSize: 11, marginBottom: 8, display: 'block' }}
+          >3D test</button>
+          {show3D && (
+            <Suspense fallback={<div style={{ color: '#fff' }}>Loading 3D...</div>}>
+              <Tape3DDemo tape={tapes[0]} />
+            </Suspense>
+          )}
+        </div>,
+        document.body
+      )}
 
       {/* Drag overlay — portaled to body so it's above everything */}
       {dragId && dragScreenPos && (() => {
