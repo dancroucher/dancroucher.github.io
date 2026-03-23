@@ -1033,10 +1033,15 @@ export function TapesTable() {
 
   const positionedTapes = tapes.map((tape, i) => {
     if (tape.x !== undefined && tape.y !== undefined) {
-      // Clamp existing positions into the active area
-      const clamped = tape.x >= minX && tape.x <= maxX && tape.y >= minY && tape.y <= maxY;
-      if (clamped) return tape;
-      return { ...tape, x: Math.max(minX, Math.min(maxX, tape.x)), y: Math.max(minY, Math.min(maxY, tape.y)) };
+      // If already inside the active area, keep as-is
+      const inside = tape.x >= minX && tape.x <= maxX && tape.y >= minY && tape.y <= maxY;
+      if (inside) return tape;
+      // Otherwise re-center with jitter (old tapes may have coords from a different layout)
+      return {
+        ...tape,
+        x: cx + Math.round((Math.random() - 0.5) * 80),
+        y: cy + Math.round((Math.random() - 0.5) * 60),
+      };
     }
     const col = i % 3;
     const row = Math.floor(i / 3);
