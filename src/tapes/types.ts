@@ -25,6 +25,8 @@ export interface Tape {
   y?: number;
   angle?: number;
   ownerId?: string;
+  // 3D texture variant: 'a', 'b', or 'c'
+  textureVariant?: string;
   // Infinite tape fields
   isInfinite?: boolean;
   infiniteConfig?: InfiniteConfig;

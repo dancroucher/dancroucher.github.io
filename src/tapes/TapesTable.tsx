@@ -5,6 +5,15 @@ import { CassetteTape } from './CassetteTape';
 import { DeckTape3D } from './DeckTape3D';
 const TapesTable3D = lazy(() => import('./TapesTable3D').then(m => ({ default: m.TapesTable3D })));
 
+// ── Texture variant cycling ──
+const TEXTURE_VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f'];
+let nextVariantIndex = 0;
+function nextTextureVariant(): string {
+  const v = TEXTURE_VARIANTS[nextVariantIndex % TEXTURE_VARIANTS.length];
+  nextVariantIndex++;
+  return v;
+}
+
 // ── Tape sounds (real samples) ──
 
 function playSfx(src: string, volume = 1, trimEnd = 0) {
@@ -300,6 +309,7 @@ export function TapesTable() {
               title: v.name || 'Untitled',
               author: v.author || '',
               tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+              textureVariant: nextTextureVariant(),
               progress: v.progress || 0,
               playlistIndex: v.track || 0,
               timestamp: v.timestamp || Date.now(),
@@ -425,6 +435,7 @@ export function TapesTable() {
             title,
             author: '',
             tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+            textureVariant: nextTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
             x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 80),
@@ -466,6 +477,7 @@ export function TapesTable() {
             title,
             author,
             tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+            textureVariant: nextTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
             x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 80),
@@ -808,9 +820,8 @@ export function TapesTable() {
   }, [loadIntoPlayer]);
 
   const handle3DDoubleTap = useCallback((tapeId: string) => {
-    const t = tapesRef.current.find(t => t.id === tapeId);
-    if (t) loadIntoPlayer(t);
-  }, [loadIntoPlayer]);
+    setMenuId(prev => prev === tapeId ? null : tapeId);
+  }, []);
 
   const handle3DMenuAction = useCallback((tapeId: string, action: 'link' | 'rewind' | 'remove') => {
     if (action === 'remove') deleteTape(tapeId);

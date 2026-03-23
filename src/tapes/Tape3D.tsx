@@ -9,7 +9,7 @@ import { Tape } from './types';
 import { to3D } from './coords';
 import { TableSurface } from './TableSurface';
 
-export const VARIANTS = ['a', 'b', 'c'] as const;
+export const VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f'] as const;
 // Mesh→material mapping from FBX:
 // prop_cassette_tape_01002 → audio_cassette_a
 // prop_cassette_tape_01001 → audio_cassette_b
@@ -32,12 +32,15 @@ export function useVariantTextures(variant: string) {
 
   useEffect(() => {
     const loader = new THREE.TextureLoader();
-    const prefix = `${TEX_BASE}audio_cassette_${variant}_`;
+    const basePrefix = `${TEX_BASE}audio_cassette_${variant}_`;
+    // Variant 'd' only has BaseColor — use 'a' for other PBR maps
+    const pbrFallback = !['a', 'b', 'c'].includes(variant);
+    const pbrPrefix = pbrFallback ? `${TEX_BASE}audio_cassette_a_` : basePrefix;
     Promise.all([
-      loader.loadAsync(`${prefix}BaseColor.png`),
-      loader.loadAsync(`${prefix}Metallic.png`),
-      loader.loadAsync(`${prefix}Roughness.png`),
-      loader.loadAsync(`${prefix}Normal.png`),
+      loader.loadAsync(`${basePrefix}BaseColor.png`),
+      loader.loadAsync(`${pbrPrefix}Metallic.png`),
+      loader.loadAsync(`${pbrPrefix}Roughness.png`),
+      loader.loadAsync(`${pbrPrefix}Normal.png`),
     ]).then(([baseColor, metallic, roughness, normal]) => {
       baseColor.colorSpace = THREE.SRGBColorSpace;
       metallic.colorSpace = THREE.NoColorSpace;

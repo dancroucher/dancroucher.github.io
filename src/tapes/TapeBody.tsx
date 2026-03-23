@@ -20,6 +20,7 @@ interface TapeBodyProps {
   menuOpen?: boolean;
   onMenuAction?: (tapeId: string, action: 'link' | 'rewind' | 'remove') => void;
   isNew?: boolean;
+  bounceTapeId?: React.MutableRefObject<string | null>;
 }
 
 // Per-variant cached: isolated mesh centered at origin + measured half-extents
@@ -36,22 +37,24 @@ let fbxDumped = false;
 function extractVariant(fbx: THREE.Group, meshName: string): { group: THREE.Group; geo: VariantGeo } {
   const clone = fbx.clone();
 
-  // Dump all mesh positions once for debugging
+  // Dump full scene hierarchy once for debugging
   if (!fbxDumped) {
     fbxDumped = true;
-    clone.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        const m = child as THREE.Mesh;
-        m.updateWorldMatrix(true, false);
-        const pos = new THREE.Vector3();
-        const rot = new THREE.Euler();
-        pos.setFromMatrixPosition(m.matrixWorld);
-        rot.setFromRotationMatrix(m.matrixWorld);
-        const box = new THREE.Box3().setFromObject(m);
+    const dumpNode = (node: THREE.Object3D, depth = 0) => {
+      const indent = '  '.repeat(depth);
+      const mesh = node as THREE.Mesh;
+      let info = `${indent}[${node.type}] "${node.name}"`;
+      if (mesh.isMesh) {
+        node.updateWorldMatrix(true, false);
+        const box = new THREE.Box3().setFromObject(node);
         const size = box.getSize(new THREE.Vector3());
-        console.log(`[FBX mesh] ${m.name}: pos(${pos.x.toFixed(1)},${pos.y.toFixed(1)},${pos.z.toFixed(1)}) rot(${(rot.x*180/Math.PI).toFixed(0)},${(rot.y*180/Math.PI).toFixed(0)},${(rot.z*180/Math.PI).toFixed(0)}) size(${size.x.toFixed(1)}x${size.y.toFixed(1)}x${size.z.toFixed(1)})`);
+        info += ` verts:${mesh.geometry?.attributes?.position?.count} size:(${size.x.toFixed(1)}x${size.y.toFixed(1)}x${size.z.toFixed(1)})`;
       }
-    });
+      info += ` children:${node.children.length}`;
+      console.log(info);
+      for (const child of node.children) dumpNode(child, depth + 1);
+    };
+    dumpNode(clone);
   }
 
   // Find target mesh
@@ -105,11 +108,14 @@ function extractVariant(fbx: THREE.Group, meshName: string): { group: THREE.Grou
 }
 
 // Stamp title text onto the BaseColor texture using Canvas2D
-// Label UV regions in 2048px texture (both front and back faces):
-//   Top label:    x: 510–1040,  y: 50–240
-//   Bottom label: x: 510–1040,  y: 510–700
+// UV layout: 2048px texture, upper-right quadrant has two cassette faces side by side
+//   Face 1 (front): label writable area ~x:1050-1470, y:50-180, center ~(1260, 115)
+//   Face 2 (back):  label writable area ~x:1550-1960, y:50-180, center ~(1755, 115)
 // Cache stamped textures by variant+title to avoid re-creating canvases
 const stampCache = new Map<string, THREE.CanvasTexture>();
+
+// Set to true to draw debug rectangles showing label regions
+const STAMP_DEBUG = false;
 
 export function stampTitle(baseColor: THREE.Texture, title: string, variant: string): THREE.CanvasTexture {
   const cacheKey = `${variant}:${title}`;
@@ -125,29 +131,86 @@ export function stampTitle(baseColor: THREE.Texture, title: string, variant: str
   const ctx = canvas.getContext('2d')!;
   ctx.drawImage(src, 0, 0, w, h);
 
-  // Front label writable lines area: x:1250-1750, y:20-180
+  // Label regions for both faces (front and back of cassette)
+  // UV is rotated 90° CCW on the model, so we draw rotated 90° CW to compensate
+  // cx/cy = center in texture space, labelLen = length along the label (becomes vertical after rotation)
+  const labels = [
+    { cx: 1310, cy: 480, labelLen: 840 },  // Face 1 (front)
+  ];
+
+  if (STAMP_DEBUG) {
+    // Draw debug outlines rotated 90° CW to match UV orientation
+    for (const label of labels) {
+      ctx.save();
+      ctx.translate(label.cx, label.cy);
+      ctx.rotate(Math.PI / 2); // 90° CW
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(-label.labelLen / 2, -80, label.labelLen, 160);
+      // Crosshair at center
+      ctx.beginPath();
+      ctx.moveTo(-20, 0);
+      ctx.lineTo(20, 0);
+      ctx.moveTo(0, -20);
+      ctx.lineTo(0, 20);
+      ctx.stroke();
+      // Coordinate label
+      ctx.fillStyle = 'red';
+      ctx.font = '24px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`(${label.cx}, ${label.cy})`, 0, 45);
+      ctx.restore();
+    }
+  }
+
   ctx.fillStyle = '#222';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  const labelW = 460;
-  let fontSize = 48;
-  ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
-  while (ctx.measureText(title).width > labelW && fontSize > 16) {
-    fontSize -= 2;
+  for (const label of labels) {
+    const labelW = label.labelLen;
+    const fontSize = 55;
     ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
-  }
 
-  let displayTitle = title;
-  if (ctx.measureText(displayTitle).width > labelW) {
-    while (ctx.measureText(displayTitle + '…').width > labelW && displayTitle.length > 1) {
-      displayTitle = displayTitle.slice(0, -1);
+    // Word-wrap into lines that fit labelW
+    const words = title.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+    for (const word of words) {
+      const test = currentLine ? `${currentLine} ${word}` : word;
+      if (ctx.measureText(test).width > labelW && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = test;
+      }
     }
-    displayTitle += '…';
-  }
+    if (currentLine) lines.push(currentLine);
 
-  // Front label — writable lines area
-  ctx.fillText(displayTitle, 1500, 100);
+    // Cap at 2 lines, truncate second line if needed
+    if (lines.length > 2) {
+      lines.length = 2;
+      let line2 = lines[1];
+      while (ctx.measureText(line2 + '…').width > labelW && line2.length > 1) {
+        line2 = line2.slice(0, -1);
+      }
+      lines[1] = line2 + '…';
+    }
+
+    // Draw rotated 90° CW around label center
+    const lineHeight = fontSize * 1.15;
+    const totalHeight = lines.length * lineHeight;
+    const startY = -totalHeight / 2 + lineHeight / 2;
+
+    ctx.save();
+    ctx.translate(label.cx, label.cy);
+    ctx.rotate(Math.PI / 2);
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], 0, startY + i * lineHeight);
+    }
+    ctx.restore();
+  }
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -158,7 +221,7 @@ export function stampTitle(baseColor: THREE.Texture, title: string, variant: str
 }
 
 export function TapeBody({
-  tape, drag, menuOpen, onMenuAction, isNew,
+  tape, drag, menuOpen, onMenuAction, isNew, bounceTapeId,
 }: TapeBodyProps) {
   const bodyRef = useRef<RapierRigidBody>(null);
   const groupRef = useRef<THREE.Group>(null);
@@ -169,9 +232,9 @@ export function TapeBody({
   const velocity = useRef({ x: 0, z: 0 });
   const savedYRot = useRef(0);
 
-  // Pick texture variant based on tape seed, but always use mesh 'a' (the only one aligned properly)
+  // Pick texture variant — use stored field if available, fall back to seed-based for legacy tapes
   const seed = tape.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  const variant = VARIANTS[seed % VARIANTS.length];
+  const variant = (tape.textureVariant as typeof VARIANTS[number]) || VARIANTS[seed % VARIANTS.length];
   const meshName = VARIANT_TO_MESH['a']; // always use variant a's mesh
   const textures = useVariantTextures(variant); // swap textures for visual variety
 
@@ -220,6 +283,14 @@ export function TapeBody({
   useFrame((_, delta) => {
     const body = bodyRef.current;
     if (!body) return;
+
+    // Bounce on double-tap
+    if (bounceTapeId?.current === tape.id) {
+      bounceTapeId.current = null;
+      body.applyImpulse({ x: 0, y: 3, z: 0 }, true);
+      body.applyTorqueImpulse({ x: (Math.random() - 0.5) * 0.5, y: 0, z: (Math.random() - 0.5) * 0.5 }, true);
+    }
+
     const isDragged = drag.tapeId === tape.id;
 
     if (isDragged) {

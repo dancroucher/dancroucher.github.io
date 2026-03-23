@@ -7,12 +7,92 @@ import { loadFBXCached, useVariantTextures, VARIANTS, VARIANT_TO_MESH } from './
 // Reuse stampTitle from TapeBody
 import { stampTitle } from './TapeBody';
 
-function DeckTapeMesh({ tape }: { tape: Tape }) {
+// Render the 2D spool SVG to a canvas texture (cached)
+let spoolTexture: THREE.CanvasTexture | null = null;
+
+function getSpoolTexture(color = '#e8dcc4'): THREE.CanvasTexture {
+  if (spoolTexture) return spoolTexture;
+
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+
+  // Scale from 32x32 SVG viewBox to 128x128
+  const s = size / 32;
+  const cx = 16 * s;
+  const cy = 16 * s;
+  const ringR = 12 * s;
+  const strokeW = 2.8 * s;
+  const innerR = (12 - 2.8 / 2) * s;
+  const toothW = 2.7 * s;
+  const toothL = 3.24 * s;
+
+  // Transparent background
+  ctx.clearRect(0, 0, size, size);
+
+  // Outer ring
+  ctx.strokeStyle = color;
+  ctx.lineWidth = strokeW;
+  ctx.beginPath();
+  ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // 6 teeth
+  ctx.fillStyle = color;
+  for (const angle of [0, 60, 120, 180, 240, 300]) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate((angle * Math.PI) / 180);
+    const rx = -toothW / 2;
+    const ry = -innerR;
+    ctx.fillRect(rx, ry, toothW, toothL);
+    ctx.restore();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.needsUpdate = true;
+  spoolTexture = tex;
+  return tex;
+}
+
+// Spool disc — a textured cylinder sitting in the cassette hub hole
+function SpoolDisc({ x, z, halfY, spinning, rpm, color }: { x: number; z: number; halfY: number; spinning?: boolean; rpm?: number; color?: string }) {
+  const ref = useRef<THREE.Mesh>(null);
+  const radius = 0.605;
+  const thickness = 0.08;
+  const tex = getSpoolTexture(color);
+
+  useFrame((_, delta) => {
+    if (ref.current && spinning) {
+      ref.current.rotation.z += (rpm || 10) * Math.PI * 2 * delta / 60;
+    }
+  });
+
+  return (
+    <mesh ref={ref} position={[x, halfY + thickness / 2 + 0.01, z]} rotation={[-Math.PI / 2, 0, 0]}>
+      <circleGeometry args={[radius, 32]} />
+      <meshStandardMaterial
+        map={tex}
+        transparent
+        alphaTest={0.1}
+        metalness={0.1}
+        roughness={0.5}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
+}
+
+function DeckTapeMesh({ tape, playing }: { tape: Tape; playing?: boolean }) {
   const groupRef = useRef<THREE.Group>(null);
   const [scene, setScene] = useState<THREE.Group | null>(null);
+  const [halfY, setHalfY] = useState(0.8);
 
   const seed = tape.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  const variant = VARIANTS[seed % VARIANTS.length];
+  const variant = (tape.textureVariant as typeof VARIANTS[number]) || VARIANTS[seed % VARIANTS.length];
   const meshName = VARIANT_TO_MESH['a'];
   const textures = useVariantTextures(variant);
 
@@ -41,10 +121,12 @@ function DeckTapeMesh({ tape }: { tape: Tape }) {
         const box = new THREE.Box3().setFromBufferAttribute(geo.attributes.position as THREE.BufferAttribute);
         const center = box.getCenter(new THREE.Vector3());
         geo.translate(-center.x, -center.y, -center.z);
+        const size = box.getSize(new THREE.Vector3());
         const newMesh = new THREE.Mesh(geo, m.material);
         newMesh.name = meshName;
         const group = new THREE.Group();
         group.add(newMesh);
+        setHalfY(size.y / 2);
         setScene(group);
       }
     });
@@ -76,6 +158,8 @@ function DeckTapeMesh({ tape }: { tape: Tape }) {
   return (
     <group ref={groupRef} rotation={[0, Math.PI, 0]} scale={[s, s, s]}>
       <primitive object={scene} />
+      <SpoolDisc x={-2.1} z={0.3} halfY={halfY} spinning={playing} rpm={15} />
+      <SpoolDisc x={2.1} z={0.3} halfY={halfY} spinning={playing} rpm={30} />
     </group>
   );
 }
@@ -113,7 +197,7 @@ export function DeckTape3D({ tape, playing, loading }: { tape: Tape; playing?: b
         <ambientLight intensity={0.9} color="#fffaf6" />
         <directionalLight position={[4, 20, -3]} intensity={1.5} color="#fff0e6" />
         <pointLight position={[-4, 5, -2]} intensity={0.3} color="#ffe8d6" />
-        <DeckTapeMesh tape={tape} />
+        <DeckTapeMesh tape={tape} playing={playing} />
       </Canvas>
       {/* Loading spinner overlay */}
       {loading && (

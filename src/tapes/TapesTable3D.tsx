@@ -40,6 +40,7 @@ function SceneContents({
 
   // Mutable drag state — no React re-renders during drag
   const drag = useMemo<DragState>(() => ({ tapeId: null, targetX: 0, targetZ: 0 }), []);
+  const bounceTapeId = useRef<string | null>(null);
 
   const pointerState = useRef({
     downTapeId: null as string | null,
@@ -187,7 +188,9 @@ function SceneContents({
         const now = Date.now();
         const last = lastTapRef.current;
         if (last.id === tapeId && now - last.time < 400) {
-          onDoubleTap(tapeId);
+          bounceTapeId.current = tapeId;
+          // Delay menu open slightly so bounce ref is consumed first
+          setTimeout(() => onDoubleTap(tapeId), 50);
           lastTapRef.current = { time: 0, id: '' };
         } else {
           lastTapRef.current = { time: now, id: tapeId };
@@ -328,6 +331,7 @@ function SceneContents({
               menuOpen={menuId === tape.id}
               onMenuAction={onMenuAction}
               isNew={newTapeIds.has(tape.id)}
+              bounceTapeId={bounceTapeId}
             />
           ))}
         </Physics>
@@ -375,7 +379,6 @@ export function TapesTable3D(props: TapesTable3DProps) {
         }}
       >
         <SceneContents {...props} />
-        <Stats />
       </Canvas>
     </div>
   );
