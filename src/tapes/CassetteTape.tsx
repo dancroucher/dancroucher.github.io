@@ -107,7 +107,7 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
             const brandTexts = ['HIGH FIDELITY', 'SUPER AVILYN', 'EPITAXIAL', 'EXTRA SLIM CASE', 'PROFESSIONAL', 'ACOUSTIC DYNAMIC', 'PREMIUM', 'ULTRA', 'COBALT', 'DIGITAL READY', 'MULTI USE'];
             const brandText = brandTexts[seed % brandTexts.length];
             if (!showBrandText) return null;
-            return <span style={{ position: 'absolute', bottom: R(1), right: R(4), fontSize: R(4), color: 'rgba(0,0,0,0.12)', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', pointerEvents: 'none' }}>{brandText}</span>;
+            return <span style={{ position: 'absolute', bottom: R(1), right: R(4), fontSize: R(4), color: 'rgba(0,0,0,0.12)', fontFamily: "'04b03', monospace", fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', pointerEvents: 'none' }}>{brandText}</span>;
           })()}
         </div>
       ); })()}
@@ -194,19 +194,19 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
             </>}
             {/* Side marker */}
             {markerIsPlainText ? (
-              <span style={{ position: 'absolute', top: '50%', left: R(5), transform: 'translateY(-50%)', fontSize: R(14), fontWeight: 900, color: '#111', lineHeight: 1 }}>{side}</span>
+              <span style={{ position: 'absolute', top: '50%', left: R(5), transform: 'translateY(-50%)', fontSize: R(14), fontFamily: "'04b03', monospace", fontWeight: 900, color: '#111', lineHeight: 1 }}>{side}</span>
             ) : (() => {
               const markerRadius = markerVariant === 1 || markerVariant === 4 ? '50%' : markerVariant === 3 ? `${R(4)}px` : `${R(1.5)}px`;
               const markerSize = markerVariant === 4 ? R(12) : R(15);
               const markerFontSize = markerVariant === 4 ? R(8) : R(11);
               return (
                 <div style={{ position: 'absolute', top: '50%', left: R(4), transform: 'translateY(-50%)', width: markerSize, height: markerSize, background: '#111', borderRadius: markerRadius, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: markerFontSize, fontWeight: 900, color: st.titleBg, lineHeight: 1 }}>{side}</span>
+                  <span style={{ fontSize: markerFontSize, fontFamily: "'04b03', monospace", fontWeight: 900, color: st.titleBg, lineHeight: 1 }}>{side}</span>
                 </div>
               );
             })()}
             {/* Corner text — top right */}
-            <span style={{ position: 'absolute', top: R(2), right: R(5), fontSize: R(5.5), color: 'rgba(0,0,0,0.3)', fontWeight: 700, letterSpacing: '0.03em' }}>{cornerText}</span>
+            <span style={{ position: 'absolute', top: R(2), right: R(5), fontSize: R(5.5), color: 'rgba(0,0,0,0.3)', fontFamily: "'04b03', monospace", fontWeight: 700, letterSpacing: '0.03em' }}>{cornerText}</span>
             {/* Optional arrow indicator */}
             {showArrow && <span style={{ position: 'absolute', bottom: R(2), right: R(5), fontSize: R(5), color: 'rgba(0,0,0,0.25)' }}>{arrowDir}</span>}
             {/* Double arrow */}
@@ -214,7 +214,7 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
             {/* Optional dot */}
             {showDot && <div style={{ position: 'absolute', bottom: R(3), right: R(16), width: R(3), height: R(3), borderRadius: '50%', background: 'rgba(0,0,0,0.2)' }} />}
             {/* Optional tiny text */}
-            {showTiny && <span style={{ position: 'absolute', bottom: R(1.5), left: R(22), fontSize: R(4.5), color: 'rgba(0,0,0,0.2)', fontWeight: 600, letterSpacing: '0.08em' }}>{tinyText}</span>}
+            {showTiny && <span style={{ position: 'absolute', bottom: R(1.5), left: R(22), fontSize: R(4.5), color: 'rgba(0,0,0,0.2)', fontFamily: "'04b03', monospace", fontWeight: 600, letterSpacing: '0.08em' }}>{tinyText}</span>}
             {/* Barcode */}
             {showBarcode && <div style={{ position: 'absolute', bottom: R(2), right: R(20), display: 'flex', gap: 0.5 }}>
               {[3,1,2,1,3,1,1,2,1,3,1,2].map((w2, i) => <div key={i} style={{ width: w2 * 0.5, height: R(5), background: `rgba(0,0,0,${i % 2 === 0 ? 0.2 : 0})` }} />)}
@@ -223,7 +223,7 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
             {showSmallLogo && <span style={{ position: 'absolute', top: R(1), left: R(22), fontSize: R(5), color: 'rgba(0,0,0,0.12)' }}>{logoChar}</span>}
             {/* Title text */}
             <div style={{ position: 'absolute', top: 0, bottom: 0, left: R(24), right: R(6), display: 'flex', alignItems: 'center' }}>
-              <p style={{ fontFamily: "'Patrick Hand', cursive", fontSize: big ? 17 : 14, fontWeight: 400, color: '#333', lineHeight: 1.0, margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', width: '100%' } as React.CSSProperties}>
+              <p style={{ fontFamily: "'Lacquer', cursive", fontSize: big ? 15 : 12, fontWeight: 400, color: '#333', lineHeight: 1.15, margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', width: '100%' } as React.CSSProperties}>
                 {tape.title}
               </p>
             </div>
@@ -325,14 +325,14 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
             {stripVariant === 2 && <div style={{ position: 'absolute', left: '50%', top: R(2), bottom: R(2), width: 1, background: 'rgba(255,255,255,0.15)' }} />}
             {stripVariant === 3 && <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: R(4), height: R(4), borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '0.5px solid rgba(255,255,255,0.15)' }} />}
             {tape.isInfinite ? <>
-              <span style={{ fontSize: R(6), color: 'rgba(255,255,255,0.4)', fontWeight: 500, position: 'relative' }}>{tape.infiniteConfig?.source?.toUpperCase() || 'IMVDB'}</span>
-              <span style={{ fontSize: R(8), color: st.titleBg, fontWeight: 800, letterSpacing: '0.05em', position: 'relative' }}>∞ INFINITE</span>
+              <span style={{ fontSize: R(5), color: 'rgba(255,255,255,0.4)', fontFamily: "'04b03', monospace", fontWeight: 500, wordSpacing: R(3), position: 'relative' }}>{tape.infiniteConfig?.source?.toUpperCase() || 'IMVDB'}</span>
+              <span style={{ fontSize: R(6), color: st.titleBg, fontFamily: "'04b03', monospace", fontWeight: 800, letterSpacing: '0.08em', wordSpacing: R(3), position: 'relative' }}>∞ INFINITE</span>
             </> : tape.isPlaylist ? <>
-              <span style={{ fontSize: R(6), color: 'rgba(255,255,255,0.4)', fontWeight: 500, position: 'relative' }}>{biasText}</span>
-              <span style={{ fontSize: R(8), color: st.titleBg, fontWeight: 800, letterSpacing: '0.05em', position: 'relative' }}>PLAYLIST</span>
+              <span style={{ fontSize: R(5), color: 'rgba(255,255,255,0.4)', fontFamily: "'04b03', monospace", fontWeight: 500, wordSpacing: R(3), position: 'relative' }}>{biasText}</span>
+              <span style={{ fontSize: R(6), color: st.titleBg, fontFamily: "'04b03', monospace", fontWeight: 800, letterSpacing: '0.08em', wordSpacing: R(3), position: 'relative' }}>PLAYLIST</span>
             </> : <>
-              <span style={{ fontSize: R(6), color: 'rgba(255,255,255,0.4)', fontWeight: 500, position: 'relative' }}>{biasText}</span>
-              <span style={{ fontSize: R(7), color: 'rgba(255,255,255,0.35)', fontWeight: 700, letterSpacing: '0.04em', position: 'relative' }}>{typeText}</span>
+              <span style={{ fontSize: R(5), color: 'rgba(255,255,255,0.4)', fontFamily: "'04b03', monospace", fontWeight: 500, wordSpacing: R(3), position: 'relative' }}>{biasText}</span>
+              <span style={{ fontSize: R(6), color: 'rgba(255,255,255,0.35)', fontFamily: "'04b03', monospace", fontWeight: 700, letterSpacing: '0.06em', wordSpacing: R(3), position: 'relative' }}>{typeText}</span>
             </>}
           </div>
         );
@@ -357,15 +357,32 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
         );
       })()}
 
-      {/* Bottom protruding section — trapezoid */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: botH }}>
-        <div style={{ position: 'absolute', bottom: R(2), left: w / 2 - botProtrW / 2, width: botProtrW, height: botProtrH, background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(0,0,0,0.15)', clipPath: `polygon(${R(6)}px 0, ${botProtrW - R(6)}px 0, 100% 100%, 0 100%)` }}>
-          <div style={{ position: 'absolute', left: R(22), top: '70%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: 'rgba(0,0,0,0.5)', borderRadius: '50%' }} />
-          <div style={{ position: 'absolute', left: R(42), top: '55%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: 'rgba(0,0,0,0.5)', borderRadius: '50%' }} />
-          <div style={{ position: 'absolute', right: R(42), top: '55%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: 'rgba(0,0,0,0.5)', borderRadius: '50%' }} />
-          <div style={{ position: 'absolute', right: R(22), top: '70%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: 'rgba(0,0,0,0.5)', borderRadius: '50%' }} />
+      {/* Bottom protruding section — trapezoid via corner masks (html2canvas can't do clip-path or SVG well) */}
+      {(() => {
+        const inset = R(16);
+        const trapLeft = w / 2 - botProtrW / 2;
+        return (
+        <div style={{ position: 'absolute', bottom: R(2), left: trapLeft, width: botProtrW, height: botProtrH, overflow: 'hidden' }}>
+          {/* Background */}
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(0,0,0,0.15)' }} />
+          {/* Top-left corner mask — triangle in housing color */}
+          <div style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0,
+            borderTop: `${botProtrH}px solid ${st.housing}`,
+            borderRight: `${inset}px solid transparent`,
+          }} />
+          {/* Top-right corner mask */}
+          <div style={{ position: 'absolute', top: 0, right: 0, width: 0, height: 0,
+            borderTop: `${botProtrH}px solid ${st.housing}`,
+            borderLeft: `${inset}px solid transparent`,
+          }} />
+          {/* Holes */}
+          <div style={{ position: 'absolute', left: R(22), top: '70%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: '#000', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', left: R(42), top: '55%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: '#000', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', right: R(42), top: '55%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: '#000', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', right: R(22), top: '70%', transform: 'translateY(-50%)', width: R(10), height: R(10), background: '#000', borderRadius: '50%' }} />
         </div>
-      </div>
+        );
+      })()}
 
       {/* Loading spinner overlay */}
       {loading && (

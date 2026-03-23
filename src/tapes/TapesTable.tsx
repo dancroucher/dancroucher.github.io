@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, getStorageKey, InfiniteConfig, InfiniteTrack } from './types';
 import { CassetteTape } from './CassetteTape';
-const Tape3DDemo = lazy(() => import('./Tape3D').then(m => ({ default: m.Tape3DDemo })));
+const TapesTable3D = lazy(() => import('./TapesTable3D').then(m => ({ default: m.TapesTable3D })));
 
 // ── Tape sounds (real samples) ──
 
@@ -237,7 +237,7 @@ export function TapesTable() {
   const [zOrder, setZOrder] = useState<string[]>([]);
   const [rewindingId, setRewindingId] = useState<string | null>(null);
   const [landingId, setLandingId] = useState<string | null>(null);
-  const [show3D, setShow3D] = useState(false);
+  const [show3D, setShow3D] = useState(true);
   const [isPanning, setIsPanning] = useState(false);
   const [loadedTape, setLoadedTape] = useState<Tape | null>(null);
   const [deckEjecting, setDeckEjecting] = useState(false);
@@ -408,11 +408,8 @@ export function TapesTable() {
       },
       addInfiniteTape: (config: InfiniteConfig, title: string) => {
         setTapes(prev => {
-          const tbl = document.getElementById('tapes-table-canvas');
-          const sl = tbl?.parentElement?.scrollLeft ?? 0;
-          const st2 = tbl?.parentElement?.scrollTop ?? 0;
-          const col = prev.length % 4;
-          const row2 = Math.floor(prev.length / 4);
+          const col = prev.length % 3;
+          const row2 = Math.floor(prev.length / 3);
 
           const tape: Tape = {
             id: crypto.randomUUID?.() ?? `${Date.now()}`,
@@ -427,8 +424,8 @@ export function TapesTable() {
             tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
             progress: 0,
             timestamp: Date.now(),
-            x: sl + 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
-            y: Math.max(st2 + HEADER_BLOCK_H + row2 * 170 + Math.round((Math.random() - 0.5) * 30), HEADER_BLOCK_H),
+            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 80),
+            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 60),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
             ownerId: getOwnerId(),
           };
@@ -455,11 +452,8 @@ export function TapesTable() {
             return updated;
           }
 
-          const tbl = document.getElementById('tapes-table-canvas');
-          const sl = tbl?.parentElement?.scrollLeft ?? 0;
-          const st = tbl?.parentElement?.scrollTop ?? 0;
-          const col = prev.length % 4;
-          const row2 = Math.floor(prev.length / 4);
+          const col = prev.length % 3;
+          const row2 = Math.floor(prev.length / 3);
 
           const tape: Tape = {
             id: crypto.randomUUID?.() ?? `${Date.now()}`,
@@ -471,8 +465,8 @@ export function TapesTable() {
             tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
             progress: 0,
             timestamp: Date.now(),
-            x: sl + 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
-            y: Math.max(st + HEADER_BLOCK_H + row2 * 170 + Math.round((Math.random() - 0.5) * 30), HEADER_BLOCK_H),
+            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 80),
+            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 60),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
             ownerId: getOwnerId(),
           };
@@ -790,6 +784,35 @@ export function TapesTable() {
 
   const cancelMenu = useCallback(() => { setMenuId(null); }, []);
 
+  // --- 3D table callbacks ---
+  const handle3DDragStart = useCallback(() => {
+    cancelMenu();
+  }, [cancelMenu]);
+
+  const handle3DDragEnd = useCallback((tapeId: string, x2d: number, y2d: number, droppedOnDeck: boolean) => {
+    if (droppedOnDeck) {
+      const t = tapesRef.current.find(t => t.id === tapeId);
+      if (t) loadIntoPlayer(t);
+    } else {
+      locallyDirtyIds.add(tapeId);
+      setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: x2d, y: y2d } : t));
+      scheduleRemoteSave();
+    }
+  }, [loadIntoPlayer]);
+
+  const handle3DDoubleTap = useCallback((tapeId: string) => {
+    const t = tapesRef.current.find(t => t.id === tapeId);
+    if (t) loadIntoPlayer(t);
+  }, [loadIntoPlayer]);
+
+  const handle3DMenuAction = useCallback((tapeId: string, action: 'link' | 'rewind' | 'remove') => {
+    if (action === 'remove') deleteTape(tapeId);
+    else if (action === 'rewind') rewindTape(tapeId);
+    setMenuId(null);
+  }, [deleteTape, rewindTape]);
+
+  const emptyNewTapeIds = useMemo(() => new Set<string>(), []);
+
   // --- Drag from table ---
   const startDrag = useCallback((e: React.PointerEvent, tape: Tape) => {
     e.preventDefault();
@@ -850,9 +873,8 @@ export function TapesTable() {
         locallyDirtyIds.add(tape.id);
         setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, x: cx, y: Math.max(cy, HEADER_BLOCK_H) } : t));
         scheduleRemoteSave();
-        playSfx('/sfx/tape-land.mp3', 0.5);
-        setLandingId(tape.id);
-        setTimeout(() => setLandingId(null), 500);
+        // Trigger 3D physics drop
+        setFallingIds(prev => new Set(prev).add(tape.id));
       }
       setDragId(null); setDragPos(null); setDragScreenPos(null); setDragOver(false);
     }
@@ -964,7 +986,6 @@ export function TapesTable() {
       locallyDirtyIds.add(tapeId);
       setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: cx, y: Math.max(cy, HEADER_BLOCK_H) } : t));
       scheduleRemoteSave();
-      playSfx('/sfx/tape-land.mp3', 0.5);
       setLandingId(tapeId);
       setTimeout(() => setLandingId(null), 500);
       setDragId(null); setDragPos(null); setDragScreenPos(null); setDragOver(false); setDeckEjecting(false);
@@ -1000,17 +1021,35 @@ export function TapesTable() {
 
   if (!mounted) return null;
 
+  // Active area in 2D coords
+  const cx = CANVAS_W / 2;   // 2000
+  const cy = CANVAS_H / 2;   // 1200
+  const halfAX = 22.9 * 50;  // ACTIVE_W/2 * MAP_SCALE ≈ 1145
+  const halfAZ = 15 * 50;    // ACTIVE_H/2 * MAP_SCALE = 750
+  const minX = cx - halfAX + 150;
+  const maxX = cx + halfAX - 150;
+  const minY = cy - halfAZ + 100;
+  const maxY = cy + halfAZ - 100;
+
   const positionedTapes = tapes.map((tape, i) => {
-    if (tape.x !== undefined && tape.y !== undefined) return tape;
-    const col = i % 4;
-    const row = Math.floor(i / 4);
+    if (tape.x !== undefined && tape.y !== undefined) {
+      // Clamp existing positions into the active area
+      const clamped = tape.x >= minX && tape.x <= maxX && tape.y >= minY && tape.y <= maxY;
+      if (clamped) return tape;
+      return { ...tape, x: Math.max(minX, Math.min(maxX, tape.x)), y: Math.max(minY, Math.min(maxY, tape.y)) };
+    }
+    const col = i % 3;
+    const row = Math.floor(i / 3);
     return {
       ...tape,
-      x: 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
-      y: Math.max(HEADER_BLOCK_H + row * 170 + Math.round((Math.random() - 0.5) * 30), HEADER_BLOCK_H),
+      x: cx + Math.round((Math.random() - 0.5) * 80),
+      y: cy + Math.round((Math.random() - 0.5) * 60),
       angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
     };
   });
+
+  console.log('[TapesTable] tapes:', tapes.length, 'positioned:', positionedTapes.length,
+    positionedTapes.slice(0, 2).map(t => ({ id: t.id.slice(0, 8), x: t.x, y: t.y })));
 
   // Tapes on table = all except what's loaded in the deck
   const tableTapes = positionedTapes.filter(t => t.id !== loadedTape?.id);
@@ -1026,145 +1065,20 @@ export function TapesTable() {
         .tapes-scroll { scrollbar-width: none; -ms-overflow-style: none; }
       `}</style>
 
-      <div
-        ref={tableRef}
-        className="tapes-scroll"
-        onPointerDown={startPan}
-        onClick={e => {
-          if (!(e.target as HTMLElement)?.closest('[data-tape]') && !(e.target as HTMLElement)?.closest('[data-deck]')) setMenuId(null);
-        }}
-        style={{
-          flex: 1,
-          overflow: 'auto',
-          position: 'relative',
-          cursor: isPanning ? 'grabbing' : dragId ? 'grabbing' : 'grab',
-          boxShadow: 'inset 0 3px 16px rgba(0,0,0,0.4), inset 0 0 60px rgba(0,0,0,0.2)',
-        }}
-      >
-        {/* Wood texture canvas with black overlay */}
-        <div
-          id="tapes-table-canvas"
-          style={{
-            width: CANVAS_W,
-            height: CANVAS_H,
-            position: 'relative',
-            backgroundImage: [
-              'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5))',
-              'radial-gradient(ellipse 1200px 900px at 40% 30%, rgba(255,255,255,0.04) 0%, transparent 70%)',
-              'repeating-linear-gradient(45deg, transparent 0px, transparent 1px, rgba(255,255,255,0.01) 1px, rgba(255,255,255,0.01) 2px)',
-              'url(/table-wood.jpg)',
-            ].join(','),
-            backgroundSize: 'auto, auto, auto, 600px',
-            backgroundRepeat: 'repeat',
-            backgroundColor: '#1a1208',
-          }}
-        >
-          {/* Tapes on table */}
-          {tableTapes.map(tape => {
-            const isDragging = dragId === tape.id;
-            if (isDragging) return null;
-            const zi = zOrder.indexOf(tape.id) + 1;
-            const hasMenu = menuId === tape.id;
-
-            return (
-              <div
-                key={tape.id}
-                data-tape="true"
-                title={tape.title + (tape.author ? ` - ${tape.author}` : '')}
-                onPointerDown={e => startDrag(e, tape as Tape & { x: number; y: number })}
-                onClick={() => {
-                  if (isDoubleTap(tape.id)) {
-                    setMenuId(prev => prev === tape.id ? null : tape.id);
-                  }
-                }}
-                onContextMenu={e => e.preventDefault()}
-                style={{
-                  position: 'absolute',
-                  left: tape.x,
-                  top: tape.y,
-                  transform: `rotate(${tape.angle ?? 0}deg)`,
-                  transition: 'transform 0.15s',
-                  animation: rewindingId === tape.id ? 'tape-rewind 0.4s ease' : landingId === tape.id ? 'tape-land 0.5s ease-out' : 'none',
-                  zIndex: hasMenu ? 9999 : zi,
-                  cursor: 'grab',
-                  userSelect: 'none',
-                  touchAction: 'none',
-                  filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.45))',
-                }}
-              >
-                <CassetteTape tape={tape} />
-
-                {hasMenu && (
-                  <div style={{
-                    position: 'absolute', bottom: -40, left: '50%', transform: 'translateX(-50%)',
-                    display: 'flex', gap: 6, zIndex: 10000,
-                  }}>
-                    <button
-                      onPointerDown={e => e.stopPropagation()}
-                      onClick={e => {
-                        e.stopPropagation();
-                        const id = tape.isPlaylist ? tape.playlistId : tape.videoId;
-                        const url = `${window.location.origin}${window.location.pathname}?v=${id}&t=${tape.playlistIndex ?? 0}`;
-                        navigator.clipboard.writeText(url).then(() => {
-                          (e.target as HTMLButtonElement).textContent = 'Copied!';
-                          setTimeout(() => { (e.target as HTMLButtonElement).textContent = 'Link'; }, 1500);
-                        }).catch(() => { prompt('Copy this link:', url); });
-                      }}
-                      style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#3b82f6', color: '#fff', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}
-                    >Link</button>
-                    <button
-                      onPointerDown={e => e.stopPropagation()}
-                      onClick={e => { e.stopPropagation(); rewindTape(tape.id); }}
-                      style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#333', color: '#fff', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}
-                    >Rewind</button>
-                    <button
-                      onPointerDown={e => e.stopPropagation()}
-                      onClick={e => { e.stopPropagation(); deleteTape(tape.id); }}
-                      style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#ef4444', color: '#fff', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}
-                    >Remove</button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 3D tape demo — temporary test */}
-      {tapes.length > 0 && createPortal(
-        <div style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 80000 }}>
-          <button
-            onClick={() => setShow3D(p => !p)}
-            style={{ padding: '6px 12px', background: '#333', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: "'04b03', monospace", fontSize: 11, marginBottom: 8, display: 'block' }}
-          >3D test</button>
-          {show3D && (
-            <Suspense fallback={<div style={{ color: '#fff' }}>Loading 3D...</div>}>
-              <Tape3DDemo tape={tapes[0]} />
-            </Suspense>
-          )}
-        </div>,
-        document.body
-      )}
-
-      {/* Drag overlay — portaled to body so it's above everything */}
-      {dragId && dragScreenPos && (() => {
-        const tape = positionedTapes.find(t => t.id === dragId);
-        if (!tape) return null;
-        return createPortal(
-          <div style={{
-            position: 'fixed',
-            left: dragScreenPos.x,
-            top: dragScreenPos.y,
-            zIndex: 90000,
-            pointerEvents: 'none',
-            transform: `rotate(${tape.angle ?? 0}deg) scale(1.06)`,
-            filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.4))',
-          }}>
-            <CassetteTape tape={tape} />
-          </div>,
-          document.body
-        );
-      })()}
+      {/* 3D table with FBX tapes, physics, drag, camera pan */}
+      <Suspense fallback={<div style={{ flex: 1, background: '#0a0805' }} />}>
+        <TapesTable3D
+          tapes={positionedTapes}
+          loadedTapeId={loadedTape?.id ?? null}
+          onDragStart={handle3DDragStart}
+          onDragEnd={handle3DDragEnd}
+          onDoubleTap={handle3DDoubleTap}
+          onMenuAction={handle3DMenuAction}
+          menuId={menuId}
+          onClearMenu={cancelMenu}
+          newTapeIds={emptyNewTapeIds}
+        />
+      </Suspense>
 
       {/* Deck — portaled outside tapes-root so it's visible in all bg modes */}
       {/* Username bar — portaled into start-header */}

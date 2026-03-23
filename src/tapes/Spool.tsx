@@ -8,7 +8,7 @@ export function Spool({ spinning, size = 32, rpm = 30, color = '#e8dcc4' }: { sp
   const toothW = 2.7;
   const toothL = 3.24;
   return (
-    <svg viewBox="0 0 32 32" width={size} height={size} style={{ animation: spinning ? `tape-spin-fast ${60 / rpm}s linear infinite` : 'none', display: 'block' }}>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width={size} height={size} style={{ animation: spinning ? `tape-spin-fast ${60 / rpm}s linear infinite` : 'none', display: 'block' }}>
       {/* Cream outer ring */}
       <circle cx="16" cy="16" r={ringR} fill="none" stroke={color} strokeWidth={strokeW} />
       {/* 6 teeth on inner edge pointing inward */}
