@@ -805,6 +805,11 @@ html.glitching, html.glitching body {
   pointer-events: none;
 }
 
+/* Hide CRT vignette when tapes view is active */
+.crt.tapes-active::after {
+  opacity: 0;
+}
+
 .vignette::before {
   left: 0;
   width: 100%;

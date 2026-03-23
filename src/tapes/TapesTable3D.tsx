@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useRef, useEffect, useMemo } from 'react';
+import React, { Suspense, useCallback, useRef, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { MapControls, Stats } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
@@ -15,6 +15,10 @@ interface DragState {
   targetZ: number;
 }
 
+export interface TapesTable3DHandle {
+  startDrag: (tapeId: string) => void;
+}
+
 interface TapesTable3DProps {
   tapes: Tape[];
   loadedTapeId: string | null;
@@ -25,10 +29,11 @@ interface TapesTable3DProps {
   menuId: string | null;
   onClearMenu: () => void;
   newTapeIds: Set<string>;
+  externalDrag?: DragState; // shared mutable object for external drag initiation
 }
 
 function SceneContents({
-  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds,
+  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, externalDrag,
 }: TapesTable3DProps) {
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
@@ -204,6 +209,72 @@ function SceneContents({
     };
   }, [gl, drag, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, onDragStart, onDragEnd, onDoubleTap, onClearMenu]);
 
+  // Pick up external drag initiation (e.g. tape ejected from deck)
+  const extDragActive = useRef(false);
+
+  useFrame(() => {
+    if (!externalDrag || extDragActive.current) return;
+    if (!externalDrag.tapeId) return;
+
+    // Start external drag — raycast screen coords to get initial 3D position
+    extDragActive.current = true;
+    const sx = (externalDrag as any).screenX as number | undefined;
+    const sy = (externalDrag as any).screenY as number | undefined;
+    if (sx !== undefined && sy !== undefined) {
+      const hit = raycastToPlane(sx, sy, DRAG_HEIGHT);
+      if (hit) {
+        externalDrag.targetX = hit.x;
+        externalDrag.targetZ = hit.z;
+      }
+    }
+    drag.tapeId = externalDrag.tapeId;
+    drag.targetX = externalDrag.targetX;
+    drag.targetZ = externalDrag.targetZ;
+    if (controlsRef.current) controlsRef.current.enabled = false;
+    onDragStart();
+
+    function onExtMove(ev: PointerEvent) {
+      const hit = raycastToPlane(ev.clientX, ev.clientY, DRAG_HEIGHT);
+      if (hit) {
+        drag.targetX = Math.max(-DRAG_BOUND_X, Math.min(DRAG_BOUND_X, hit.x));
+        drag.targetZ = Math.max(-DRAG_BOUND_Z, Math.min(DRAG_BOUND_Z, hit.z));
+      }
+    }
+
+    function onExtUp(ev: PointerEvent) {
+      const tapeId = drag.tapeId;
+      const tx = drag.targetX;
+      const tz = drag.targetZ;
+      externalDrag!.tapeId = null;
+      drag.tapeId = null;
+      extDragActive.current = false;
+      if (controlsRef.current) controlsRef.current.enabled = true;
+      window.removeEventListener('pointermove', onExtMove);
+      window.removeEventListener('pointerup', onExtUp);
+      if (tapeId) {
+        const [x2d, y2d] = to2D(tx, tz);
+        const deckDrop = isDeckDrop(ev.clientX, ev.clientY);
+        onDragEnd(tapeId, x2d, y2d, deckDrop);
+      }
+    }
+
+    window.addEventListener('pointermove', onExtMove);
+    window.addEventListener('pointerup', onExtUp);
+  });
+
+  // Restore saved zoom level
+  const zoomRestored = useRef(false);
+  if (!zoomRestored.current) {
+    const saved = localStorage.getItem('jeem_table_zoom');
+    if (saved) {
+      const y = parseFloat(saved);
+      if (y >= 35 && y <= 45) camera.position.y = y;
+    }
+    zoomRestored.current = true;
+  }
+
+  const lastSavedZoom = useRef(camera.position.y);
+
   // Clamp camera pan so viewport edge stops at active area boundary
   useFrame(() => {
     const c = controlsRef.current;
@@ -217,29 +288,37 @@ function SceneContents({
     c.target.z = Math.max(-maxZ, Math.min(maxZ, c.target.z));
     camera.position.x = Math.max(-maxX, Math.min(maxX, camera.position.x));
     camera.position.z = Math.max(-maxZ, Math.min(maxZ, camera.position.z));
+
+    // Persist zoom when it changes
+    if (Math.abs(cam.position.y - lastSavedZoom.current) > 0.3) {
+      lastSavedZoom.current = cam.position.y;
+      localStorage.setItem('jeem_table_zoom', String(cam.position.y));
+    }
   });
 
   return (
     <>
-      <ambientLight intensity={0.8} />
+      <ambientLight intensity={0.9} color="#fffaf6" />
       <directionalLight
-        position={[5, 50, -4]}
-        intensity={2.0}
+        position={[8, 30, -6]}
+        intensity={1.8}
+        color="#fff0e6"
         castShadow
-        shadow-mapSize-width={512}
-        shadow-mapSize-height={512}
-        shadow-bias={-0.0005}
-        shadow-camera-left={-30}
-        shadow-camera-right={30}
-        shadow-camera-top={20}
-        shadow-camera-bottom={-20}
+        shadow-mapSize-width={384}
+        shadow-mapSize-height={384}
+        shadow-bias={-0.0009}
+        shadow-camera-left={-37}
+        shadow-camera-right={37}
+        shadow-camera-top={27}
+        shadow-camera-bottom={-27}
         shadow-camera-near={0.5}
         shadow-camera-far={100}
+        shadow-radius={3}
       />
-      <pointLight position={[-8, 8, -4]} intensity={0.4} color="#ffeedd" />
+      <pointLight position={[-8, 6, -4]} intensity={0.4} color="#ffe8d6" />
 
       <Suspense fallback={null}>
-        <Physics gravity={[0, -50, 0]} timeStep={1 / 60}>
+        <Physics gravity={[0, -400, 0]} timeStep={1 / 60}>
           <TableSurface />
           {tableTapes.map(tape => (
             <TapeBody
@@ -259,8 +338,8 @@ function SceneContents({
         enableRotate={false}
         enablePan={true}
         enableZoom={true}
-        minDistance={25}
-        maxDistance={35}
+        minDistance={35}
+        maxDistance={45}
         panSpeed={1.5}
         zoomSpeed={1.2}
         screenSpacePanning={false}
@@ -273,6 +352,11 @@ function SceneContents({
 export function TapesTable3D(props: TapesTable3DProps) {
   return (
     <div style={{ flex: 1, position: 'relative' }}>
+      {/* Vignette — below search UI (z-index 2) */}
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2,
+        background: 'radial-gradient(circle, transparent 50%, rgba(0,0,0,0.5) 120%)',
+      }} />
       <Canvas
         shadows
         camera={{ position: [0, 30, 3], fov: 45, near: 0.1, far: 200 }}

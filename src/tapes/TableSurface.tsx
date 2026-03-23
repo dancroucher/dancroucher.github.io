@@ -2,10 +2,14 @@ import React, { useMemo } from 'react';
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useLoader } from '@react-three/fiber';
-import { TABLE_W, TABLE_H, VISUAL_W, VISUAL_H, TILE_W, TILE_H, ACTIVE_W, ACTIVE_H, DRAG_BOUND_X, DRAG_BOUND_Z } from './coords';
+import { TABLE_W, TABLE_H, VISUAL_W, VISUAL_H, TILE_W, TILE_H, ACTIVE_W, ACTIVE_H, DRAG_BOUND_X, DRAG_BOUND_Z, TAPE_W, TAPE_H } from './coords';
 
 const WALL_HEIGHT = 4;
 const WALL_THICKNESS = 0.5;
+
+// Extra-wide surface to cover ultrawide viewports (cosmetic only)
+const SURFACE_W = VISUAL_W * 3;
+const SURFACE_H = VISUAL_H * 2;
 
 // Debug grid: draw lines at tile boundaries
 function DebugGrid() {
@@ -57,16 +61,16 @@ function DebugGrid() {
 }
 
 export function TableSurface() {
-  const woodTexture = useLoader(THREE.TextureLoader, '/table-wood.jpg');
+  const woodTexture = useLoader(THREE.TextureLoader, '/wood-table-alt.jpg');
 
   const material = useMemo(() => {
     woodTexture.wrapS = woodTexture.wrapT = THREE.RepeatWrapping;
     // 1 tile = 1 texture repeat, matching wood texture aspect ratio
-    woodTexture.repeat.set(VISUAL_W / TILE_W, VISUAL_H / TILE_H);
+    woodTexture.repeat.set(SURFACE_W / TILE_W, SURFACE_H / TILE_H);
     woodTexture.colorSpace = THREE.SRGBColorSpace;
     return new THREE.MeshStandardMaterial({
       map: woodTexture,
-      roughness: 0.85,
+      roughness: 1.0,
       metalness: 0.0,
       color: '#ffffff',
     });
@@ -76,45 +80,25 @@ export function TableSurface() {
     <group>
       {/* Table surface — static rigid body */}
       <RigidBody type="fixed" colliders={false}>
-        <CuboidCollider args={[VISUAL_W / 2, 0.5, VISUAL_H / 2]} position={[0, -0.5, 0]} />
+        <CuboidCollider args={[SURFACE_W / 2, 0.5, SURFACE_H / 2]} position={[0, -0.5, 0]} />
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-          <planeGeometry args={[VISUAL_W, VISUAL_H]} />
+          <planeGeometry args={[SURFACE_W, SURFACE_H]} />
           <primitive object={material} attach="material" />
         </mesh>
       </RigidBody>
 
-      {/* Edge walls — invisible colliders */}
+      {/* Edge walls — invisible colliders inside active area */}
       <RigidBody type="fixed" colliders={false}>
-        <CuboidCollider args={[TABLE_W / 2, WALL_HEIGHT / 2, WALL_THICKNESS / 2]} position={[0, WALL_HEIGHT / 2, -TABLE_H / 2 - WALL_THICKNESS / 2]} />
-        <CuboidCollider args={[TABLE_W / 2, WALL_HEIGHT / 2, WALL_THICKNESS / 2]} position={[0, WALL_HEIGHT / 2, TABLE_H / 2 + WALL_THICKNESS / 2]} />
-        <CuboidCollider args={[WALL_THICKNESS / 2, WALL_HEIGHT / 2, TABLE_H / 2]} position={[-TABLE_W / 2 - WALL_THICKNESS / 2, WALL_HEIGHT / 2, 0]} />
-        <CuboidCollider args={[WALL_THICKNESS / 2, WALL_HEIGHT / 2, TABLE_H / 2]} position={[TABLE_W / 2 + WALL_THICKNESS / 2, WALL_HEIGHT / 2, 0]} />
+        <CuboidCollider args={[ACTIVE_W / 2, WALL_HEIGHT / 2, WALL_THICKNESS / 2]} position={[0, WALL_HEIGHT / 2, -(ACTIVE_H / 2 + TILE_H / 2)]} />
+        <CuboidCollider args={[ACTIVE_W / 2, WALL_HEIGHT / 2, WALL_THICKNESS / 2]} position={[0, WALL_HEIGHT / 2, (ACTIVE_H / 2 + TILE_H / 2)]} />
+        <CuboidCollider args={[WALL_THICKNESS / 2, WALL_HEIGHT / 2, ACTIVE_H / 2 + TILE_H]} position={[-(ACTIVE_W / 2 + TILE_W / 2), WALL_HEIGHT / 2, 0]} />
+        <CuboidCollider args={[WALL_THICKNESS / 2, WALL_HEIGHT / 2, ACTIVE_H / 2 + TILE_H]} position={[(ACTIVE_W / 2 + TILE_W / 2), WALL_HEIGHT / 2, 0]} />
       </RigidBody>
 
-      {/* Light overlay on active 3×3 area */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.001, 0]}>
-        <planeGeometry args={[ACTIVE_W, ACTIVE_H]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.4} />
-      </mesh>
-      {/* Darker border — 1 tile around active area (left) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-(ACTIVE_W / 2 + TILE_W / 2), 0.002, 0]}>
-        <planeGeometry args={[TILE_W, TABLE_H]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.7} />
-      </mesh>
-      {/* Right */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[(ACTIVE_W / 2 + TILE_W / 2), 0.002, 0]}>
-        <planeGeometry args={[TILE_W, TABLE_H]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.7} />
-      </mesh>
-      {/* Top (between left/right borders) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.002, -(ACTIVE_H / 2 + TILE_H / 2)]}>
-        <planeGeometry args={[ACTIVE_W, TILE_H]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.7} />
-      </mesh>
-      {/* Bottom */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.002, (ACTIVE_H / 2 + TILE_H / 2)]}>
-        <planeGeometry args={[ACTIVE_W, TILE_H]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.7} />
+      {/* Dark overlay covering the full surface */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+        <planeGeometry args={[SURFACE_W, SURFACE_H]} />
+        <meshBasicMaterial color="#000000" transparent opacity={0.5} />
       </mesh>
 
       {/* <DebugGrid /> */}

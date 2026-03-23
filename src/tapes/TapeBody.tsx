@@ -111,7 +111,7 @@ function extractVariant(fbx: THREE.Group, meshName: string): { group: THREE.Grou
 // Cache stamped textures by variant+title to avoid re-creating canvases
 const stampCache = new Map<string, THREE.CanvasTexture>();
 
-function stampTitle(baseColor: THREE.Texture, title: string, variant: string): THREE.CanvasTexture {
+export function stampTitle(baseColor: THREE.Texture, title: string, variant: string): THREE.CanvasTexture {
   const cacheKey = `${variant}:${title}`;
   const cached = stampCache.get(cacheKey);
   if (cached) return cached;
@@ -164,6 +164,7 @@ export function TapeBody({
   const groupRef = useRef<THREE.Group>(null);
   const [sceneData, setSceneData] = useState<{ group: THREE.Group; geo: VariantGeo } | null>(null);
   const wasDragging = useRef(false);
+  const falling = useRef(false);
   const smoothPos = useRef({ x: 0, z: 0 });
   const velocity = useRef({ x: 0, z: 0 });
   const savedYRot = useRef(0);
@@ -202,8 +203,14 @@ export function TapeBody({
     });
   }, [sceneData, textures, tape.title]);
 
-  // Initial position from 2D coords
-  const [x3d, z3d] = useMemo(() => to3D(tape.x ?? 500, tape.y ?? 500), [tape.x, tape.y]);
+  // Initial position from 2D coords — only used on first mount, not on prop updates
+  // (drag-end updates tape.x/y in React state but the physics body is already positioned)
+  const initialPos = useRef<{ x3d: number; z3d: number } | null>(null);
+  if (!initialPos.current) {
+    const [ix, iz] = to3D(tape.x ?? 500, tape.y ?? 500);
+    initialPos.current = { x3d: ix, z3d: iz };
+  }
+  const { x3d, z3d } = initialPos.current;
   const halfY = sceneData?.geo.halfY ?? 0.8;
   const spawnY = isNew ? 5 : halfY + 0.01;
   // 180° base rotation so label faces camera, plus random yaw
@@ -218,9 +225,21 @@ export function TapeBody({
     if (isDragged) {
       if (!wasDragging.current) {
         wasDragging.current = true;
+        // If the body is far from the drag target (e.g. just ejected from deck),
+        // teleport directly to the target instead of lerping from spawn position
         const t = body.translation();
-        smoothPos.current.x = t.x;
-        smoothPos.current.z = t.z;
+        const dx = drag.targetX - t.x;
+        const dz = drag.targetZ - t.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist > 5) {
+          // Teleport — body just spawned far from pointer
+          smoothPos.current.x = drag.targetX;
+          smoothPos.current.z = drag.targetZ;
+          body.setTranslation({ x: drag.targetX, y: DRAG_HEIGHT, z: drag.targetZ }, true);
+        } else {
+          smoothPos.current.x = t.x;
+          smoothPos.current.z = t.z;
+        }
         velocity.current.x = 0;
         velocity.current.z = 0;
         // Capture current Y rotation to preserve during drag
@@ -258,17 +277,32 @@ export function TapeBody({
       q.setFromEuler(new THREE.Euler(tiltX, savedYRot.current, tiltZ));
       body.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }, true);
     } else if (wasDragging.current) {
+      // Release: start a gentle fall instead of snapping
       wasDragging.current = false;
+      falling.current = true;
       body.setTranslation({
         x: smoothPos.current.x,
         y: DRAG_HEIGHT,
         z: smoothPos.current.z,
       }, true);
-      body.setGravityScale(1, true);
+      body.setGravityScale(0.15, true);
       const vx = velocity.current.x * 0.4;
       const vz = velocity.current.z * 0.4;
-      body.setLinvel({ x: vx, y: 0, z: vz }, true);
+      body.setLinvel({ x: vx, y: -2, z: vz }, true);
       body.setAngvel({ x: vz * 0.3, y: 0, z: -vx * 0.3 }, true);
+    }
+
+    // Gradually restore gravity as the tape falls
+    if (falling.current && !isDragged) {
+      const t = body.translation();
+      const gs = body.gravityScale();
+      if (t.y <= halfY + 0.1) {
+        // Landed
+        falling.current = false;
+        body.setGravityScale(1, true);
+      } else if (gs < 1) {
+        body.setGravityScale(Math.min(1, gs + delta * 0.8), true);
+      }
     }
   });
 

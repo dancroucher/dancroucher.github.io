@@ -47,12 +47,12 @@ export const VISUAL_H = TABLE_H;
 // Camera pan limit
 export const CAM_BOUND_X = ACTIVE_W / 2;
 export const CAM_BOUND_Z = ACTIVE_H / 2;
-// Drag bounds — keep tape edges inside the 3×3 active area
-export const DRAG_BOUND_X = ACTIVE_W / 2 - TAPE_W / 2;
-export const DRAG_BOUND_Z = ACTIVE_H / 2 - TAPE_H / 2;
+// Drag bounds — active area + half a tile of overflow
+export const DRAG_BOUND_X = ACTIVE_W / 2 + TILE_W / 2 - TAPE_W / 2;
+export const DRAG_BOUND_Z = ACTIVE_H / 2 + TILE_H / 2 - TAPE_H / 2;
 
 // Drag constants
-export const DRAG_HEIGHT = 2.5;
+export const DRAG_HEIGHT = 5;
 
 // Shared mutable drag state — written by pointer handlers, read by TapeBody in useFrame
 export interface DragState {

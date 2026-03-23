@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspens
 import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, getStorageKey, InfiniteConfig, InfiniteTrack } from './types';
 import { CassetteTape } from './CassetteTape';
+import { DeckTape3D } from './DeckTape3D';
 const TapesTable3D = lazy(() => import('./TapesTable3D').then(m => ({ default: m.TapesTable3D })));
 
 // ── Tape sounds (real samples) ──
@@ -238,6 +239,8 @@ export function TapesTable() {
   const [rewindingId, setRewindingId] = useState<string | null>(null);
   const [landingId, setLandingId] = useState<string | null>(null);
   const [show3D, setShow3D] = useState(true);
+  // Shared mutable object to initiate a 3D drag from outside (e.g. deck eject)
+  const externalDrag = useRef<{ tapeId: string | null; targetX: number; targetZ: number }>({ tapeId: null, targetX: 0, targetZ: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [loadedTape, setLoadedTape] = useState<Tape | null>(null);
   const [deckEjecting, setDeckEjecting] = useState(false);
@@ -784,12 +787,16 @@ export function TapesTable() {
 
   const cancelMenu = useCallback(() => { setMenuId(null); }, []);
 
+  const [dragging3D, setDragging3D] = useState(false);
+
   // --- 3D table callbacks ---
   const handle3DDragStart = useCallback(() => {
     cancelMenu();
+    setDragging3D(true);
   }, [cancelMenu]);
 
   const handle3DDragEnd = useCallback((tapeId: string, x2d: number, y2d: number, droppedOnDeck: boolean) => {
+    setDragging3D(false);
     if (droppedOnDeck) {
       const t = tapesRef.current.find(t => t.id === tapeId);
       if (t) loadIntoPlayer(t);
@@ -945,31 +952,19 @@ export function TapesTable() {
       // Switch to tapes bg so user can see where the tape lands
       if (window.switchBgType) window.switchBgType(5);
 
-      const tbl = tableRef.current!;
-      const sx = fromEv.clientX - gx;
-      const sy = fromEv.clientY - gy;
-      const r = tbl.getBoundingClientRect();
-      setDragId(tape.id);
-      setDragPos({ x: sx - r.left + tbl.scrollLeft, y: sy - r.top + tbl.scrollTop });
-      setDragScreenPos({ x: sx, y: sy });
-      setZOrder(prev => [...prev.filter(id => id !== tape.id), tape.id]);
-    }
-
-    function posFromEvent(ev: PointerEvent) {
-      const sx = ev.clientX - gx;
-      const sy = ev.clientY - gy;
-      const r = tableRef.current!.getBoundingClientRect();
-      return { sx, sy, cx: sx - r.left + tableRef.current!.scrollLeft, cy: sy - r.top + tableRef.current!.scrollTop };
+      // Hand off to 3D drag system — tape will appear on table and be picked up
+      // Store screen coords so the 3D scene can raycast the initial position
+      (externalDrag.current as any).screenX = fromEv.clientX;
+      (externalDrag.current as any).screenY = fromEv.clientY;
+      externalDrag.current.targetX = 0;
+      externalDrag.current.targetZ = 0;
+      externalDrag.current.tapeId = tape.id;
     }
 
     function onMove(ev: PointerEvent) {
       if (!ejected && holdReady && (Math.abs(ev.clientX - startX) > 5 || Math.abs(ev.clientY - startY) > 5)) {
         eject(ev);
       }
-      if (!ejected) return;
-      const { sx, sy, cx, cy } = posFromEvent(ev);
-      setDragPos({ x: cx, y: cy });
-      setDragScreenPos({ x: sx, y: sy });
     }
 
     function onUp(ev: PointerEvent) {
@@ -981,14 +976,7 @@ export function TapesTable() {
         if (window.myApp) window.myApp.togglePlayback();
         return;
       }
-      const tapeId = tape.id;
-      const { cx, cy } = posFromEvent(ev);
-      locallyDirtyIds.add(tapeId);
-      setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: cx, y: Math.max(cy, HEADER_BLOCK_H) } : t));
-      scheduleRemoteSave();
-      setLandingId(tapeId);
-      setTimeout(() => setLandingId(null), 500);
-      setDragId(null); setDragPos(null); setDragScreenPos(null); setDragOver(false); setDeckEjecting(false);
+      setDeckEjecting(false);
     }
 
     window.addEventListener('pointermove', onMove);
@@ -1082,6 +1070,7 @@ export function TapesTable() {
           menuId={menuId}
           onClearMenu={cancelMenu}
           newTapeIds={emptyNewTapeIds}
+          externalDrag={externalDrag.current}
         />
       </Suspense>
 
@@ -1118,6 +1107,7 @@ export function TapesTable() {
         <div
           data-deck="true"
           ref={playerZoneRef}
+          style={{ position: 'relative' }}
         >
           <div
             className="deck-slot"
@@ -1126,13 +1116,14 @@ export function TapesTable() {
               width: 234, height: 143, position: 'relative',
               background: loadedTape ? 'transparent' : '#141414',
               borderRadius: 5,
-              border: !loadedTape && dragId ? '1px solid rgba(249,115,22,0.4)' : loadedTape ? 'none' : '1px solid #333',
+              border: dragging3D ? '1px solid rgba(249,115,22,0.5)' : !loadedTape && dragId ? '1px solid rgba(249,115,22,0.4)' : loadedTape ? 'none' : '1px solid #333',
               display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
               cursor: loadedTape ? 'grab' : 'default',
+              opacity: dragging3D ? 0 : 1,
               boxShadow: !loadedTape && dragId
                 ? 'inset 0 2px 8px rgba(0,0,0,0.3), 0 0 12px rgba(249,115,22,0.15), 0 0 4px rgba(249,115,22,0.1)'
-                : loadedTape ? '0 4px 20px rgba(0,0,0,0.5)' : 'inset 0 2px 8px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.5)',
-              transition: 'box-shadow 0.2s, border-color 0.2s',
+                : loadedTape ? 'none' : 'inset 0 2px 8px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.5)',
+              transition: 'opacity 0.2s, box-shadow 0.2s, border-color 0.2s',
             }}
           >
             {/* Trapezoid indent */}
@@ -1149,8 +1140,8 @@ export function TapesTable() {
             <div style={{ position: 'absolute', left: 65 + 22, top: 55, width: 169 - 65 - 44, height: 26, borderRadius: 2, background: 'linear-gradient(135deg, #6b4420 0%, #8a5a28 30%, #7a4a20 50%, #5a3a18 70%, #6b4420 100%)', opacity: 0.5, zIndex: 0 }} />
 
             {/* Spindle hubs — 3D raised look */}
-            {[65, 169].map((cx, i) => (
-              <div key={i} style={{ position: 'absolute', left: cx - 13, top: 68 - 13, width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(160deg, #2a2a2a 0%, #111 60%, #000 100%)', border: '1px solid #333', boxShadow: '0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08)', zIndex: 0 }}>
+            {[70, 164].map((cx, i) => (
+              <div key={i} style={{ position: 'absolute', left: cx - 13, top: 65 - 13, width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(160deg, #2a2a2a 0%, #111 60%, #000 100%)', border: '1px solid #333', boxShadow: '0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08)', zIndex: 0 }}>
                 <div style={{ position: 'absolute', inset: 3, borderRadius: '50%', background: 'linear-gradient(160deg, #222 0%, #141414 50%, #0a0a0a 100%)', boxShadow: 'inset 0 -1px 2px rgba(255,255,255,0.06), inset 0 1px 2px rgba(0,0,0,0.6)', border: '0.5px solid #2a2a2a' }}>
                   <div style={{ position: 'absolute', left: '50%', top: 2, bottom: 2, width: 2, transform: 'translateX(-50%)', background: 'linear-gradient(180deg, #333 0%, #1a1a1a 100%)', borderRadius: 1, boxShadow: '0 0 1px rgba(0,0,0,0.5)' }} />
                   <div style={{ position: 'absolute', top: '50%', left: 2, right: 2, height: 2, transform: 'translateY(-50%)', background: 'linear-gradient(90deg, #333 0%, #1a1a1a 100%)', borderRadius: 1, boxShadow: '0 0 1px rgba(0,0,0,0.5)' }} />
@@ -1161,10 +1152,20 @@ export function TapesTable() {
 
             {loadedTape ? (
               <div style={{ position: 'relative', zIndex: 1 }}>
-                <CassetteTape tape={loadedTape} playing={isPlaying} loading={infiniteLoading} />
+                <DeckTape3D tape={loadedTape} playing={isPlaying} loading={infiniteLoading} />
               </div>
             ) : null}
           </div>
+          {/* Glow overlay — visible when dragging a 3D tape, sits above the hidden deck-slot */}
+          {dragging3D && (
+            <div style={{
+              position: 'absolute', inset: 0,
+              borderRadius: 5,
+              border: '1px solid rgba(249,115,22,0.5)',
+              boxShadow: '0 0 20px rgba(249,115,22,0.4), 0 0 40px rgba(249,115,22,0.2)',
+              pointerEvents: 'none',
+            }} />
+          )}
         </div>,
         deckPortal
       )}
