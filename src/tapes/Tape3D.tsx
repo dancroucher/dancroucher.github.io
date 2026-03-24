@@ -9,7 +9,7 @@ import { Tape } from './types';
 import { to3D } from './coords';
 import { TableSurface } from './TableSurface';
 
-export const VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f'] as const;
+export const VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'] as const;
 // Mesh→material mapping from FBX:
 // prop_cassette_tape_01002 → audio_cassette_a
 // prop_cassette_tape_01001 → audio_cassette_b
