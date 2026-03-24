@@ -447,6 +447,8 @@ export function TapesTable() {
           if (next.length > 50) next.pop();
           setZOrder(o => [tape.id, ...o]);
           locallyDirtyIds.add(tape.id);
+          setNewTapeIds(s => new Set(s).add(tape.id));
+          setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(tape.id); return n; }), 2000);
           scheduleRemoteSave();
           return next;
         });
@@ -489,6 +491,8 @@ export function TapesTable() {
           if (next.length > 50) next.pop();
           setZOrder(o => [tape.id, ...o]);
           locallyDirtyIds.add(tape.id);
+          setNewTapeIds(s => new Set(s).add(tape.id));
+          setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(tape.id); return n; }), 2000);
           scheduleRemoteSave();
           return next;
         });
@@ -829,7 +833,7 @@ export function TapesTable() {
     setMenuId(null);
   }, [deleteTape, rewindTape]);
 
-  const emptyNewTapeIds = useMemo(() => new Set<string>(), []);
+  const [newTapeIds, setNewTapeIds] = useState(() => new Set<string>());
 
   // --- Drag from table ---
   const startDrag = useCallback((e: React.PointerEvent, tape: Tape) => {
@@ -1080,7 +1084,7 @@ export function TapesTable() {
           onMenuAction={handle3DMenuAction}
           menuId={menuId}
           onClearMenu={cancelMenu}
-          newTapeIds={emptyNewTapeIds}
+          newTapeIds={newTapeIds}
           externalDrag={externalDrag.current}
         />
       </Suspense>
