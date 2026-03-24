@@ -6,7 +6,7 @@ import { DeckTape3D } from './DeckTape3D';
 const TapesTable3D = lazy(() => import('./TapesTable3D').then(m => ({ default: m.TapesTable3D })));
 
 // ── Texture variant cycling ──
-const TEXTURE_VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'];
+const TEXTURE_VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'];
 let nextVariantIndex = 0;
 function nextTextureVariant(): string {
   const v = TEXTURE_VARIANTS[nextVariantIndex % TEXTURE_VARIANTS.length];
