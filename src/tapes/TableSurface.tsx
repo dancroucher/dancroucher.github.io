@@ -89,7 +89,7 @@ export function TableSurface() {
 
       {/* Edge walls — invisible colliders inside active area */}
       <RigidBody type="fixed" colliders={false}>
-        <CuboidCollider args={[ACTIVE_W / 2, WALL_HEIGHT / 2, WALL_THICKNESS / 2]} position={[0, WALL_HEIGHT / 2, -(ACTIVE_H / 2 + TILE_H / 2)]} />
+        <CuboidCollider args={[ACTIVE_W / 2, WALL_HEIGHT / 2, WALL_THICKNESS / 2]} position={[0, WALL_HEIGHT / 2, -(ACTIVE_H / 2)]} />
         <CuboidCollider args={[ACTIVE_W / 2, WALL_HEIGHT / 2, WALL_THICKNESS / 2]} position={[0, WALL_HEIGHT / 2, (ACTIVE_H / 2 + TILE_H / 2)]} />
         <CuboidCollider args={[WALL_THICKNESS / 2, WALL_HEIGHT / 2, ACTIVE_H / 2 + TILE_H]} position={[-(ACTIVE_W / 2 + TILE_W / 2), WALL_HEIGHT / 2, 0]} />
         <CuboidCollider args={[WALL_THICKNESS / 2, WALL_HEIGHT / 2, ACTIVE_H / 2 + TILE_H]} position={[(ACTIVE_W / 2 + TILE_W / 2), WALL_HEIGHT / 2, 0]} />

@@ -275,7 +275,7 @@ export function TapeBody({
   }
   const { x3d, z3d } = initialPos.current;
   const halfY = sceneData?.geo.halfY ?? 0.8;
-  const spawnY = isNew ? 5 : halfY + 0.01;
+  const spawnY = isNew ? DRAG_HEIGHT : halfY + 0.01;
   // 180° base rotation so label faces camera, plus random yaw
   const angleRad = ((tape.angle ?? 0) * Math.PI) / 180 + Math.PI;
 
