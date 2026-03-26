@@ -476,6 +476,7 @@ const Inactivity = {
 
     init() {
         DOM.songContainer.style.transition = "opacity 1s ease";
+        if (DOM.titleContainer) DOM.titleContainer.style.transition = "opacity 1s ease";
         this.reset();
 
         const events = ["mousemove", "mousedown", "keydown", "touchstart", "touchmove", "scroll"];
@@ -493,6 +494,7 @@ const Inactivity = {
             DOM.songContainer.style.opacity = "0";
             DOM.padinfo.style.opacity = "0";
             DOM.tapeDeck.style.opacity = "0";
+            if (DOM.titleContainer) DOM.titleContainer.style.opacity = "0.5";
             this._visible = false;
             document.body.style.cursor = "none";
         }
@@ -503,6 +505,7 @@ const Inactivity = {
             DOM.songContainer.style.opacity = "1";
             DOM.padinfo.style.opacity = "1";
             DOM.tapeDeck.style.opacity = "1";
+            if (DOM.titleContainer) DOM.titleContainer.style.opacity = "1";
             this._visible = true;
             document.body.style.cursor = "default";
         }
