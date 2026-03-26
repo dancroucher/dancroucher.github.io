@@ -377,7 +377,7 @@ const InfinitePopup = {
         const pick = queries[Math.floor(Math.random() * queries.length)];
         const config = { source: 'youtube', type: 'genre', value: pick };
         const label = pick.charAt(0).toUpperCase() + pick.slice(1);
-        const title = `∞ ${label}`;
+        const title = `∞ 🎲 ${label}`;
 
         if (window.TapesBridge) {
             window.TapesBridge.addInfiniteTape(config, title);
