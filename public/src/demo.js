@@ -173,7 +173,16 @@ var Demo = (function () {
                 if (AppState.playing) {
                     this._saveProgress();
                 }
-            }, 30000);
+                // Poll for ended state — catches cases where state_change
+                // events don't fire reliably (e.g. tab backgrounded)
+                try {
+                    const state = this.player.get_player_state();
+                    if (state === 0 && AppState.infiniteTape && window.TapesBridge) {
+                        console.log('[Demo] Polled ended state for infinite tape — loading next');
+                        window.TapesBridge.loadNextInfiniteTrack();
+                    }
+                } catch {}
+            }, 3000);
         },
 
         _stopProgressSaving: function () {
