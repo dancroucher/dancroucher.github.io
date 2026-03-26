@@ -293,8 +293,8 @@ export function TapesTable() {
       try { localStorage.removeItem(getStorageKey()); } catch {}
     }
 
-    // Migrate from old history format if empty
-    if (!loaded || loaded.length === 0) {
+    // Migrate from old history format if empty (only when logged in)
+    if (currentUsername && (!loaded || loaded.length === 0)) {
       try {
         const oldHistory = JSON.parse(localStorage.getItem('userVideoHistory') || '[]');
         if (Array.isArray(oldHistory) && oldHistory.length > 0) {
@@ -817,6 +817,8 @@ export function TapesTable() {
   const handleLogout = useCallback(() => {
     // Remove user tapes before clearing username (getStorageKey reads it)
     localStorage.removeItem(getStorageKey());
+    // Also clear the base key in case it has stale data
+    localStorage.removeItem('jeem_tapes');
     currentUsername = null;
     localStorage.removeItem('jeem_username');
     window.location.reload();
