@@ -25,66 +25,73 @@ const QUERIES = [
   'shoegaze playlist', 'dream pop playlist', 'lo-fi playlist',
 ];
 
-export default async function handler(req, res) {
-  try {
-    const query = QUERIES[Math.floor(Math.random() * QUERIES.length)];
-
-    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAw%253D%253D`;
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-      signal: AbortSignal.timeout(8000),
-    });
-
-    if (!response.ok) {
-      return res.status(502).json({ error: 'YouTube request failed' });
-    }
-
-    const html = await response.text();
-    const match = html.match(/var ytInitialData\s*=\s*({.*?});\s*<\/script>/s);
-    if (!match) {
-      return res.status(200).json({ error: 'No data found' });
-    }
-
-    const data = JSON.parse(match[1]);
-    const contents =
-      data?.contents?.twoColumnSearchResultsRenderer?.primaryContents
-        ?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents;
-
-    if (!contents) {
-      return res.status(200).json({ error: 'No results' });
-    }
-
-    // Extract playlists from results
-    const playlists = [];
-    for (const item of contents) {
-      const pl = item.playlistRenderer;
-      if (!pl) continue;
-
-      const videoCount = parseInt(pl.videoCount || '0');
-      if (videoCount < 5) continue; // skip tiny playlists
-
-      playlists.push({
-        playlistId: pl.playlistId,
-        title: pl.title?.simpleText || '',
-        author: pl.shortBylineText?.runs?.[0]?.text || '',
-        videoCount,
-      });
-    }
-
-    if (playlists.length === 0) {
-      return res.status(200).json({ error: 'No playlists found', query });
-    }
-
-    // Pick a random one from the results
-    const picked = playlists[Math.floor(Math.random() * playlists.length)];
-
-    res.setHeader('Cache-Control', 'no-cache');
-    return res.status(200).json(picked);
-  } catch (error) {
-    console.error('Random playlist error:', error);
-    return res.status(500).json({ error: 'Failed to find random playlist' });
+// Recursively find all playlistRenderer objects in the ytInitialData tree
+function findPlaylists(obj, results = []) {
+  if (!obj || typeof obj !== 'object') return results;
+  if (obj.playlistRenderer) {
+    results.push(obj.playlistRenderer);
   }
+  if (Array.isArray(obj)) {
+    for (const item of obj) findPlaylists(item, results);
+  } else {
+    for (const val of Object.values(obj)) findPlaylists(val, results);
+  }
+  return results;
+}
+
+async function tryQuery(query) {
+  // sp=EgIQAw== is the YouTube filter for "Playlist" results
+  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAw%3D%3D`;
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept-Language': 'en-US,en;q=0.9',
+    },
+    signal: AbortSignal.timeout(8000),
+  });
+
+  if (!response.ok) return null;
+
+  const html = await response.text();
+  const match = html.match(/var ytInitialData\s*=\s*({.*?});\s*<\/script>/s);
+  if (!match) return null;
+
+  const data = JSON.parse(match[1]);
+
+  // Search entire response tree for playlist renderers
+  const allPl = findPlaylists(data);
+  const playlists = [];
+
+  for (const pl of allPl) {
+    const videoCount = parseInt(pl.videoCount || '0');
+    if (videoCount < 5) continue;
+
+    playlists.push({
+      playlistId: pl.playlistId,
+      title: pl.title?.simpleText || '',
+      author: pl.shortBylineText?.runs?.[0]?.text || '',
+      videoCount,
+    });
+  }
+
+  if (playlists.length === 0) return null;
+  return playlists[Math.floor(Math.random() * playlists.length)];
+}
+
+export default async function handler(req, res) {
+  // Try up to 3 different queries
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const query = QUERIES[Math.floor(Math.random() * QUERIES.length)];
+      const result = await tryQuery(query);
+      if (result) {
+        res.setHeader('Cache-Control', 'no-cache');
+        return res.status(200).json(result);
+      }
+    } catch (e) {
+      console.error('Random playlist attempt failed:', e);
+    }
+  }
+
+  return res.status(200).json({ error: 'No playlists found after retries' });
 }
