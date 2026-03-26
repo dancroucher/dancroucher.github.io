@@ -443,7 +443,7 @@ export function TapeBody({
     }
   });
 
-  if (!sceneData) return null;
+  if (!sceneData || !textures) return null;
 
   const { geo } = sceneData;
 

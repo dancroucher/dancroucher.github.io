@@ -150,7 +150,7 @@ function DeckTapeMesh({ tape, playing }: { tape: Tape; playing?: boolean }) {
     });
   }, [scene, textures, tape.title]);
 
-  if (!scene) return null;
+  if (!scene || !textures) return null;
 
   // Scale to fill the view — model is ~27 units wide, we want it to fit in the orthographic frustum
   const s = 1;
