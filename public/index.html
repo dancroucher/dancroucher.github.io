@@ -79,13 +79,7 @@
                             <button class="infinite-btn" id="infinite-btn" title="Create infinite tape">∞</button>
                         <div class="infinite-popup" id="infinite-popup" style="display: none">
                             <div class="infinite-popup-title">∞ infinite tape</div>
-                            <div class="infinite-row">
-                                <label>source</label>
-                                <select id="inf-source">
-                                    <option value="imvdb">IMVDb</option>
-                                    <option value="youtube">YouTube</option>
-                                </select>
-                            </div>
+                            <input type="hidden" id="inf-source" value="youtube">
                             <div class="infinite-row">
                                 <label>type</label>
                                 <select id="inf-type">
@@ -111,10 +105,6 @@
                             </div>
                             <button class="infinite-create" id="inf-create">create tape</button>
                         </div>
-                    </div>
-                    <div class="search-source-toggle">
-                        <label><input type="radio" name="search-source" value="youtube" checked> YouTube</label>
-                        <label><input type="radio" name="search-source" value="imvdb"> IMVDb</label>
                     </div>
                 </div>
                 <div class="history-container" id="saved-videos-container" style="display:none"></div>

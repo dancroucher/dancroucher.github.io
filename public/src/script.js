@@ -215,8 +215,7 @@ const Search = {
     _dropdown: null,
 
     _getSource() {
-        const radio = document.querySelector('input[name="search-source"]:checked');
-        return radio ? radio.value : 'youtube';
+        return 'youtube';
     },
 
     async doSearch(query) {
@@ -227,14 +226,8 @@ const Search = {
 
         try {
             const source = this._getSource();
-            if (source === 'imvdb') {
-                const res = await fetch(`/api/imvdb-search?q=${encodeURIComponent(query.trim())}`);
-                const data = await res.json();
-                this._results = data.results || [];
-            } else {
-                const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
-                this._results = await res.json();
-            }
+            const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+            this._results = await res.json();
         } catch (err) {
             console.error("Search failed:", err);
             this._results = [];
@@ -372,7 +365,7 @@ const InfinitePopup = {
         if (type === "decade") label = value + "s";
         if (type === "genre") label = value.charAt(0).toUpperCase() + value.slice(1);
 
-        const title = `∞ ${label} / ${source === "imvdb" ? "IMVDb" : "YouTube"}`;
+        const title = `∞ ${label} / YouTube`;
 
         if (window.TapesBridge) {
             window.TapesBridge.addInfiniteTape(config, title);
