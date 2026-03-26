@@ -95,10 +95,10 @@ export function TableSurface() {
         <CuboidCollider args={[WALL_THICKNESS / 2, WALL_HEIGHT / 2, ACTIVE_H / 2 + TILE_H]} position={[(ACTIVE_W / 2 + TILE_W / 2), WALL_HEIGHT / 2, 0]} />
       </RigidBody>
 
-      {/* Dark overlay covering the full surface */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+      {/* Dark overlay covering the full surface — uses Standard material so it receives shadows */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} receiveShadow>
         <planeGeometry args={[SURFACE_W, SURFACE_H]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.5} />
+        <meshStandardMaterial color="#000000" transparent opacity={0.45} roughness={1} metalness={0} />
       </mesh>
 
       {/* <DebugGrid /> */}

@@ -307,16 +307,16 @@ function SceneContents({
         intensity={1.8}
         color="#fff0e6"
         castShadow
-        shadow-mapSize-width={384}
-        shadow-mapSize-height={384}
-        shadow-bias={-0.0009}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-bias={-0.001}
         shadow-camera-left={-37}
         shadow-camera-right={37}
         shadow-camera-top={27}
         shadow-camera-bottom={-27}
         shadow-camera-near={0.5}
         shadow-camera-far={100}
-        shadow-radius={3}
+        shadow-radius={2}
       />
       <pointLight position={[-8, 6, -4]} intensity={0.4} color="#ffe8d6" />
 
