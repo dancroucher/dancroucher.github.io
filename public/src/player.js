@@ -494,7 +494,7 @@ const Inactivity = {
             DOM.songContainer.style.opacity = "0";
             DOM.padinfo.style.opacity = "0";
             DOM.tapeDeck.style.opacity = "0";
-            if (DOM.titleContainer) DOM.titleContainer.style.opacity = "0.5";
+            if (DOM.titleContainer) DOM.titleContainer.style.opacity = "0.25";
             this._visible = false;
             document.body.style.cursor = "none";
         }
