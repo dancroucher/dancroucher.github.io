@@ -326,6 +326,9 @@ const InfinitePopup = {
         typeSelect.addEventListener("change", () => this._updateValueField());
         createBtn.addEventListener("click", () => this._create());
 
+        const luckyBtn = document.getElementById("inf-lucky");
+        if (luckyBtn) luckyBtn.addEventListener("click", () => this._lucky());
+
         // Close popup on outside click
         document.addEventListener("click", (e) => {
             if (this._open && !popup.contains(e.target) && e.target !== btn) {
@@ -349,6 +352,39 @@ const InfinitePopup = {
         if (type === "decade") return document.getElementById("inf-value-decade").value;
         if (type === "genre") return document.getElementById("inf-value-genre").value.trim();
         return document.getElementById("inf-value-text").value.trim();
+    },
+
+    _luckyQueries: [
+        '80s music videos', '90s music videos', '70s music videos',
+        '2000s music videos', '60s music videos', '2010s music videos',
+        'rock music videos', 'pop music videos', 'jazz music',
+        'soul music', 'funk music', 'disco music',
+        'punk rock', 'new wave music', 'synthwave',
+        'indie rock', 'alternative rock', 'grunge music',
+        'hip hop music videos', 'r&b music', 'reggae music',
+        'electronic music', 'house music', 'techno music',
+        'classical music', 'blues music', 'country music',
+        'metal music', 'folk music', 'ambient music',
+        'chill music', 'driving music', 'summer music',
+        'feel good music', 'late night music',
+        'classic rock', 'one hit wonders',
+        'motown', 'brit pop', 'post punk',
+        'shoegaze', 'dream pop', 'lo-fi music',
+    ],
+
+    _lucky() {
+        const queries = this._luckyQueries;
+        const pick = queries[Math.floor(Math.random() * queries.length)];
+        const config = { source: 'youtube', type: 'genre', value: pick };
+        const label = pick.charAt(0).toUpperCase() + pick.slice(1);
+        const title = `∞ ${label}`;
+
+        if (window.TapesBridge) {
+            window.TapesBridge.addInfiniteTape(config, title);
+        }
+
+        this._open = false;
+        document.getElementById("infinite-popup").style.display = "none";
     },
 
     _create() {
@@ -397,39 +433,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     InfinitePopup.init();
-
-    // Random playlist button
-    const randomBtn = document.getElementById("random-btn");
-    if (randomBtn) {
-        let fetching = false;
-        randomBtn.addEventListener("click", async () => {
-            if (fetching) return;
-            fetching = true;
-            randomBtn.style.opacity = "0.5";
-            try {
-                const res = await fetch("/api/random-playlist");
-                const data = await res.json();
-                if (data.error || !data.playlistId) {
-                    console.error("Random playlist error:", data.error);
-                    return;
-                }
-                if (window.TapesBridge) {
-                    window.TapesBridge.addTapeFromSearch(
-                        "",
-                        data.title,
-                        data.author,
-                        true,
-                        data.playlistId
-                    );
-                }
-            } catch (err) {
-                console.error("Random playlist fetch failed:", err);
-            } finally {
-                fetching = false;
-                randomBtn.style.opacity = "";
-            }
-        });
-    }
 
     if (input) {
         input.addEventListener("keydown", (e) => {
