@@ -117,8 +117,9 @@ const stampCache = new Map<string, THREE.CanvasTexture>();
 // Set to true to draw debug rectangles showing label regions
 const STAMP_DEBUG = false;
 
-export function stampTitle(baseColor: THREE.Texture, title: string, variant: string): THREE.CanvasTexture {
-  const cacheKey = `${variant}:${title}`;
+export function stampTitle(baseColor: THREE.Texture, title: string, variant: string, tape?: Tape): THREE.CanvasTexture {
+  const isInfinite = tape?.isInfinite ?? false;
+  const cacheKey = `${variant}:${title}:${isInfinite ? 'inf' : ''}`;
   const cached = stampCache.get(cacheKey);
   if (cached) return cached;
 
@@ -212,6 +213,39 @@ export function stampTitle(baseColor: THREE.Texture, title: string, variant: str
     ctx.restore();
   }
 
+  // Draw yellow infinity sticker for infinite tapes
+  if (isInfinite) {
+    const label = labels[0];
+    ctx.save();
+    ctx.translate(label.cx, label.cy);
+    ctx.rotate(Math.PI / 2);
+    // Position sticker below the title text area
+    const stickerX = 0;
+    const stickerY = 280;
+    const stickerW = 200;
+    const stickerH = 140;
+    // Yellow sticker background
+    const grad = ctx.createLinearGradient(stickerX - stickerW / 2, stickerY, stickerX + stickerW / 2, stickerY + stickerH);
+    grad.addColorStop(0, '#f0d848');
+    grad.addColorStop(1, '#e8c830');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    const r = 12;
+    ctx.roundRect(stickerX - stickerW / 2, stickerY - stickerH / 2, stickerW, stickerH, r);
+    ctx.fill();
+    // Border
+    ctx.strokeStyle = 'rgba(180,150,30,0.4)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Large ∞ symbol
+    ctx.fillStyle = '#5a4a10';
+    ctx.font = 'bold 120px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('∞', stickerX, stickerY);
+    ctx.restore();
+  }
+
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.flipY = baseColor.flipY;
@@ -249,7 +283,7 @@ export function TapeBody({
   // Apply PBR materials with title stamped onto texture
   useEffect(() => {
     if (!sceneData || !textures) return;
-    const colorMap = tape.title ? stampTitle(textures.baseColor, tape.title, variant) : textures.baseColor;
+    const colorMap = tape.title ? stampTitle(textures.baseColor, tape.title, variant, tape) : textures.baseColor;
     sceneData.group.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
@@ -268,14 +302,13 @@ export function TapeBody({
 
   // Initial position from 2D coords — only used on first mount, not on prop updates
   // (drag-end updates tape.x/y in React state but the physics body is already positioned)
-  const initialPos = useRef<{ x3d: number; z3d: number } | null>(null);
+  const initialPos = useRef<{ x3d: number; z3d: number; spawnY: number } | null>(null);
+  const halfY = sceneData?.geo.halfY ?? 0.8;
   if (!initialPos.current) {
     const [ix, iz] = to3D(tape.x ?? 500, tape.y ?? 500);
-    initialPos.current = { x3d: ix, z3d: iz };
+    initialPos.current = { x3d: ix, z3d: iz, spawnY: isNew ? DRAG_HEIGHT : halfY + 0.01 };
   }
-  const { x3d, z3d } = initialPos.current;
-  const halfY = sceneData?.geo.halfY ?? 0.8;
-  const spawnY = isNew ? DRAG_HEIGHT : halfY + 0.01;
+  const { x3d, z3d, spawnY } = initialPos.current;
   // 180° base rotation so label faces camera, plus random yaw
   const angleRad = ((tape.angle ?? 0) * Math.PI) / 180 + Math.PI;
 
@@ -402,23 +435,10 @@ export function TapeBody({
 
       {/* Context menu */}
       {menuOpen && (
-        <Html center position={[0, 0.5, geo.halfZ + 0.3]} style={{ pointerEvents: 'auto' }}>
+        <Html center position={[0, 0.5, 0]} style={{ pointerEvents: 'auto' }}>
           <div style={{
             display: 'flex', gap: 6, whiteSpace: 'nowrap',
-            transform: 'translateX(-50%)',
           }} onPointerDown={(e) => e.stopPropagation()}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                const id = tape.isPlaylist ? tape.playlistId : tape.videoId;
-                const url = `${window.location.origin}${window.location.pathname}?v=${id}&t=${tape.playlistIndex ?? 0}`;
-                navigator.clipboard.writeText(url).then(() => {
-                  (e.target as HTMLButtonElement).textContent = 'Copied!';
-                  setTimeout(() => { (e.target as HTMLButtonElement).textContent = 'Link'; }, 1500);
-                }).catch(() => { prompt('Copy this link:', url); });
-              }}
-              style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#3b82f6', color: '#fff', fontSize: 12, cursor: 'pointer', fontFamily: "'Courier New', monospace" }}
-            >Link</button>
             <button
               onClick={(e) => { e.stopPropagation(); onMenuAction?.(tape.id, 'rewind'); }}
               style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#333', color: '#fff', fontSize: 12, cursor: 'pointer', fontFamily: "'Courier New', monospace" }}

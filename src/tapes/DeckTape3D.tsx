@@ -135,7 +135,7 @@ function DeckTapeMesh({ tape, playing }: { tape: Tape; playing?: boolean }) {
   // Apply PBR materials with title
   useEffect(() => {
     if (!scene || !textures) return;
-    const colorMap = tape.title ? stampTitle(textures.baseColor, tape.title, variant) : textures.baseColor;
+    const colorMap = tape.title ? stampTitle(textures.baseColor, tape.title, variant, tape) : textures.baseColor;
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         (child as THREE.Mesh).material = new THREE.MeshStandardMaterial({
