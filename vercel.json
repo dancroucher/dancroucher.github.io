@@ -24,6 +24,10 @@
       "dest": "/api/random.js"
     },
     {
+      "src": "/api/random-playlist",
+      "dest": "/api/random-playlist.js"
+    },
+    {
       "src": "/api/imvdb-search",
       "dest": "/api/imvdb-search.js"
     },

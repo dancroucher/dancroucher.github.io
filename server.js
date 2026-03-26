@@ -91,6 +91,15 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+app.get('/api/random-playlist', async (req, res) => {
+  try {
+    const { default: handler } = await import('./api/random-playlist.js');
+    await handler(req, res);
+  } catch (error) {
+    res.status(500).json({ error: 'Random playlist failed: ' + error.message });
+  }
+});
+
 // Note: /api/tapes and /api/user require @vercel/kv and only work on Vercel.
 // Local dev uses localStorage only (no remote sync without a username).
 

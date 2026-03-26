@@ -398,6 +398,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
     InfinitePopup.init();
 
+    // Random playlist button
+    const randomBtn = document.getElementById("random-btn");
+    if (randomBtn) {
+        let fetching = false;
+        randomBtn.addEventListener("click", async () => {
+            if (fetching) return;
+            fetching = true;
+            randomBtn.style.opacity = "0.5";
+            try {
+                const res = await fetch("/api/random-playlist");
+                const data = await res.json();
+                if (data.error || !data.playlistId) {
+                    console.error("Random playlist error:", data.error);
+                    return;
+                }
+                if (window.TapesBridge) {
+                    window.TapesBridge.addTapeFromSearch(
+                        "",
+                        data.title,
+                        data.author,
+                        true,
+                        data.playlistId
+                    );
+                }
+            } catch (err) {
+                console.error("Random playlist fetch failed:", err);
+            } finally {
+                fetching = false;
+                randomBtn.style.opacity = "";
+            }
+        });
+    }
+
     if (input) {
         input.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
