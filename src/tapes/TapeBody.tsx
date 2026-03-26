@@ -119,7 +119,8 @@ const STAMP_DEBUG = false;
 
 export function stampTitle(baseColor: THREE.Texture, title: string, variant: string, tape?: Tape): THREE.CanvasTexture {
   const isInfinite = tape?.isInfinite ?? false;
-  const cacheKey = `${variant}:${title}:${isInfinite ? 'inf' : ''}`;
+  const isPlaylist = tape?.isPlaylist ?? false;
+  const cacheKey = `${variant}:${title}:${isInfinite ? 'inf' : ''}${isPlaylist ? 'pl' : ''}`;
   const cached = stampCache.get(cacheKey);
   if (cached) return cached;
 
@@ -237,12 +238,44 @@ export function stampTitle(baseColor: THREE.Texture, title: string, variant: str
     ctx.strokeStyle = 'rgba(180,150,30,0.4)';
     ctx.lineWidth = 2;
     ctx.stroke();
-    // Large ∞ symbol
+    // Large ∞ symbol — nudge down slightly to visually center the glyph
     ctx.fillStyle = '#5a4a10';
     ctx.font = 'bold 120px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('∞', stickerX, stickerY);
+    ctx.fillText('∞', stickerX, stickerY + 8);
+    ctx.restore();
+  }
+
+  // Draw red "Playlist" sticker for playlist tapes
+  if (isPlaylist) {
+    const label = labels[0];
+    ctx.save();
+    ctx.translate(label.cx, label.cy);
+    ctx.rotate(Math.PI / 2);
+    const stickerX = 0;
+    const stickerY = 280;
+    const stickerW = 280;
+    const stickerH = 100;
+    // Red sticker background
+    const grad = ctx.createLinearGradient(stickerX - stickerW / 2, stickerY, stickerX + stickerW / 2, stickerY);
+    grad.addColorStop(0, '#d42020');
+    grad.addColorStop(1, '#b81818');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    const r = 12;
+    ctx.roundRect(stickerX - stickerW / 2, stickerY - stickerH / 2, stickerW, stickerH, r);
+    ctx.fill();
+    // Border
+    ctx.strokeStyle = 'rgba(120,20,20,0.4)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // "Playlist" text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 52px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Playlist', stickerX, stickerY);
     ctx.restore();
   }
 

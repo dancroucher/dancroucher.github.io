@@ -1,5 +1,5 @@
 export interface InfiniteConfig {
-  source: 'imvdb' | 'youtube';
+  source: 'youtube';
   type: 'decade' | 'genre' | 'year' | 'artist';
   value: string;
 }
