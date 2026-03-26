@@ -196,41 +196,35 @@ function tidyTapes(tapes: Tape[]): Tape[] {
 }
 
 // Fetch tracks for infinite tape from IMVDb or YouTube search
+// Query suffixes to vary YouTube searches on subsequent pages
+const QUERY_SUFFIXES = [
+  '', 'official video', 'live', 'official music video',
+  'remix', 'full album', 'HD', 'remastered',
+  'concert', 'acoustic', 'best of', 'greatest hits',
+  'classics', 'mix', 'compilation', 'top hits',
+];
+
 async function fetchInfiniteTracks(config: InfiniteConfig, page = 1): Promise<InfiniteTrack[]> {
   try {
-    if (config.source === 'imvdb') {
-      let query = config.value;
-      const params = new URLSearchParams({ q: query, page: String(page) });
-      if (config.type === 'decade') params.set('decade', config.value);
-      if (config.type === 'year') params.set('year', config.value);
-      // For genre/artist, the query itself is the filter term
-      if (config.type === 'genre') params.set('q', config.value + ' music video');
-      if (config.type === 'artist') params.set('q', config.value);
-      if (config.type === 'decade') params.set('q', config.value + 's music');
+    // YouTube search — vary query with suffixes on subsequent pages
+    let baseQuery = config.value;
+    if (config.type === 'decade') baseQuery = config.value + 's music videos';
+    if (config.type === 'genre') baseQuery = config.value + ' music videos';
+    if (config.type === 'year') baseQuery = config.value + ' music videos';
+    if (config.type === 'artist') baseQuery = config.value + ' music video';
 
-      const res = await fetch(`/api/imvdb-search?${params}`);
-      const data = await res.json();
-      return (data.results || []).map((r: any) => ({
-        videoId: r.videoId,
-        title: r.title,
-        author: r.author,
-      }));
-    } else {
-      // YouTube search
-      let query = config.value;
-      if (config.type === 'decade') query = config.value + 's music videos';
-      if (config.type === 'genre') query = config.value + ' music videos';
-      if (config.type === 'year') query = config.value + ' music videos';
-      if (config.type === 'artist') query = config.value + ' music video';
+    // Page 1 = no suffix, page 2+ = cycle through suffixes
+    const suffixIdx = (page - 1) % QUERY_SUFFIXES.length;
+    const suffix = QUERY_SUFFIXES[suffixIdx];
+    const query = suffix ? `${baseQuery} ${suffix}` : baseQuery;
 
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      return (data || []).map((r: any) => ({
-        videoId: r.videoId,
-        title: r.title,
-        author: r.author,
-      }));
-    }
+    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    return (data || []).map((r: any) => ({
+      videoId: r.videoId,
+      title: r.title,
+      author: r.author,
+    }));
   } catch (err) {
     console.error('Failed to fetch infinite tracks:', err);
     return [];
@@ -567,28 +561,22 @@ export function TapesTable() {
       return;
     }
 
-    // Otherwise fetch more tracks
+    // Otherwise fetch more tracks — try multiple query variations
     infiniteFetchingRef.current = true;
     setInfiniteLoading(true);
-    infinitePageRef.current += 1;
-    const newTracks = await fetchInfiniteTracks(tape.infiniteConfig, infinitePageRef.current);
-    infiniteFetchingRef.current = false;
+    const existingIds = new Set(history.map(t => t.videoId));
+    let uniqueNew: InfiniteTrack[] = [];
 
-    if (newTracks.length === 0) {
-      // If no more tracks from next page, try page 1 again with different results
-      infinitePageRef.current = 1;
-      const fallback = await fetchInfiniteTracks(tape.infiniteConfig, 1);
-      if (fallback.length === 0) { setInfiniteLoading(false); return; }
-      // Filter out tracks already in history
-      const existingIds = new Set(history.map(t => t.videoId));
-      const fresh = fallback.filter(t => !existingIds.has(t.videoId));
-      if (fresh.length === 0) { setInfiniteLoading(false); return; }
-      newTracks.push(...fresh);
+    // Try up to 3 successive pages/suffixes to find fresh tracks
+    for (let attempt = 0; attempt < 3 && uniqueNew.length === 0; attempt++) {
+      infinitePageRef.current += 1;
+      const newTracks = await fetchInfiniteTracks(tape.infiniteConfig, infinitePageRef.current);
+      if (newTracks.length === 0) continue;
+      const fresh = newTracks.filter(t => !existingIds.has(t.videoId));
+      uniqueNew.push(...fresh);
     }
 
-    // Filter duplicates
-    const existingIds = new Set(history.map(t => t.videoId));
-    const uniqueNew = newTracks.filter(t => !existingIds.has(t.videoId));
+    infiniteFetchingRef.current = false;
     if (uniqueNew.length === 0) { setInfiniteLoading(false); return; }
 
     const updatedHistory = [...history, ...uniqueNew];
