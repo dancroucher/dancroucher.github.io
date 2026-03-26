@@ -160,6 +160,7 @@ declare global {
     TapesBridge?: {
       onTapePlay: (tape: Tape) => void;
       updateProgress: (videoId: string, progress: number) => void;
+      updatePlaylistIndex: (videoId: string, index: number) => void;
       addTapeFromSearch: (videoId: string, title: string, author: string, isPlaylist: boolean, playlistId?: string) => void;
       addInfiniteTape: (config: InfiniteConfig, title: string) => void;
       notifyPlayState: (playing: boolean) => void;
@@ -397,6 +398,26 @@ export function TapesTable() {
           if (!prev) return prev;
           if (prev.videoId === videoId || prev.playlistId === videoId) {
             return { ...prev, progress };
+          }
+          return prev;
+        });
+      },
+      updatePlaylistIndex: (videoId: string, index: number) => {
+        setTapes(prev => {
+          const updated = prev.map(t => {
+            if (t.playlistId === videoId) {
+              locallyDirtyIds.add(t.id);
+              return { ...t, playlistIndex: index, progress: 0 };
+            }
+            return t;
+          });
+          scheduleRemoteSave();
+          return updated;
+        });
+        setLoadedTape(prev => {
+          if (!prev) return prev;
+          if (prev.playlistId === videoId) {
+            return { ...prev, playlistIndex: index, progress: 0 };
           }
           return prev;
         });

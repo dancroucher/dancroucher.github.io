@@ -328,7 +328,10 @@ var Demo = (function () {
         _onPlaylistIndexChange: function () {
             const currentIndex = this.player.get_playlist_index() || 0;
             AppState.playlistIndex = currentIndex;
-            // Don't save here — video_data_change will fire next with the correct title/author
+            // Persist playlist index to tape data
+            if (!AppState.singleVideo && AppState.myVideoPlaylistName && window.TapesBridge) {
+                window.TapesBridge.updatePlaylistIndex(AppState.myVideoPlaylistName, currentIndex);
+            }
         },
     };
 
