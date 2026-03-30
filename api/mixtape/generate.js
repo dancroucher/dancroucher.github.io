@@ -21,31 +21,25 @@ function shuffle(arr) {
   return a;
 }
 
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
-
 // ── YouTube metadata via oEmbed ──
 async function getYouTubeMeta(videoId) {
   try {
     const res = await fetch(
       `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
-      { signal: AbortSignal.timeout(5000) }
+      { signal: AbortSignal.timeout(4000) }
     );
     if (!res.ok) return null;
-    return await res.json(); // { title, author_name }
-  } catch {
-    return null;
-  }
+    return await res.json();
+  } catch { return null; }
 }
 
 // ── YouTube search (scrapes ytInitialData) ──
-async function youtubeSearch(query) {
+async function youtubeSearch(query, limit = 6) {
   try {
     const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAQ%3D%3D`;
     const res = await fetch(url, {
       headers: HEADERS,
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(6000),
     });
     if (!res.ok) return [];
     const html = await res.text();
@@ -71,114 +65,52 @@ async function youtubeSearch(query) {
         author: v.ownerText?.runs?.[0]?.text || '',
         duration: dur,
         durationText: durText,
-        source: 'youtube',
       });
-      if (results.length >= 8) break;
+      if (results.length >= limit) break;
     }
     return results;
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
-// ── IMVDB search ──
-async function imvdbSearch(query, limit = 12) {
+// ── IMVDB search (one batch request, no per-video detail fetches) ──
+async function imvdbSearch(query, limit = 8) {
   try {
     const res = await fetch(
       `https://imvdb.com/api/v1/search/videos?q=${encodeURIComponent(query)}&per_page=${limit}`,
-      { headers: IMVDB_HEADERS, signal: AbortSignal.timeout(8000) }
+      { headers: IMVDB_HEADERS, signal: AbortSignal.timeout(6000) }
     );
     if (!res.ok) return [];
     const data = await res.json();
-    const videos = data.results || [];
-
-    // Fetch YouTube source for each
-    const batch = videos.slice(0, 12);
-    const details = await Promise.allSettled(
-      batch.map(v =>
-        fetch(`https://imvdb.com/api/v1/video/${v.id}?include=sources,popularity`, {
-          headers: IMVDB_HEADERS,
-          signal: AbortSignal.timeout(5000),
-        }).then(r => r.ok ? r.json() : null)
-      )
-    );
-
-    const results = [];
-    for (let i = 0; i < batch.length; i++) {
-      const d = details[i].status === 'fulfilled' ? details[i].value : null;
-      if (!d) continue;
-      const yt = (d.sources || []).find(s => s.source === 'youtube');
-      if (!yt?.source_data) continue;
-      const artist = (d.artists || [])[0]?.name || '';
-      results.push({
-        videoId: yt.source_data,
-        title: d.song_title || batch[i].song_title || '',
-        author: artist,
-        year: d.year || null,
-        views: d.popularity?.views_all_time || 0,
-        source: 'imvdb',
-      });
-    }
-    return results;
-  } catch {
-    return [];
-  }
+    const videos = (data.results || []).slice(0, limit);
+    // Return what we have — caller can use oEmbed for title/author if needed
+    return videos.map(v => ({
+      videoId: null, // will be filled by oEmbed
+      title: v.song_title || query,
+      author: '',
+      year: v.year || null,
+    }));
+  } catch { return []; }
 }
 
-// ── Score function: relevance × eclectic boost ──
-function scoreTrack(track, isObvious) {
+// ── Score: relevance × eclectic boost ──
+function scoreTrack(obvious) {
   const random = Math.random();
-  const eclecticFactor = isObvious ? 0.2 : 1.2;
-  const base = isObvious ? 0.7 : 0.4;
-  return (base + random * 0.3) * (1 + random * eclecticFactor);
+  if (obvious) return (0.7 + random * 0.3) * (1 + random * 0.3);
+  return (0.4 + random * 0.3) * (1 + random * 1.2);
 }
 
-// ── BFS graph expand ──
-async function expandGraph(currentTracks, depth = 0, maxDepth = 2) {
-  if (currentTracks.length >= 16 || depth >= maxDepth) return currentTracks;
-
-  const seen = new Set(currentTracks.map(t => t.videoId));
-  const queries = [];
-
-  // Generate expansion queries from current tracks
-  for (const t of currentTracks.slice(-4)) {
-    if (t.author) queries.push(`${t.author} music video`);
-    if (t.title) {
-      const parts = t.title.split(/[(-]/);
-      if (parts[0]) queries.push(parts[0].trim());
-    }
-    if (t.year) queries.push(`${t.year} music video`);
+// ── Fetch track metadata from YouTube (fills in videoId + title/author) ──
+async function resolveTrack(query, videoId) {
+  if (videoId) {
+    const meta = await getYouTubeMeta(videoId);
+    if (meta) return { videoId, title: meta.title, author: meta.author_name };
   }
-
-  // Dedupe
-  const unique = [...new Set(queries)].slice(0, 6);
-
-  const allCandidates = [];
-  for (const q of unique) {
-    const [imvdbResults, ytResults] = await Promise.all([
-      imvdbSearch(q, 6),
-      youtubeSearch(q),
-    ]);
-    allCandidates.push(...imvdbResults, ...ytResults);
-    await sleep(100);
-  }
-
-  // Filter seen
-  const candidates = allCandidates.filter(c => !seen.has(c.videoId));
-  if (candidates.length === 0) return currentTracks;
-
-  // Take top-scored candidates (BFS frontier)
-  const scored = candidates.map(c => ({
-    ...c,
-    _score: scoreTrack(c, depth === 0),
-  }));
-  scored.sort((a, b) => b._score - a._score);
-
-  const toAdd = scored.slice(0, Math.min(4, 16 - currentTracks.length));
-  return expandGraph([...currentTracks, ...toAdd], depth + 1, maxDepth);
+  // Fall back to YouTube search for the query
+  const results = await youtubeSearch(query, 3);
+  if (results.length > 0) return results[0];
+  return null;
 }
 
-// ── Main generator ──
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -195,9 +127,7 @@ export default async function handler(req, res) {
     if (match) {
       seedVideoId = match[1];
       const meta = await getYouTubeMeta(seedVideoId);
-      if (meta) {
-        seedTitle = meta.title || seedTitle;
-      }
+      if (meta) seedTitle = meta.title || seedTitle;
     }
   }
 
@@ -211,50 +141,81 @@ export default async function handler(req, res) {
       videoId: seedVideoId,
       title: meta?.title || seedTitle,
       author: meta?.author_name || '',
-      duration: 0,
-      durationText: '',
-      source: 'seed',
+      duration: 0, durationText: '',
     });
     seen.add(seedVideoId);
   }
 
-  // Phase 1: gather initial candidates from seed + keywords
-  const initialQueries = [];
-  if (seedVideoId && seedTitle) initialQueries.push(seedTitle);
-  if (keywords) initialQueries.push(keywords);
-  if (!initialQueries.length) initialQueries.push('80s music video');
+  // Build query list from seed
+  const queries = [];
+  if (seedTitle) queries.push(seedTitle);
+  if (keywords) queries.push(keywords);
+  if (queries.length === 0) queries.push('80s music video');
 
-  const initialUnique = [...new Set(initialQueries)].slice(0, 4);
+  const unique = [...new Set(queries)].slice(0, 4);
 
-  const initialCandidates = [];
-  for (const q of initialUnique) {
-    const [imvdbResults, ytResults] = await Promise.all([
-      imvdbSearch(q, 8),
-      youtubeSearch(q),
+  // Gather candidates in parallel
+  const allRaw = [];
+  await Promise.allSettled(unique.map(async (q) => {
+    const [imvdb, yt] = await Promise.all([
+      imvdbSearch(q, 6),
+      youtubeSearch(q, 6),
     ]);
-    initialCandidates.push(...imvdbResults, ...ytResults);
-    await sleep(150);
+    allRaw.push(...imvdb, ...yt);
+  }));
+
+  // Resolve video IDs via oEmbed (parallel, max 12 to stay fast)
+  const toResolve = allRaw.slice(0, 16);
+  const resolved = await Promise.allSettled(
+    toResolve.map(r => resolveTrack(r.title, r.videoId))
+  );
+
+  // Score and filter
+  const candidates = [];
+  for (const r of resolved) {
+    if (r.status !== 'fulfilled' || !r.value) continue;
+    const t = r.value;
+    if (!t.videoId || seen.has(t.videoId)) continue;
+    candidates.push({ ...t, _score: scoreTrack(true) });
+    seen.add(t.videoId);
   }
 
-  // Filter seen and score
-  const unseenInitial = initialCandidates
-    .filter(c => !seen.has(c.videoId))
-    .map(c => ({ ...c, _score: scoreTrack(c, true) }))
-    .sort((a, b) => b._score - a._score);
+  // Sort: top scored first, shuffle in some lower-ranked for eclecticism
+  candidates.sort((a, b) => b._score - a._score);
+  const obvious = candidates.slice(0, 8);
+  const eclectic = shuffle(candidates.slice(8, 16));
+  const initial = shuffle([...obvious, ...eclectic]);
 
-  // Take top 8 obvious + shuffle in some lower-ranked
-  const obvious = unseenInitial.slice(0, 6);
-  const eclectic = shuffle(unseenInitial.slice(6, 12));
-  const initial = [...obvious, ...eclectic].slice(0, 8);
+  // Fill to 16 tracks
+  while (tracks.length < 16 && initial.length > 0) {
+    const next = initial.shift();
+    tracks.push({
+      videoId: next.videoId,
+      title: next.title || 'Unknown',
+      author: next.author || '',
+      duration: next.duration || 0,
+      durationText: next.durationText || '',
+    });
+  }
 
-  tracks.push(...initial.map(t => ({ ...t, videoId: t.videoId })));
-  initial.forEach(t => seen.add(t.videoId));
+  // If still not enough, do one more YouTube search with a different query
+  if (tracks.length < 16) {
+    const extra = await youtubeSearch(seedTitle + ' music video compilation', 8);
+    for (const t of extra) {
+      if (seen.has(t.videoId)) continue;
+      tracks.push({
+        videoId: t.videoId,
+        title: t.title || 'Unknown',
+        author: t.author || '',
+        duration: t.duration || 0,
+        durationText: t.durationText || '',
+      });
+      seen.add(t.videoId);
+      if (tracks.length >= 16) break;
+    }
+  }
 
-  // Phase 2: BFS expand to fill remaining slots
-  const finalTracks = await expandGraph(tracks, 0, 2);
-
-  // Ensure exactly 16 (or fewer if we couldn't find enough)
-  const result = finalTracks.slice(0, 16).map((t, i) => ({
+  const result = tracks.slice(0, 16).map(t => ({
     videoId: t.videoId,
     title: t.title,
     author: t.author,
