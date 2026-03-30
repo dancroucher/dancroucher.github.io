@@ -155,13 +155,24 @@ export default async function handler(req, res) {
   const unique = [...new Set(queries)].slice(0, 4);
 
   // Gather candidates in parallel
+  // YouTube scraping may 401/403 from Vercel IPs — wrap each in try/catch so failures don't cascade
   const allRaw = [];
   await Promise.allSettled(unique.map(async (q) => {
-    const [imvdb, yt] = await Promise.all([
-      imvdbSearch(q, 6),
-      youtubeSearch(q, 6),
-    ]);
-    allRaw.push(...imvdb, ...yt);
+    const results = [];
+
+    // Try IMVDB first (music-specific, doesn't block Vercel)
+    try {
+      const imvdb = await imvdbSearch(q, 6);
+      results.push(...imvdb);
+    } catch { /* continue */ }
+
+    // Try YouTube search (may 401 on Vercel IPs)
+    try {
+      const yt = await youtubeSearch(q, 6);
+      results.push(...yt);
+    } catch { /* continue */ }
+
+    allRaw.push(...results);
   }));
 
   // Resolve video IDs via oEmbed (parallel, max 12 to stay fast)
