@@ -92,6 +92,14 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
               />
             </div>
             {error && <p style={styles.error}>{error}</p>}
+            <input
+              style={styles.nameInput}
+              type="text"
+              placeholder="Mixtape name (optional)"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              maxLength={60}
+            />
             <button
               style={{ ...styles.generateBtn, ...(loading ? styles.generateBtnDisabled : {}) }}
               onClick={handleGenerate}

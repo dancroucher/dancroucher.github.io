@@ -75019,7 +75019,8 @@ function extractVariant(fbx, meshName) {
 function stampTitle(baseColor, title, variant, tape) {
   const isInfinite = tape?.isInfinite ?? false;
   const isPlaylist = tape?.isPlaylist ?? false;
-  const cacheKey = `${variant}:${title}:${isInfinite ? "inf" : ""}${isPlaylist ? "pl" : ""}`;
+  const isMixtape = tape?.id === "__jeem_mixtape__";
+  const cacheKey = `${variant}:${title}:${isInfinite ? "inf" : ""}${isPlaylist ? "pl" : ""}${isMixtape ? "mx" : ""}`;
   const cached = stampCache.get(cacheKey);
   if (cached) return cached;
   const src = baseColor.image;
@@ -75147,6 +75148,33 @@ function stampTitle(baseColor, title, variant, tape) {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("Playlist", stickerX, stickerY);
+    ctx.restore();
+  }
+  if (isMixtape) {
+    const label = labels[0];
+    ctx.save();
+    ctx.translate(label.cx, label.cy);
+    ctx.rotate(Math.PI / 2);
+    const stickerX = 0;
+    const stickerY = -240;
+    const stickerW = 300;
+    const stickerH = 110;
+    const grad = ctx.createLinearGradient(stickerX - stickerW / 2, stickerY, stickerX + stickerW / 2, stickerY);
+    grad.addColorStop(0, "#1a4a8a");
+    grad.addColorStop(1, "#0f3580");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    const r3 = 12;
+    ctx.roundRect(stickerX - stickerW / 2, stickerY - stickerH / 2, stickerW, stickerH, r3);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(30,80,160,0.5)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = 'bold 52px "Courier New", monospace';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Mixtape", stickerX, stickerY);
     ctx.restore();
   }
   const tex = new CanvasTexture(canvas);
@@ -76363,20 +76391,19 @@ async function fetchInfiniteTracks(config, page = 1) {
   }
 }
 function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
-  el.style.cssText = "position:fixed;bottom:2.5%;left:0;right:0;padding:0 32px;z-index:10000;pointer-events:none;display:flex;align-items:center;";
+  el.style.cssText = "position:fixed;top:0;right:0;bottom:0;width:240px;padding:16px 12px;z-index:10000;pointer-events:none;display:flex;flex-direction:column;overflow:hidden;";
   el.innerHTML = `
-    <div style="padding-left:270px;display:flex;align-items:center;gap:12px;overflow:hidden;flex:1;">
-      <div style="font-family:'04b03',monospace;font-size:10px;color:rgba(201,168,76,0.5);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;flex-shrink:0;">
-        ${mixtape.name} \xB7 ${mixtape.tracks.length} tracks
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;overflow-x:auto;flex:1;pointer-events:auto;scrollbar-width:none;">
-        ${mixtape.tracks.map((track, i4) => `
-          <div data-idx="${i4}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
-            style="font-family:'04b03',monospace;font-size:10px;color:${i4 === currentIndex ? "#c9a84c" : "rgba(201,168,76,0.35)"};letter-spacing:0.5px;white-space:nowrap;cursor:pointer;padding:2px 4px;background:${i4 === currentIndex ? "rgba(201,168,76,0.1)" : "transparent"};border-radius:2px;transition:color 0.15s;">
-            ${i4 + 1}. ${track.title}
-          </div>
-        `).join("")}
-      </div>
+    <div style="font-family:'04b03',monospace;font-size:9px;color:rgba(201,168,76,0.5);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;margin-bottom:10px;flex-shrink:0;padding-top:4px;">
+      ${mixtape.name}
+    </div>
+    <div style="flex:1;overflow-y:auto;pointer-events:auto;scrollbar-width:thin;scrollbar-color:rgba(201,168,76,0.3) transparent;">
+      ${mixtape.tracks.map((track, i4) => `
+        <div data-idx="${i4}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
+          style="font-family:'Patrick Hand',cursive;font-size:13px;color:${i4 === currentIndex ? "#c9a84c" : "rgba(201,168,76,0.5)"};letter-spacing:0.3px;white-space:nowrap;cursor:pointer;padding:5px 6px;border-radius:3px;background:${i4 === currentIndex ? "rgba(201,168,76,0.08)" : "transparent"};margin-bottom:2px;transition:color 0.15s;overflow:hidden;text-overflow:ellipsis;"
+          title="${track.title} \u2014 ${track.author}">
+          <span style="color:rgba(201,168,76,0.35);margin-right:6px;flex-shrink:0;">${String(i4 + 1).padStart(2, "0")}.</span>${track.title}
+        </div>
+      `).join("")}
     </div>
   `;
   el.querySelectorAll("[data-idx]").forEach((child) => {

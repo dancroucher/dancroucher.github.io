@@ -120,7 +120,8 @@ const STAMP_DEBUG = false;
 export function stampTitle(baseColor: THREE.Texture, title: string, variant: string, tape?: Tape): THREE.CanvasTexture {
   const isInfinite = tape?.isInfinite ?? false;
   const isPlaylist = tape?.isPlaylist ?? false;
-  const cacheKey = `${variant}:${title}:${isInfinite ? 'inf' : ''}${isPlaylist ? 'pl' : ''}`;
+  const isMixtape = tape?.id === '__jeem_mixtape__';
+  const cacheKey = `${variant}:${title}:${isInfinite ? 'inf' : ''}${isPlaylist ? 'pl' : ''}${isMixtape ? 'mx' : ''}`;
   const cached = stampCache.get(cacheKey);
   if (cached) return cached;
 
@@ -276,6 +277,38 @@ export function stampTitle(baseColor: THREE.Texture, title: string, variant: str
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('Playlist', stickerX, stickerY);
+    ctx.restore();
+  }
+
+  // Draw white-on-blue "Mixtape" badge for mixtape tapes
+  if (isMixtape) {
+    const label = labels[0];
+    ctx.save();
+    ctx.translate(label.cx, label.cy);
+    ctx.rotate(Math.PI / 2);
+    const stickerX = 0;
+    const stickerY = -240; // above the ∞ / playlist stickers
+    const stickerW = 300;
+    const stickerH = 110;
+    // Blue sticker background
+    const grad = ctx.createLinearGradient(stickerX - stickerW / 2, stickerY, stickerX + stickerW / 2, stickerY);
+    grad.addColorStop(0, '#1a4a8a');
+    grad.addColorStop(1, '#0f3580');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    const r = 12;
+    ctx.roundRect(stickerX - stickerW / 2, stickerY - stickerH / 2, stickerW, stickerH, r);
+    ctx.fill();
+    // Border
+    ctx.strokeStyle = 'rgba(30,80,160,0.5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // "Mixtape" text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 52px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Mixtape', stickerX, stickerY);
     ctx.restore();
   }
 

@@ -247,20 +247,19 @@ async function fetchInfiniteTracks(config: InfiniteConfig, page = 1): Promise<In
 
 // ── Direct DOM mount for mixtape track overlay (no React portal, avoids circular init) ──
 function mountMixtapeOverlay(el: HTMLElement, mixtape: MixtapeData, currentIndex: number, onSelect: (i: number, t: MixtapeTrack) => void) {
-  el.style.cssText = 'position:fixed;bottom:2.5%;left:0;right:0;padding:0 32px;z-index:10000;pointer-events:none;display:flex;align-items:center;';
+  el.style.cssText = 'position:fixed;top:0;right:0;bottom:0;width:240px;padding:16px 12px;z-index:10000;pointer-events:none;display:flex;flex-direction:column;overflow:hidden;';
   el.innerHTML = `
-    <div style="padding-left:270px;display:flex;align-items:center;gap:12px;overflow:hidden;flex:1;">
-      <div style="font-family:'04b03',monospace;font-size:10px;color:rgba(201,168,76,0.5);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;flex-shrink:0;">
-        ${mixtape.name} · ${mixtape.tracks.length} tracks
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;overflow-x:auto;flex:1;pointer-events:auto;scrollbar-width:none;">
-        ${mixtape.tracks.map((track, i) => `
-          <div data-idx="${i}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
-            style="font-family:'04b03',monospace;font-size:10px;color:${i === currentIndex ? '#c9a84c' : 'rgba(201,168,76,0.35)'};letter-spacing:0.5px;white-space:nowrap;cursor:pointer;padding:2px 4px;background:${i === currentIndex ? 'rgba(201,168,76,0.1)' : 'transparent'};border-radius:2px;transition:color 0.15s;">
-            ${i + 1}. ${track.title}
-          </div>
-        `).join('')}
-      </div>
+    <div style="font-family:'04b03',monospace;font-size:9px;color:rgba(201,168,76,0.5);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;margin-bottom:10px;flex-shrink:0;padding-top:4px;">
+      ${mixtape.name}
+    </div>
+    <div style="flex:1;overflow-y:auto;pointer-events:auto;scrollbar-width:thin;scrollbar-color:rgba(201,168,76,0.3) transparent;">
+      ${mixtape.tracks.map((track, i) => `
+        <div data-idx="${i}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
+          style="font-family:'Patrick Hand',cursive;font-size:13px;color:${i === currentIndex ? '#c9a84c' : 'rgba(201,168,76,0.5)'};letter-spacing:0.3px;white-space:nowrap;cursor:pointer;padding:5px 6px;border-radius:3px;background:${i === currentIndex ? 'rgba(201,168,76,0.08)' : 'transparent'};margin-bottom:2px;transition:color 0.15s;overflow:hidden;text-overflow:ellipsis;"
+          title="${track.title} — ${track.author}">
+          <span style="color:rgba(201,168,76,0.35);margin-right:6px;flex-shrink:0;">${String(i + 1).padStart(2, '0')}.</span>${track.title}
+        </div>
+      `).join('')}
     </div>
   `;
   el.querySelectorAll('[data-idx]').forEach(child => {

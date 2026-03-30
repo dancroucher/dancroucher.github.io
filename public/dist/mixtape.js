@@ -12831,6 +12831,17 @@ function MixtapeCreator({ onBack, onPlay }) {
       ] }),
       error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { style: styles.error, children: error }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+        "input",
+        {
+          style: styles.nameInput,
+          type: "text",
+          placeholder: "Mixtape name (optional)",
+          value: name,
+          onChange: (e) => setName(e.target.value),
+          maxLength: 60
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
         "button",
         {
           style: { ...styles.generateBtn, ...loading ? styles.generateBtnDisabled : {} },
