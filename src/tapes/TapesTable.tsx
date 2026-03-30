@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspens
 import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, getStorageKey, InfiniteConfig, InfiniteTrack } from './types';
 import { CassetteTape } from './CassetteTape';
-// import { DeckTape3D } from './DeckTape3D';
+import { DeckTape3D } from './DeckTape3D';
 const TapesTable3D = lazy(() => import('./TapesTable3D').then(m => ({ default: m.TapesTable3D })));
 
 // ── Mixtape data type (passed in from mixtape creator) ──
@@ -384,6 +384,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     // 2. Initial KV fetch + merge, then start polling
     async function pollSync() {
       if (!currentUsername) return; // No sync without a username
+      if (mixtapeLoadedRef.current) return; // Don't sync over the mixtape tape
       try {
         const r = await fetch(`/api/tapes?t=${Date.now()}${userParam('&')}`, { cache: 'no-store' });
         if (!r.ok) return;
@@ -647,6 +648,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
 
     window.myApp.submitVideoNameFromSaved(videoId, 0, seekProgress);
     setCurrentVideoId(videoId);
+
+    // Switch to tapes background mode so the table stays visible while playing
+    window.switchBgType(5);
 
     // Hide vanilla padinfo if mixtape is active
     if (loadedRef.current?.id === MIXTAPE_ID) {
