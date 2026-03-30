@@ -162,21 +162,21 @@ export default async function handler(req, res) {
 
     // Try IMVDB first (music-specific, doesn't block Vercel)
     try {
-      const imvdb = await imvdbSearch(q, 6);
+      const imvdb = await imvdbSearch(q, 8);
       results.push(...imvdb);
     } catch { /* continue */ }
 
     // Try YouTube search (may 401 on Vercel IPs)
     try {
-      const yt = await youtubeSearch(q, 6);
+      const yt = await youtubeSearch(q, 8);
       results.push(...yt);
     } catch { /* continue */ }
 
     allRaw.push(...results);
   }));
 
-  // Resolve video IDs via oEmbed (parallel, max 12 to stay fast)
-  const toResolve = allRaw.slice(0, 16);
+  // Resolve video IDs via oEmbed (parallel, up to 32 candidates for a bigger pool)
+  const toResolve = allRaw.slice(0, 32);
   const resolved = await Promise.allSettled(
     toResolve.map(r => resolveTrack(r.title, r.videoId))
   );
@@ -194,7 +194,7 @@ export default async function handler(req, res) {
   // Sort: top scored first, shuffle in some lower-ranked for eclecticism
   candidates.sort((a, b) => b._score - a._score);
   const obvious = candidates.slice(0, 8);
-  const eclectic = shuffle(candidates.slice(8, 16));
+  const eclectic = shuffle(candidates.slice(8));
   const initial = shuffle([...obvious, ...eclectic]);
 
   // Fill to 16 tracks
@@ -209,19 +209,27 @@ export default async function handler(req, res) {
     });
   }
 
-  // If still not enough, do one more YouTube search with a different query
+  // If still not enough, do more YouTube searches with fallback queries
   if (tracks.length < 16) {
-    const extra = await youtubeSearch(seedTitle + ' music video compilation', 8);
-    for (const t of extra) {
-      if (seen.has(t.videoId)) continue;
-      tracks.push({
-        videoId: t.videoId,
-        title: t.title || 'Unknown',
-        author: t.author || '',
-        duration: t.duration || 0,
-        durationText: t.durationText || '',
-      });
-      seen.add(t.videoId);
+    const fallbackQueries = [
+      seedTitle + ' best songs',
+      seedTitle + ' music video',
+      keywords + ' playlist',
+    ];
+    for (const q of fallbackQueries) {
+      const extra = await youtubeSearch(q, 8);
+      for (const t of extra) {
+        if (seen.has(t.videoId)) continue;
+        tracks.push({
+          videoId: t.videoId,
+          title: t.title || 'Unknown',
+          author: t.author || '',
+          duration: t.duration || 0,
+          durationText: t.durationText || '',
+        });
+        seen.add(t.videoId);
+        if (tracks.length >= 16) break;
+      }
       if (tracks.length >= 16) break;
     }
   }

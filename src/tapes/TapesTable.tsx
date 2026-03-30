@@ -5,6 +5,20 @@ import { CassetteTape } from './CassetteTape';
 import { DeckTape3D } from './DeckTape3D';
 const TapesTable3D = lazy(() => import('./TapesTable3D').then(m => ({ default: m.TapesTable3D })));
 
+// ── Mixtape data type (passed in from mixtape creator) ──
+export interface MixtapeTrack {
+  videoId: string;
+  title: string;
+  author: string;
+  duration: number;
+  durationText: string;
+}
+export interface MixtapeData {
+  name: string;
+  description: string;
+  tracks: MixtapeTrack[];
+}
+
 // ── Texture variant cycling ──
 const TEXTURE_VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'];
 let nextVariantIndex = 0;
@@ -231,7 +245,40 @@ async function fetchInfiniteTracks(config: InfiniteConfig, page = 1): Promise<In
   }
 }
 
-export function TapesTable() {
+// ── Direct DOM mount for mixtape track overlay (no React portal, avoids circular init) ──
+function mountMixtapeOverlay(el: HTMLElement, mixtape: MixtapeData, currentIndex: number, onSelect: (i: number, t: MixtapeTrack) => void) {
+  el.style.cssText = 'position:fixed;bottom:2.5%;left:0;right:0;padding:0 32px;z-index:10000;pointer-events:none;display:flex;align-items:center;';
+  el.innerHTML = `
+    <div style="padding-left:270px;display:flex;align-items:center;gap:12px;overflow:hidden;flex:1;">
+      <div style="font-family:'04b03',monospace;font-size:10px;color:rgba(201,168,76,0.5);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;flex-shrink:0;">
+        ${mixtape.name} · ${mixtape.tracks.length} tracks
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;overflow-x:auto;flex:1;pointer-events:auto;scrollbar-width:none;">
+        ${mixtape.tracks.map((track, i) => `
+          <div data-idx="${i}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
+            style="font-family:'04b03',monospace;font-size:10px;color:${i === currentIndex ? '#c9a84c' : 'rgba(201,168,76,0.35)'};letter-spacing:0.5px;white-space:nowrap;cursor:pointer;padding:2px 4px;background:${i === currentIndex ? 'rgba(201,168,76,0.1)' : 'transparent'};border-radius:2px;transition:color 0.15s;">
+            ${i + 1}. ${track.title}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  el.querySelectorAll('[data-idx]').forEach(child => {
+    child.addEventListener('click', () => {
+      const idx = parseInt(child.getAttribute('data-idx') || '0');
+      const track: MixtapeTrack = {
+        videoId: child.getAttribute('data-videoid') || '',
+        title: child.getAttribute('data-title') || '',
+        author: child.getAttribute('data-author') || '',
+        duration: 0,
+        durationText: '',
+      };
+      onSelect(idx, track);
+    });
+  });
+}
+
+export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const [tapes, setTapes] = useState<Tape[]>([]);
   const [mounted, setMounted] = useState(false);
   const [menuId, setMenuId] = useState<string | null>(null);
@@ -250,6 +297,7 @@ export function TapesTable() {
   const [deckEjecting, setDeckEjecting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [infiniteLoading, setInfiniteLoading] = useState(false);
+  const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(() => localStorage.getItem('jeem_username') || null);
   const [usernameInput, setUsernameInput] = useState('');
   const [usernameError, setUsernameError] = useState('');
@@ -258,6 +306,10 @@ export function TapesTable() {
   const tableRef = useRef<HTMLDivElement>(null);
   const playerZoneRef = useRef<HTMLDivElement>(null);
   const deckPortal = typeof document !== 'undefined' ? document.getElementById('tape-deck') : null;
+  // Mixtape: virtual tape ID and current track index
+  const MIXTAPE_ID = '__jeem_mixtape__';
+  const [mixtapeTapeId] = useState<string>(MIXTAPE_ID);
+  const mixtapeLoadedRef = useRef(false);
   const tapesRef = useRef(tapes);
   tapesRef.current = tapes;
   const loadedRef = useRef(loadedTape);
@@ -516,6 +568,62 @@ export function TapesTable() {
     return () => { delete window.TapesBridge; };
   }, []);
 
+  // ── Load mixtape on mount ──
+  // Reads mixtape from sessionStorage (set by mixtape creator before navigation)
+  useEffect(() => {
+    if (!mixtape || mixtapeLoadedRef.current) return;
+    mixtapeLoadedRef.current = true;
+
+    const tracks: InfiniteTrack[] = mixtape.tracks.map(t => ({
+      videoId: t.videoId,
+      title: t.title,
+      author: t.author,
+    }));
+
+    const mixtapeTape: Tape = {
+      id: MIXTAPE_ID,
+      videoId: tracks[0]?.videoId || '',
+      isPlaylist: false,
+      isInfinite: true,
+      infiniteConfig: { source: 'youtube', type: 'artist', value: mixtape.name } as InfiniteConfig,
+      infiniteHistory: tracks,
+      infiniteIndex: 0,
+      title: mixtape.name,
+      author: 'mixtape',
+      tapeStyle: 0,
+      textureVariant: 'a',
+      progress: 0,
+      timestamp: Date.now(),
+      x: -8,
+      y: 160,
+      angle: 0,
+    };
+
+    setTapes([mixtapeTape]);
+    setZOrder([MIXTAPE_ID]);
+    setMounted(true);
+
+    // Clear sessionStorage so a refresh exits mixtape mode
+    try { sessionStorage.removeItem('jeem_mixtape'); } catch {}
+
+    // Hide the vanilla padinfo when mixtape is active
+    const padinfo = document.getElementById('padinfo');
+    if (padinfo) padinfo.style.display = 'none';
+
+    // Delay loadIntoPlayer until after initial render so callbacks are set up
+    setTimeout(() => loadIntoPlayer(mixtapeTape), 100);
+  }, [mixtape, loadIntoPlayer]);
+
+  // Show padinfo when mixtape is ejected
+  useEffect(() => {
+    if (!mixtape) return;
+    // After mixtape ejects (loadedTape becomes null or non-mixtape), restore padinfo
+    if (loadedTape?.id !== MIXTAPE_ID) {
+      const padinfo = document.getElementById('padinfo');
+      if (padinfo) padinfo.style.display = '';
+    }
+  }, [loadedTape, mixtape]);
+
   // ── Play a single video by ID (used for infinite tape tracks) ──
   const playVideoById = useCallback((videoId: string, title: string, author: string, seekProgress = 0) => {
     if (!window.myApp || !window.AppState) return;
@@ -539,6 +647,13 @@ export function TapesTable() {
     if (trackEl) trackEl.style.display = 'none';
 
     window.myApp.submitVideoNameFromSaved(videoId, 0, seekProgress);
+    setCurrentVideoId(videoId);
+
+    // Hide vanilla padinfo if mixtape is active
+    if (loadedRef.current?.id === MIXTAPE_ID) {
+      const padinfo = document.getElementById('padinfo');
+      if (padinfo) padinfo.style.display = 'none';
+    }
   }, []);
 
   // ── Load next track for infinite tape ──
@@ -1100,6 +1215,31 @@ export function TapesTable() {
         />
       </Suspense>
 
+      {/* Create Mixtape button — top right overlay */}
+      {!mixtape && (
+        <button
+          style={{
+            position: 'fixed',
+            top: 16,
+            right: 16,
+            zIndex: 10000,
+            padding: '8px 16px',
+            background: 'linear-gradient(135deg, #8a5a20, #c9a84c)',
+            border: 'none',
+            borderRadius: 4,
+            color: '#0a0805',
+            fontFamily: "'Patrick Hand', cursive",
+            fontSize: 14,
+            cursor: 'pointer',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
+          }}
+          onClick={() => { window.location.href = '/?create_mixtape=1'; }}
+          title="Create a new mixtape"
+        >
+          + Mixtape
+        </button>
+      )}
+
       {/* Deck — portaled outside tapes-root so it's visible in all bg modes */}
       {/* Username bar — portaled into start-header */}
       {typeof document !== 'undefined' && document.getElementById('username-area') && createPortal(
@@ -1196,6 +1336,38 @@ export function TapesTable() {
         deckPortal
       )}
 
+      {/* Mixtape track list — direct DOM mount, no React portal */}
+      {mixtape && loadedTape?.id === MIXTAPE_ID && (
+        <MixtapeOverlayEffect
+          mixtape={mixtape}
+          currentIndex={loadedTape.infiniteIndex ?? 0}
+          onSelectTrack={(i, track) => {
+            setLoadedTape(prev => prev ? { ...prev, infiniteIndex: i, videoId: track.videoId, progress: 0 } : prev);
+            setTapes(prev => prev.map(t => t.id === MIXTAPE_ID ? { ...t, infiniteIndex: i, videoId: track.videoId, progress: 0 } : t));
+            playVideoById(track.videoId, track.title, track.author);
+          }}
+        />
+      )}
+
     </>
   );
+}
+
+// Small React component that uses useEffect to manage the DOM overlay
+function MixtapeOverlayEffect({
+  mixtape,
+  currentIndex,
+  onSelectTrack,
+}: {
+  mixtape: MixtapeData;
+  currentIndex: number;
+  onSelectTrack: (index: number, track: MixtapeTrack) => void;
+}) {
+  useEffect(() => {
+    let el = document.getElementById('mixtape-tracklist');
+    if (!el) { el = document.createElement('div'); el.id = 'mixtape-tracklist'; document.body.appendChild(el); }
+    mountMixtapeOverlay(el, mixtape, currentIndex, onSelectTrack);
+    return () => { el?.remove(); };
+  }, [mixtape, currentIndex, onSelectTrack]);
+  return null;
 }

@@ -105,6 +105,7 @@
                             </div>
                             <button class="infinite-create" id="inf-create">create tape</button>
                             <button class="infinite-create" id="inf-lucky" style="background: #b8860b; margin-top: 4px">🎲 lucky pick</button>
+                            <button class="infinite-create" id="inf-mixtape" style="background: linear-gradient(135deg, #8a5a20, #c9a84c); margin-top: 4px; color: #0a0805; font-weight: bold">+ mixtape</button>
                         </div>
                     </div>
                 </div>
@@ -130,10 +131,10 @@ __/ / \__/ \__//_/_/_/    /_/ /_/_/_/
         <script src="src/player.js"></script>
         <script type="module" src="dist/tapes.js"></script>
         <script>
-        // Load mixtape bundle when ?mixtape=1 or ?tape=... is present
+        // Load mixtape bundle when ?mixtape=1 or ?tape=... or ?create_mixtape=1 is present
         (function() {
           var params = new URLSearchParams(window.location.search);
-          if (params.get('mixtape') === '1' || params.has('tape')) {
+          if (params.get('mixtape') === '1' || params.has('tape') || params.get('create_mixtape') === '1') {
             // Load YouTube Iframe API first
             var tag = document.createElement('script');
             tag.src = 'https://www.youtube.com/iframe_api';

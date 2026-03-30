@@ -329,6 +329,9 @@ const InfinitePopup = {
         const luckyBtn = document.getElementById("inf-lucky");
         if (luckyBtn) luckyBtn.addEventListener("click", () => this._lucky());
 
+        const mixtapeBtn = document.getElementById("inf-mixtape");
+        if (mixtapeBtn) mixtapeBtn.addEventListener("click", () => { window.location.href = '/?create_mixtape=1'; });
+
         // Close popup on outside click
         document.addEventListener("click", (e) => {
             if (this._open && !popup.contains(e.target) && e.target !== btn) {
