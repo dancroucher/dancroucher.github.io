@@ -1,4 +1,6 @@
 import React, { useState, useCallback } from 'react';
+import { CassetteTape } from '../tapes/CassetteTape';
+import type { Tape } from '../tapes/types';
 
 interface Track {
   videoId: string;
@@ -13,13 +15,34 @@ interface CreatorProps {
   onPlay: (tape: { name: string; description: string; tracks: Track[] }) => void;
 }
 
+// Fake mixtape tape for rendering the cassette in the creator panel
+function makeMixtapeTape(name: string, tracks: Track[]): Tape {
+  return {
+    id: '__jeem_mixtape__',
+    videoId: tracks[0]?.videoId || '',
+    isPlaylist: false,
+    isInfinite: true,
+    title: name || 'Mixtape',
+    author: 'mixtape',
+    tapeStyle: 0,
+    textureVariant: 'a',
+    progress: 0,
+    timestamp: Date.now(),
+    x: 0,
+    y: 0,
+    angle: 0,
+    infiniteHistory: tracks.map(t => ({ videoId: t.videoId, title: t.title, author: t.author })),
+    infiniteIndex: 0,
+    infiniteConfig: { source: 'youtube', type: 'artist', value: name } as any,
+  };
+}
+
 export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
   const [url, setUrl] = useState('');
   const [keywords, setKeywords] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const [tracks, setTracks] = useState<Track[]>([]);
   const [seedTitle, setSeedTitle] = useState('');
 
@@ -40,101 +63,103 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
       if (!res.ok) throw new Error(data.error || 'Generation failed');
       setTracks(data.tracks || []);
       setSeedTitle(data.seedTitle || 'Mixtape');
-      if (!name) setName(`${data.seedTitle || 'My Mixtape'}`);
     } catch (e: any) {
       setError(e.message || 'Failed to generate mixtape');
     } finally {
       setLoading(false);
     }
-  }, [url, keywords, name]);
+  }, [url, keywords]);
 
   const handleSave = useCallback(() => {
-    if (!name.trim() && tracks.length === 0) { setError('Generate tracks first'); return; }
-    const tape = { name: name.trim() || 'My Mixtape', description: description.trim(), tracks };
+    const tape = { name: name.trim() || 'Mixtape', description: '', tracks };
     onPlay(tape);
-  }, [name, description, tracks, onPlay]);
+  }, [name, tracks, onPlay]);
+
+  const handleRegenerate = useCallback(() => {
+    setTracks([]);
+    setName('');
+    setError('');
+  }, []);
+
+  const mixtapeTape = makeMixtapeTape(name || seedTitle || 'Mixtape', tracks);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={onBack} disabled={loading}>
-          ← Back
-        </button>
-        <h1 style={styles.title}>Mixtape Creator</h1>
-        <div style={{ width: 60 }} />
-      </div>
-
-      <div style={styles.content}>
-        {!tracks.length ? (
-          <div style={styles.inputSection}>
-            <p style={styles.subtitle}>
-              Enter a YouTube URL or keywords to generate a 16-track mixtape
-            </p>
-            <div style={styles.inputGroup}>
-              <input
-                style={styles.input}
-                type="text"
-                placeholder="YouTube URL (e.g. https://youtube.com/watch?v=...)"
-                value={url}
-                onChange={e => setUrl(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleGenerate()}
-                disabled={loading}
-              />
-              <span style={styles.or}>or</span>
-              <input
-                style={styles.input}
-                type="text"
-                placeholder="Keywords (e.g. 80s synthwave, 90s hip hop)"
-                value={keywords}
-                onChange={e => setKeywords(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleGenerate()}
-                disabled={loading}
-              />
-            </div>
-            {error && <p style={styles.error}>{error}</p>}
-            <button
-              style={{ ...styles.generateBtn, ...(loading ? styles.generateBtnDisabled : {}) }}
-              onClick={handleGenerate}
+    <div style={styles.overlay}>
+      {/* ── Step 1: URL / Keywords input ── */}
+      {!tracks.length && (
+        <div style={styles.inputModal}>
+          <p style={styles.modalSubtitle}>Enter a YouTube URL or keywords to generate a 16-track mixtape</p>
+          <div style={styles.inputGroup}>
+            <input
+              style={styles.input}
+              type="text"
+              placeholder="YouTube URL"
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleGenerate()}
               disabled={loading}
-            >
-              {loading ? 'Generating...' : 'Generate Mixtape'}
-            </button>
+            />
+            <span style={styles.or}>or</span>
+            <input
+              style={styles.input}
+              type="text"
+              placeholder="Keywords (e.g. 80s synthwave)"
+              value={keywords}
+              onChange={e => setKeywords(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleGenerate()}
+              disabled={loading}
+            />
           </div>
-        ) : (
-          <div style={styles.reviewSection}>
-            <div style={styles.metaFields}>
-              <input
-                style={styles.nameInput}
-                type="text"
-                placeholder="Mixtape name"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                maxLength={60}
-              />
-              <input
-                style={styles.descInput}
-                type="text"
-                placeholder="Description (optional)"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                maxLength={120}
-              />
-            </div>
+          {error && <p style={styles.error}>{error}</p>}
+          <button
+            style={{ ...styles.generateBtn, ...(loading ? styles.generateBtnDisabled : {}) }}
+            onClick={handleGenerate}
+            disabled={loading}
+          >
+            {loading ? 'Generating...' : 'Generate Mixtape'}
+          </button>
+        </div>
+      )}
+
+      {/* ── Step 2: Tape + Tracklist ── */}
+      {tracks.length > 0 && (
+        <div style={styles.creator}>
+          {/* Left: cassette tape with mixtape label */}
+          <div style={styles.tapeSide}>
+            <CassetteTape tape={mixtapeTape} playing={false} big />
+          </div>
+
+          {/* Right: name + tracks + actions */}
+          <div style={styles.trackSide}>
+            {/* Name input — blank until saved */}
+            <input
+              style={styles.nameInput}
+              type="text"
+              placeholder="Mixtape name..."
+              value={name}
+              onChange={e => setName(e.target.value)}
+              maxLength={60}
+            />
+
+            {/* Track count */}
+            <p style={styles.trackCount}>{tracks.length} tracks — generated from "{seedTitle}"</p>
+
+            {/* Track list — show all 16 */}
             <div style={styles.trackList}>
-              <p style={styles.trackCount}>{tracks.length} tracks — generated from "{seedTitle}"</p>
               {tracks.map((track, i) => (
                 <div key={i} style={styles.trackRow}>
-                  <span style={styles.trackNum}>{i + 1}</span>
+                  <span style={styles.trackNum}>{String(i + 1).padStart(2, '0')}.</span>
                   <span style={styles.trackTitle}>{track.title || 'Untitled'}</span>
                   <span style={styles.trackAuthor}>{track.author}</span>
-                  <span style={styles.trackDur}>{track.durationText}</span>
                 </div>
               ))}
             </div>
+
+            {/* Actions */}
             {error && <p style={styles.error}>{error}</p>}
             <div style={styles.actions}>
-              <button style={styles.regenerateBtn} onClick={() => { setTracks([]); setName(''); }} disabled={loading}>
-                Regenerate
+              <button style={styles.regenerateBtn} onClick={handleRegenerate} disabled={loading}>
+                ← Back
               </button>
               <button
                 style={{ ...styles.saveBtn, ...(loading ? styles.saveBtnDisabled : {}) }}
@@ -145,60 +170,38 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: {
-    position: 'fixed', inset: 0, zIndex: 100,
-    background: 'rgba(10,8,5,0.97)',
-    display: 'flex', flexDirection: 'column',
-    fontFamily: "'Patrick Hand', cursive",
+  overlay: {
+    position: 'fixed', inset: 0, zIndex: 200,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: 'rgba(10,8,5,0.5)',
+    backdropFilter: 'blur(2px)',
+    fontFamily: "'04b03', monospace",
     color: '#e8d5b0',
   },
-  header: {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '16px 24px',
-    borderBottom: '1px solid rgba(201,168,76,0.2)',
-  },
-  backBtn: {
-    background: 'transparent',
-    border: '1px solid rgba(201,168,76,0.4)',
-    color: '#c9a84c',
-    padding: '6px 14px',
-    borderRadius: 4,
-    cursor: 'pointer',
-    fontFamily: "'04b03', monospace",
-    fontSize: 14,
-  },
-  title: {
-    fontFamily: "'Lacquer', cursive",
-    fontSize: 22,
-    color: '#c9a84c',
-    margin: 0,
-    letterSpacing: 2,
-  },
-  content: {
-    flex: 1, overflow: 'auto', padding: '32px 24px',
+  // Step 1: centered input modal
+  inputModal: {
+    background: 'rgba(14,10,6,0.95)',
+    border: '1px solid rgba(201,168,76,0.3)',
+    borderRadius: 12,
+    padding: '32px 40px',
     display: 'flex', flexDirection: 'column', alignItems: 'center',
+    gap: 16, width: 520,
+    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
   },
-  subtitle: {
+  modalSubtitle: {
     fontFamily: "'04b03', monospace",
-    fontSize: 15, color: 'rgba(232,213,176,0.6)', marginBottom: 24,
-    textAlign: 'center',
-  },
-  inputSection: {
-    width: '100%', maxWidth: 560, display: 'flex', flexDirection: 'column', alignItems: 'center',
+    fontSize: 14, color: 'rgba(232,213,176,0.55)',
+    textAlign: 'center', margin: 0,
   },
   inputGroup: {
-    width: '100%', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20,
-  },
-  or: {
-    textAlign: 'center', color: 'rgba(201,168,76,0.4)', fontSize: 13,
-    fontFamily: "'04b03', monospace",
+    width: '100%', display: 'flex', flexDirection: 'column', gap: 10,
   },
   input: {
     width: '100%', padding: '12px 16px',
@@ -208,9 +211,13 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: "'04b03', monospace",
     outline: 'none', boxSizing: 'border-box',
   },
+  or: {
+    textAlign: 'center', color: 'rgba(201,168,76,0.4)', fontSize: 12,
+    fontFamily: "'04b03', monospace",
+  },
   error: {
     fontFamily: "'04b03', monospace",
-    color: '#ff6b6b', fontSize: 14, marginBottom: 12, textAlign: 'center',
+    color: '#ff6b6b', fontSize: 13, margin: 0,
   },
   generateBtn: {
     padding: '12px 32px',
@@ -222,77 +229,95 @@ const styles: Record<string, React.CSSProperties> = {
   generateBtnDisabled: {
     opacity: 0.6, cursor: 'not-allowed',
   },
-  reviewSection: {
-    width: '100%', maxWidth: 640, display: 'flex', flexDirection: 'column', gap: 16,
+  // Step 2: side-by-side tape + tracklist
+  creator: {
+    display: 'flex', gap: 0,
+    alignItems: 'stretch',
+    background: 'rgba(14,10,6,0.92)',
+    border: '1px solid rgba(201,168,76,0.3)',
+    borderRadius: 12,
+    overflow: 'hidden',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.7)',
+    width: 780,
+    maxHeight: '90vh',
   },
-  metaFields: {
-    display: 'flex', flexDirection: 'column', gap: 10,
+  tapeSide: {
+    width: 234,
+    flexShrink: 0,
+    background: 'rgba(0,0,0,0.2)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    padding: '24px 20px',
+    borderRight: '1px solid rgba(201,168,76,0.15)',
+  },
+  trackSide: {
+    flex: 1,
+    padding: '24px 24px 20px',
+    display: 'flex', flexDirection: 'column', gap: 0,
+    overflow: 'hidden',
+    minWidth: 0,
   },
   nameInput: {
-    padding: '12px 16px',
-    background: 'rgba(255,255,255,0.07)',
-    border: '1px solid rgba(201,168,76,0.5)',
-    borderRadius: 6, color: '#e8d5b0', fontSize: 16,
-    fontFamily: "'04b03', monospace", letterSpacing: 1,
-    outline: 'none', width: '100%', boxSizing: 'border-box',
-  },
-  descInput: {
-    padding: '10px 16px',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(201,168,76,0.25)',
-    borderRadius: 6, color: '#e8d5b0', fontSize: 14,
-    fontFamily: "'04b03', monospace",
-    outline: 'none', width: '100%', boxSizing: 'border-box',
-  },
-  trackList: {
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(201,168,76,0.15)',
-    borderRadius: 8, padding: '12px 16px',
-    maxHeight: 360, overflowY: 'auto',
+    padding: '10px 14px',
+    background: 'rgba(255,255,255,0.06)',
+    border: '1px solid rgba(201,168,76,0.4)',
+    borderRadius: 6, color: '#e8d5b0', fontSize: 15,
+    fontFamily: "'04b03', monospace", letterSpacing: 0.5,
+    outline: 'none', width: '100%', boxSizing: 'border-box', marginBottom: 12,
   },
   trackCount: {
     fontFamily: "'04b03', monospace",
-    fontSize: 13, color: 'rgba(201,168,76,0.5)', marginBottom: 10,
-    borderBottom: '1px solid rgba(201,168,76,0.1)', paddingBottom: 8,
+    fontSize: 11, color: 'rgba(201,168,76,0.4)', margin: '0 0 8px',
+    letterSpacing: '0.05em',
+  },
+  trackList: {
+    flex: 1,
+    overflowY: 'auto' as const,
+    background: 'rgba(255,255,255,0.02)',
+    borderRadius: 6,
+    padding: '8px 12px',
+    minHeight: 0,
   },
   trackRow: {
     display: 'flex', alignItems: 'center', gap: 10,
-    padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)',
-    fontSize: 13, fontFamily: "'04b03', monospace",
+    padding: '7px 0',
+    borderBottom: '1px solid rgba(255,255,255,0.04)',
+    fontSize: 14,
   },
   trackNum: {
     fontFamily: "'04b03', monospace",
-    color: 'rgba(201,168,76,0.5)', width: 20, flexShrink: 0, textAlign: 'right',
+    color: 'rgba(201,168,76,0.4)', width: 28, flexShrink: 0,
+    textAlign: 'right',
   },
   trackTitle: {
     fontFamily: "'04b03', monospace",
-    flex: 1, color: '#e8d5b0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+    flex: 1, color: '#e8d5b0', overflow: 'hidden',
+    textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+    minWidth: 0,
   },
   trackAuthor: {
     fontFamily: "'04b03', monospace",
-    color: 'rgba(232,213,176,0.5)', flexShrink: 0, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-  },
-  trackDur: {
-    fontFamily: "'04b03', monospace",
-    color: 'rgba(201,168,76,0.4)', flexShrink: 0, width: 36, textAlign: 'right',
+    color: 'rgba(232,213,176,0.4)', flexShrink: 0,
+    maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
   },
   actions: {
-    display: 'flex', gap: 12, justifyContent: 'center',
+    display: 'flex', gap: 10, justifyContent: 'space-between',
+    marginTop: 14,
   },
   regenerateBtn: {
-    padding: '10px 24px',
+    padding: '10px 20px',
     background: 'transparent',
     border: '1px solid rgba(201,168,76,0.4)',
     borderRadius: 6, color: '#c9a84c',
-    fontFamily: "'04b03', monospace", fontSize: 15,
+    fontFamily: "'04b03', monospace", fontSize: 14,
     cursor: 'pointer',
   },
   saveBtn: {
     padding: '10px 28px',
     background: 'linear-gradient(135deg, #8a5a20, #c9a84c)',
     border: 'none', borderRadius: 6, color: '#0a0805',
-    fontFamily: "'04b03', monospace", fontSize: 16, letterSpacing: 1,
+    fontFamily: "'04b03', monospace", fontSize: 15, letterSpacing: 1,
     cursor: 'pointer',
+    flex: 1,
   },
   saveBtnDisabled: {
     opacity: 0.6, cursor: 'not-allowed',

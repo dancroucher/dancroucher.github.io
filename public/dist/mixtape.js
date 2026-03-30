@@ -12752,14 +12752,682 @@ var import_client = __toESM(require_client(), 1);
 
 // src/mixtape/Creator.tsx
 var import_react = __toESM(require_react(), 1);
+
+// src/tapes/types.ts
+var TAPE_STYLES = [
+  {
+    // 0: Sony HF-ES — dark housing, silver/white label, grey mid
+    housing: "#1e1e1e",
+    label: "#2a2a2a",
+    titleBg: "#e8e4dc",
+    midBg: "#888884",
+    stripes: ["#888884", "#787874", "#686864", "#585854"]
+  },
+  {
+    // 1: Sony BHF — dark housing, cream label, green mid-stripe
+    housing: "#1c1c1c",
+    label: "#2a2a28",
+    titleBg: "#ede8d8",
+    midBg: "#4a7a4a",
+    stripes: ["#4a7a4a", "#3a6a3a", "#2a5a2a", "#1a4a1a"]
+  },
+  {
+    // 2: Sony HF-S — dark housing, white label, red accent line
+    housing: "#1e1e1e",
+    label: "#2a2a2a",
+    titleBg: "#f0ece4",
+    midBg: "#b83030",
+    stripes: ["#b83030", "#a82828", "#982020", "#881818"]
+  },
+  {
+    // 3: Sony CHF — dark housing, red/gold stripe, cream label
+    housing: "#1a1a1a",
+    label: "#1e1e1e",
+    titleBg: "#e8e0cc",
+    midBg: "#c83828",
+    stripes: ["#c83828", "#b83020", "#a82818", "#982010"]
+  },
+  {
+    // 4: Maxell UD II — dark housing, gold/amber label area
+    housing: "#1c1c1c",
+    label: "#8a6828",
+    titleBg: "#c8a040",
+    midBg: "#b09030",
+    stripes: ["#b09030", "#a08028", "#907020", "#806018"]
+  },
+  {
+    // 5: Maxell XL II — dark housing, gold title, dark charcoal mid
+    housing: "#1a1a1a",
+    label: "#282828",
+    titleBg: "#c8a848",
+    midBg: "#333330",
+    stripes: ["#333330", "#2a2a28", "#222220", "#1a1a18"]
+  },
+  {
+    // 6: Maxell XL II (cream) — dark teal housing, cream label
+    housing: "#1a2828",
+    label: "#282828",
+    titleBg: "#ede8d8",
+    midBg: "#c8b880",
+    stripes: ["#c8b880", "#b8a870", "#a89860", "#988850"]
+  },
+  {
+    // 7: Maxell UD II CD — all dark, gold accents
+    housing: "#181818",
+    label: "#222220",
+    titleBg: "#c0a040",
+    midBg: "#282828",
+    stripes: ["#282828", "#222222", "#1c1c1c", "#161616"]
+  },
+  {
+    // 8: Maxell AD — dark housing, beige/cream label, olive mid
+    housing: "#1a1e1a",
+    label: "#2a2e2a",
+    titleBg: "#e0dcc8",
+    midBg: "#606850",
+    stripes: ["#606850", "#505840", "#404830", "#303820"]
+  },
+  {
+    // 9: Sony D — dark housing, gold mid, cream label
+    housing: "#1c1c1c",
+    label: "#282828",
+    titleBg: "#e8e0c8",
+    midBg: "#b8a048",
+    stripes: ["#b8a048", "#a89040", "#988038", "#887030"]
+  },
+  {
+    // 10: Generic — dark housing, white label, dark grey mid
+    housing: "#1e1e1e",
+    label: "#2a2a2a",
+    titleBg: "#f0ece0",
+    midBg: "#484848",
+    stripes: ["#484848", "#404040", "#383838", "#303030"]
+  },
+  {
+    // 11: BHF green — dark housing, green label band, off-white title
+    housing: "#1c1c1c",
+    label: "#3a6a3a",
+    titleBg: "#eee8d8",
+    midBg: "#4a7848",
+    stripes: ["#4a7848", "#3a6838", "#2a5828", "#1a4818"]
+  },
+  {
+    // 12: GT-IIx — dark housing, gold/bronze mid, cream label
+    housing: "#1a1a1a",
+    label: "#282420",
+    titleBg: "#e8e0c8",
+    midBg: "#a89040",
+    stripes: ["#a89040", "#988038", "#887030", "#786028"]
+  },
+  {
+    // 13: Clear/transparent style — very dark, silver label
+    housing: "#141414",
+    label: "#1a1a1a",
+    titleBg: "#d8d4cc",
+    midBg: "#3a3a3a",
+    stripes: ["#3a3a3a", "#333333", "#2c2c2c", "#252525"]
+  },
+  {
+    // 14: Maxell XL II 90 — dark housing, gold title, warm dark mid
+    housing: "#1a1a18",
+    label: "#2a2820",
+    titleBg: "#cca848",
+    midBg: "#3a3830",
+    stripes: ["#3a3830", "#323028", "#2a2820", "#222018"]
+  },
+  {
+    // 15: Sony HF — warm dark housing, warm white label, beige mid
+    housing: "#222220",
+    label: "#383830",
+    titleBg: "#f0e8d8",
+    midBg: "#c8c0a8",
+    stripes: ["#c8c0a8", "#b8b098", "#a8a088", "#989078"]
+  },
+  {
+    // 16: Red-stripe — dark housing, off-white label, red accent
+    housing: "#1e1e1e",
+    label: "#1a1a1a",
+    titleBg: "#eee8dc",
+    midBg: "#c03030",
+    stripes: ["#c03030", "#b02828", "#a02020", "#901818"]
+  },
+  {
+    // 17: Cream/beige — dark housing, warm cream label, tan mid
+    housing: "#1e1e1c",
+    label: "#383428",
+    titleBg: "#ede4c8",
+    midBg: "#c0b088",
+    stripes: ["#c0b088", "#b0a078", "#a09068", "#908058"]
+  },
+  {
+    // 18: All-dark premium — near-black housing, dark grey everything
+    housing: "#141414",
+    label: "#1a1a1a",
+    titleBg: "#282828",
+    midBg: "#1e1e1e",
+    stripes: ["#1e1e1e", "#1a1a1a", "#161616", "#121212"]
+  },
+  {
+    // 19: Gold premium — dark housing, rich gold label, dark mid
+    housing: "#181818",
+    label: "#8a7028",
+    titleBg: "#d0b048",
+    midBg: "#2a2820",
+    stripes: ["#2a2820", "#242218", "#1e1c10", "#181608"]
+  },
+  {
+    // 20: White label classic — dark housing, clean white label, charcoal
+    housing: "#1c1c1c",
+    label: "#2a2a2a",
+    titleBg: "#f2eee4",
+    midBg: "#505050",
+    stripes: ["#505050", "#484848", "#404040", "#383838"]
+  },
+  {
+    // 21: Teal accent — dark housing, off-white label, dark teal mid
+    housing: "#1a1e1e",
+    label: "#1e2828",
+    titleBg: "#e8e4d8",
+    midBg: "#2a5050",
+    stripes: ["#2a5050", "#204040", "#183838", "#103030"]
+  },
+  {
+    // 22: Yellow-cream label — dark housing, yellowed label, warm grey
+    housing: "#1e1e1c",
+    label: "#3a3828",
+    titleBg: "#e8dcb0",
+    midBg: "#888068",
+    stripes: ["#888068", "#787058", "#686048", "#585038"]
+  },
+  {
+    // 23: Maxell UD gold/red — dark housing, gold mid, red stripe accent
+    housing: "#1a1a1a",
+    label: "#682020",
+    titleBg: "#c8a040",
+    midBg: "#a88830",
+    stripes: ["#a88830", "#987828", "#886820", "#785818"]
+  },
+  {
+    // 24: Silver-grey — dark housing, cool grey label, medium grey mid
+    housing: "#1c1c1e",
+    label: "#303038",
+    titleBg: "#d8d8d4",
+    midBg: "#6a6a68",
+    stripes: ["#6a6a68", "#606060", "#585858", "#505050"]
+  },
+  {
+    // 25: Warm aged — dark housing, heavily yellowed label, brown-gold mid
+    housing: "#201e1a",
+    label: "#4a4028",
+    titleBg: "#ddd0a8",
+    midBg: "#9a8850",
+    stripes: ["#9a8850", "#8a7840", "#7a6830", "#6a5820"]
+  },
+  {
+    // 26: Green label band — dark housing, off-white label, bright green accent
+    housing: "#1c1c1c",
+    label: "#2a4a2a",
+    titleBg: "#eee8dc",
+    midBg: "#3a7a3a",
+    stripes: ["#3a7a3a", "#2a6a2a", "#1a5a1a", "#0a4a0a"]
+  },
+  {
+    // 27: Minimal — very dark, pale cream label, subtle dark mid
+    housing: "#161616",
+    label: "#1e1e1e",
+    titleBg: "#e8e4d8",
+    midBg: "#2a2a2a",
+    stripes: ["#2a2a2a", "#242424", "#1e1e1e", "#181818"]
+  },
+  {
+    // 28: Gold metallic — shiny gold title, dark gold mid
+    housing: "#1a1a18",
+    label: "#6a5820",
+    titleBg: "linear-gradient(135deg, #c8a040 0%, #e8cc68 25%, #d4b050 40%, #f0d878 55%, #c8a040 70%, #b89030 100%)",
+    midBg: "linear-gradient(135deg, #8a7028 0%, #b09838 30%, #9a8030 50%, #c0a840 70%, #8a7028 100%)",
+    stripes: ["#8a7028", "#7a6020", "#6a5018", "#5a4010"]
+  },
+  {
+    // 29: Silver metallic — chrome/silver title, steel mid
+    housing: "#1a1a1c",
+    label: "#404048",
+    titleBg: "linear-gradient(135deg, #b0b0b4 0%, #d8d8dc 25%, #c0c0c4 40%, #e8e8ec 55%, #b0b0b4 70%, #a0a0a4 100%)",
+    midBg: "linear-gradient(135deg, #686870 0%, #888890 30%, #787880 50%, #989898 70%, #686870 100%)",
+    stripes: ["#686870", "#585860", "#484850", "#383840"]
+  },
+  {
+    // 30: Gold premium — dark housing, gold shimmer everywhere
+    housing: "#141410",
+    label: "linear-gradient(90deg, #7a6428 0%, #9a8438 50%, #7a6428 100%)",
+    titleBg: "linear-gradient(135deg, #d0a838 0%, #e8c858 20%, #c8a030 45%, #ecd060 60%, #d0a838 80%, #b89028 100%)",
+    midBg: "#2a2818",
+    stripes: ["#2a2818", "#242210", "#1e1c08", "#181600"]
+  },
+  {
+    // 31: Silver chrome — cool silver label, dark chrome mid
+    housing: "#181820",
+    label: "#2a2a30",
+    titleBg: "linear-gradient(135deg, #c8c8d0 0%, #e0e0e8 30%, #b8b8c0 50%, #e8e8f0 65%, #c0c0c8 85%, #a8a8b0 100%)",
+    midBg: "linear-gradient(135deg, #484850 0%, #606068 30%, #505058 50%, #707078 70%, #484850 100%)",
+    stripes: ["#484850", "#404048", "#383840", "#303038"]
+  }
+];
+
+// src/tapes/Spool.tsx
 var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
+function Spool({ spinning, size = 32, rpm = 30, color = "#e8dcc4" }) {
+  const ringR = 12;
+  const strokeW = 2.8;
+  const innerR = ringR - strokeW / 2;
+  const toothW = 2.7;
+  const toothL = 3.24;
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 32 32", width: size, height: size, style: { animation: spinning ? `tape-spin-fast ${60 / rpm}s linear infinite` : "none", display: "block" }, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("circle", { cx: "16", cy: "16", r: ringR, fill: "none", stroke: color, strokeWidth: strokeW }),
+    [0, 60, 120, 180, 240, 300].map((a) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("rect", { x: 16 - toothW / 2, y: 16 - innerR, width: toothW, height: toothL, rx: 0.3, fill: color, transform: `rotate(${a} 16 16)` }, a))
+  ] });
+}
+
+// src/tapes/CassetteTape.tsx
+var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
+function CassetteTape({ tape, playing, big, loading }) {
+  const st = TAPE_STYLES[(tape.tapeStyle ?? 0) % TAPE_STYLES.length];
+  const s = big ? 1.35 : 1;
+  const R = (v) => Math.round(v * s);
+  const isMixtape = tape.id === "__jeem_mixtape__";
+  const w = R(234), h = R(143);
+  const padT = R(16), padLR = R(16);
+  const labelH = R(28);
+  const spoolSz = R(28);
+  const spoolY = R(68);
+  const spoolSpread = R(52);
+  const winW = R(66), winH = R(26);
+  const screwSz = R(14);
+  const botH = R(30);
+  const botProtrW = R(150), botProtrH = R(28);
+  const spoolAreaTop = padT + labelH + R(2);
+  const spoolAreaBot = h - botH - R(14) - R(6) - R(2);
+  const holeR = spoolSz * (7.36 / 32);
+  const hole1x = w / 2 - spoolSpread, hole2x = w / 2 + spoolSpread;
+  const maskLayers = [
+    `radial-gradient(circle ${holeR}px at ${hole1x}px ${spoolY}px, transparent ${holeR}px, black ${holeR + 0.5}px)`,
+    `radial-gradient(circle ${holeR}px at ${hole2x}px ${spoolY}px, transparent ${holeR}px, black ${holeR + 0.5}px)`
+  ].join(", ");
+  const seed = tape.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: {
+    width: w,
+    height: h,
+    borderRadius: R(4),
+    position: "relative",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
+    WebkitMaskImage: maskLayers,
+    WebkitMaskComposite: "destination-in",
+    maskImage: maskLayers,
+    maskComposite: "intersect"
+  }, children: [
+    (() => {
+      const ringInnerR = spoolSz * (10.6 / 32);
+      const housingMask = [
+        `radial-gradient(circle ${ringInnerR}px at ${hole1x}px ${spoolY}px, transparent ${ringInnerR}px, black ${ringInnerR + 0.5}px)`,
+        `radial-gradient(circle ${ringInnerR}px at ${hole2x}px ${spoolY}px, transparent ${ringInnerR}px, black ${ringInnerR + 0.5}px)`
+      ].join(", ");
+      return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
+        position: "absolute",
+        inset: 0,
+        backgroundColor: st.housing,
+        borderRadius: R(4),
+        WebkitMaskImage: housingMask,
+        WebkitMaskComposite: "destination-in",
+        maskImage: housingMask,
+        maskComposite: "intersect"
+      } });
+    })(),
+    (() => {
+      const textureVariant = seed % 5;
+      const textures = [
+        `repeating-linear-gradient(90deg, transparent 0px, transparent 3px, rgba(255,255,255,0.04) 3px, rgba(255,255,255,0.04) 4px)`,
+        `repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 3px)`,
+        `repeating-linear-gradient(90deg, transparent 0px, transparent 4px, rgba(255,255,255,0.025) 4px, rgba(255,255,255,0.025) 5px), repeating-linear-gradient(0deg, transparent 0px, transparent 4px, rgba(255,255,255,0.025) 4px, rgba(255,255,255,0.025) 5px)`,
+        `repeating-linear-gradient(135deg, transparent 0px, transparent 3px, rgba(255,255,255,0.03) 3px, rgba(255,255,255,0.03) 4px)`,
+        "none"
+      ];
+      return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", inset: 0, background: textures[textureVariant], borderRadius: R(4), pointerEvents: "none" } });
+    })(),
+    (() => {
+      const showScuff = (seed >> 4) % 3 === 0;
+      const showCornerWear = (seed >> 5) % 4 === 0;
+      const showEdgeHighlight = (seed >> 6) % 3 === 0;
+      return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
+        showScuff && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: R(30 + seed % 20), left: R(10 + seed % 40), width: R(30 + seed % 50), height: 1, background: "rgba(255,255,255,0.06)", transform: `rotate(${seed % 10 - 5}deg)`, pointerEvents: "none" } }),
+        showCornerWear && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: 0, right: 0, width: R(20), height: R(20), background: "radial-gradient(circle at top right, rgba(255,255,255,0.05) 0%, transparent 70%)", borderRadius: `0 ${R(4)}px 0 0`, pointerEvents: "none" } }),
+        showEdgeHighlight && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "rgba(255,255,255,0.08)", borderRadius: `${R(4)}px ${R(4)}px 0 0`, pointerEvents: "none" } })
+      ] });
+    })(),
+    (() => {
+      const ringInnerR = spoolSz * (10.6 / 32);
+      const mx1 = hole1x - padLR, mx2 = hole2x - padLR;
+      const my = spoolY - spoolAreaTop;
+      const midMask = [
+        `radial-gradient(circle ${ringInnerR}px at ${mx1}px ${my}px, transparent ${ringInnerR}px, black ${ringInnerR + 0.5}px)`,
+        `radial-gradient(circle ${ringInnerR}px at ${mx2}px ${my}px, transparent ${ringInnerR}px, black ${ringInnerR + 0.5}px)`
+      ].join(", ");
+      return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: {
+        position: "absolute",
+        top: spoolAreaTop,
+        left: padLR,
+        right: padLR,
+        bottom: h - spoolAreaBot,
+        background: st.midBg,
+        borderRadius: R(2),
+        overflow: "hidden",
+        WebkitMaskImage: midMask,
+        WebkitMaskComposite: "destination-in",
+        maskImage: midMask,
+        maskComposite: "intersect"
+      }, children: [
+        (() => {
+          const midVariant = (seed >> 2) % 6;
+          const midTextures = [
+            "repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 3px)",
+            "repeating-linear-gradient(45deg, transparent 0px, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px)",
+            "repeating-linear-gradient(90deg, transparent 0px, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px)",
+            "radial-gradient(circle 0.5px at 2px 2px, rgba(0,0,0,0.08) 0.5px, transparent 0.5px)",
+            "linear-gradient(180deg, rgba(0,0,0,0.08) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.08) 100%)",
+            "none"
+          ];
+          return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", inset: 0, background: midTextures[midVariant], backgroundSize: midVariant === 3 ? "4px 4px" : void 0, pointerEvents: "none" } });
+        })(),
+        (() => {
+          const showBrandText = (seed >> 3) % 3 === 0;
+          const brandTexts = ["HIGH FIDELITY", "SUPER AVILYN", "EPITAXIAL", "EXTRA SLIM CASE", "PROFESSIONAL", "ACOUSTIC DYNAMIC", "PREMIUM", "ULTRA", "COBALT", "DIGITAL READY", "MULTI USE"];
+          const brandText = brandTexts[seed % brandTexts.length];
+          if (!showBrandText) return null;
+          return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { position: "absolute", bottom: R(1), right: R(4), fontSize: R(4), color: "rgba(0,0,0,0.12)", fontFamily: "'04b03', monospace", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", pointerEvents: "none" }, children: brandText });
+        })()
+      ] });
+    })(),
+    (() => {
+      const spoolBoxW = spoolSpread * 2 + spoolSz + R(10);
+      const boxLeft = w / 2 - spoolBoxW / 2;
+      const boxTop = spoolAreaTop + R(3);
+      const s1x = hole1x - boxLeft, s2x = hole2x - boxLeft;
+      const sy = spoolY - boxTop;
+      const ringInnerR = spoolSz * (10.6 / 32);
+      const boxMask = [
+        `radial-gradient(circle ${ringInnerR}px at ${s1x}px ${sy}px, transparent ${ringInnerR}px, black ${ringInnerR + 0.5}px)`,
+        `radial-gradient(circle ${ringInnerR}px at ${s2x}px ${sy}px, transparent ${ringInnerR}px, black ${ringInnerR + 0.5}px)`
+      ].join(", ");
+      return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
+        position: "absolute",
+        top: boxTop,
+        bottom: h - spoolAreaBot + R(3),
+        left: boxLeft,
+        width: spoolBoxW,
+        background: st.housing,
+        borderRadius: R(3),
+        border: "1px solid rgba(0,0,0,0.3)",
+        WebkitMaskImage: boxMask,
+        WebkitMaskComposite: "destination-in",
+        maskImage: boxMask,
+        maskComposite: "intersect"
+      } });
+    })(),
+    (() => {
+      const screwVariant = (seed >> 4) % 5;
+      if (screwVariant === 4) return null;
+      const screwSymbol = ["+", "+", "\u2014", "\u2B21"][screwVariant];
+      const screwRotation = screwVariant === 2 ? `rotate(${seed % 180}deg)` : screwVariant === 1 ? `rotate(${seed % 45}deg)` : "none";
+      return [{ top: R(2), left: R(2) }, { top: R(2), right: R(2) }, { bottom: R(2), left: R(2) }, { bottom: R(2), right: R(2) }].map((pos, i) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", ...pos, width: screwSz, height: screwSz, borderRadius: "50%", background: "rgba(0,0,0,0.5)", border: "0.5px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: R(screwVariant === 3 ? 6 : 8), color: "rgba(255,255,255,0.2)", lineHeight: 1 }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { transform: screwRotation }, children: screwSymbol }) }, i));
+    })(),
+    isMixtape ? (
+      // Mixtape: white text on blue background, no rotation
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: padT, left: padLR, right: padLR, height: labelH, background: "linear-gradient(135deg, #1a4a8a, #0f3580)", borderRadius: R(3), overflow: "hidden" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1 }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontFamily: "'Lacquer', cursive", fontSize: R(9), color: "#ffffff", letterSpacing: 1, lineHeight: 1 }, children: "Mixtape" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontFamily: "'Patrick Hand', cursive", fontSize: R(7), color: "rgba(255,255,255,0.75)", letterSpacing: 0.5, lineHeight: 1, maxWidth: "90%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }, children: tape.title })
+      ] }) })
+    ) : (() => {
+      const side = seed % 3 === 0 ? "B" : "A";
+      const cornerTexts = ["C-90", "90", "IEC I", "EQ", "120\u03BCs", "TYPE I", "HiFi", "CR", "Fe", "NR", "TYPE II", "CrO\u2082", "METAL", "IEC IV", "70\u03BCs", "TYPE IV"];
+      const cornerText = cornerTexts[seed % cornerTexts.length];
+      const showArrow = seed % 4 === 0;
+      const arrowDir = seed % 2 === 0 ? "\u25B6" : "\u25C0";
+      const showDot = seed % 5 === 0;
+      const tinyTexts = ["STEREO", "NORMAL", "LOW NOISE", "HIGH OUTPUT", "LN", "EHF", "SF", "CHROME", "SUPER AVILYN", "EPITAXIAL", "EXTRA SLIM", "GAMMA", "HIGH FIDELITY"];
+      const showTiny = seed % 3 === 1;
+      const tinyText = tinyTexts[seed % tinyTexts.length];
+      const labelVariant = seed % 6;
+      const labelRadius = labelVariant === 1 ? R(8) : R(2);
+      const labelBorder = labelVariant === 5 ? `1.5px solid ${st.midBg}` : "none";
+      const labelBg = labelVariant === 5 ? "rgba(255,255,255,0.6)" : st.titleBg;
+      const markerVariant = (seed >> 2) % 5;
+      const markerIsPlainText = markerVariant === 2;
+      const lineVariant = (seed >> 3) % 4;
+      const lineStyle = lineVariant === 2 ? "1px dashed rgba(0,0,0,0.1)" : "0.5px solid rgba(0,0,0,0.15)";
+      const showTopStripe = labelVariant === 3;
+      const showNotch = labelVariant === 2;
+      const showDoubleArrow = (seed >> 4) % 7 === 0;
+      const showBarcode = (seed >> 5) % 8 === 0;
+      const showSmallLogo = (seed >> 6) % 5 === 0;
+      const logoChars = ["\u25C6", "\u25CF", "\u25A0", "\u2605", "\u25B2", "\u25CE", "\u2B21", "\u25C7"];
+      const logoChar = logoChars[(seed >> 7) % logoChars.length];
+      return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { position: "absolute", top: padT, left: padLR, right: padLR, height: labelH, background: labelBg, borderRadius: labelRadius, border: labelBorder, overflow: "hidden", transform: `rotate(${(tape.id.charCodeAt(0) % 5 - 2) * 0.4}deg)` }, children: [
+        showNotch && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: 0, left: 0, width: R(4), height: R(4), background: st.housing } }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: 0, right: 0, width: R(4), height: R(4), background: st.housing } })
+        ] }),
+        showTopStripe && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: 0, left: 0, right: 0, height: R(3), background: st.midBg, opacity: 0.6 } }),
+        labelVariant === 4 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: 0, left: 0, right: 0, height: "50%", background: st.midBg, opacity: 0.15 } }),
+        lineVariant !== 3 && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: R(7), left: R(6), right: R(6), borderBottom: lineStyle } }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: R(16), left: R(6), right: R(6), borderBottom: lineStyle } }),
+          lineVariant === 1 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: R(22), left: R(6), right: R(6), borderBottom: lineStyle } })
+        ] }),
+        markerIsPlainText ? /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { position: "absolute", top: "50%", left: R(5), transform: "translateY(-50%)", fontSize: R(14), fontFamily: "'04b03', monospace", fontWeight: 900, color: "#111", lineHeight: 1 }, children: side }) : (() => {
+          const markerRadius = markerVariant === 1 || markerVariant === 4 ? "50%" : markerVariant === 3 ? `${R(4)}px` : `${R(1.5)}px`;
+          const markerSize = markerVariant === 4 ? R(12) : R(15);
+          const markerFontSize = markerVariant === 4 ? R(8) : R(11);
+          return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: "50%", left: R(4), transform: "translateY(-50%)", width: markerSize, height: markerSize, background: "#111", borderRadius: markerRadius, display: "flex", alignItems: "center", justifyContent: "center" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: markerFontSize, fontFamily: "'04b03', monospace", fontWeight: 900, color: st.titleBg, lineHeight: 1 }, children: side }) });
+        })(),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { position: "absolute", top: R(2), right: R(5), fontSize: R(5.5), color: "rgba(0,0,0,0.3)", fontFamily: "'04b03', monospace", fontWeight: 700, letterSpacing: "0.03em" }, children: cornerText }),
+        showArrow && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { position: "absolute", bottom: R(2), right: R(5), fontSize: R(5), color: "rgba(0,0,0,0.25)" }, children: arrowDir }),
+        showDoubleArrow && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { position: "absolute", bottom: R(2), left: R(22), fontSize: R(4.5), color: "rgba(0,0,0,0.15)", letterSpacing: -1 }, children: "\u25B6\u25B6" }),
+        showDot && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", bottom: R(3), right: R(16), width: R(3), height: R(3), borderRadius: "50%", background: "rgba(0,0,0,0.2)" } }),
+        showTiny && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { position: "absolute", bottom: R(1.5), left: R(22), fontSize: R(4.5), color: "rgba(0,0,0,0.2)", fontFamily: "'04b03', monospace", fontWeight: 600, letterSpacing: "0.08em" }, children: tinyText }),
+        showBarcode && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", bottom: R(2), right: R(20), display: "flex", gap: 0.5 }, children: [3, 1, 2, 1, 3, 1, 1, 2, 1, 3, 1, 2].map((w2, i) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { width: w2 * 0.5, height: R(5), background: `rgba(0,0,0,${i % 2 === 0 ? 0.2 : 0})` } }, i)) }),
+        showSmallLogo && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { position: "absolute", top: R(1), left: R(22), fontSize: R(5), color: "rgba(0,0,0,0.12)" }, children: logoChar }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", top: 0, bottom: 0, left: R(24), right: R(6), display: "flex", alignItems: "center" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { style: { fontFamily: "'Lacquer', cursive", fontSize: big ? 15 : 12, fontWeight: 400, color: "#333", lineHeight: 1.15, margin: 0, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", width: "100%" }, children: tape.title }) })
+      ] });
+    })(),
+    (() => {
+      const spoolColor = tape.isInfinite ? "#e8c840" : void 0;
+      return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", left: w / 2 - spoolSpread - spoolSz / 2, top: spoolY - spoolSz / 2 }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Spool, { spinning: playing, size: spoolSz, rpm: 15, color: spoolColor }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", left: w / 2 + spoolSpread - spoolSz / 2, top: spoolY - spoolSz / 2 }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Spool, { spinning: playing, size: spoolSz, rpm: 30, color: spoolColor }) })
+      ] });
+    })(),
+    (() => {
+      const winLeft = w / 2 - winW / 2;
+      const winTop = spoolY - winH / 2;
+      const prog = tape.progress ?? 0;
+      const leftCx = w / 2 - spoolSpread - winLeft;
+      const rightCx = w / 2 + spoolSpread - winLeft;
+      const reelCy = spoolY - winTop;
+      const maxR = R(60);
+      const minR = R(8);
+      const leftReelR = maxR - (maxR - minR) * prog;
+      const rightReelR = minR + (maxR - minR) * prog;
+      return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { position: "absolute", left: winLeft, top: winTop, width: winW, height: winH, borderRadius: R(3), border: "1.5px solid rgba(0,0,0,0.4)", overflow: "hidden", background: "rgba(0,0,0,0.15)" }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
+          position: "absolute",
+          left: leftCx - leftReelR,
+          top: reelCy - leftReelR,
+          width: leftReelR * 2,
+          height: leftReelR * 2,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, #6b3a1a 20%, #7a4422 40%, #8b4e28 60%, #6b3a1a 80%)",
+          opacity: 0.85,
+          transition: "all 1s linear"
+        } }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
+          position: "absolute",
+          left: leftCx - leftReelR,
+          top: reelCy - leftReelR,
+          width: leftReelR * 2,
+          height: leftReelR * 2,
+          borderRadius: "50%",
+          background: "repeating-radial-gradient(circle at center, transparent 0px, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 3px)",
+          transition: "all 1s linear"
+        } }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
+          position: "absolute",
+          left: rightCx - rightReelR,
+          top: reelCy - rightReelR,
+          width: rightReelR * 2,
+          height: rightReelR * 2,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, #6b3a1a 20%, #7a4422 40%, #8b4e28 60%, #6b3a1a 80%)",
+          opacity: 0.85,
+          transition: "all 1s linear"
+        } }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
+          position: "absolute",
+          left: rightCx - rightReelR,
+          top: reelCy - rightReelR,
+          width: rightReelR * 2,
+          height: rightReelR * 2,
+          borderRadius: "50%",
+          background: "repeating-radial-gradient(circle at center, transparent 0px, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 3px)",
+          transition: "all 1s linear"
+        } }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
+          position: "absolute",
+          inset: 0,
+          background: [
+            "linear-gradient(160deg, rgba(255,255,255,0.12) 0%, transparent 40%)",
+            "linear-gradient(200deg, rgba(255,255,255,0.06) 60%, transparent 80%)",
+            "repeating-linear-gradient(95deg, transparent 0px, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 5px)"
+          ].join(","),
+          borderRadius: R(3)
+        } })
+      ] });
+    })(),
+    (() => {
+      const biasTexts = ["Normal Bias", "Normal", "IEC Type I", "EQ 120\u03BCs", "Low Noise", "Chrome Bias", "High Bias", "IEC II / Type II", "IEC Type IV", "Metal Position", "Ferro", "Normal Position"];
+      const biasText = biasTexts[seed % biasTexts.length];
+      const typeTexts = ["C-90", "C-60", "C-46", "AD 90", "D 90", "UR 90", "HF 90", "SA 90", "C-120", "C-30", "FR 90", "MA 90", "XL-II 90", "UX 90"];
+      const typeText = typeTexts[(seed + 3) % typeTexts.length];
+      const stripVariant = (seed >> 3) % 4;
+      const stripBorderRadius = (seed >> 5) % 3 === 0 ? R(4) : R(1);
+      return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { position: "absolute", bottom: botH + R(6), left: padLR, right: padLR, height: R(14), background: st.label, borderRadius: stripBorderRadius, display: "flex", alignItems: "center", justifyContent: "space-between", padding: `0 ${R(6)}px`, overflow: "hidden" }, children: [
+        stripVariant === 1 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", right: 0, top: 0, bottom: 0, width: "40%", background: "rgba(0,0,0,0.15)" } }),
+        stripVariant === 2 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", left: "50%", top: R(2), bottom: R(2), width: 1, background: "rgba(255,255,255,0.15)" } }),
+        stripVariant === 3 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: R(4), height: R(4), borderRadius: "50%", background: "rgba(255,255,255,0.12)", border: "0.5px solid rgba(255,255,255,0.15)" } }),
+        tape.isInfinite ? /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: R(5), color: "rgba(255,255,255,0.4)", fontFamily: "'04b03', monospace", fontWeight: 500, wordSpacing: R(3), position: "relative" }, children: tape.infiniteConfig?.source?.toUpperCase() || "IMVDB" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: R(6), color: st.titleBg, fontFamily: "'04b03', monospace", fontWeight: 800, letterSpacing: "0.08em", wordSpacing: R(3), position: "relative" }, children: "\u221E INFINITE" })
+        ] }) : tape.isPlaylist ? /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: R(5), color: "rgba(255,255,255,0.4)", fontFamily: "'04b03', monospace", fontWeight: 500, wordSpacing: R(3), position: "relative" }, children: biasText }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: R(6), color: st.titleBg, fontFamily: "'04b03', monospace", fontWeight: 800, letterSpacing: "0.08em", wordSpacing: R(3), position: "relative" }, children: "PLAYLIST" })
+        ] }) : /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: R(5), color: "rgba(255,255,255,0.4)", fontFamily: "'04b03', monospace", fontWeight: 500, wordSpacing: R(3), position: "relative" }, children: biasText }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: R(6), color: "rgba(255,255,255,0.35)", fontFamily: "'04b03', monospace", fontWeight: 700, letterSpacing: "0.06em", wordSpacing: R(3), position: "relative" }, children: typeText })
+        ] })
+      ] });
+    })(),
+    tape.isInfinite && (() => {
+      const stickerW = R(36), stickerH = R(26);
+      return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
+        position: "absolute",
+        top: R(42),
+        right: R(14),
+        width: stickerW,
+        height: stickerH,
+        background: "linear-gradient(135deg, #f0d848 0%, #e8c830 100%)",
+        borderRadius: R(3),
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        transform: `rotate(${(seed >> 3) % 7 - 3}deg)`,
+        boxShadow: "0 1px 4px rgba(0,0,0,0.35)",
+        border: "0.5px solid rgba(180,150,30,0.4)"
+      }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { style: { fontSize: R(26), fontWeight: 700, color: "#5a4a10", lineHeight: 1 }, children: "\u221E" }) });
+    })(),
+    (() => {
+      const inset = R(16);
+      const trapLeft = w / 2 - botProtrW / 2;
+      return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: { position: "absolute", bottom: R(2), left: trapLeft, width: botProtrW, height: botProtrH, overflow: "hidden" }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", inset: 0, background: "rgba(0,0,0,0.25)", border: "1px solid rgba(0,0,0,0.15)" } }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: 0,
+          height: 0,
+          borderTop: `${botProtrH}px solid ${st.housing}`,
+          borderRight: `${inset}px solid transparent`
+        } }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
+          position: "absolute",
+          top: 0,
+          right: 0,
+          width: 0,
+          height: 0,
+          borderTop: `${botProtrH}px solid ${st.housing}`,
+          borderLeft: `${inset}px solid transparent`
+        } }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", left: R(22), top: "70%", transform: "translateY(-50%)", width: R(10), height: R(10), background: "#000", borderRadius: "50%" } }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", left: R(42), top: "55%", transform: "translateY(-50%)", width: R(10), height: R(10), background: "#000", borderRadius: "50%" } }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", right: R(42), top: "55%", transform: "translateY(-50%)", width: R(10), height: R(10), background: "#000", borderRadius: "50%" } }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { position: "absolute", right: R(22), top: "70%", transform: "translateY(-50%)", width: R(10), height: R(10), background: "#000", borderRadius: "50%" } })
+      ] });
+    })(),
+    loading && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
+      position: "absolute",
+      inset: 0,
+      borderRadius: R(4),
+      background: "rgba(0,0,0,0.5)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 10
+    }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
+      width: R(24),
+      height: R(24),
+      border: `${R(3)}px solid rgba(255,255,255,0.2)`,
+      borderTopColor: "#e8c840",
+      borderRadius: "50%",
+      animation: "tape-loading-spin 0.8s linear infinite"
+    } }) })
+  ] });
+}
+
+// src/mixtape/Creator.tsx
+var import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
+function makeMixtapeTape(name, tracks) {
+  return {
+    id: "__jeem_mixtape__",
+    videoId: tracks[0]?.videoId || "",
+    isPlaylist: false,
+    isInfinite: true,
+    title: name || "Mixtape",
+    author: "mixtape",
+    tapeStyle: 0,
+    textureVariant: "a",
+    progress: 0,
+    timestamp: Date.now(),
+    x: 0,
+    y: 0,
+    angle: 0,
+    infiniteHistory: tracks.map((t) => ({ videoId: t.videoId, title: t.title, author: t.author })),
+    infiniteIndex: 0,
+    infiniteConfig: { source: "youtube", type: "artist", value: name }
+  };
+}
 function MixtapeCreator({ onBack, onPlay }) {
   const [url, setUrl] = (0, import_react.useState)("");
   const [keywords, setKeywords] = (0, import_react.useState)("");
   const [loading, setLoading] = (0, import_react.useState)(false);
   const [error, setError] = (0, import_react.useState)("");
   const [name, setName] = (0, import_react.useState)("");
-  const [description, setDescription] = (0, import_react.useState)("");
   const [tracks, setTracks] = (0, import_react.useState)([]);
   const [seedTitle, setSeedTitle] = (0, import_react.useState)("");
   const handleGenerate = (0, import_react.useCallback)(async () => {
@@ -12779,49 +13447,45 @@ function MixtapeCreator({ onBack, onPlay }) {
       if (!res.ok) throw new Error(data.error || "Generation failed");
       setTracks(data.tracks || []);
       setSeedTitle(data.seedTitle || "Mixtape");
-      if (!name) setName(`${data.seedTitle || "My Mixtape"}`);
     } catch (e) {
       setError(e.message || "Failed to generate mixtape");
     } finally {
       setLoading(false);
     }
-  }, [url, keywords, name]);
+  }, [url, keywords]);
   const handleSave = (0, import_react.useCallback)(() => {
-    if (!name.trim() && tracks.length === 0) {
-      setError("Generate tracks first");
-      return;
-    }
-    const tape = { name: name.trim() || "My Mixtape", description: description.trim(), tracks };
+    const tape = { name: name.trim() || "Mixtape", description: "", tracks };
     onPlay(tape);
-  }, [name, description, tracks, onPlay]);
-  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.container, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.header, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { style: styles.backBtn, onClick: onBack, disabled: loading, children: "\u2190 Back" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { style: styles.title, children: "Mixtape Creator" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { width: 60 } })
-    ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: styles.content, children: !tracks.length ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.inputSection, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { style: styles.subtitle, children: "Enter a YouTube URL or keywords to generate a 16-track mixtape" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.inputGroup, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+  }, [name, tracks, onPlay]);
+  const handleRegenerate = (0, import_react.useCallback)(() => {
+    setTracks([]);
+    setName("");
+    setError("");
+  }, []);
+  const mixtapeTape = makeMixtapeTape(name || seedTitle || "Mixtape", tracks);
+  return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: styles.overlay, children: [
+    !tracks.length && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: styles.inputModal, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { style: styles.modalSubtitle, children: "Enter a YouTube URL or keywords to generate a 16-track mixtape" }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: styles.inputGroup, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
           "input",
           {
             style: styles.input,
             type: "text",
-            placeholder: "YouTube URL (e.g. https://youtube.com/watch?v=...)",
+            placeholder: "YouTube URL",
             value: url,
             onChange: (e) => setUrl(e.target.value),
             onKeyDown: (e) => e.key === "Enter" && handleGenerate(),
             disabled: loading
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: styles.or, children: "or" }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { style: styles.or, children: "or" }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
           "input",
           {
             style: styles.input,
             type: "text",
-            placeholder: "Keywords (e.g. 80s synthwave, 90s hip hop)",
+            placeholder: "Keywords (e.g. 80s synthwave)",
             value: keywords,
             onChange: (e) => setKeywords(e.target.value),
             onKeyDown: (e) => e.key === "Enter" && handleGenerate(),
@@ -12829,8 +13493,8 @@ function MixtapeCreator({ onBack, onPlay }) {
           }
         )
       ] }),
-      error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { style: styles.error, children: error }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+      error && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { style: styles.error, children: error }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
         "button",
         {
           style: { ...styles.generateBtn, ...loading ? styles.generateBtnDisabled : {} },
@@ -12839,133 +13503,90 @@ function MixtapeCreator({ onBack, onPlay }) {
           children: loading ? "Generating..." : "Generate Mixtape"
         }
       )
-    ] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.reviewSection, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.metaFields, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+    ] }),
+    tracks.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: styles.creator, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { style: styles.tapeSide, children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(CassetteTape, { tape: mixtapeTape, playing: false, big: true }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: styles.trackSide, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
           "input",
           {
             style: styles.nameInput,
             type: "text",
-            placeholder: "Mixtape name",
+            placeholder: "Mixtape name...",
             value: name,
             onChange: (e) => setName(e.target.value),
             maxLength: 60
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-          "input",
-          {
-            style: styles.descInput,
-            type: "text",
-            placeholder: "Description (optional)",
-            value: description,
-            onChange: (e) => setDescription(e.target.value),
-            maxLength: 120
-          }
-        )
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.trackList, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { style: styles.trackCount, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("p", { style: styles.trackCount, children: [
           tracks.length,
           ' tracks \u2014 generated from "',
           seedTitle,
           '"'
         ] }),
-        tracks.map((track, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.trackRow, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: styles.trackNum, children: i + 1 }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: styles.trackTitle, children: track.title || "Untitled" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: styles.trackAuthor, children: track.author }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { style: styles.trackDur, children: track.durationText })
-        ] }, i))
-      ] }),
-      error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { style: styles.error, children: error }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.actions, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { style: styles.regenerateBtn, onClick: () => {
-          setTracks([]);
-          setName("");
-        }, disabled: loading, children: "Regenerate" }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-          "button",
-          {
-            style: { ...styles.saveBtn, ...loading ? styles.saveBtnDisabled : {} },
-            onClick: handleSave,
-            disabled: loading,
-            children: loading ? "Saving..." : "Save"
-          }
-        )
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { style: styles.trackList, children: tracks.map((track, i) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: styles.trackRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("span", { style: styles.trackNum, children: [
+            String(i + 1).padStart(2, "0"),
+            "."
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { style: styles.trackTitle, children: track.title || "Untitled" }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { style: styles.trackAuthor, children: track.author })
+        ] }, i)) }),
+        error && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { style: styles.error, children: error }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: styles.actions, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { style: styles.regenerateBtn, onClick: handleRegenerate, disabled: loading, children: "\u2190 Back" }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+            "button",
+            {
+              style: { ...styles.saveBtn, ...loading ? styles.saveBtnDisabled : {} },
+              onClick: handleSave,
+              disabled: loading,
+              children: loading ? "Saving..." : "Save"
+            }
+          )
+        ] })
       ] })
-    ] }) })
+    ] })
   ] });
 }
 var styles = {
-  container: {
+  overlay: {
     position: "fixed",
     inset: 0,
-    zIndex: 100,
-    background: "rgba(10,8,5,0.97)",
-    display: "flex",
-    flexDirection: "column",
-    fontFamily: "'Patrick Hand', cursive",
-    color: "#e8d5b0"
-  },
-  header: {
+    zIndex: 200,
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: "16px 24px",
-    borderBottom: "1px solid rgba(201,168,76,0.2)"
-  },
-  backBtn: {
-    background: "transparent",
-    border: "1px solid rgba(201,168,76,0.4)",
-    color: "#c9a84c",
-    padding: "6px 14px",
-    borderRadius: 4,
-    cursor: "pointer",
+    justifyContent: "center",
+    background: "rgba(10,8,5,0.5)",
+    backdropFilter: "blur(2px)",
     fontFamily: "'04b03', monospace",
-    fontSize: 14
+    color: "#e8d5b0"
   },
-  title: {
-    fontFamily: "'Lacquer', cursive",
-    fontSize: 22,
-    color: "#c9a84c",
-    margin: 0,
-    letterSpacing: 2
-  },
-  content: {
-    flex: 1,
-    overflow: "auto",
-    padding: "32px 24px",
+  // Step 1: centered input modal
+  inputModal: {
+    background: "rgba(14,10,6,0.95)",
+    border: "1px solid rgba(201,168,76,0.3)",
+    borderRadius: 12,
+    padding: "32px 40px",
     display: "flex",
     flexDirection: "column",
-    alignItems: "center"
+    alignItems: "center",
+    gap: 16,
+    width: 520,
+    boxShadow: "0 8px 32px rgba(0,0,0,0.6)"
   },
-  subtitle: {
+  modalSubtitle: {
     fontFamily: "'04b03', monospace",
-    fontSize: 15,
-    color: "rgba(232,213,176,0.6)",
-    marginBottom: 24,
-    textAlign: "center"
-  },
-  inputSection: {
-    width: "100%",
-    maxWidth: 560,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center"
+    fontSize: 14,
+    color: "rgba(232,213,176,0.55)",
+    textAlign: "center",
+    margin: 0
   },
   inputGroup: {
     width: "100%",
     display: "flex",
     flexDirection: "column",
-    gap: 12,
-    marginBottom: 20
-  },
-  or: {
-    textAlign: "center",
-    color: "rgba(201,168,76,0.4)",
-    fontSize: 13,
-    fontFamily: "'04b03', monospace"
+    gap: 10
   },
   input: {
     width: "100%",
@@ -12979,12 +13600,17 @@ var styles = {
     outline: "none",
     boxSizing: "border-box"
   },
+  or: {
+    textAlign: "center",
+    color: "rgba(201,168,76,0.4)",
+    fontSize: 12,
+    fontFamily: "'04b03', monospace"
+  },
   error: {
     fontFamily: "'04b03', monospace",
     color: "#ff6b6b",
-    fontSize: 14,
-    marginBottom: 12,
-    textAlign: "center"
+    fontSize: 13,
+    margin: 0
   },
   generateBtn: {
     padding: "12px 32px",
@@ -13001,72 +13627,79 @@ var styles = {
     opacity: 0.6,
     cursor: "not-allowed"
   },
-  reviewSection: {
-    width: "100%",
-    maxWidth: 640,
+  // Step 2: side-by-side tape + tracklist
+  creator: {
     display: "flex",
-    flexDirection: "column",
-    gap: 16
+    gap: 0,
+    alignItems: "stretch",
+    background: "rgba(14,10,6,0.92)",
+    border: "1px solid rgba(201,168,76,0.3)",
+    borderRadius: 12,
+    overflow: "hidden",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.7)",
+    width: 780,
+    maxHeight: "90vh"
   },
-  metaFields: {
+  tapeSide: {
+    width: 234,
+    flexShrink: 0,
+    background: "rgba(0,0,0,0.2)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "24px 20px",
+    borderRight: "1px solid rgba(201,168,76,0.15)"
+  },
+  trackSide: {
+    flex: 1,
+    padding: "24px 24px 20px",
     display: "flex",
     flexDirection: "column",
-    gap: 10
+    gap: 0,
+    overflow: "hidden",
+    minWidth: 0
   },
   nameInput: {
-    padding: "12px 16px",
-    background: "rgba(255,255,255,0.07)",
-    border: "1px solid rgba(201,168,76,0.5)",
+    padding: "10px 14px",
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(201,168,76,0.4)",
     borderRadius: 6,
     color: "#e8d5b0",
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: "'04b03', monospace",
-    letterSpacing: 1,
+    letterSpacing: 0.5,
     outline: "none",
     width: "100%",
-    boxSizing: "border-box"
-  },
-  descInput: {
-    padding: "10px 16px",
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(201,168,76,0.25)",
-    borderRadius: 6,
-    color: "#e8d5b0",
-    fontSize: 14,
-    fontFamily: "'04b03', monospace",
-    outline: "none",
-    width: "100%",
-    boxSizing: "border-box"
-  },
-  trackList: {
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(201,168,76,0.15)",
-    borderRadius: 8,
-    padding: "12px 16px",
-    maxHeight: 360,
-    overflowY: "auto"
+    boxSizing: "border-box",
+    marginBottom: 12
   },
   trackCount: {
     fontFamily: "'04b03', monospace",
-    fontSize: 13,
-    color: "rgba(201,168,76,0.5)",
-    marginBottom: 10,
-    borderBottom: "1px solid rgba(201,168,76,0.1)",
-    paddingBottom: 8
+    fontSize: 11,
+    color: "rgba(201,168,76,0.4)",
+    margin: "0 0 8px",
+    letterSpacing: "0.05em"
+  },
+  trackList: {
+    flex: 1,
+    overflowY: "auto",
+    background: "rgba(255,255,255,0.02)",
+    borderRadius: 6,
+    padding: "8px 12px",
+    minHeight: 0
   },
   trackRow: {
     display: "flex",
     alignItems: "center",
     gap: 10,
-    padding: "6px 0",
+    padding: "7px 0",
     borderBottom: "1px solid rgba(255,255,255,0.04)",
-    fontSize: 13,
-    fontFamily: "'04b03', monospace"
+    fontSize: 14
   },
   trackNum: {
     fontFamily: "'04b03', monospace",
-    color: "rgba(201,168,76,0.5)",
-    width: 20,
+    color: "rgba(201,168,76,0.4)",
+    width: 28,
     flexShrink: 0,
     textAlign: "right"
   },
@@ -13076,37 +13709,32 @@ var styles = {
     color: "#e8d5b0",
     overflow: "hidden",
     textOverflow: "ellipsis",
-    whiteSpace: "nowrap"
+    whiteSpace: "nowrap",
+    minWidth: 0
   },
   trackAuthor: {
     fontFamily: "'04b03', monospace",
-    color: "rgba(232,213,176,0.5)",
+    color: "rgba(232,213,176,0.4)",
     flexShrink: 0,
-    maxWidth: 140,
+    maxWidth: 120,
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap"
   },
-  trackDur: {
-    fontFamily: "'04b03', monospace",
-    color: "rgba(201,168,76,0.4)",
-    flexShrink: 0,
-    width: 36,
-    textAlign: "right"
-  },
   actions: {
     display: "flex",
-    gap: 12,
-    justifyContent: "center"
+    gap: 10,
+    justifyContent: "space-between",
+    marginTop: 14
   },
   regenerateBtn: {
-    padding: "10px 24px",
+    padding: "10px 20px",
     background: "transparent",
     border: "1px solid rgba(201,168,76,0.4)",
     borderRadius: 6,
     color: "#c9a84c",
     fontFamily: "'04b03', monospace",
-    fontSize: 15,
+    fontSize: 14,
     cursor: "pointer"
   },
   saveBtn: {
@@ -13116,9 +13744,10 @@ var styles = {
     borderRadius: 6,
     color: "#0a0805",
     fontFamily: "'04b03', monospace",
-    fontSize: 16,
+    fontSize: 15,
     letterSpacing: 1,
-    cursor: "pointer"
+    cursor: "pointer",
+    flex: 1
   },
   saveBtnDisabled: {
     opacity: 0.6,
@@ -13127,7 +13756,7 @@ var styles = {
 };
 
 // src/mixtape/index.tsx
-var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
 var MIXTAPE_STORAGE_KEY = "jeem_mixtape";
 function mount(root) {
   const appRoot = (0, import_client.createRoot)(root);
@@ -13154,9 +13783,9 @@ function mount(root) {
       window.location.href = "/?mixtape=1";
     };
     if (screen === "loading") return null;
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(MixtapeCreator, { onBack: handleBack, onPlay: handleSave });
+    return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(MixtapeCreator, { onBack: handleBack, onPlay: handleSave });
   }
-  appRoot.render(/* @__PURE__ */ (0, import_jsx_runtime2.jsx)(App, {}));
+  appRoot.render(/* @__PURE__ */ (0, import_jsx_runtime4.jsx)(App, {}));
 }
 function init() {
   const existing = document.getElementById("mixtape-root");

@@ -238,7 +238,7 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
             </div>
           </div>
         );
-      })())}
+      })()}
 
       {/* Spools — left (supply) faster, right (take-up) slower */}
       {(() => {
