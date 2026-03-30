@@ -77043,31 +77043,6 @@ function TapesTable({ mixtape }) {
         externalDrag: externalDrag.current
       }
     ) }),
-    !mixtape && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
-      "button",
-      {
-        style: {
-          position: "fixed",
-          top: 16,
-          right: 16,
-          zIndex: 1e4,
-          padding: "8px 16px",
-          background: "linear-gradient(135deg, #8a5a20, #c9a84c)",
-          border: "none",
-          borderRadius: 4,
-          color: "#0a0805",
-          fontFamily: "'Patrick Hand', cursive",
-          fontSize: 14,
-          cursor: "pointer",
-          boxShadow: "0 2px 12px rgba(0,0,0,0.4)"
-        },
-        onClick: () => {
-          window.location.href = "/?create_mixtape=1";
-        },
-        title: "Create a new mixtape",
-        children: "+ Mixtape"
-      }
-    ),
     typeof document !== "undefined" && document.getElementById("username-area") && (0, import_react_dom.createPortal)(
       /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "username-bar", children: username ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(import_jsx_runtime7.Fragment, { children: [
         /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("span", { className: "username-display", children: [

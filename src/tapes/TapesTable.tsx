@@ -1218,31 +1218,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         />
       </Suspense>
 
-      {/* Create Mixtape button — top right overlay */}
-      {!mixtape && (
-        <button
-          style={{
-            position: 'fixed',
-            top: 16,
-            right: 16,
-            zIndex: 10000,
-            padding: '8px 16px',
-            background: 'linear-gradient(135deg, #8a5a20, #c9a84c)',
-            border: 'none',
-            borderRadius: 4,
-            color: '#0a0805',
-            fontFamily: "'Patrick Hand', cursive",
-            fontSize: 14,
-            cursor: 'pointer',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
-          }}
-          onClick={() => { window.location.href = '/?create_mixtape=1'; }}
-          title="Create a new mixtape"
-        >
-          + Mixtape
-        </button>
-      )}
-
       {/* Deck — portaled outside tapes-root so it's visible in all bg modes */}
       {/* Username bar — portaled into start-header */}
       {typeof document !== 'undefined' && document.getElementById('username-area') && createPortal(
