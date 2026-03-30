@@ -12753,7 +12753,7 @@ var import_client = __toESM(require_client(), 1);
 // src/mixtape/Creator.tsx
 var import_react = __toESM(require_react(), 1);
 var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
-function MixtapeCreator({ onBack, onPlay }) {
+function MixtapeCreator({ onBack, onPlay, onPreview }) {
   const [url, setUrl] = (0, import_react.useState)("");
   const [keywords, setKeywords] = (0, import_react.useState)("");
   const [loading, setLoading] = (0, import_react.useState)(false);
@@ -12813,6 +12813,14 @@ function MixtapeCreator({ onBack, onPlay }) {
       setLoading(false);
     }
   }, [name, description, tracks, onPlay]);
+  const handlePreview = (0, import_react.useCallback)(() => {
+    if (!name.trim() && tracks.length === 0) {
+      setError("Generate tracks first");
+      return;
+    }
+    const tape = { name: name.trim() || "My Mixtape", description: description.trim(), tracks };
+    onPreview(tape);
+  }, [name, description, tracks, onPreview]);
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.container, children: [
     /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.header, children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { style: styles.backBtn, onClick: onBack, disabled: loading, children: "\u2190 Back" }),
@@ -12903,6 +12911,15 @@ function MixtapeCreator({ onBack, onPlay }) {
           setTracks([]);
           setName("");
         }, disabled: loading, children: "Regenerate" }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          "button",
+          {
+            style: { ...styles.previewBtn, ...loading ? styles.previewBtnDisabled : {} },
+            onClick: handlePreview,
+            disabled: loading,
+            children: "Preview on Table"
+          }
+        ),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
           "button",
           {
@@ -13133,6 +13150,20 @@ var styles = {
   saveBtnDisabled: {
     opacity: 0.6,
     cursor: "not-allowed"
+  },
+  previewBtn: {
+    padding: "10px 24px",
+    background: "transparent",
+    border: "1px solid rgba(201,168,76,0.5)",
+    borderRadius: 6,
+    color: "#c9a84c",
+    fontFamily: "'Patrick Hand', cursive",
+    fontSize: 15,
+    cursor: "pointer"
+  },
+  previewBtnDisabled: {
+    opacity: 0.5,
+    cursor: "not-allowed"
   }
 };
 
@@ -13183,8 +13214,15 @@ function mount(root) {
       }
       window.location.href = "/?mixtape=1";
     };
+    const handlePreview = (tape) => {
+      try {
+        sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify(tape));
+      } catch {
+      }
+      window.location.href = "/?mixtape=1";
+    };
     if (screen === "loading") return null;
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(MixtapeCreator, { onBack: handleBack, onPlay: handlePlay });
+    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(MixtapeCreator, { onBack: handleBack, onPlay: handlePlay, onPreview: handlePreview });
   }
   appRoot.render(/* @__PURE__ */ (0, import_jsx_runtime2.jsx)(App, {}));
 }

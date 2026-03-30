@@ -10,10 +10,11 @@ interface Track {
 
 interface CreatorProps {
   onBack: () => void;
-  onPlay: (tape: { name: string; description: string; tracks: Track[] }) => void;
+  onPlay: (tape: { id?: string; name: string; description: string; tracks: Track[] }) => void;
+  onPreview: (tape: { name: string; description: string; tracks: Track[] }) => void;
 }
 
-export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
+export function MixtapeCreator({ onBack, onPlay, onPreview }: CreatorProps) {
   const [url, setUrl] = useState('');
   const [keywords, setKeywords] = useState('');
   const [loading, setLoading] = useState(false);
@@ -69,6 +70,12 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
       setLoading(false);
     }
   }, [name, description, tracks, onPlay]);
+
+  const handlePreview = useCallback(() => {
+    if (!name.trim() && tracks.length === 0) { setError('Generate tracks first'); return; }
+    const tape = { name: name.trim() || 'My Mixtape', description: description.trim(), tracks };
+    onPreview(tape);
+  }, [name, description, tracks, onPreview]);
 
   return (
     <div style={styles.container}>
@@ -151,6 +158,13 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
             <div style={styles.actions}>
               <button style={styles.regenerateBtn} onClick={() => { setTracks([]); setName(''); }} disabled={loading}>
                 Regenerate
+              </button>
+              <button
+                style={{ ...styles.previewBtn, ...(loading ? styles.previewBtnDisabled : {}) }}
+                onClick={handlePreview}
+                disabled={loading}
+              >
+                Preview on Table
               </button>
               <button
                 style={{ ...styles.saveBtn, ...(loading ? styles.saveBtnDisabled : {}) }}
@@ -304,5 +318,16 @@ const styles: Record<string, React.CSSProperties> = {
   },
   saveBtnDisabled: {
     opacity: 0.6, cursor: 'not-allowed',
+  },
+  previewBtn: {
+    padding: '10px 24px',
+    background: 'transparent',
+    border: '1px solid rgba(201,168,76,0.5)',
+    borderRadius: 6, color: '#c9a84c',
+    fontFamily: "'Patrick Hand', cursive", fontSize: 15,
+    cursor: 'pointer',
+  },
+  previewBtnDisabled: {
+    opacity: 0.5, cursor: 'not-allowed',
   },
 };

@@ -62,9 +62,15 @@ function mount(root: HTMLDivElement) {
       window.location.href = '/?mixtape=1';
     };
 
+    const handlePreview = (tape: { name: string; description: string; tracks: Track[] }) => {
+      // Preview on table without saving — no UUID needed
+      try { sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify(tape)); } catch {}
+      window.location.href = '/?mixtape=1';
+    };
+
     if (screen === 'loading') return null;
 
-    return <MixtapeCreator onBack={handleBack} onPlay={handlePlay} />;
+    return <MixtapeCreator onBack={handleBack} onPlay={handlePlay} onPreview={handlePreview} />;
   }
 
   appRoot.render(<App />);
