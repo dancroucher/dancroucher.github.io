@@ -129,5 +129,25 @@ __/ / \__/ \__//_/_/_/    /_/ /_/_/_/
         <script src="src/demo.js"></script>
         <script src="src/player.js"></script>
         <script type="module" src="dist/tapes.js"></script>
+        <script>
+        // Load mixtape bundle when ?mixtape=1 or ?tape=... is present
+        (function() {
+          var params = new URLSearchParams(window.location.search);
+          if (params.get('mixtape') === '1' || params.has('tape')) {
+            // Load YouTube Iframe API first
+            var tag = document.createElement('script');
+            tag.src = 'https://www.youtube.com/iframe_api';
+            var first = document.getElementsByTagName('script')[0];
+            first.parentNode.insertBefore(tag, first);
+            // Load mixtape bundle after YT API
+            var mixtapeScript = document.createElement('script');
+            mixtapeScript.type = 'module';
+            mixtapeScript.src = 'dist/mixtape.js';
+            mixtapeScript.onload = function() { console.log('[mixtape] loaded'); };
+            mixtapeScript.onerror = function() { console.error('[mixtape] failed to load'); };
+            document.head.appendChild(mixtapeScript);
+          }
+        })();
+        </script>
     </body>
 </html>

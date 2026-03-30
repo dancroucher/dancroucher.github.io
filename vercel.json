@@ -34,6 +34,18 @@
     {
       "src": "/api/user",
       "dest": "/api/user.js"
+    },
+    {
+      "src": "/api/mixtape/generate",
+      "dest": "/api/mixtape/generate.js"
+    },
+    {
+      "src": "/api/mixtape/save",
+      "dest": "/api/mixtape/save.js"
+    },
+    {
+      "src": "/api/mixtape/(?<id>[^/]+)",
+      "dest": "/api/mixtape/[id].js"
     }
   ],
   "headers": [
