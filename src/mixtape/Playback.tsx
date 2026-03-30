@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { MixtapeTape3D } from './Tape';
 import { TrackList, type Track } from './TrackList';
 
@@ -13,15 +12,24 @@ interface PlaybackProps {
 export function MixtapePlayback({ name, description, tracks, onBack }: PlaybackProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [ytReady, setYtReady] = useState(false);
   const playerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const currentTrack = tracks[currentIndex];
 
-  const loadTrack = useCallback((videoId: string) => {
-    if (!window.YT || !containerRef.current) return;
+  // Wait for YouTube Iframe API
+  useEffect(() => {
+    if (window.YT && window.YT.Player) {
+      setYtReady(true);
+      return;
+    }
+    window.onYouTubeIframeAPIReady = () => setYtReady(true);
+  }, []);
 
-    // Create or reuse iframe player
+  const loadTrack = useCallback((videoId: string) => {
+    if (!ytReady || !containerRef.current) return;
+
     if (!playerRef.current) {
       try {
         playerRef.current = new window.YT.Player(containerRef.current, {
@@ -41,7 +49,8 @@ export function MixtapePlayback({ name, description, tracks, onBack }: PlaybackP
                   return prev;
                 });
               }
-              setPlaying(e.data === window.YT.PlayerState.PLAYING);
+              if (e.data === window.YT.PlayerState.PLAYING) setPlaying(true);
+              else setPlaying(false);
             },
           },
         });
@@ -51,20 +60,21 @@ export function MixtapePlayback({ name, description, tracks, onBack }: PlaybackP
     } else {
       playerRef.current.loadVideoById(videoId);
     }
-  }, [tracks]);
+  }, [ytReady, tracks]);
 
   useEffect(() => {
-    if (currentTrack) loadTrack(currentTrack.videoId);
-  }, [currentIndex, currentTrack, loadTrack]);
+    if (ytReady && currentTrack) loadTrack(currentTrack.videoId);
+  }, [ytReady, currentIndex, currentTrack, loadTrack]);
 
   const handleTrackSelect = useCallback((i: number) => {
     setCurrentIndex(i);
   }, []);
 
   const handleShare = useCallback(() => {
-    const url = `${window.location.origin}${window.location.pathname}?tape=${new URLSearchParams(window.location.search).get('tape')}`;
+    const tapeId = new URLSearchParams(window.location.search).get('tape');
+    const url = `${window.location.origin}${window.location.pathname}?tape=${tapeId}`;
     navigator.clipboard.writeText(url).catch(() => {});
-    alert('Link copied! ' + url);
+    alert('Link copied!');
   }, []);
 
   return (
@@ -85,10 +95,10 @@ export function MixtapePlayback({ name, description, tracks, onBack }: PlaybackP
 
         <div style={styles.playerArea}>
           <div style={styles.playerWrapper} ref={containerRef} />
-          {playing && (
+          {playing && currentTrack && (
             <div style={styles.nowPlaying}>
               <span style={styles.nowPlayingLabel}>▶ Now playing</span>
-              <span style={styles.nowPlayingTitle}>{currentTrack?.title}</span>
+              <span style={styles.nowPlayingTitle}>{currentTrack.title}</span>
             </div>
           )}
         </div>

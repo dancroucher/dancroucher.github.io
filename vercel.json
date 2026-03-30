@@ -44,7 +44,7 @@
       "dest": "/api/mixtape/save.js"
     },
     {
-      "src": "/api/mixtape/(?<id>[^/]+)",
+      "src": "/api/mixtape/:id",
       "dest": "/api/mixtape/[id].js"
     }
   ],
@@ -52,7 +52,10 @@
     {
       "source": "/(video|anime|vintage)/(.*)\\.mp4",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     }
   ]
