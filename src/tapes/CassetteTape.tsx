@@ -147,8 +147,8 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
 
       {/* Title label strip */}
       {isMixtape ? (
-        // Mixtape: white text on blue background
-        <div style={{ position: 'absolute', top: padT, left: padLR, right: padLR, height: labelH, background: 'linear-gradient(135deg, #1a4a8a, #0f3580)', borderRadius: R(3), overflow: 'hidden', transform: `rotate(${((tape.id.charCodeAt(0) % 5) - 2) * 0.4}deg)` }}>
+        // Mixtape: white text on blue background, no rotation
+        <div style={{ position: 'absolute', top: padT, left: padLR, right: padLR, height: labelH, background: 'linear-gradient(135deg, #1a4a8a, #0f3580)', borderRadius: R(3), overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
             <span style={{ fontFamily: "'Lacquer', cursive", fontSize: R(9), color: '#ffffff', letterSpacing: 1, lineHeight: 1 }}>Mixtape</span>
             <span style={{ fontFamily: "'Patrick Hand', cursive", fontSize: R(7), color: 'rgba(255,255,255,0.75)', letterSpacing: 0.5, lineHeight: 1, maxWidth: '90%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>{tape.title}</span>

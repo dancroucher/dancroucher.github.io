@@ -12831,17 +12831,6 @@ function MixtapeCreator({ onBack, onPlay }) {
       ] }),
       error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { style: styles.error, children: error }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-        "input",
-        {
-          style: styles.nameInput,
-          type: "text",
-          placeholder: "Mixtape name (optional)",
-          value: name,
-          onChange: (e) => setName(e.target.value),
-          maxLength: 60
-        }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
         "button",
         {
           style: { ...styles.generateBtn, ...loading ? styles.generateBtnDisabled : {} },
@@ -12933,7 +12922,7 @@ var styles = {
     padding: "6px 14px",
     borderRadius: 4,
     cursor: "pointer",
-    fontFamily: "'Patrick Hand', cursive",
+    fontFamily: "'04b03', monospace",
     fontSize: 14
   },
   title: {
@@ -12952,6 +12941,7 @@ var styles = {
     alignItems: "center"
   },
   subtitle: {
+    fontFamily: "'04b03', monospace",
     fontSize: 15,
     color: "rgba(232,213,176,0.6)",
     marginBottom: 24,
@@ -12974,7 +12964,8 @@ var styles = {
   or: {
     textAlign: "center",
     color: "rgba(201,168,76,0.4)",
-    fontSize: 13
+    fontSize: 13,
+    fontFamily: "'04b03', monospace"
   },
   input: {
     width: "100%",
@@ -12984,11 +12975,12 @@ var styles = {
     borderRadius: 6,
     color: "#e8d5b0",
     fontSize: 15,
-    fontFamily: "'Patrick Hand', cursive",
+    fontFamily: "'04b03', monospace",
     outline: "none",
     boxSizing: "border-box"
   },
   error: {
+    fontFamily: "'04b03', monospace",
     color: "#ff6b6b",
     fontSize: 14,
     marginBottom: 12,
@@ -13000,7 +12992,7 @@ var styles = {
     border: "none",
     borderRadius: 6,
     color: "#0a0805",
-    fontFamily: "'Lacquer', cursive",
+    fontFamily: "'04b03', monospace",
     fontSize: 16,
     letterSpacing: 1,
     cursor: "pointer"
@@ -13027,8 +13019,8 @@ var styles = {
     border: "1px solid rgba(201,168,76,0.5)",
     borderRadius: 6,
     color: "#e8d5b0",
-    fontSize: 18,
-    fontFamily: "'Lacquer', cursive",
+    fontSize: 16,
+    fontFamily: "'04b03', monospace",
     letterSpacing: 1,
     outline: "none",
     width: "100%",
@@ -13041,7 +13033,7 @@ var styles = {
     borderRadius: 6,
     color: "#e8d5b0",
     fontSize: 14,
-    fontFamily: "'Patrick Hand', cursive",
+    fontFamily: "'04b03', monospace",
     outline: "none",
     width: "100%",
     boxSizing: "border-box"
@@ -13055,6 +13047,7 @@ var styles = {
     overflowY: "auto"
   },
   trackCount: {
+    fontFamily: "'04b03', monospace",
     fontSize: 13,
     color: "rgba(201,168,76,0.5)",
     marginBottom: 10,
@@ -13067,15 +13060,18 @@ var styles = {
     gap: 10,
     padding: "6px 0",
     borderBottom: "1px solid rgba(255,255,255,0.04)",
-    fontSize: 13
+    fontSize: 13,
+    fontFamily: "'04b03', monospace"
   },
   trackNum: {
+    fontFamily: "'04b03', monospace",
     color: "rgba(201,168,76,0.5)",
     width: 20,
     flexShrink: 0,
     textAlign: "right"
   },
   trackTitle: {
+    fontFamily: "'04b03', monospace",
     flex: 1,
     color: "#e8d5b0",
     overflow: "hidden",
@@ -13083,6 +13079,7 @@ var styles = {
     whiteSpace: "nowrap"
   },
   trackAuthor: {
+    fontFamily: "'04b03', monospace",
     color: "rgba(232,213,176,0.5)",
     flexShrink: 0,
     maxWidth: 140,
@@ -13091,6 +13088,7 @@ var styles = {
     whiteSpace: "nowrap"
   },
   trackDur: {
+    fontFamily: "'04b03', monospace",
     color: "rgba(201,168,76,0.4)",
     flexShrink: 0,
     width: 36,
@@ -13107,7 +13105,7 @@ var styles = {
     border: "1px solid rgba(201,168,76,0.4)",
     borderRadius: 6,
     color: "#c9a84c",
-    fontFamily: "'Patrick Hand', cursive",
+    fontFamily: "'04b03', monospace",
     fontSize: 15,
     cursor: "pointer"
   },
@@ -13117,7 +13115,7 @@ var styles = {
     border: "none",
     borderRadius: 6,
     color: "#0a0805",
-    fontFamily: "'Lacquer', cursive",
+    fontFamily: "'04b03', monospace",
     fontSize: 16,
     letterSpacing: 1,
     cursor: "pointer"

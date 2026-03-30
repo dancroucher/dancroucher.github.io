@@ -76391,17 +76391,17 @@ async function fetchInfiniteTracks(config, page = 1) {
   }
 }
 function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
-  el.style.cssText = "position:fixed;top:0;right:0;bottom:0;width:240px;padding:16px 12px;z-index:10000;pointer-events:none;display:flex;flex-direction:column;overflow:hidden;";
+  el.style.cssText = "position:fixed;top:0;right:0;bottom:0;width:260px;padding:16px 14px;z-index:10000;pointer-events:none;display:flex;flex-direction:column;overflow:hidden;";
   el.innerHTML = `
-    <div style="font-family:'04b03',monospace;font-size:9px;color:rgba(201,168,76,0.5);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;margin-bottom:10px;flex-shrink:0;padding-top:4px;">
+    <div style="font-family:'04b03',monospace;font-size:11px;color:rgba(201,168,76,0.5);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;padding-top:4px;">
       ${mixtape.name}
     </div>
     <div style="flex:1;overflow-y:auto;pointer-events:auto;scrollbar-width:thin;scrollbar-color:rgba(201,168,76,0.3) transparent;">
       ${mixtape.tracks.map((track, i4) => `
         <div data-idx="${i4}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
-          style="font-family:'Patrick Hand',cursive;font-size:13px;color:${i4 === currentIndex ? "#c9a84c" : "rgba(201,168,76,0.5)"};letter-spacing:0.3px;white-space:nowrap;cursor:pointer;padding:5px 6px;border-radius:3px;background:${i4 === currentIndex ? "rgba(201,168,76,0.08)" : "transparent"};margin-bottom:2px;transition:color 0.15s;overflow:hidden;text-overflow:ellipsis;"
+          style="font-family:'04b03',monospace;font-size:13px;color:${i4 === currentIndex ? "#c9a84c" : "rgba(201,168,76,0.4)"};letter-spacing:0.5px;white-space:nowrap;cursor:pointer;padding:6px 4px;border-radius:3px;background:${i4 === currentIndex ? "rgba(201,168,76,0.08)" : "transparent"};margin-bottom:3px;transition:color 0.15s;overflow:hidden;text-overflow:ellipsis;text-align:right;"
           title="${track.title} \u2014 ${track.author}">
-          <span style="color:rgba(201,168,76,0.35);margin-right:6px;flex-shrink:0;">${String(i4 + 1).padStart(2, "0")}.</span>${track.title}
+          ${String(i4 + 1).padStart(2, "0")}. ${track.title}
         </div>
       `).join("")}
     </div>

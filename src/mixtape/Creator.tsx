@@ -92,14 +92,6 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
               />
             </div>
             {error && <p style={styles.error}>{error}</p>}
-            <input
-              style={styles.nameInput}
-              type="text"
-              placeholder="Mixtape name (optional)"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              maxLength={60}
-            />
             <button
               style={{ ...styles.generateBtn, ...(loading ? styles.generateBtnDisabled : {}) }}
               onClick={handleGenerate}
@@ -179,7 +171,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '6px 14px',
     borderRadius: 4,
     cursor: 'pointer',
-    fontFamily: "'Patrick Hand', cursive",
+    fontFamily: "'04b03', monospace",
     fontSize: 14,
   },
   title: {
@@ -194,6 +186,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex', flexDirection: 'column', alignItems: 'center',
   },
   subtitle: {
+    fontFamily: "'04b03', monospace",
     fontSize: 15, color: 'rgba(232,213,176,0.6)', marginBottom: 24,
     textAlign: 'center',
   },
@@ -205,23 +198,25 @@ const styles: Record<string, React.CSSProperties> = {
   },
   or: {
     textAlign: 'center', color: 'rgba(201,168,76,0.4)', fontSize: 13,
+    fontFamily: "'04b03', monospace",
   },
   input: {
     width: '100%', padding: '12px 16px',
     background: 'rgba(255,255,255,0.05)',
     border: '1px solid rgba(201,168,76,0.3)',
     borderRadius: 6, color: '#e8d5b0', fontSize: 15,
-    fontFamily: "'Patrick Hand', cursive",
+    fontFamily: "'04b03', monospace",
     outline: 'none', boxSizing: 'border-box',
   },
   error: {
+    fontFamily: "'04b03', monospace",
     color: '#ff6b6b', fontSize: 14, marginBottom: 12, textAlign: 'center',
   },
   generateBtn: {
     padding: '12px 32px',
     background: 'linear-gradient(135deg, #8a5a20, #c9a84c)',
     border: 'none', borderRadius: 6, color: '#0a0805',
-    fontFamily: "'Lacquer', cursive", fontSize: 16, letterSpacing: 1,
+    fontFamily: "'04b03', monospace", fontSize: 16, letterSpacing: 1,
     cursor: 'pointer',
   },
   generateBtnDisabled: {
@@ -237,8 +232,8 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '12px 16px',
     background: 'rgba(255,255,255,0.07)',
     border: '1px solid rgba(201,168,76,0.5)',
-    borderRadius: 6, color: '#e8d5b0', fontSize: 18,
-    fontFamily: "'Lacquer', cursive", letterSpacing: 1,
+    borderRadius: 6, color: '#e8d5b0', fontSize: 16,
+    fontFamily: "'04b03', monospace", letterSpacing: 1,
     outline: 'none', width: '100%', boxSizing: 'border-box',
   },
   descInput: {
@@ -246,7 +241,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'rgba(255,255,255,0.05)',
     border: '1px solid rgba(201,168,76,0.25)',
     borderRadius: 6, color: '#e8d5b0', fontSize: 14,
-    fontFamily: "'Patrick Hand', cursive",
+    fontFamily: "'04b03', monospace",
     outline: 'none', width: '100%', boxSizing: 'border-box',
   },
   trackList: {
@@ -256,24 +251,29 @@ const styles: Record<string, React.CSSProperties> = {
     maxHeight: 360, overflowY: 'auto',
   },
   trackCount: {
+    fontFamily: "'04b03', monospace",
     fontSize: 13, color: 'rgba(201,168,76,0.5)', marginBottom: 10,
     borderBottom: '1px solid rgba(201,168,76,0.1)', paddingBottom: 8,
   },
   trackRow: {
     display: 'flex', alignItems: 'center', gap: 10,
     padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)',
-    fontSize: 13,
+    fontSize: 13, fontFamily: "'04b03', monospace",
   },
   trackNum: {
+    fontFamily: "'04b03', monospace",
     color: 'rgba(201,168,76,0.5)', width: 20, flexShrink: 0, textAlign: 'right',
   },
   trackTitle: {
+    fontFamily: "'04b03', monospace",
     flex: 1, color: '#e8d5b0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
   },
   trackAuthor: {
+    fontFamily: "'04b03', monospace",
     color: 'rgba(232,213,176,0.5)', flexShrink: 0, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
   },
   trackDur: {
+    fontFamily: "'04b03', monospace",
     color: 'rgba(201,168,76,0.4)', flexShrink: 0, width: 36, textAlign: 'right',
   },
   actions: {
@@ -284,14 +284,14 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: '1px solid rgba(201,168,76,0.4)',
     borderRadius: 6, color: '#c9a84c',
-    fontFamily: "'Patrick Hand', cursive", fontSize: 15,
+    fontFamily: "'04b03', monospace", fontSize: 15,
     cursor: 'pointer',
   },
   saveBtn: {
     padding: '10px 28px',
     background: 'linear-gradient(135deg, #8a5a20, #c9a84c)',
     border: 'none', borderRadius: 6, color: '#0a0805',
-    fontFamily: "'Lacquer', cursive", fontSize: 16, letterSpacing: 1,
+    fontFamily: "'04b03', monospace", fontSize: 16, letterSpacing: 1,
     cursor: 'pointer',
   },
   saveBtnDisabled: {
