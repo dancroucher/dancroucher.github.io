@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspens
 import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, getStorageKey, InfiniteConfig, InfiniteTrack } from './types';
 import { CassetteTape } from './CassetteTape';
-import { DeckTape3D } from './DeckTape3D';
+// import { DeckTape3D } from './DeckTape3D';
 const TapesTable3D = lazy(() => import('./TapesTable3D').then(m => ({ default: m.TapesTable3D })));
 
 // ── Mixtape data type (passed in from mixtape creator) ──
@@ -611,8 +611,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     if (padinfo) padinfo.style.display = 'none';
 
     // Delay loadIntoPlayer until after initial render so callbacks are set up
-    setTimeout(() => loadIntoPlayer(mixtapeTape), 100);
-  }, [mixtape, loadIntoPlayer]);
+    // Use loadIntoPlayerRef to avoid TDZ (closure captures var before its declaration in bundle)
+    setTimeout(() => { loadIntoPlayerRef.current?.(mixtapeTape); }, 100);
+  }, [mixtape]);
 
   // Show padinfo when mixtape is ejected
   useEffect(() => {
@@ -731,6 +732,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   loadPrevRef.current = loadPrevInfiniteTrack;
 
   // ── Play tape via vanilla JS bridge ──
+  // Ref to avoid TDZ: setTimeout closure captures this instead of the const directly
+  const loadIntoPlayerRef = useRef<((tape: Tape) => void) | null>(null);
   const loadIntoPlayer = useCallback((tape: Tape) => {
     setLoadedTape(tape);
     playTapeInsert();
@@ -790,6 +793,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       window.myApp.submitVideoNameFromSaved(tape.videoId, 0, tape.progress ?? 0);
     }
   }, [playVideoById]);
+  // Keep ref in sync so setTimeout callbacks (which run after paint) can call the latest version
+  loadIntoPlayerRef.current = loadIntoPlayer;
 
   const deleteTape = useCallback((id: string) => {
     markDeleted(id);
@@ -1021,8 +1026,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         locallyDirtyIds.add(tape.id);
         setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, x: cx, y: Math.max(cy, HEADER_BLOCK_H) } : t));
         scheduleRemoteSave();
-        // Trigger 3D physics drop
-        setFallingIds(prev => new Set(prev).add(tape.id));
       }
       setDragId(null); setDragPos(null); setDragScreenPos(null); setDragOver(false);
     }
