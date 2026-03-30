@@ -580,6 +580,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       author: t.author,
     }));
 
+    // Place mixtape in a visible spot on the table (left side, below header)
     const mixtapeTape: Tape = {
       id: MIXTAPE_ID,
       videoId: tracks[0]?.videoId || '',
@@ -594,8 +595,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       textureVariant: 'a',
       progress: 0,
       timestamp: Date.now(),
-      x: -8,
-      y: 160,
+      x: 30,
+      y: HEADER_BLOCK_H + 20,
       angle: 0,
     };
 
@@ -610,9 +611,15 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     const padinfo = document.getElementById('padinfo');
     if (padinfo) padinfo.style.display = 'none';
 
-    // Delay loadIntoPlayer until after initial render so callbacks are set up
-    // Use loadIntoPlayerRef to avoid TDZ (closure captures var before its declaration in bundle)
-    setTimeout(() => { loadIntoPlayerRef.current?.(mixtapeTape); }, 100);
+    // Wait for window.myApp bridge to be ready, then load into player
+    function tryLoad() {
+      if (window.myApp && window.AppState) {
+        loadIntoPlayerRef.current?.(mixtapeTape);
+      } else {
+        setTimeout(tryLoad, 50);
+      }
+    }
+    tryLoad();
   }, [mixtape]);
 
   // Show padinfo when mixtape is ejected

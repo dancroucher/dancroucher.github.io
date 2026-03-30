@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MixtapeCreator } from './Creator';
-import { MixtapePlayback } from './Playback';
 import type { Track } from './TrackList';
 
-type Screen = 'loading' | 'creator' | 'playback';
+type Screen = 'loading' | 'creator';
 
 interface MixtapeData {
   id?: string;
@@ -21,7 +20,6 @@ function mount(root: HTMLDivElement) {
 
   function App() {
     const [screen, setScreen] = useState<Screen>('loading');
-    const [playbackData, setPlaybackData] = useState<MixtapeData | null>(null);
 
     useEffect(() => {
       const params = new URLSearchParams(window.location.search);
@@ -31,19 +29,20 @@ function mount(root: HTMLDivElement) {
       if (createMode === '1') {
         setScreen('creator');
       } else if (tapeId) {
-        // Load saved mixtape from API, show Playback UI
+        // Load saved mixtape from API, store in sessionStorage, redirect to main table
         fetch(`/api/mixtape/${tapeId}`)
           .then(r => r.json())
           .then(data => {
             if (data.error || !data.tracks) { window.location.href = '/'; return; }
-            const mixtape: MixtapeData = {
-              id: tapeId,
-              name: data.name,
-              description: data.description || '',
-              tracks: data.tracks,
-            };
-            setPlaybackData(mixtape);
-            setScreen('playback');
+            try {
+              sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify({
+                id: tapeId,
+                name: data.name,
+                description: data.description || '',
+                tracks: data.tracks,
+              }));
+            } catch {}
+            window.location.href = '/?mixtape=1';
           })
           .catch(() => { window.location.href = '/'; });
       } else {
@@ -58,20 +57,12 @@ function mount(root: HTMLDivElement) {
     };
 
     const handlePlay = (tape: MixtapeData) => {
-      // tape.id is the UUID from the save API response
-      if (tape.id) {
-        window.location.href = `/?tape=${tape.id}`;
-      } else {
-        // Fallback: store and go to main table
-        try { sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify(tape)); } catch {}
-        window.location.href = '/?mixtape=1';
-      }
+      // Save UUID so /?tape={uuid} can reload it from sessionStorage
+      try { sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify(tape)); } catch {}
+      window.location.href = '/?mixtape=1';
     };
 
     if (screen === 'loading') return null;
-    if (screen === 'playback' && playbackData) {
-      return <MixtapePlayback name={playbackData.name} description={playbackData.description} tracks={playbackData.tracks} autoplay />;
-    }
 
     return <MixtapeCreator onBack={handleBack} onPlay={handlePlay} />;
   }
