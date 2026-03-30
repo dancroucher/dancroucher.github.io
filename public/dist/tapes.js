@@ -76522,14 +76522,6 @@ function TapesTable({ mixtape }) {
     }
     const padinfo = document.getElementById("padinfo");
     if (padinfo) padinfo.style.display = "none";
-    function tryLoad() {
-      if (window.myApp && window.AppState) {
-        loadIntoPlayerRef.current?.(mixtapeTape);
-      } else {
-        setTimeout(tryLoad, 50);
-      }
-    }
-    tryLoad();
   }, [mixtape]);
   (0, import_react9.useEffect)(() => {
     if (!mixtape) return;

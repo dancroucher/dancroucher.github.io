@@ -10,11 +10,10 @@ interface Track {
 
 interface CreatorProps {
   onBack: () => void;
-  onPlay: (tape: { id?: string; name: string; description: string; tracks: Track[] }) => void;
-  onPreview: (tape: { name: string; description: string; tracks: Track[] }) => void;
+  onPlay: (tape: { name: string; description: string; tracks: Track[] }) => void;
 }
 
-export function MixtapeCreator({ onBack, onPlay, onPreview }: CreatorProps) {
+export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
   const [url, setUrl] = useState('');
   const [keywords, setKeywords] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,33 +48,11 @@ export function MixtapeCreator({ onBack, onPlay, onPreview }: CreatorProps) {
     }
   }, [url, keywords, name]);
 
-  const handleSave = useCallback(async () => {
-    if (!name.trim()) { setError('Give your mixtape a name'); return; }
-    if (tracks.length === 0) { setError('Generate tracks first'); return; }
-    setLoading(true);
-    setError('');
-    try {
-      const res = await fetch('/api/mixtape/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), description: description.trim(), tracks }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Save failed');
-      const tape = { id: data.id, name: name.trim(), description: description.trim(), tracks };
-      onPlay(tape);
-    } catch (e: any) {
-      setError(e.message || 'Failed to save mixtape');
-    } finally {
-      setLoading(false);
-    }
-  }, [name, description, tracks, onPlay]);
-
-  const handlePreview = useCallback(() => {
+  const handleSave = useCallback(() => {
     if (!name.trim() && tracks.length === 0) { setError('Generate tracks first'); return; }
     const tape = { name: name.trim() || 'My Mixtape', description: description.trim(), tracks };
-    onPreview(tape);
-  }, [name, description, tracks, onPreview]);
+    onPlay(tape);
+  }, [name, description, tracks, onPlay]);
 
   return (
     <div style={styles.container}>
@@ -160,18 +137,11 @@ export function MixtapeCreator({ onBack, onPlay, onPreview }: CreatorProps) {
                 Regenerate
               </button>
               <button
-                style={{ ...styles.previewBtn, ...(loading ? styles.previewBtnDisabled : {}) }}
-                onClick={handlePreview}
-                disabled={loading}
-              >
-                Preview on Table
-              </button>
-              <button
                 style={{ ...styles.saveBtn, ...(loading ? styles.saveBtnDisabled : {}) }}
                 onClick={handleSave}
                 disabled={loading}
               >
-                {loading ? 'Saving...' : 'Save & Get Link'}
+                {loading ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>
@@ -318,16 +288,5 @@ const styles: Record<string, React.CSSProperties> = {
   },
   saveBtnDisabled: {
     opacity: 0.6, cursor: 'not-allowed',
-  },
-  previewBtn: {
-    padding: '10px 24px',
-    background: 'transparent',
-    border: '1px solid rgba(201,168,76,0.5)',
-    borderRadius: 6, color: '#c9a84c',
-    fontFamily: "'Patrick Hand', cursive", fontSize: 15,
-    cursor: 'pointer',
-  },
-  previewBtnDisabled: {
-    opacity: 0.5, cursor: 'not-allowed',
   },
 };

@@ -12753,7 +12753,7 @@ var import_client = __toESM(require_client(), 1);
 // src/mixtape/Creator.tsx
 var import_react = __toESM(require_react(), 1);
 var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
-function MixtapeCreator({ onBack, onPlay, onPreview }) {
+function MixtapeCreator({ onBack, onPlay }) {
   const [url, setUrl] = (0, import_react.useState)("");
   const [keywords, setKeywords] = (0, import_react.useState)("");
   const [loading, setLoading] = (0, import_react.useState)(false);
@@ -12786,41 +12786,14 @@ function MixtapeCreator({ onBack, onPlay, onPreview }) {
       setLoading(false);
     }
   }, [url, keywords, name]);
-  const handleSave = (0, import_react.useCallback)(async () => {
-    if (!name.trim()) {
-      setError("Give your mixtape a name");
-      return;
-    }
-    if (tracks.length === 0) {
-      setError("Generate tracks first");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/mixtape/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), description: description.trim(), tracks })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Save failed");
-      const tape = { id: data.id, name: name.trim(), description: description.trim(), tracks };
-      onPlay(tape);
-    } catch (e) {
-      setError(e.message || "Failed to save mixtape");
-    } finally {
-      setLoading(false);
-    }
-  }, [name, description, tracks, onPlay]);
-  const handlePreview = (0, import_react.useCallback)(() => {
+  const handleSave = (0, import_react.useCallback)(() => {
     if (!name.trim() && tracks.length === 0) {
       setError("Generate tracks first");
       return;
     }
     const tape = { name: name.trim() || "My Mixtape", description: description.trim(), tracks };
-    onPreview(tape);
-  }, [name, description, tracks, onPreview]);
+    onPlay(tape);
+  }, [name, description, tracks, onPlay]);
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.container, children: [
     /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: styles.header, children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { style: styles.backBtn, onClick: onBack, disabled: loading, children: "\u2190 Back" }),
@@ -12914,19 +12887,10 @@ function MixtapeCreator({ onBack, onPlay, onPreview }) {
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
           "button",
           {
-            style: { ...styles.previewBtn, ...loading ? styles.previewBtnDisabled : {} },
-            onClick: handlePreview,
-            disabled: loading,
-            children: "Preview on Table"
-          }
-        ),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-          "button",
-          {
             style: { ...styles.saveBtn, ...loading ? styles.saveBtnDisabled : {} },
             onClick: handleSave,
             disabled: loading,
-            children: loading ? "Saving..." : "Save & Get Link"
+            children: loading ? "Saving..." : "Save"
           }
         )
       ] })
@@ -13150,20 +13114,6 @@ var styles = {
   saveBtnDisabled: {
     opacity: 0.6,
     cursor: "not-allowed"
-  },
-  previewBtn: {
-    padding: "10px 24px",
-    background: "transparent",
-    border: "1px solid rgba(201,168,76,0.5)",
-    borderRadius: 6,
-    color: "#c9a84c",
-    fontFamily: "'Patrick Hand', cursive",
-    fontSize: 15,
-    cursor: "pointer"
-  },
-  previewBtnDisabled: {
-    opacity: 0.5,
-    cursor: "not-allowed"
   }
 };
 
@@ -13177,28 +13127,8 @@ function mount(root) {
     (0, import_react2.useEffect)(() => {
       const params = new URLSearchParams(window.location.search);
       const createMode = params.get("create_mixtape");
-      const tapeId = params.get("tape");
       if (createMode === "1") {
         setScreen("creator");
-      } else if (tapeId) {
-        fetch(`/api/mixtape/${tapeId}`).then((r) => r.json()).then((data) => {
-          if (data.error || !data.tracks) {
-            window.location.href = "/";
-            return;
-          }
-          try {
-            sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify({
-              id: tapeId,
-              name: data.name,
-              description: data.description || "",
-              tracks: data.tracks
-            }));
-          } catch {
-          }
-          window.location.href = "/?mixtape=1";
-        }).catch(() => {
-          window.location.href = "/";
-        });
       } else {
         window.location.href = "/";
       }
@@ -13207,14 +13137,7 @@ function mount(root) {
       window.history.replaceState({}, "", window.location.pathname);
       window.location.href = "/";
     };
-    const handlePlay = (tape) => {
-      try {
-        sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify(tape));
-      } catch {
-      }
-      window.location.href = "/?mixtape=1";
-    };
-    const handlePreview = (tape) => {
+    const handleSave = (tape) => {
       try {
         sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify(tape));
       } catch {
@@ -13222,7 +13145,7 @@ function mount(root) {
       window.location.href = "/?mixtape=1";
     };
     if (screen === "loading") return null;
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(MixtapeCreator, { onBack: handleBack, onPlay: handlePlay, onPreview: handlePreview });
+    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(MixtapeCreator, { onBack: handleBack, onPlay: handleSave });
   }
   appRoot.render(/* @__PURE__ */ (0, import_jsx_runtime2.jsx)(App, {}));
 }

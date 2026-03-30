@@ -24,27 +24,9 @@ function mount(root: HTMLDivElement) {
     useEffect(() => {
       const params = new URLSearchParams(window.location.search);
       const createMode = params.get('create_mixtape');
-      const tapeId = params.get('tape');
 
       if (createMode === '1') {
         setScreen('creator');
-      } else if (tapeId) {
-        // Load saved mixtape from API, store in sessionStorage, redirect to main table
-        fetch(`/api/mixtape/${tapeId}`)
-          .then(r => r.json())
-          .then(data => {
-            if (data.error || !data.tracks) { window.location.href = '/'; return; }
-            try {
-              sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify({
-                id: tapeId,
-                name: data.name,
-                description: data.description || '',
-                tracks: data.tracks,
-              }));
-            } catch {}
-            window.location.href = '/?mixtape=1';
-          })
-          .catch(() => { window.location.href = '/'; });
       } else {
         // No mixtape param — go to main site
         window.location.href = '/';
@@ -56,21 +38,15 @@ function mount(root: HTMLDivElement) {
       window.location.href = '/';
     };
 
-    const handlePlay = (tape: MixtapeData) => {
-      // Save UUID so /?tape={uuid} can reload it from sessionStorage
-      try { sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify(tape)); } catch {}
-      window.location.href = '/?mixtape=1';
-    };
-
-    const handlePreview = (tape: { name: string; description: string; tracks: Track[] }) => {
-      // Preview on table without saving — no UUID needed
+    const handleSave = (tape: { name: string; description: string; tracks: Track[] }) => {
+      // Save to sessionStorage and show on table (no UUID, no API call)
       try { sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify(tape)); } catch {}
       window.location.href = '/?mixtape=1';
     };
 
     if (screen === 'loading') return null;
 
-    return <MixtapeCreator onBack={handleBack} onPlay={handlePlay} onPreview={handlePreview} />;
+    return <MixtapeCreator onBack={handleBack} onPlay={handleSave} />;
   }
 
   appRoot.render(<App />);

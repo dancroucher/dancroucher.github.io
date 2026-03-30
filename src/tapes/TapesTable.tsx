@@ -610,16 +610,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     // Hide the vanilla padinfo when mixtape is active
     const padinfo = document.getElementById('padinfo');
     if (padinfo) padinfo.style.display = 'none';
-
-    // Wait for window.myApp bridge to be ready, then load into player
-    function tryLoad() {
-      if (window.myApp && window.AppState) {
-        loadIntoPlayerRef.current?.(mixtapeTape);
-      } else {
-        setTimeout(tryLoad, 50);
-      }
-    }
-    tryLoad();
+    // NOTE: do NOT auto-play — user drags the tape to the deck when ready
   }, [mixtape]);
 
   // Show padinfo when mixtape is ejected
