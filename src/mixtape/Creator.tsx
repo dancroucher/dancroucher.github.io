@@ -61,7 +61,7 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Save failed');
-      const tape = { name: name.trim(), description: description.trim(), tracks };
+      const tape = { id: data.id, name: name.trim(), description: description.trim(), tracks };
       onPlay(tape);
     } catch (e: any) {
       setError(e.message || 'Failed to save mixtape');

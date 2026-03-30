@@ -137,11 +137,12 @@ interface PlaybackProps {
   name: string;
   description: string;
   tracks: Track[];
+  autoplay?: boolean;
 }
 
-export function MixtapePlayback({ name, description, tracks }: PlaybackProps) {
+export function MixtapePlayback({ name, description, tracks, autoplay = false }: PlaybackProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(autoplay);
   const [dragging, setDragging] = useState(false);
   const deckRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);

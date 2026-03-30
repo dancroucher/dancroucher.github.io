@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MixtapeCreator } from './Creator';
+import { MixtapePlayback } from './Playback';
 import type { Track } from './TrackList';
 
-type Screen = 'loading' | 'creator';
+type Screen = 'loading' | 'creator' | 'playback';
 
 interface MixtapeData {
+  id?: string;
   name: string;
   description: string;
   tracks: Track[];
@@ -19,6 +21,7 @@ function mount(root: HTMLDivElement) {
 
   function App() {
     const [screen, setScreen] = useState<Screen>('loading');
+    const [playbackData, setPlaybackData] = useState<MixtapeData | null>(null);
 
     useEffect(() => {
       const params = new URLSearchParams(window.location.search);
@@ -28,19 +31,19 @@ function mount(root: HTMLDivElement) {
       if (createMode === '1') {
         setScreen('creator');
       } else if (tapeId) {
-        // Load saved mixtape from API, store in sessionStorage, redirect to TapesTable
+        // Load saved mixtape from API, show Playback UI
         fetch(`/api/mixtape/${tapeId}`)
           .then(r => r.json())
           .then(data => {
             if (data.error || !data.tracks) { window.location.href = '/'; return; }
-            try {
-              sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify({
-                name: data.name,
-                description: data.description || '',
-                tracks: data.tracks,
-              }));
-            } catch {}
-            window.location.href = '/?mixtape=1';
+            const mixtape: MixtapeData = {
+              id: tapeId,
+              name: data.name,
+              description: data.description || '',
+              tracks: data.tracks,
+            };
+            setPlaybackData(mixtape);
+            setScreen('playback');
           })
           .catch(() => { window.location.href = '/'; });
       } else {
@@ -55,11 +58,20 @@ function mount(root: HTMLDivElement) {
     };
 
     const handlePlay = (tape: MixtapeData) => {
-      try { sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify(tape)); } catch {}
-      window.location.href = '/?mixtape=1';
+      // tape.id is the UUID from the save API response
+      if (tape.id) {
+        window.location.href = `/?tape=${tape.id}`;
+      } else {
+        // Fallback: store and go to main table
+        try { sessionStorage.setItem(MIXTAPE_STORAGE_KEY, JSON.stringify(tape)); } catch {}
+        window.location.href = '/?mixtape=1';
+      }
     };
 
     if (screen === 'loading') return null;
+    if (screen === 'playback' && playbackData) {
+      return <MixtapePlayback name={playbackData.name} description={playbackData.description} tracks={playbackData.tracks} autoplay />;
+    }
 
     return <MixtapeCreator onBack={handleBack} onPlay={handlePlay} />;
   }
