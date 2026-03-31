@@ -75196,7 +75196,8 @@ function TapeBody({
   const groupRef = (0, import_react7.useRef)(null);
   const [sceneData, setSceneData] = (0, import_react7.useState)(null);
   const wasDragging = (0, import_react7.useRef)(false);
-  const falling = (0, import_react7.useRef)(false);
+  const falling = (0, import_react7.useRef)(isNew ? true : false);
+  const needsSpawnDrop = (0, import_react7.useRef)(isNew ? true : false);
   const smoothPos = (0, import_react7.useRef)({ x: 0, z: 0 });
   const velocity = (0, import_react7.useRef)({ x: 0, z: 0 });
   const savedYRot = (0, import_react7.useRef)(0);
@@ -75239,6 +75240,11 @@ function TapeBody({
   useFrame((_2, delta) => {
     const body = bodyRef.current;
     if (!body) return;
+    if (needsSpawnDrop.current) {
+      needsSpawnDrop.current = false;
+      body.setGravityScale(0.1, true);
+      body.setLinvel({ x: 0, y: -1, z: 0 }, true);
+    }
     if (bounceTapeId?.current === tape.id) {
       bounceTapeId.current = null;
       body.applyImpulse({ x: 0, y: 3, z: 0 }, true);
@@ -77754,7 +77760,7 @@ function TapesTable({ mixtape }) {
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       TapesTable3D2,
       {
-        tapes: view === "player" && playerTapeId ? positionedTapes.filter((t3) => t3.id === playerTapeId).map((t3) => ({ ...t3, x: CANVAS_W2 / 2, y: CANVAS_H2 / 2, angle: 0 })) : positionedTapes,
+        tapes: view === "player" && playerTapeId ? positionedTapes.filter((t3) => t3.id === playerTapeId).map((t3) => ({ ...t3, x: CANVAS_W2 / 2, y: CANVAS_H2 / 2 })) : positionedTapes,
         loadedTapeId: loadedTape?.id ?? null,
         onDragStart: handle3DDragStart,
         onDragEnd: handle3DDragEnd,

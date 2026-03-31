@@ -327,7 +327,8 @@ export function TapeBody({
   const groupRef = useRef<THREE.Group>(null);
   const [sceneData, setSceneData] = useState<{ group: THREE.Group; geo: VariantGeo } | null>(null);
   const wasDragging = useRef(false);
-  const falling = useRef(false);
+  const falling = useRef(isNew ? true : false);
+  const needsSpawnDrop = useRef(isNew ? true : false);
   const smoothPos = useRef({ x: 0, z: 0 });
   const velocity = useRef({ x: 0, z: 0 });
   const savedYRot = useRef(0);
@@ -382,6 +383,13 @@ export function TapeBody({
   useFrame((_, delta) => {
     const body = bodyRef.current;
     if (!body) return;
+
+    // New tape spawn: start with gentle gravity so it visibly falls
+    if (needsSpawnDrop.current) {
+      needsSpawnDrop.current = false;
+      body.setGravityScale(0.1, true);
+      body.setLinvel({ x: 0, y: -1, z: 0 }, true);
+    }
 
     // Bounce on double-tap
     if (bounceTapeId?.current === tape.id) {

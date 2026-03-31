@@ -1360,7 +1360,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       <Suspense fallback={<div style={{ flex: 1, background: '#0a0805' }} />}>
         <TapesTable3D
           tapes={view === 'player' && playerTapeId
-            ? positionedTapes.filter(t => t.id === playerTapeId).map(t => ({ ...t, x: CANVAS_W / 2, y: CANVAS_H / 2, angle: 0 }))
+            ? positionedTapes.filter(t => t.id === playerTapeId).map(t => ({ ...t, x: CANVAS_W / 2, y: CANVAS_H / 2 }))
             : positionedTapes}
           loadedTapeId={loadedTape?.id ?? null}
           onDragStart={handle3DDragStart}
