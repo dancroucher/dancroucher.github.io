@@ -72,11 +72,12 @@
                 <div class="start-header">
                     <div class="start-title"><a href=".">// jeem-fm</a></div>
                     <div id="username-area"></div>
-                    <div class="start-form">
+                    <div class="start-form" id="start-form">
                         <form id="video-form">
                             <input class="videobox" type="text" autocomplete="on" id="idEntry" placeholder="paste url or search...">
                         </form>
                             <button class="infinite-btn" id="infinite-btn" title="Create infinite tape">∞</button>
+                            <button class="infinite-btn" id="mixtape-btn" title="Create mixtape" style="background: linear-gradient(135deg, #8a5a20, #c9a84c); color: #0a0805; font-weight: bold; font-size: 13px; font-family: '04b03', monospace; letter-spacing: 0.5px;">+ mixtape</button>
                         <div class="infinite-popup" id="infinite-popup" style="display: none">
                             <div class="infinite-popup-title">∞ infinite tape</div>
                             <input type="hidden" id="inf-source" value="youtube">
@@ -105,7 +106,6 @@
                             </div>
                             <button class="infinite-create" id="inf-create">create tape</button>
                             <button class="infinite-create" id="inf-lucky" style="background: #b8860b; margin-top: 4px">🎲 lucky pick</button>
-                            <button class="infinite-create" id="inf-mixtape" style="background: linear-gradient(135deg, #8a5a20, #c9a84c); margin-top: 4px; color: #0a0805; font-weight: bold">+ mixtape</button>
                         </div>
                     </div>
                 </div>

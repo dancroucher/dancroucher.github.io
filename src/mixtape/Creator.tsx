@@ -233,8 +233,11 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
     }
   }, [url, keywords]);
 
+  const canSave = name.trim().length > 0;
+
   const handleSave = useCallback(() => {
-    const tape = { name: name.trim() || 'Mixtape', description: '', tracks };
+    if (!name.trim()) return;
+    const tape = { name: name.trim(), description: '', tracks };
     onPlay(tape);
   }, [name, tracks, onPlay]);
 
@@ -284,15 +287,9 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
         </div>
       )}
 
-      {/* ── Step 2: 3D tape + tracklist ── */}
+      {/* ── Step 2: tracklist (tape is visible on table behind) ── */}
       {tracks.length > 0 && (
         <div style={styles.creator}>
-          {/* Left: 3D tape canvas */}
-          <div style={styles.tapeSide}>
-            <MixtapeTape3D name={name || seedTitle || 'Mixtape'} />
-          </div>
-
-          {/* Right: name + tracks + actions */}
           <div style={styles.trackSide}>
             {/* Name input — blank until saved */}
             <input
@@ -301,6 +298,7 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
               placeholder="Mixtape name..."
               value={name}
               onChange={e => setName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && canSave && handleSave()}
               maxLength={60}
             />
 
@@ -314,6 +312,7 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
                   <span style={styles.trackNum}>{String(i + 1).padStart(2, '0')}.</span>
                   <span style={styles.trackTitle}>{track.title || 'Untitled'}</span>
                   <span style={styles.trackAuthor}>{track.author}</span>
+                  <span style={styles.trackDuration}>{track.durationText || ''}</span>
                 </div>
               ))}
             </div>
@@ -325,11 +324,11 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
                 ← Back
               </button>
               <button
-                style={{ ...styles.saveBtn, ...(loading ? styles.saveBtnDisabled : {}) }}
+                style={{ ...styles.saveBtn, ...((loading || !canSave) ? styles.saveBtnDisabled : {}) }}
                 onClick={handleSave}
-                disabled={loading}
+                disabled={loading || !canSave}
               >
-                {loading ? 'Saving...' : 'Save'}
+                {loading ? 'Saving...' : !canSave ? 'Name required' : 'Save'}
               </button>
             </div>
           </div>
@@ -339,78 +338,121 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
   );
 }
 
+// Shared panel geometry — used by both Creator and playback tracklist overlay
+export const MIXTAPE_PANEL_STYLES = {
+  // Position: fixed to right side, shifted left so tape is visible
+  position: 'fixed' as const,
+  top: 130,
+  right: 110,
+  width: 590,
+  maxHeight: 'calc(100vh - 120px)',
+  fontFamily: "'04b03', monospace",
+  fontSize: '1em',
+  color: '#e8d5b0',
+  background: 'transparent',
+  pointerEvents: 'auto' as const,
+  zIndex: 200,
+  display: 'flex' as const,
+  flexDirection: 'column' as const,
+  overflow: 'hidden' as const,
+  border: '1px solid rgba(201,168,76,0.2)',
+  borderRadius: 12,
+};
+
+export const MIXTAPE_TRACK_ROW: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: 8,
+  padding: '6px 4px',
+  borderBottom: '1px solid rgba(255,255,255,0.04)',
+  fontSize: '1em',
+  fontFamily: "'04b03', monospace",
+};
+
+export const MIXTAPE_TRACK_NUM: React.CSSProperties = {
+  fontFamily: "'04b03', monospace",
+  color: 'rgba(201,168,76,0.5)', width: 30, flexShrink: 0,
+  textAlign: 'right', fontSize: '1em',
+};
+
+export const MIXTAPE_TRACK_TITLE: React.CSSProperties = {
+  fontFamily: "'04b03', monospace",
+  flex: 1, color: '#e8d5b0', overflow: 'hidden',
+  textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+  minWidth: 0, fontSize: '1em',
+};
+
+export const MIXTAPE_TRACK_AUTHOR: React.CSSProperties = {
+  fontFamily: "'04b03', monospace",
+  color: 'rgba(232,213,176,0.45)', flexShrink: 0,
+  width: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+  fontSize: '1em',
+};
+
+export const MIXTAPE_TRACK_DURATION: React.CSSProperties = {
+  fontFamily: "'04b03', monospace",
+  color: 'rgba(201,168,76,0.4)', flexShrink: 0,
+  width: 50, textAlign: 'right', fontSize: '1em',
+};
+
+export const MIXTAPE_TRACK_LIST: React.CSSProperties = {
+  flex: 1,
+  overflowY: 'auto',
+  background: 'transparent',
+  borderRadius: 6,
+  padding: '10px 14px',
+  minHeight: 0,
+};
+
 const styles: Record<string, React.CSSProperties> = {
   overlay: {
     position: 'fixed', inset: 0, zIndex: 200,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
     background: 'transparent',
-    fontFamily: "'04b03', monospace",
-    color: '#e8d5b0',
+    pointerEvents: 'none',
   },
-  // Step 1: centered input modal (slightly transparent dark, not opaque)
   inputModal: {
-    background: 'rgba(14,10,6,0.85)',
-    border: '1px solid rgba(201,168,76,0.3)',
-    borderRadius: 12,
+    ...MIXTAPE_PANEL_STYLES,
+    top: '50%',
+    transform: 'translateY(-50%)',
+    maxHeight: undefined,
     padding: '32px 40px',
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
-    gap: 16, width: 520,
-    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+    gap: 16,
+    alignItems: 'center',
   },
   modalSubtitle: {
     fontFamily: "'04b03', monospace",
-    fontSize: 14, color: 'rgba(232,213,176,0.55)',
+    fontSize: '1em', color: 'rgba(232,213,176,0.55)',
     textAlign: 'center', margin: 0,
   },
   inputGroup: {
     width: '100%', display: 'flex', flexDirection: 'column', gap: 10,
   },
   input: {
-    width: '100%', padding: '12px 16px',
+    width: '100%', padding: '10px 14px',
     background: 'rgba(255,255,255,0.05)',
     border: '1px solid rgba(201,168,76,0.3)',
-    borderRadius: 6, color: '#e8d5b0', fontSize: 15,
+    borderRadius: 6, color: '#e8d5b0', fontSize: '1em',
     fontFamily: "'04b03', monospace",
     outline: 'none', boxSizing: 'border-box',
   },
   or: {
-    textAlign: 'center', color: 'rgba(201,168,76,0.4)', fontSize: 12,
+    textAlign: 'center', color: 'rgba(201,168,76,0.4)', fontSize: '1em',
     fontFamily: "'04b03', monospace",
   },
   error: {
     fontFamily: "'04b03', monospace",
-    color: '#ff6b6b', fontSize: 13, margin: 0,
+    color: '#ff6b6b', fontSize: '1em', margin: 0,
   },
   generateBtn: {
-    padding: '12px 32px',
+    padding: '10px 28px',
     background: 'linear-gradient(135deg, #8a5a20, #c9a84c)',
     border: 'none', borderRadius: 6, color: '#0a0805',
-    fontFamily: "'04b03', monospace", fontSize: 16, letterSpacing: 1,
+    fontFamily: "'04b03', monospace", fontSize: '1em', letterSpacing: 1,
     cursor: 'pointer',
   },
   generateBtnDisabled: {
     opacity: 0.6, cursor: 'not-allowed',
   },
-  // Step 2: side-by-side 3D tape + tracklist (fully transparent container)
   creator: {
-    display: 'flex', gap: 0,
-    alignItems: 'stretch',
-    background: 'rgba(14,10,6,0.25)',
-    border: '1px solid rgba(201,168,76,0.2)',
-    borderRadius: 12,
-    overflow: 'hidden',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-    width: 860,
-    maxHeight: '90vh',
-    backdropFilter: 'blur(4px)',
-  },
-  tapeSide: {
-    width: 420,
-    flexShrink: 0,
-    background: 'transparent',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    borderRight: '1px solid rgba(201,168,76,0.15)',
-    minHeight: 400,
+    ...MIXTAPE_PANEL_STYLES,
   },
   trackSide: {
     flex: 1,
@@ -424,45 +466,21 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '10px 14px',
     background: 'rgba(255,255,255,0.06)',
     border: '1px solid rgba(201,168,76,0.4)',
-    borderRadius: 6, color: '#e8d5b0', fontSize: 16,
+    borderRadius: 6, color: '#e8d5b0', fontSize: '1em',
     fontFamily: "'04b03', monospace", letterSpacing: 0.5,
     outline: 'none', width: '100%', boxSizing: 'border-box', marginBottom: 12,
   },
   trackCount: {
     fontFamily: "'04b03', monospace",
-    fontSize: 12, color: 'rgba(201,168,76,0.4)', margin: '0 0 8px',
+    fontSize: '1em', color: 'rgba(201,168,76,0.4)', margin: '0 0 8px',
     letterSpacing: '0.05em',
   },
-  trackList: {
-    flex: 1,
-    overflowY: 'auto' as const,
-    background: 'rgba(255,255,255,0.03)',
-    borderRadius: 6,
-    padding: '10px 14px',
-    minHeight: 0,
-  },
-  trackRow: {
-    display: 'flex', alignItems: 'center', gap: 10,
-    padding: '8px 0',
-    borderBottom: '1px solid rgba(255,255,255,0.04)',
-    fontSize: 15,
-  },
-  trackNum: {
-    fontFamily: "'04b03', monospace",
-    color: 'rgba(201,168,76,0.5)', width: 30, flexShrink: 0,
-    textAlign: 'right',
-  },
-  trackTitle: {
-    fontFamily: "'04b03', monospace",
-    flex: 1, color: '#e8d5b0', overflow: 'hidden',
-    textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-    minWidth: 0,
-  },
-  trackAuthor: {
-    fontFamily: "'04b03', monospace",
-    color: 'rgba(232,213,176,0.45)', flexShrink: 0,
-    maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-  },
+  trackList: MIXTAPE_TRACK_LIST,
+  trackRow: MIXTAPE_TRACK_ROW,
+  trackNum: MIXTAPE_TRACK_NUM,
+  trackTitle: MIXTAPE_TRACK_TITLE,
+  trackAuthor: MIXTAPE_TRACK_AUTHOR,
+  trackDuration: MIXTAPE_TRACK_DURATION,
   actions: {
     display: 'flex', gap: 10, justifyContent: 'space-between',
     marginTop: 14,
@@ -472,14 +490,14 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: '1px solid rgba(201,168,76,0.4)',
     borderRadius: 6, color: '#c9a84c',
-    fontFamily: "'04b03', monospace", fontSize: 14,
+    fontFamily: "'04b03', monospace", fontSize: '1em',
     cursor: 'pointer',
   },
   saveBtn: {
     padding: '10px 28px',
     background: 'linear-gradient(135deg, #8a5a20, #c9a84c)',
     border: 'none', borderRadius: 6, color: '#0a0805',
-    fontFamily: "'04b03', monospace", fontSize: 15, letterSpacing: 1,
+    fontFamily: "'04b03', monospace", fontSize: '1em', letterSpacing: 1,
     cursor: 'pointer',
     flex: 1,
   },

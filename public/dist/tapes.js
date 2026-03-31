@@ -773,7 +773,7 @@ var require_react = __commonJS({
 var require_react_dom_production = __commonJS({
   "node_modules/react-dom/cjs/react-dom.production.js"(exports) {
     "use strict";
-    var React13 = require_react();
+    var React14 = require_react();
     function formatProdErrorMessage(code) {
       var url = "https://react.dev/errors/" + code;
       if (1 < arguments.length) {
@@ -813,7 +813,7 @@ var require_react_dom_production = __commonJS({
         implementation
       };
     }
-    var ReactSharedInternals = React13.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+    var ReactSharedInternals = React14.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     function getCrossOriginStringAs(as, input) {
       if ("font" === as) return "";
       if ("string" === typeof input)
@@ -949,7 +949,7 @@ var require_react_dom_client_production = __commonJS({
   "node_modules/react-dom/cjs/react-dom-client.production.js"(exports) {
     "use strict";
     var Scheduler = require_scheduler();
-    var React13 = require_react();
+    var React14 = require_react();
     var ReactDOM2 = require_react_dom();
     function formatProdErrorMessage(code) {
       var url = "https://react.dev/errors/" + code;
@@ -1140,7 +1140,7 @@ var require_react_dom_client_production = __commonJS({
       return null;
     }
     var isArrayImpl = Array.isArray;
-    var ReactSharedInternals = React13.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+    var ReactSharedInternals = React14.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     var ReactDOMSharedInternals = ReactDOM2.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     var sharedNotPendingObject = {
       pending: false,
@@ -1929,18 +1929,18 @@ var require_react_dom_client_production = __commonJS({
       var isCustomProperty = 0 === styleName.indexOf("--");
       null == value || "boolean" === typeof value || "" === value ? isCustomProperty ? style2.setProperty(styleName, "") : "float" === styleName ? style2.cssFloat = "" : style2[styleName] = "" : isCustomProperty ? style2.setProperty(styleName, value) : "number" !== typeof value || 0 === value || unitlessNumbers.has(styleName) ? "float" === styleName ? style2.cssFloat = value : style2[styleName] = ("" + value).trim() : style2[styleName] = value + "px";
     }
-    function setValueForStyles(node, styles, prevStyles) {
-      if (null != styles && "object" !== typeof styles)
+    function setValueForStyles(node, styles2, prevStyles) {
+      if (null != styles2 && "object" !== typeof styles2)
         throw Error(formatProdErrorMessage(62));
       node = node.style;
       if (null != prevStyles) {
         for (var styleName in prevStyles)
-          !prevStyles.hasOwnProperty(styleName) || null != styles && styles.hasOwnProperty(styleName) || (0 === styleName.indexOf("--") ? node.setProperty(styleName, "") : "float" === styleName ? node.cssFloat = "" : node[styleName] = "");
-        for (var styleName$16 in styles)
-          styleName = styles[styleName$16], styles.hasOwnProperty(styleName$16) && prevStyles[styleName$16] !== styleName && setValueForStyle(node, styleName$16, styleName);
+          !prevStyles.hasOwnProperty(styleName) || null != styles2 && styles2.hasOwnProperty(styleName) || (0 === styleName.indexOf("--") ? node.setProperty(styleName, "") : "float" === styleName ? node.cssFloat = "" : node[styleName] = "");
+        for (var styleName$16 in styles2)
+          styleName = styles2[styleName$16], styles2.hasOwnProperty(styleName$16) && prevStyles[styleName$16] !== styleName && setValueForStyle(node, styleName$16, styleName);
       } else
-        for (var styleName$17 in styles)
-          styles.hasOwnProperty(styleName$17) && setValueForStyle(node, styleName$17, styles[styleName$17]);
+        for (var styleName$17 in styles2)
+          styles2.hasOwnProperty(styleName$17) && setValueForStyle(node, styleName$17, styles2[styleName$17]);
     }
     function isCustomElement(tagName) {
       if (-1 === tagName.indexOf("-")) return false;
@@ -11561,9 +11561,9 @@ var require_react_dom_client_production = __commonJS({
       previousDispatcher.S(href, precedence, options2);
       var ownerDocument = globalDocument;
       if (ownerDocument && href) {
-        var styles = getResourcesFromRoot(ownerDocument).hoistableStyles, key = getStyleKey(href);
+        var styles2 = getResourcesFromRoot(ownerDocument).hoistableStyles, key = getStyleKey(href);
         precedence = precedence || "default";
-        var resource = styles.get(key);
+        var resource = styles2.get(key);
         if (!resource) {
           var state2 = { loading: 0, preload: null };
           if (resource = ownerDocument.querySelector(
@@ -11598,7 +11598,7 @@ var require_react_dom_client_production = __commonJS({
             count: 1,
             state: state2
           };
-          styles.set(key, resource);
+          styles2.set(key, resource);
         }
       }
     }
@@ -12586,7 +12586,7 @@ var require_react_dom_client_production = __commonJS({
         0 === i4 && attemptExplicitHydrationTarget(target);
       }
     };
-    var isomorphicReactPackageVersion$jscomp$inline_1840 = React13.version;
+    var isomorphicReactPackageVersion$jscomp$inline_1840 = React14.version;
     if ("19.2.4" !== isomorphicReactPackageVersion$jscomp$inline_1840)
       throw Error(
         formatProdErrorMessage(
@@ -55945,17 +55945,17 @@ void main() {
 var require_use_sync_external_store_shim_production = __commonJS({
   "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.production.js"(exports) {
     "use strict";
-    var React13 = require_react();
+    var React14 = require_react();
     function is2(x3, y2) {
       return x3 === y2 && (0 !== x3 || 1 / x3 === 1 / y2) || x3 !== x3 && y2 !== y2;
     }
     var objectIs = "function" === typeof Object.is ? Object.is : is2;
-    var useState10 = React13.useState;
-    var useEffect11 = React13.useEffect;
-    var useLayoutEffect4 = React13.useLayoutEffect;
-    var useDebugValue = React13.useDebugValue;
+    var useState11 = React14.useState;
+    var useEffect12 = React14.useEffect;
+    var useLayoutEffect4 = React14.useLayoutEffect;
+    var useDebugValue = React14.useDebugValue;
     function useSyncExternalStore$2(subscribe, getSnapshot) {
-      var value = getSnapshot(), _useState = useState10({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
+      var value = getSnapshot(), _useState = useState11({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
       useLayoutEffect4(
         function() {
           inst.value = value;
@@ -55964,7 +55964,7 @@ var require_use_sync_external_store_shim_production = __commonJS({
         },
         [subscribe, value, getSnapshot]
       );
-      useEffect11(
+      useEffect12(
         function() {
           checkIfSnapshotChanged(inst) && forceUpdate({ inst });
           return subscribe(function() {
@@ -55990,7 +55990,7 @@ var require_use_sync_external_store_shim_production = __commonJS({
       return getSnapshot();
     }
     var shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
-    exports.useSyncExternalStore = void 0 !== React13.useSyncExternalStore ? React13.useSyncExternalStore : shim;
+    exports.useSyncExternalStore = void 0 !== React14.useSyncExternalStore ? React14.useSyncExternalStore : shim;
   }
 });
 
@@ -56010,19 +56010,19 @@ var require_shim = __commonJS({
 var require_with_selector_production = __commonJS({
   "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim/with-selector.production.js"(exports) {
     "use strict";
-    var React13 = require_react();
+    var React14 = require_react();
     var shim = require_shim();
     function is2(x3, y2) {
       return x3 === y2 && (0 !== x3 || 1 / x3 === 1 / y2) || x3 !== x3 && y2 !== y2;
     }
     var objectIs = "function" === typeof Object.is ? Object.is : is2;
     var useSyncExternalStore = shim.useSyncExternalStore;
-    var useRef11 = React13.useRef;
-    var useEffect11 = React13.useEffect;
-    var useMemo12 = React13.useMemo;
-    var useDebugValue = React13.useDebugValue;
+    var useRef12 = React14.useRef;
+    var useEffect12 = React14.useEffect;
+    var useMemo12 = React14.useMemo;
+    var useDebugValue = React14.useDebugValue;
     exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-      var instRef = useRef11(null);
+      var instRef = useRef12(null);
       if (null === instRef.current) {
         var inst = { hasValue: false, value: null };
         instRef.current = inst;
@@ -56062,7 +56062,7 @@ var require_with_selector_production = __commonJS({
         [getSnapshot, getServerSnapshot, selector, isEqual]
       );
       var value = useSyncExternalStore(subscribe, instRef[0], instRef[1]);
-      useEffect11(
+      useEffect12(
         function() {
           inst.hasValue = true;
           inst.value = value;
@@ -63749,7 +63749,7 @@ var init_Html = __esm({
       React4.useLayoutEffect(() => {
         if (wrapperClass) el.className = wrapperClass;
       }, [wrapperClass]);
-      const styles = React4.useMemo(() => {
+      const styles2 = React4.useMemo(() => {
         if (transform) {
           return {
             position: "absolute",
@@ -63784,7 +63784,7 @@ var init_Html = __esm({
           var _root$current;
           (_root$current = root.current) == null || _root$current.render(/* @__PURE__ */ React4.createElement("div", {
             ref: transformOuterRef,
-            style: styles
+            style: styles2
           }, /* @__PURE__ */ React4.createElement("div", {
             ref: transformInnerRef,
             style: transformInnerStyles
@@ -63798,7 +63798,7 @@ var init_Html = __esm({
           var _root$current2;
           (_root$current2 = root.current) == null || _root$current2.render(/* @__PURE__ */ React4.createElement("div", {
             ref,
-            style: styles,
+            style: styles2,
             className,
             children
           }));
@@ -75096,7 +75096,7 @@ function stampTitle(baseColor, title, variant, tape) {
     }
     ctx.restore();
   }
-  if (isInfinite) {
+  if (isInfinite && !isMixtape) {
     const label = labels[0];
     ctx.save();
     ctx.translate(label.cx, label.cy);
@@ -75156,7 +75156,7 @@ function stampTitle(baseColor, title, variant, tape) {
     ctx.translate(label.cx, label.cy);
     ctx.rotate(Math.PI / 2);
     const stickerX = 0;
-    const stickerY = -240;
+    const stickerY = 280;
     const stickerW = 300;
     const stickerH = 110;
     const grad = ctx.createLinearGradient(stickerX - stickerW / 2, stickerY, stickerX + stickerW / 2, stickerY);
@@ -75399,13 +75399,15 @@ function SceneContents({
   menuId,
   onClearMenu,
   newTapeIds,
-  externalDrag
+  externalDrag,
+  lockedTapeId,
+  lockCamera
 }) {
   const { camera, gl, scene } = useThree();
-  const controlsRef = (0, import_react9.useRef)(null);
-  const drag = (0, import_react9.useMemo)(() => ({ tapeId: null, targetX: 0, targetZ: 0 }), []);
-  const bounceTapeId = (0, import_react9.useRef)(null);
-  const pointerState = (0, import_react9.useRef)({
+  const controlsRef = (0, import_react10.useRef)(null);
+  const drag = (0, import_react10.useMemo)(() => ({ tapeId: null, targetX: 0, targetZ: 0 }), []);
+  const bounceTapeId = (0, import_react10.useRef)(null);
+  const pointerState = (0, import_react10.useRef)({
     downTapeId: null,
     active: false,
     startX: 0,
@@ -75414,9 +75416,9 @@ function SceneContents({
     // offset from pointer to tape center
     offsetZ: 0
   });
-  const lastTapRef = (0, import_react9.useRef)({ time: 0, id: "" });
+  const lastTapRef = (0, import_react10.useRef)({ time: 0, id: "" });
   const tableTapes = tapes.filter((t3) => t3.id !== loadedTapeId);
-  const raycastToPlane = (0, import_react9.useCallback)((clientX, clientY, planeY) => {
+  const raycastToPlane = (0, import_react10.useCallback)((clientX, clientY, planeY) => {
     const rect = gl.domElement.getBoundingClientRect();
     const ndcX = (clientX - rect.left) / rect.width * 2 - 1;
     const ndcY = -((clientY - rect.top) / rect.height) * 2 + 1;
@@ -75426,7 +75428,7 @@ function SceneContents({
     const hit = new Vector3();
     return raycaster.ray.intersectPlane(plane, hit) ? hit : null;
   }, [camera, gl]);
-  const raycastTape = (0, import_react9.useCallback)((clientX, clientY) => {
+  const raycastTape = (0, import_react10.useCallback)((clientX, clientY) => {
     const hit = raycastToPlane(clientX, clientY, 0);
     if (!hit) return null;
     let bestId = null;
@@ -75449,7 +75451,7 @@ function SceneContents({
     });
     return bestId;
   }, [scene, raycastToPlane]);
-  const getTapeWorldPos = (0, import_react9.useCallback)((tapeId) => {
+  const getTapeWorldPos = (0, import_react10.useCallback)((tapeId) => {
     let result = null;
     scene.traverse((obj) => {
       if (obj.name === `tape-${tapeId}`) {
@@ -75460,7 +75462,7 @@ function SceneContents({
     });
     return result;
   }, [scene]);
-  const isDeckDrop = (0, import_react9.useCallback)((screenX, screenY) => {
+  const isDeckDrop = (0, import_react10.useCallback)((screenX, screenY) => {
     const deckEl = document.getElementById("tape-deck");
     if (!deckEl) return false;
     const r3 = deckEl.getBoundingClientRect();
@@ -75469,7 +75471,7 @@ function SceneContents({
     console.log("[TapeTable] deck drop check:", hit, "pointer:", screenX, screenY, "deck:", r3.left, r3.top, r3.right, r3.bottom);
     return hit;
   }, []);
-  (0, import_react9.useEffect)(() => {
+  (0, import_react10.useEffect)(() => {
     const el = gl.domElement;
     function onDown(ev) {
       const tapeId = raycastTape(ev.clientX, ev.clientY);
@@ -75478,6 +75480,7 @@ function SceneContents({
         onClearMenu();
         return;
       }
+      if (lockedTapeId && tapeId === lockedTapeId) return;
       const ps = pointerState.current;
       ps.downTapeId = tapeId;
       ps.active = false;
@@ -75548,8 +75551,8 @@ function SceneContents({
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
     };
-  }, [gl, drag, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, onDragStart, onDragEnd, onDoubleTap, onClearMenu]);
-  const extDragActive = (0, import_react9.useRef)(false);
+  }, [gl, drag, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId]);
+  const extDragActive = (0, import_react10.useRef)(false);
   useFrame(() => {
     if (!externalDrag || extDragActive.current) return;
     if (!externalDrag.tapeId) return;
@@ -75594,7 +75597,7 @@ function SceneContents({
     window.addEventListener("pointermove", onExtMove);
     window.addEventListener("pointerup", onExtUp);
   });
-  const zoomRestored = (0, import_react9.useRef)(false);
+  const zoomRestored = (0, import_react10.useRef)(false);
   if (!zoomRestored.current) {
     const saved = localStorage.getItem("jeem_table_zoom");
     if (saved) {
@@ -75603,7 +75606,7 @@ function SceneContents({
     }
     zoomRestored.current = true;
   }
-  const lastSavedZoom = (0, import_react9.useRef)(camera.position.y);
+  const lastSavedZoom = (0, import_react10.useRef)(camera.position.y);
   useFrame(() => {
     const c3 = controlsRef.current;
     if (!c3) return;
@@ -75621,9 +75624,20 @@ function SceneContents({
       localStorage.setItem("jeem_table_zoom", String(cam.position.y));
     }
   });
-  return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(import_jsx_runtime7.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("ambientLight", { intensity: 0.9, color: "#fffaf6" }),
-    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+  (0, import_react10.useEffect)(() => {
+    function handleCentre() {
+      camera.position.set(0, 35, 3);
+      if (controlsRef.current) {
+        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.update();
+      }
+    }
+    window.addEventListener("jeem-centre-camera", handleCentre);
+    return () => window.removeEventListener("jeem-centre-camera", handleCentre);
+  }, [camera]);
+  return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(import_jsx_runtime8.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("ambientLight", { intensity: 0.9, color: "#fffaf6" }),
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
       "directionalLight",
       {
         position: [8, 30, -6],
@@ -75642,10 +75656,10 @@ function SceneContents({
         "shadow-radius": 2
       }
     ),
-    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("pointLight", { position: [-8, 6, -4], intensity: 0.4, color: "#ffe8d6" }),
-    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react9.Suspense, { fallback: null, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(Physics, { gravity: [0, -400, 0], timeStep: 1 / 60, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(TableSurface, {}),
-      tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("pointLight", { position: [-8, 6, -4], intensity: 0.4, color: "#ffe8d6" }),
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(import_react10.Suspense, { fallback: null, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(Physics, { gravity: [0, -400, 0], timeStep: 1 / 60, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(TableSurface, {}),
+      tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
         TapeBody,
         {
           tape,
@@ -75658,13 +75672,13 @@ function SceneContents({
         tape.id
       ))
     ] }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
       MapControls2,
       {
         ref: controlsRef,
         enableRotate: false,
-        enablePan: true,
-        enableZoom: true,
+        enablePan: !lockedTapeId && !lockCamera,
+        enableZoom: !lockedTapeId && !lockCamera,
         minDistance: 35,
         maxDistance: 45,
         panSpeed: 1.5,
@@ -75676,15 +75690,15 @@ function SceneContents({
   ] });
 }
 function TapesTable3D(props) {
-  return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: { flex: 1, position: "relative" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: {
+  return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: { flex: 1, position: "relative" }, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: {
       position: "absolute",
       inset: 0,
       pointerEvents: "none",
       zIndex: 2,
       background: "radial-gradient(circle, transparent 50%, rgba(0,0,0,0.5) 120%)"
     } }),
-    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
       Canvas,
       {
         shadows: true,
@@ -75702,16 +75716,16 @@ function TapesTable3D(props) {
             console.log("[TapeTable] WebGL context restored");
           });
         },
-        children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(SceneContents, { ...props })
+        children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(SceneContents, { ...props })
       }
     )
   ] });
 }
-var import_react9, import_jsx_runtime7;
+var import_react10, import_jsx_runtime8;
 var init_TapesTable3D = __esm({
   "src/tapes/TapesTable3D.tsx"() {
     "use strict";
-    import_react9 = __toESM(require_react(), 1);
+    import_react10 = __toESM(require_react(), 1);
     init_react_three_fiber_esm();
     init_drei();
     init_react_three_rapier_esm();
@@ -75719,7 +75733,7 @@ var init_TapesTable3D = __esm({
     init_TableSurface();
     init_TapeBody();
     init_coords();
-    import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -75727,7 +75741,7 @@ var init_TapesTable3D = __esm({
 var import_client = __toESM(require_client(), 1);
 
 // src/tapes/TapesTable.tsx
-var import_react10 = __toESM(require_react(), 1);
+var import_react11 = __toESM(require_react(), 1);
 var import_react_dom = __toESM(require_react_dom(), 1);
 
 // src/tapes/types.ts
@@ -76186,9 +76200,376 @@ function DeckTape3D({ tape, playing, loading: loading2 }) {
   ] });
 }
 
+// src/mixtape/Creator.tsx
+var import_react9 = __toESM(require_react(), 1);
+init_TapeBody();
+var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
+function makeMixtapeTape(name, tracks) {
+  return {
+    id: "__jeem_mixtape__",
+    videoId: tracks[0]?.videoId || "",
+    isPlaylist: false,
+    isInfinite: true,
+    title: name || "Mixtape",
+    author: "mixtape",
+    tapeStyle: 0,
+    textureVariant: "a",
+    progress: 0,
+    timestamp: Date.now(),
+    x: 0,
+    y: 0,
+    angle: 0,
+    infiniteHistory: tracks.map((t3) => ({ videoId: t3.videoId, title: t3.title, author: t3.author })),
+    infiniteIndex: 0,
+    infiniteConfig: { source: "youtube", type: "artist", value: name }
+  };
+}
+function MixtapeCreator({ onBack, onPlay }) {
+  const [url, setUrl] = (0, import_react9.useState)("");
+  const [keywords, setKeywords] = (0, import_react9.useState)("");
+  const [loading2, setLoading] = (0, import_react9.useState)(false);
+  const [error2, setError] = (0, import_react9.useState)("");
+  const [name, setName] = (0, import_react9.useState)("");
+  const [tracks, setTracks] = (0, import_react9.useState)([]);
+  const [seedTitle, setSeedTitle] = (0, import_react9.useState)("");
+  const handleGenerate = (0, import_react9.useCallback)(async () => {
+    if (!url.trim() && !keywords.trim()) {
+      setError("Enter a YouTube URL or some keywords");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/mixtape/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: url.trim(), keywords: keywords.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Generation failed");
+      setTracks(data.tracks || []);
+      setSeedTitle(data.seedTitle || "Mixtape");
+    } catch (e3) {
+      setError(e3.message || "Failed to generate mixtape");
+    } finally {
+      setLoading(false);
+    }
+  }, [url, keywords]);
+  const canSave = name.trim().length > 0;
+  const handleSave = (0, import_react9.useCallback)(() => {
+    if (!name.trim()) return;
+    const tape = { name: name.trim(), description: "", tracks };
+    onPlay(tape);
+  }, [name, tracks, onPlay]);
+  const handleRegenerate = (0, import_react9.useCallback)(() => {
+    setTracks([]);
+    setName("");
+    setError("");
+  }, []);
+  const mixtapeTape = makeMixtapeTape(name || seedTitle || "Mixtape", tracks);
+  return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.overlay, children: [
+    !tracks.length && /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.inputModal, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: styles.modalSubtitle, children: "Enter a YouTube URL or keywords to generate a 16-track mixtape" }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.inputGroup, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+          "input",
+          {
+            style: styles.input,
+            type: "text",
+            placeholder: "YouTube URL",
+            value: url,
+            onChange: (e3) => setUrl(e3.target.value),
+            onKeyDown: (e3) => e3.key === "Enter" && handleGenerate(),
+            disabled: loading2
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { style: styles.or, children: "or" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+          "input",
+          {
+            style: styles.input,
+            type: "text",
+            placeholder: "Keywords (e.g. 80s synthwave)",
+            value: keywords,
+            onChange: (e3) => setKeywords(e3.target.value),
+            onKeyDown: (e3) => e3.key === "Enter" && handleGenerate(),
+            disabled: loading2
+          }
+        )
+      ] }),
+      error2 && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: styles.error, children: error2 }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        "button",
+        {
+          style: { ...styles.generateBtn, ...loading2 ? styles.generateBtnDisabled : {} },
+          onClick: handleGenerate,
+          disabled: loading2,
+          children: loading2 ? "Generating..." : "Generate Mixtape"
+        }
+      )
+    ] }),
+    tracks.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: styles.creator, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.trackSide, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        "input",
+        {
+          style: styles.nameInput,
+          type: "text",
+          placeholder: "Mixtape name...",
+          value: name,
+          onChange: (e3) => setName(e3.target.value),
+          onKeyDown: (e3) => e3.key === "Enter" && canSave && handleSave(),
+          maxLength: 60
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("p", { style: styles.trackCount, children: [
+        tracks.length,
+        ' tracks \u2014 generated from "',
+        seedTitle,
+        '"'
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: styles.trackList, children: tracks.map((track, i4) => /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.trackRow, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("span", { style: styles.trackNum, children: [
+          String(i4 + 1).padStart(2, "0"),
+          "."
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { style: styles.trackTitle, children: track.title || "Untitled" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { style: styles.trackAuthor, children: track.author }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { style: styles.trackDuration, children: track.durationText || "" })
+      ] }, i4)) }),
+      error2 && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: styles.error, children: error2 }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.actions, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { style: styles.regenerateBtn, onClick: handleRegenerate, disabled: loading2, children: "\u2190 Back" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+          "button",
+          {
+            style: { ...styles.saveBtn, ...loading2 || !canSave ? styles.saveBtnDisabled : {} },
+            onClick: handleSave,
+            disabled: loading2 || !canSave,
+            children: loading2 ? "Saving..." : !canSave ? "Name required" : "Save"
+          }
+        )
+      ] })
+    ] }) })
+  ] });
+}
+var MIXTAPE_PANEL_STYLES = {
+  // Position: fixed to right side, shifted left so tape is visible
+  position: "fixed",
+  top: 130,
+  right: 110,
+  width: 590,
+  maxHeight: "calc(100vh - 120px)",
+  fontFamily: "'04b03', monospace",
+  fontSize: "1em",
+  color: "#e8d5b0",
+  background: "transparent",
+  pointerEvents: "auto",
+  zIndex: 200,
+  display: "flex",
+  flexDirection: "column",
+  overflow: "hidden",
+  border: "1px solid rgba(201,168,76,0.2)",
+  borderRadius: 12
+};
+var MIXTAPE_TRACK_ROW = {
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+  padding: "6px 4px",
+  borderBottom: "1px solid rgba(255,255,255,0.04)",
+  fontSize: "1em",
+  fontFamily: "'04b03', monospace"
+};
+var MIXTAPE_TRACK_NUM = {
+  fontFamily: "'04b03', monospace",
+  color: "rgba(201,168,76,0.5)",
+  width: 30,
+  flexShrink: 0,
+  textAlign: "right",
+  fontSize: "1em"
+};
+var MIXTAPE_TRACK_TITLE = {
+  fontFamily: "'04b03', monospace",
+  flex: 1,
+  color: "#e8d5b0",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  minWidth: 0,
+  fontSize: "1em"
+};
+var MIXTAPE_TRACK_AUTHOR = {
+  fontFamily: "'04b03', monospace",
+  color: "rgba(232,213,176,0.45)",
+  flexShrink: 0,
+  width: 140,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  fontSize: "1em"
+};
+var MIXTAPE_TRACK_DURATION = {
+  fontFamily: "'04b03', monospace",
+  color: "rgba(201,168,76,0.4)",
+  flexShrink: 0,
+  width: 50,
+  textAlign: "right",
+  fontSize: "1em"
+};
+var MIXTAPE_TRACK_LIST = {
+  flex: 1,
+  overflowY: "auto",
+  background: "transparent",
+  borderRadius: 6,
+  padding: "10px 14px",
+  minHeight: 0
+};
+var styles = {
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 200,
+    background: "transparent",
+    pointerEvents: "none"
+  },
+  inputModal: {
+    ...MIXTAPE_PANEL_STYLES,
+    top: "50%",
+    transform: "translateY(-50%)",
+    maxHeight: void 0,
+    padding: "32px 40px",
+    gap: 16,
+    alignItems: "center"
+  },
+  modalSubtitle: {
+    fontFamily: "'04b03', monospace",
+    fontSize: "1em",
+    color: "rgba(232,213,176,0.55)",
+    textAlign: "center",
+    margin: 0
+  },
+  inputGroup: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: 10
+  },
+  input: {
+    width: "100%",
+    padding: "10px 14px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(201,168,76,0.3)",
+    borderRadius: 6,
+    color: "#e8d5b0",
+    fontSize: "1em",
+    fontFamily: "'04b03', monospace",
+    outline: "none",
+    boxSizing: "border-box"
+  },
+  or: {
+    textAlign: "center",
+    color: "rgba(201,168,76,0.4)",
+    fontSize: "1em",
+    fontFamily: "'04b03', monospace"
+  },
+  error: {
+    fontFamily: "'04b03', monospace",
+    color: "#ff6b6b",
+    fontSize: "1em",
+    margin: 0
+  },
+  generateBtn: {
+    padding: "10px 28px",
+    background: "linear-gradient(135deg, #8a5a20, #c9a84c)",
+    border: "none",
+    borderRadius: 6,
+    color: "#0a0805",
+    fontFamily: "'04b03', monospace",
+    fontSize: "1em",
+    letterSpacing: 1,
+    cursor: "pointer"
+  },
+  generateBtnDisabled: {
+    opacity: 0.6,
+    cursor: "not-allowed"
+  },
+  creator: {
+    ...MIXTAPE_PANEL_STYLES
+  },
+  trackSide: {
+    flex: 1,
+    padding: "24px 24px 20px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 0,
+    overflow: "hidden",
+    minWidth: 0,
+    background: "transparent"
+  },
+  nameInput: {
+    padding: "10px 14px",
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(201,168,76,0.4)",
+    borderRadius: 6,
+    color: "#e8d5b0",
+    fontSize: "1em",
+    fontFamily: "'04b03', monospace",
+    letterSpacing: 0.5,
+    outline: "none",
+    width: "100%",
+    boxSizing: "border-box",
+    marginBottom: 12
+  },
+  trackCount: {
+    fontFamily: "'04b03', monospace",
+    fontSize: "1em",
+    color: "rgba(201,168,76,0.4)",
+    margin: "0 0 8px",
+    letterSpacing: "0.05em"
+  },
+  trackList: MIXTAPE_TRACK_LIST,
+  trackRow: MIXTAPE_TRACK_ROW,
+  trackNum: MIXTAPE_TRACK_NUM,
+  trackTitle: MIXTAPE_TRACK_TITLE,
+  trackAuthor: MIXTAPE_TRACK_AUTHOR,
+  trackDuration: MIXTAPE_TRACK_DURATION,
+  actions: {
+    display: "flex",
+    gap: 10,
+    justifyContent: "space-between",
+    marginTop: 14
+  },
+  regenerateBtn: {
+    padding: "10px 20px",
+    background: "transparent",
+    border: "1px solid rgba(201,168,76,0.4)",
+    borderRadius: 6,
+    color: "#c9a84c",
+    fontFamily: "'04b03', monospace",
+    fontSize: "1em",
+    cursor: "pointer"
+  },
+  saveBtn: {
+    padding: "10px 28px",
+    background: "linear-gradient(135deg, #8a5a20, #c9a84c)",
+    border: "none",
+    borderRadius: 6,
+    color: "#0a0805",
+    fontFamily: "'04b03', monospace",
+    fontSize: "1em",
+    letterSpacing: 1,
+    cursor: "pointer",
+    flex: 1
+  },
+  saveBtnDisabled: {
+    opacity: 0.6,
+    cursor: "not-allowed"
+  }
+};
+
 // src/tapes/TapesTable.tsx
-var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
-var TapesTable3D2 = (0, import_react10.lazy)(() => Promise.resolve().then(() => (init_TapesTable3D(), TapesTable3D_exports)).then((m3) => ({ default: m3.TapesTable3D })));
+var import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
+var TapesTable3D2 = (0, import_react11.lazy)(() => Promise.resolve().then(() => (init_TapesTable3D(), TapesTable3D_exports)).then((m3) => ({ default: m3.TapesTable3D })));
 var TEXTURE_VARIANTS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
 var nextVariantIndex = 0;
 function nextTextureVariant() {
@@ -76391,17 +76772,38 @@ async function fetchInfiniteTracks(config, page = 1) {
   }
 }
 function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
-  el.style.cssText = "position:fixed;top:0;right:0;bottom:0;width:260px;padding:16px 14px;z-index:10000;pointer-events:none;display:flex;flex-direction:column;overflow:hidden;";
+  Object.assign(el.style, {
+    position: "fixed",
+    top: "160px",
+    right: "110px",
+    width: "590px",
+    maxHeight: "calc(100vh - 120px)",
+    fontFamily: "'04b03', monospace",
+    fontSize: "1em",
+    color: "#e8d5b0",
+    background: "transparent",
+    pointerEvents: "auto",
+    zIndex: "200",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    border: "1px solid rgba(201,168,76,0.2)",
+    borderRadius: "12px",
+    padding: "24px 24px 20px"
+  });
   el.innerHTML = `
-    <div style="font-family:'04b03',monospace;font-size:11px;color:rgba(201,168,76,0.5);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;padding-top:4px;">
+    <div style="font-family:'04b03',monospace;font-size:1em;color:rgba(201,168,76,0.5);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
       ${mixtape.name}
     </div>
-    <div style="flex:1;overflow-y:auto;pointer-events:auto;scrollbar-width:thin;scrollbar-color:rgba(201,168,76,0.3) transparent;">
+    <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(201,168,76,0.3) transparent;padding:10px 14px;">
       ${mixtape.tracks.map((track, i4) => `
         <div data-idx="${i4}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
-          style="font-family:'04b03',monospace;font-size:13px;color:${i4 === currentIndex ? "#c9a84c" : "rgba(201,168,76,0.4)"};letter-spacing:0.5px;white-space:nowrap;cursor:pointer;padding:6px 4px;border-radius:3px;background:${i4 === currentIndex ? "rgba(201,168,76,0.08)" : "transparent"};margin-bottom:3px;transition:color 0.15s;overflow:hidden;text-overflow:ellipsis;text-align:right;"
+          style="display:flex;align-items:center;gap:8px;font-family:'04b03',monospace;font-size:1em;color:${i4 === currentIndex ? "#c9a84c" : "rgba(201,168,76,0.4)"};cursor:pointer;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.04);border-radius:3px;background:${i4 === currentIndex ? "rgba(201,168,76,0.08)" : "transparent"};transition:color 0.15s;"
           title="${track.title} \u2014 ${track.author}">
-          ${String(i4 + 1).padStart(2, "0")}. ${track.title}
+          <span style="color:rgba(201,168,76,0.5);width:30px;flex-shrink:0;text-align:right;font-size:1em;">${String(i4 + 1).padStart(2, "0")}.</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:1em;">${track.title}</span>
+          <span style="color:rgba(232,213,176,0.45);flex-shrink:0;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:1em;">${track.author}</span>
+          <span style="color:rgba(201,168,76,0.4);flex-shrink:0;width:50px;text-align:right;font-size:1em;">${track.durationText || ""}</span>
         </div>
       `).join("")}
     </div>
@@ -76421,52 +76823,110 @@ function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
   });
 }
 function TapesTable({ mixtape }) {
-  const [tapes, setTapes] = (0, import_react10.useState)([]);
-  const [mounted, setMounted] = (0, import_react10.useState)(false);
-  const [menuId, setMenuId] = (0, import_react10.useState)(null);
-  const [dragId, setDragId] = (0, import_react10.useState)(null);
-  const [dragPos, setDragPos] = (0, import_react10.useState)(null);
-  const [dragScreenPos, setDragScreenPos] = (0, import_react10.useState)(null);
-  const [dragOver, setDragOver] = (0, import_react10.useState)(false);
-  const [zOrder2, setZOrder] = (0, import_react10.useState)([]);
-  const [rewindingId, setRewindingId] = (0, import_react10.useState)(null);
-  const [landingId, setLandingId] = (0, import_react10.useState)(null);
-  const [show3D, setShow3D] = (0, import_react10.useState)(true);
-  const externalDrag = (0, import_react10.useRef)({ tapeId: null, targetX: 0, targetZ: 0 });
-  const [isPanning, setIsPanning] = (0, import_react10.useState)(false);
-  const [loadedTape, setLoadedTape] = (0, import_react10.useState)(null);
-  const [deckEjecting, setDeckEjecting] = (0, import_react10.useState)(false);
-  const [isPlaying, setIsPlaying] = (0, import_react10.useState)(false);
-  const [infiniteLoading, setInfiniteLoading] = (0, import_react10.useState)(false);
-  const [currentVideoId, setCurrentVideoId] = (0, import_react10.useState)(null);
-  const [username, setUsername] = (0, import_react10.useState)(() => localStorage.getItem("jeem_username") || null);
-  const [usernameInput, setUsernameInput] = (0, import_react10.useState)("");
-  const [usernameError, setUsernameError] = (0, import_react10.useState)("");
-  const [usernameLoading, setUsernameLoading] = (0, import_react10.useState)(false);
-  const ownerId = (0, import_react10.useRef)(getOwnerId()).current;
-  const tableRef = (0, import_react10.useRef)(null);
-  const playerZoneRef = (0, import_react10.useRef)(null);
+  const [tapes, setTapes] = (0, import_react11.useState)([]);
+  const [mounted, setMounted] = (0, import_react11.useState)(false);
+  const [menuId, setMenuId] = (0, import_react11.useState)(null);
+  const [dragId, setDragId] = (0, import_react11.useState)(null);
+  const [dragPos, setDragPos] = (0, import_react11.useState)(null);
+  const [dragScreenPos, setDragScreenPos] = (0, import_react11.useState)(null);
+  const [dragOver, setDragOver] = (0, import_react11.useState)(false);
+  const [zOrder2, setZOrder] = (0, import_react11.useState)([]);
+  const [rewindingId, setRewindingId] = (0, import_react11.useState)(null);
+  const [landingId, setLandingId] = (0, import_react11.useState)(null);
+  const [show3D, setShow3D] = (0, import_react11.useState)(true);
+  const externalDrag = (0, import_react11.useRef)({ tapeId: null, targetX: 0, targetZ: 0 });
+  const [isPanning, setIsPanning] = (0, import_react11.useState)(false);
+  const [loadedTape, setLoadedTape] = (0, import_react11.useState)(null);
+  const [deckEjecting, setDeckEjecting] = (0, import_react11.useState)(false);
+  const [isPlaying, setIsPlaying] = (0, import_react11.useState)(false);
+  const [infiniteLoading, setInfiniteLoading] = (0, import_react11.useState)(false);
+  const [currentVideoId, setCurrentVideoId] = (0, import_react11.useState)(null);
+  const [username, setUsername] = (0, import_react11.useState)(() => localStorage.getItem("jeem_username") || null);
+  const [usernameInput, setUsernameInput] = (0, import_react11.useState)("");
+  const [usernameError, setUsernameError] = (0, import_react11.useState)("");
+  const [usernameLoading, setUsernameLoading] = (0, import_react11.useState)(false);
+  const ownerId = (0, import_react11.useRef)(getOwnerId()).current;
+  const tableRef = (0, import_react11.useRef)(null);
+  const playerZoneRef = (0, import_react11.useRef)(null);
   const deckPortal = typeof document !== "undefined" ? document.getElementById("tape-deck") : null;
   const MIXTAPE_ID = "__jeem_mixtape__";
-  const [mixtapeTapeId] = (0, import_react10.useState)(MIXTAPE_ID);
-  const mixtapeLoadedRef = (0, import_react10.useRef)(false);
-  const tapesRef = (0, import_react10.useRef)(tapes);
+  const [mixtapeTapeId] = (0, import_react11.useState)(MIXTAPE_ID);
+  const mixtapeLoadedRef = (0, import_react11.useRef)(false);
+  const [showMixtapeCreator, setShowMixtapeCreator] = (0, import_react11.useState)(false);
+  const [mixtapeData, setMixtapeData] = (0, import_react11.useState)(mixtape ?? null);
+  const [view, setView] = (0, import_react11.useState)("table");
+  const [playerTapeId, setPlayerTapeId] = (0, import_react11.useState)(null);
+  const tapesRef = (0, import_react11.useRef)(tapes);
   tapesRef.current = tapes;
-  const loadedRef = (0, import_react10.useRef)(loadedTape);
+  const loadedRef = (0, import_react11.useRef)(loadedTape);
   loadedRef.current = loadedTape;
-  const autoEjectRef = (0, import_react10.useRef)(() => {
+  const autoEjectRef = (0, import_react11.useRef)(() => {
   });
-  const infinitePageRef = (0, import_react10.useRef)(1);
-  const infiniteFetchingRef = (0, import_react10.useRef)(false);
-  const lastTapRef = (0, import_react10.useRef)({ time: 0, id: "" });
-  const isDoubleTap = (0, import_react10.useCallback)((id) => {
+  const infinitePageRef = (0, import_react11.useRef)(1);
+  const infiniteFetchingRef = (0, import_react11.useRef)(false);
+  const enterPlayerView = (0, import_react11.useCallback)((tapeId) => {
+    setPlayerTapeId(tapeId);
+    setView("player");
+    setMenuId(null);
+    const startForm = document.getElementById("start-form");
+    if (startForm) startForm.style.display = "none";
+    const deckEl = document.getElementById("tape-deck");
+    if (deckEl) deckEl.style.display = "";
+    requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("jeem-centre-camera")));
+  }, []);
+  const exitPlayerView = (0, import_react11.useCallback)(() => {
+    setView("table");
+    setPlayerTapeId(null);
+    setLoadedTape(null);
+    setIsPlaying(false);
+    if (window.myApp) {
+      try {
+        window.myApp.player.pause();
+      } catch {
+      }
+      const songEl = document.getElementById("song-container");
+      const titleEl = document.getElementById("title-container");
+      const padEl = document.getElementById("padinfo");
+      if (songEl) songEl.style.display = "none";
+      if (titleEl) titleEl.style.display = "none";
+      if (padEl) padEl.style.display = "none";
+      if (window.AppState) {
+        window.AppState.playing = false;
+        window.AppState.starting = true;
+        window.AppState.infiniteTape = false;
+      }
+    }
+    const deckEl = document.getElementById("tape-deck");
+    if (deckEl) deckEl.style.display = "none";
+    const startForm = document.getElementById("start-form");
+    if (startForm) startForm.style.display = "";
+    const startEl = document.getElementById("start-container");
+    if (startEl) startEl.style.display = "flex";
+    if (window.switchBgType) window.switchBgType(5);
+  }, []);
+  (0, import_react11.useEffect)(() => {
+    function handleLogoClick(e3) {
+      if (view !== "player") return;
+      e3.preventDefault();
+      exitPlayerView();
+    }
+    const logos = document.querySelectorAll(".start-title a, .title a");
+    logos.forEach((el) => el.addEventListener("click", handleLogoClick));
+    return () => logos.forEach((el) => el.removeEventListener("click", handleLogoClick));
+  }, [view, exitPlayerView]);
+  (0, import_react11.useEffect)(() => {
+    const deckEl = document.getElementById("tape-deck");
+    if (deckEl) deckEl.style.display = view === "table" ? "none" : "";
+  }, [view]);
+  const lastTapRef = (0, import_react11.useRef)({ time: 0, id: "" });
+  const isDoubleTap = (0, import_react11.useCallback)((id) => {
     const now = Date.now();
     const last = lastTapRef.current;
     const isDbl = last.id === id && now - last.time < 400;
     lastTapRef.current = { time: now, id };
     return isDbl;
   }, []);
-  (0, import_react10.useEffect)(() => {
+  (0, import_react11.useEffect)(() => {
     let loaded = [];
     if (currentUsername) {
       loaded = loadTapesLocal();
@@ -76549,7 +77009,7 @@ function TapesTable({ mixtape }) {
     const interval = setInterval(pollSync, 2e3);
     return () => clearInterval(interval);
   }, []);
-  (0, import_react10.useEffect)(() => {
+  (0, import_react11.useEffect)(() => {
     if (mounted && currentUsername) {
       try {
         localStorage.setItem(getStorageKey(), JSON.stringify(tapes));
@@ -76557,7 +77017,7 @@ function TapesTable({ mixtape }) {
       }
     }
   }, [tapes, mounted]);
-  (0, import_react10.useEffect)(() => {
+  (0, import_react11.useEffect)(() => {
     window.TapesBridge = {
       onTapePlay: () => {
       },
@@ -76706,7 +77166,7 @@ function TapesTable({ mixtape }) {
       delete window.TapesBridge;
     };
   }, []);
-  (0, import_react10.useEffect)(() => {
+  (0, import_react11.useEffect)(() => {
     if (!mixtape || mixtapeLoadedRef.current) return;
     mixtapeLoadedRef.current = true;
     const tracks = mixtape.tracks.map((t3) => ({
@@ -76742,14 +77202,48 @@ function TapesTable({ mixtape }) {
     const padinfo = document.getElementById("padinfo");
     if (padinfo) padinfo.style.display = "none";
   }, [mixtape]);
-  (0, import_react10.useEffect)(() => {
+  (0, import_react11.useEffect)(() => {
     if (!mixtape) return;
     if (loadedTape?.id !== MIXTAPE_ID) {
       const padinfo = document.getElementById("padinfo");
       if (padinfo) padinfo.style.display = "";
     }
   }, [loadedTape, mixtape]);
-  const playVideoById = (0, import_react10.useCallback)((videoId, title, author, seekProgress = 0) => {
+  (0, import_react11.useEffect)(() => {
+    function handleCreateMixtape() {
+      const startForm = document.getElementById("start-form");
+      if (startForm) startForm.style.display = "none";
+      const blankTape = {
+        id: MIXTAPE_ID,
+        videoId: "",
+        isPlaylist: false,
+        isInfinite: true,
+        infiniteConfig: { source: "youtube", type: "artist", value: "Mixtape" },
+        infiniteHistory: [],
+        infiniteIndex: 0,
+        title: "",
+        author: "",
+        tapeStyle: 0,
+        textureVariant: "a",
+        progress: 0,
+        timestamp: Date.now(),
+        x: CANVAS_W2 / 2,
+        y: CANVAS_H2 / 2,
+        angle: 0
+      };
+      setTapes((prev) => [...prev.filter((t3) => t3.id !== MIXTAPE_ID), blankTape]);
+      setZOrder((prev) => [...prev.filter((id) => id !== MIXTAPE_ID), MIXTAPE_ID]);
+      setShowMixtapeCreator(true);
+      setPlayerTapeId(MIXTAPE_ID);
+      setView("player");
+      const deckEl = document.getElementById("tape-deck");
+      if (deckEl) deckEl.style.display = "none";
+      requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("jeem-centre-camera")));
+    }
+    window.addEventListener("jeem-create-mixtape", handleCreateMixtape);
+    return () => window.removeEventListener("jeem-create-mixtape", handleCreateMixtape);
+  }, []);
+  const playVideoById = (0, import_react11.useCallback)((videoId, title, author, seekProgress = 0) => {
     if (!window.myApp || !window.AppState) return;
     const AppState = window.AppState;
     AppState.starting = true;
@@ -76774,7 +77268,7 @@ function TapesTable({ mixtape }) {
       if (padinfo) padinfo.style.display = "none";
     }
   }, []);
-  const loadNextInfiniteTrack = (0, import_react10.useCallback)(async () => {
+  const loadNextInfiniteTrack = (0, import_react11.useCallback)(async () => {
     const tape = loadedRef.current;
     if (!tape?.isInfinite || !tape.infiniteConfig || infiniteFetchingRef.current) return;
     const history = tape.infiniteHistory || [];
@@ -76815,7 +77309,7 @@ function TapesTable({ mixtape }) {
     scheduleRemoteSave();
     playVideoById(track.videoId, track.title, track.author);
   }, [playVideoById]);
-  const loadPrevInfiniteTrack = (0, import_react10.useCallback)(() => {
+  const loadPrevInfiniteTrack = (0, import_react11.useCallback)(() => {
     const tape = loadedRef.current;
     if (!tape?.isInfinite) return;
     const history = tape.infiniteHistory || [];
@@ -76829,12 +77323,12 @@ function TapesTable({ mixtape }) {
     scheduleRemoteSave();
     playVideoById(track.videoId, track.title, track.author);
   }, [playVideoById]);
-  const loadNextRef = (0, import_react10.useRef)(loadNextInfiniteTrack);
+  const loadNextRef = (0, import_react11.useRef)(loadNextInfiniteTrack);
   loadNextRef.current = loadNextInfiniteTrack;
-  const loadPrevRef = (0, import_react10.useRef)(loadPrevInfiniteTrack);
+  const loadPrevRef = (0, import_react11.useRef)(loadPrevInfiniteTrack);
   loadPrevRef.current = loadPrevInfiniteTrack;
-  const loadIntoPlayerRef = (0, import_react10.useRef)(null);
-  const loadIntoPlayer = (0, import_react10.useCallback)((tape) => {
+  const loadIntoPlayerRef = (0, import_react11.useRef)(null);
+  const loadIntoPlayer = (0, import_react11.useCallback)((tape) => {
     setLoadedTape(tape);
     playTapeInsert();
     setTimeout(playTapeWhirr, 200);
@@ -76883,7 +77377,7 @@ function TapesTable({ mixtape }) {
     }
   }, [playVideoById]);
   loadIntoPlayerRef.current = loadIntoPlayer;
-  const deleteTape = (0, import_react10.useCallback)((id) => {
+  const deleteTape = (0, import_react11.useCallback)((id) => {
     markDeleted(id);
     setTapes((prev) => prev.filter((t3) => t3.id !== id));
     scheduleRemoteSave();
@@ -76894,7 +77388,7 @@ function TapesTable({ mixtape }) {
     });
     setMenuId(null);
   }, []);
-  const rewindTape = (0, import_react10.useCallback)((id) => {
+  const rewindTape = (0, import_react11.useCallback)((id) => {
     locallyDirtyIds.add(id);
     setTapes((prev) => prev.map((t3) => t3.id === id ? { ...t3, progress: 0 } : t3));
     scheduleRemoteSave();
@@ -76902,7 +77396,7 @@ function TapesTable({ mixtape }) {
     setTimeout(() => setRewindingId(null), 400);
     setMenuId(null);
   }, []);
-  const autoEject = (0, import_react10.useCallback)(() => {
+  const autoEject = (0, import_react11.useCallback)(() => {
     const tape = loadedRef.current;
     if (!tape) return;
     locallyDirtyIds.add(tape.id);
@@ -76932,9 +77426,10 @@ function TapesTable({ mixtape }) {
       }
     }
     if (window.switchBgType) window.switchBgType(5);
-  }, []);
+    exitPlayerView();
+  }, [exitPlayerView]);
   autoEjectRef.current = autoEject;
-  const handleLogin = (0, import_react10.useCallback)(async (name) => {
+  const handleLogin = (0, import_react11.useCallback)(async (name) => {
     const normalized = name.toLowerCase().trim();
     if (!/^[a-z0-9-]{3,20}$/.test(normalized)) {
       setUsernameError("3-20 chars, a-z 0-9 -");
@@ -76998,42 +77493,43 @@ function TapesTable({ mixtape }) {
     }
     setUsernameLoading(false);
   }, []);
-  const handleLogout = (0, import_react10.useCallback)(() => {
+  const handleLogout = (0, import_react11.useCallback)(() => {
     localStorage.removeItem(getStorageKey());
     localStorage.removeItem("jeem_tapes");
     currentUsername = null;
     localStorage.removeItem("jeem_username");
     window.location.reload();
   }, []);
-  const cancelMenu = (0, import_react10.useCallback)(() => {
+  const cancelMenu = (0, import_react11.useCallback)(() => {
     setMenuId(null);
   }, []);
-  const [dragging3D, setDragging3D] = (0, import_react10.useState)(false);
-  const handle3DDragStart = (0, import_react10.useCallback)(() => {
+  const [dragging3D, setDragging3D] = (0, import_react11.useState)(false);
+  const handle3DDragStart = (0, import_react11.useCallback)(() => {
     cancelMenu();
     setDragging3D(true);
   }, [cancelMenu]);
-  const handle3DDragEnd = (0, import_react10.useCallback)((tapeId, x2d, y2d, droppedOnDeck) => {
+  const handle3DDragEnd = (0, import_react11.useCallback)((tapeId, x2d, y2d, droppedOnDeck) => {
     setDragging3D(false);
-    if (droppedOnDeck) {
+    if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
+    if (droppedOnDeck && view === "player") {
       const t3 = tapesRef.current.find((t4) => t4.id === tapeId);
       if (t3) loadIntoPlayer(t3);
-    } else {
+    } else if (!droppedOnDeck && view === "table") {
       locallyDirtyIds.add(tapeId);
       setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, x: x2d, y: y2d } : t3));
       scheduleRemoteSave();
     }
-  }, [loadIntoPlayer]);
-  const handle3DDoubleTap = (0, import_react10.useCallback)((tapeId) => {
-    setMenuId((prev) => prev === tapeId ? null : tapeId);
+  }, [loadIntoPlayer, showMixtapeCreator, view]);
+  const handle3DDoubleTap = (0, import_react11.useCallback)((tapeId) => {
+    if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
+    if (view === "table") {
+      enterPlayerView(tapeId);
+    }
+  }, [showMixtapeCreator, view, enterPlayerView]);
+  const handle3DMenuAction = (0, import_react11.useCallback)((_tapeId, _action) => {
   }, []);
-  const handle3DMenuAction = (0, import_react10.useCallback)((tapeId, action) => {
-    if (action === "remove") deleteTape(tapeId);
-    else if (action === "rewind") rewindTape(tapeId);
-    setMenuId(null);
-  }, [deleteTape, rewindTape]);
-  const [newTapeIds, setNewTapeIds] = (0, import_react10.useState)(() => /* @__PURE__ */ new Set());
-  const startDrag = (0, import_react10.useCallback)((e3, tape) => {
+  const [newTapeIds, setNewTapeIds] = (0, import_react11.useState)(() => /* @__PURE__ */ new Set());
+  const startDrag = (0, import_react11.useCallback)((e3, tape) => {
     e3.preventDefault();
     e3.stopPropagation();
     cancelMenu();
@@ -77094,7 +77590,7 @@ function TapesTable({ mixtape }) {
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
   }, [loadIntoPlayer, cancelMenu]);
-  const startDeckDrag = (0, import_react10.useCallback)((e3) => {
+  const startDeckDrag = (0, import_react11.useCallback)((e3) => {
     e3.preventDefault();
     const tape = loadedRef.current;
     const startX = e3.clientX;
@@ -77175,11 +77671,12 @@ function TapesTable({ mixtape }) {
         return;
       }
       setDeckEjecting(false);
+      exitPlayerView();
     }
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
-  }, [loadIntoPlayer]);
-  const startPan = (0, import_react10.useCallback)((e3) => {
+  }, [loadIntoPlayer, exitPlayerView]);
+  const startPan = (0, import_react11.useCallback)((e3) => {
     if (e3.target.closest("[data-tape]")) return;
     if (e3.target.closest("[data-deck]")) return;
     const tbl = tableRef.current;
@@ -77236,8 +77733,8 @@ function TapesTable({ mixtape }) {
     positionedTapes.slice(0, 2).map((t3) => ({ id: t3.id.slice(0, 8), x: t3.x, y: t3.y }))
   );
   const tableTapes = positionedTapes.filter((t3) => t3.id !== loadedTape?.id);
-  return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(import_jsx_runtime8.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("style", { children: `
+  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("style", { children: `
         @keyframes tape-spin-slow { to { transform: rotate(-360deg) } }
         @keyframes tape-spin-fast { to { transform: rotate(-360deg) } }
         @keyframes tape-rewind { 0%,100% { transform: rotate(0deg) } 20% { transform: rotate(-4deg) } 40% { transform: rotate(4deg) } 60% { transform: rotate(-3deg) } 80% { transform: rotate(2deg) } }
@@ -77245,10 +77742,10 @@ function TapesTable({ mixtape }) {
         .tapes-scroll::-webkit-scrollbar { display: none; }
         .tapes-scroll { scrollbar-width: none; -ms-overflow-style: none; }
       ` }),
-    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(import_react10.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       TapesTable3D2,
       {
-        tapes: positionedTapes,
+        tapes: view === "player" && playerTapeId ? positionedTapes.filter((t3) => t3.id === playerTapeId).map((t3) => ({ ...t3, x: CANVAS_W2 / 2, y: CANVAS_H2 / 2, angle: 0 })) : positionedTapes,
         loadedTapeId: loadedTape?.id ?? null,
         onDragStart: handle3DDragStart,
         onDragEnd: handle3DDragEnd,
@@ -77257,22 +77754,24 @@ function TapesTable({ mixtape }) {
         menuId,
         onClearMenu: cancelMenu,
         newTapeIds,
-        externalDrag: externalDrag.current
+        externalDrag: externalDrag.current,
+        lockedTapeId: showMixtapeCreator ? MIXTAPE_ID : null,
+        lockCamera: view === "player" || showMixtapeCreator
       }
     ) }),
     typeof document !== "undefined" && document.getElementById("username-area") && (0, import_react_dom.createPortal)(
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "username-bar", children: username ? /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(import_jsx_runtime8.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("span", { className: "username-display", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "username-bar", children: username ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "username-display", children: [
           "@ ",
           username
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { onClick: handleLogout, children: "x" })
-      ] }) : /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(import_jsx_runtime8.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("form", { onSubmit: (e3) => {
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { onClick: handleLogout, children: "x" })
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("form", { onSubmit: (e3) => {
           e3.preventDefault();
           handleLogin(usernameInput);
         }, style: { display: "flex", gap: 6, alignItems: "center" }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
             "input",
             {
               type: "text",
@@ -77286,21 +77785,21 @@ function TapesTable({ mixtape }) {
               disabled: usernameLoading
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { type: "submit", disabled: usernameLoading, children: usernameLoading ? "..." : "set" })
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "submit", disabled: usernameLoading, children: usernameLoading ? "..." : "set" })
         ] }),
-        usernameError && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "username-error", children: usernameError })
+        usernameError && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "username-error", children: usernameError })
       ] }) }),
       document.getElementById("username-area")
     ),
     deckPortal && (0, import_react_dom.createPortal)(
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
         "div",
         {
           "data-deck": "true",
           ref: playerZoneRef,
           style: { position: "relative" },
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
               "div",
               {
                 className: "deck-slot",
@@ -77322,23 +77821,23 @@ function TapesTable({ mixtape }) {
                   transition: "opacity 0.2s, box-shadow 0.2s, border-color 0.2s"
                 },
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { position: "absolute", bottom: 2, left: 117 - 75, width: 150, height: 28, background: "#111", border: "1px solid #1a1a1a", clipPath: "polygon(6px 0, 144px 0, 100% 100%, 0 100%)", boxShadow: "inset 0 2px 6px rgba(0,0,0,0.6)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { position: "absolute", left: 20, top: 20, width: 8, height: 8, borderRadius: "50%", background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { position: "absolute", right: 20, top: 20, width: 8, height: 8, borderRadius: "50%", background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { position: "absolute", left: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { position: "absolute", right: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { position: "absolute", left: 117 - 4, top: 108, width: 8, height: 5, borderRadius: 1, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.6)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { position: "absolute", left: 65 + 22, top: 55, width: 169 - 65 - 44, height: 26, borderRadius: 2, background: "linear-gradient(135deg, #6b4420 0%, #8a5a28 30%, #7a4a20 50%, #5a3a18 70%, #6b4420 100%)", opacity: 0.5, zIndex: 0 } }),
-                  [70, 164].map((cx2, i4) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { position: "absolute", left: cx2 - 13, top: 65 - 13, width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(160deg, #2a2a2a 0%, #111 60%, #000 100%)", border: "1px solid #333", boxShadow: "0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08)", zIndex: 0 }, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: { position: "absolute", inset: 3, borderRadius: "50%", background: "linear-gradient(160deg, #222 0%, #141414 50%, #0a0a0a 100%)", boxShadow: "inset 0 -1px 2px rgba(255,255,255,0.06), inset 0 1px 2px rgba(0,0,0,0.6)", border: "0.5px solid #2a2a2a" }, children: [
-                    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { position: "absolute", left: "50%", top: 2, bottom: 2, width: 2, transform: "translateX(-50%)", background: "linear-gradient(180deg, #333 0%, #1a1a1a 100%)", borderRadius: 1, boxShadow: "0 0 1px rgba(0,0,0,0.5)" } }),
-                    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { position: "absolute", top: "50%", left: 2, right: 2, height: 2, transform: "translateY(-50%)", background: "linear-gradient(90deg, #333 0%, #1a1a1a 100%)", borderRadius: 1, boxShadow: "0 0 1px rgba(0,0,0,0.5)" } }),
-                    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { position: "absolute", left: "50%", top: "50%", width: 7, height: 7, transform: "translate(-50%, -50%)", borderRadius: "50%", background: "linear-gradient(145deg, #2a2a2a 0%, #080808 100%)", border: "0.5px solid #333", boxShadow: "0 1px 2px rgba(0,0,0,0.7), inset 0 0.5px 0.5px rgba(255,255,255,0.1)" } })
+                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", bottom: 2, left: 117 - 75, width: 150, height: 28, background: "#111", border: "1px solid #1a1a1a", clipPath: "polygon(6px 0, 144px 0, 100% 100%, 0 100%)", boxShadow: "inset 0 2px 6px rgba(0,0,0,0.6)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: 20, top: 20, width: 8, height: 8, borderRadius: "50%", background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", right: 20, top: 20, width: 8, height: 8, borderRadius: "50%", background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", right: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: 117 - 4, top: 108, width: 8, height: 5, borderRadius: 1, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.6)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: 65 + 22, top: 55, width: 169 - 65 - 44, height: 26, borderRadius: 2, background: "linear-gradient(135deg, #6b4420 0%, #8a5a28 30%, #7a4a20 50%, #5a3a18 70%, #6b4420 100%)", opacity: 0.5, zIndex: 0 } }),
+                  [70, 164].map((cx2, i4) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: cx2 - 13, top: 65 - 13, width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(160deg, #2a2a2a 0%, #111 60%, #000 100%)", border: "1px solid #333", boxShadow: "0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08)", zIndex: 0 }, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: { position: "absolute", inset: 3, borderRadius: "50%", background: "linear-gradient(160deg, #222 0%, #141414 50%, #0a0a0a 100%)", boxShadow: "inset 0 -1px 2px rgba(255,255,255,0.06), inset 0 1px 2px rgba(0,0,0,0.6)", border: "0.5px solid #2a2a2a" }, children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: "50%", top: 2, bottom: 2, width: 2, transform: "translateX(-50%)", background: "linear-gradient(180deg, #333 0%, #1a1a1a 100%)", borderRadius: 1, boxShadow: "0 0 1px rgba(0,0,0,0.5)" } }),
+                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", top: "50%", left: 2, right: 2, height: 2, transform: "translateY(-50%)", background: "linear-gradient(90deg, #333 0%, #1a1a1a 100%)", borderRadius: 1, boxShadow: "0 0 1px rgba(0,0,0,0.5)" } }),
+                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: "50%", top: "50%", width: 7, height: 7, transform: "translate(-50%, -50%)", borderRadius: "50%", background: "linear-gradient(145deg, #2a2a2a 0%, #080808 100%)", border: "0.5px solid #333", boxShadow: "0 1px 2px rgba(0,0,0,0.7), inset 0 0.5px 0.5px rgba(255,255,255,0.1)" } })
                   ] }) }, i4)),
-                  loadedTape ? /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { position: "relative", zIndex: 1 }, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(DeckTape3D, { tape: loadedTape, playing: isPlaying, loading: infiniteLoading }) }) : null
+                  loadedTape ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "relative", zIndex: 1 }, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(DeckTape3D, { tape: loadedTape, playing: isPlaying, loading: infiniteLoading }) }) : null
                 ]
               }
             ),
-            dragging3D && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: {
+            dragging3D && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
               position: "absolute",
               inset: 0,
               borderRadius: 5,
@@ -77351,15 +77850,57 @@ function TapesTable({ mixtape }) {
       ),
       deckPortal
     ),
-    mixtape && loadedTape?.id === MIXTAPE_ID && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+    mixtapeData && loadedTape?.id === MIXTAPE_ID && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       MixtapeOverlayEffect,
       {
-        mixtape,
+        mixtape: mixtapeData,
         currentIndex: loadedTape.infiniteIndex ?? 0,
         onSelectTrack: (i4, track) => {
           setLoadedTape((prev) => prev ? { ...prev, infiniteIndex: i4, videoId: track.videoId, progress: 0 } : prev);
           setTapes((prev) => prev.map((t3) => t3.id === MIXTAPE_ID ? { ...t3, infiniteIndex: i4, videoId: track.videoId, progress: 0 } : t3));
           playVideoById(track.videoId, track.title, track.author);
+        }
+      }
+    ),
+    showMixtapeCreator && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      MixtapeCreator,
+      {
+        onBack: () => {
+          setTapes((prev) => prev.filter((t3) => t3.id !== MIXTAPE_ID));
+          setZOrder((prev) => prev.filter((id) => id !== MIXTAPE_ID));
+          setShowMixtapeCreator(false);
+          exitPlayerView();
+        },
+        onPlay: (tape) => {
+          const tracks = tape.tracks.map((t3) => ({
+            videoId: t3.videoId,
+            title: t3.title,
+            author: t3.author
+          }));
+          const mixtapeTape = {
+            id: MIXTAPE_ID,
+            videoId: tracks[0]?.videoId || "",
+            isPlaylist: false,
+            isInfinite: true,
+            infiniteConfig: { source: "youtube", type: "artist", value: tape.name },
+            infiniteHistory: tracks,
+            infiniteIndex: 0,
+            title: tape.name || "Mixtape",
+            author: "mixtape",
+            tapeStyle: 0,
+            textureVariant: "a",
+            progress: 0,
+            timestamp: Date.now(),
+            x: CANVAS_W2 / 2,
+            y: CANVAS_H2 / 2,
+            angle: 0
+          };
+          setTapes((prev) => prev.map((t3) => t3.id === MIXTAPE_ID ? mixtapeTape : t3));
+          setMixtapeData({ name: tape.name || "Mixtape", description: tape.description || "", tracks: tape.tracks });
+          mixtapeLoadedRef.current = true;
+          setShowMixtapeCreator(false);
+          const deckEl = document.getElementById("tape-deck");
+          if (deckEl) deckEl.style.display = "";
         }
       }
     )
@@ -77370,7 +77911,7 @@ function MixtapeOverlayEffect({
   currentIndex,
   onSelectTrack
 }) {
-  (0, import_react10.useEffect)(() => {
+  (0, import_react11.useEffect)(() => {
     let el = document.getElementById("mixtape-tracklist");
     if (!el) {
       el = document.createElement("div");
@@ -77386,7 +77927,7 @@ function MixtapeOverlayEffect({
 }
 
 // src/tapes/index.tsx
-var import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
 var MIXTAPE_STORAGE_KEY = "jeem_mixtape";
 function getMixtapeFromStorage() {
   try {
@@ -77405,7 +77946,7 @@ var initialMixtape = showMixtape ? getMixtapeFromStorage() : void 0;
 var container = document.getElementById("tapes-root");
 if (container) {
   const root = (0, import_client.createRoot)(container);
-  root.render(/* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TapesTable, { mixtape: initialMixtape }));
+  root.render(/* @__PURE__ */ (0, import_jsx_runtime10.jsx)(TapesTable, { mixtape: initialMixtape }));
 }
 /*! Bundled license information:
 

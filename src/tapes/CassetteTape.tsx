@@ -333,7 +333,10 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
             {stripVariant === 1 && <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40%', background: 'rgba(0,0,0,0.15)' }} />}
             {stripVariant === 2 && <div style={{ position: 'absolute', left: '50%', top: R(2), bottom: R(2), width: 1, background: 'rgba(255,255,255,0.15)' }} />}
             {stripVariant === 3 && <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: R(4), height: R(4), borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '0.5px solid rgba(255,255,255,0.15)' }} />}
-            {tape.isInfinite ? <>
+            {tape.id === '__jeem_mixtape__' ? <>
+              <span style={{ fontSize: R(5), color: 'rgba(255,255,255,0.4)', fontFamily: "'04b03', monospace", fontWeight: 500, wordSpacing: R(3), position: 'relative' }}>YOUTUBE</span>
+              <span style={{ fontSize: R(6), color: '#4a8adf', fontFamily: "'04b03', monospace", fontWeight: 800, letterSpacing: '0.08em', wordSpacing: R(3), position: 'relative' }}>MIXTAPE</span>
+            </> : tape.isInfinite ? <>
               <span style={{ fontSize: R(5), color: 'rgba(255,255,255,0.4)', fontFamily: "'04b03', monospace", fontWeight: 500, wordSpacing: R(3), position: 'relative' }}>{tape.infiniteConfig?.source?.toUpperCase() || 'IMVDB'}</span>
               <span style={{ fontSize: R(6), color: st.titleBg, fontFamily: "'04b03', monospace", fontWeight: 800, letterSpacing: '0.08em', wordSpacing: R(3), position: 'relative' }}>∞ INFINITE</span>
             </> : tape.isPlaylist ? <>
@@ -347,21 +350,27 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
         );
       })()}
 
-      {/* Infinity sticker for infinite tapes */}
+      {/* Infinity sticker for infinite tapes / blue Mixtape sticker for mixtape */}
       {tape.isInfinite && (() => {
-        const stickerW = R(36), stickerH = R(26);
+        const isMixtape = tape.id === '__jeem_mixtape__';
+        const stickerW = isMixtape ? R(50) : R(36), stickerH = R(26);
         return (
           <div style={{
             position: 'absolute', top: R(42), right: R(14),
             width: stickerW, height: stickerH,
-            background: 'linear-gradient(135deg, #f0d848 0%, #e8c830 100%)',
+            background: isMixtape
+              ? 'linear-gradient(135deg, #1a4a8a 0%, #0f3580 100%)'
+              : 'linear-gradient(135deg, #f0d848 0%, #e8c830 100%)',
             borderRadius: R(3),
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             transform: `rotate(${((seed >> 3) % 7) - 3}deg)`,
             boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
-            border: '0.5px solid rgba(180,150,30,0.4)',
+            border: isMixtape ? '0.5px solid rgba(30,80,160,0.5)' : '0.5px solid rgba(180,150,30,0.4)',
           }}>
-            <span style={{ fontSize: R(26), fontWeight: 700, color: '#5a4a10', lineHeight: 1 }}>∞</span>
+            {isMixtape
+              ? <span style={{ fontSize: R(10), fontWeight: 700, color: '#ffffff', lineHeight: 1, fontFamily: "'04b03', monospace", letterSpacing: '0.05em' }}>Mixtape</span>
+              : <span style={{ fontSize: R(26), fontWeight: 700, color: '#5a4a10', lineHeight: 1 }}>∞</span>
+            }
           </div>
         );
       })()}

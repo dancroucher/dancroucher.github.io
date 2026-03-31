@@ -329,8 +329,13 @@ const InfinitePopup = {
         const luckyBtn = document.getElementById("inf-lucky");
         if (luckyBtn) luckyBtn.addEventListener("click", () => this._lucky());
 
-        const mixtapeBtn = document.getElementById("inf-mixtape");
-        if (mixtapeBtn) mixtapeBtn.addEventListener("click", () => { window.location.href = '/?create_mixtape=1'; });
+        const mixtapeBtn = document.getElementById("mixtape-btn");
+        if (mixtapeBtn) mixtapeBtn.addEventListener("click", () => {
+          window.dispatchEvent(new CustomEvent('jeem-create-mixtape'));
+          // Close the infinite popup if open
+          popup.style.display = "none";
+          this._open = false;
+        });
 
         // Close popup on outside click
         document.addEventListener("click", (e) => {

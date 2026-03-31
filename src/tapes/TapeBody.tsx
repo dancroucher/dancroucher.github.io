@@ -216,7 +216,7 @@ export function stampTitle(baseColor: THREE.Texture, title: string, variant: str
   }
 
   // Draw yellow infinity sticker for infinite tapes
-  if (isInfinite) {
+  if (isInfinite && !isMixtape) {
     const label = labels[0];
     ctx.save();
     ctx.translate(label.cx, label.cy);
@@ -287,7 +287,7 @@ export function stampTitle(baseColor: THREE.Texture, title: string, variant: str
     ctx.translate(label.cx, label.cy);
     ctx.rotate(Math.PI / 2);
     const stickerX = 0;
-    const stickerY = -240; // above the ∞ / playlist stickers
+    const stickerY = 280; // same position as the ∞ sticker
     const stickerW = 300;
     const stickerH = 110;
     // Blue sticker background

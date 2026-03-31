@@ -1,6 +1,10 @@
 // POST /api/mixtape/generate
 // Generates a 16-track mixtape from a YouTube URL or keywords.
 // Uses IMVDB + YouTube search with BFS + eclectic sampling.
+// Filters: music content only, max 20 minutes per track.
+
+const MAX_DURATION = 20 * 60; // 20 minutes in seconds
+const MIN_DURATION = 30;      // skip very short clips
 
 const HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -21,6 +25,47 @@ function shuffle(arr) {
   return a;
 }
 
+// Parse "3:45" or "1:02:30" to seconds
+function parseDuration(text) {
+  if (!text) return 0;
+  const parts = text.split(':').map(Number);
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return 0;
+}
+
+// Check if duration is within acceptable range for a music track
+function isValidDuration(dur) {
+  return dur >= MIN_DURATION && dur <= MAX_DURATION;
+}
+
+// Reject non-music content by title keywords
+const REJECT_PATTERNS = [
+  /\bfull\s+album\b/i,
+  /\blive\s+stream\b/i,
+  /\blivestream\b/i,
+  /\bpodcast\b/i,
+  /\binterview\b/i,
+  /\breaction\b/i,
+  /\btutorial\b/i,
+  /\bhow\s+to\b/i,
+  /\breview\b/i,
+  /\bcompilation\b/i,
+  /\bmix\s+20[0-9]{2}\b/i,
+  /\b(1|2|3|4|5|6|8|10)\s*hour/i,
+  /\bfull\s+concert\b/i,
+  /\basmr\b/i,
+  /\blyric\s+breakdown\b/i,
+  /\bexplained\b/i,
+];
+
+function looksLikeMusic(title) {
+  for (const p of REJECT_PATTERNS) {
+    if (p.test(title)) return false;
+  }
+  return true;
+}
+
 // ── YouTube metadata via oEmbed ──
 async function getYouTubeMeta(videoId) {
   try {
@@ -34,9 +79,12 @@ async function getYouTubeMeta(videoId) {
 }
 
 // ── YouTube search (scrapes ytInitialData) ──
-async function youtubeSearch(query, limit = 6) {
+// sp=EgIQAQ%3D%3D = filter to Videos only
+// sp=EgWKAQIIAQ%3D%3D = filter to Music + Videos
+async function youtubeSearch(query, limit = 8) {
   try {
-    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAQ%3D%3D`;
+    // Add "music video" hint and use Music category filter
+    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' music video')}&sp=EgIQAQ%3D%3D`;
     const res = await fetch(url, {
       headers: HEADERS,
       signal: AbortSignal.timeout(6000),
@@ -54,14 +102,19 @@ async function youtubeSearch(query, limit = 6) {
     for (const item of contents) {
       const v = item.videoRenderer;
       if (!v?.videoId) continue;
+      const title = v.title?.runs?.[0]?.text || '';
       const durText = v.lengthText?.simpleText || '';
-      const parts = durText.split(':').map(Number);
-      let dur = 0;
-      if (parts.length === 3) dur = parts[0] * 3600 + parts[1] * 60 + parts[2];
-      else if (parts.length === 2) dur = parts[0] * 60 + parts[1];
+      const dur = parseDuration(durText);
+
+      // Skip non-music and wrong-length tracks
+      if (!looksLikeMusic(title)) continue;
+      if (dur > 0 && !isValidDuration(dur)) continue;
+      // Skip if no duration info (likely a livestream)
+      if (!durText) continue;
+
       results.push({
         videoId: v.videoId,
-        title: v.title?.runs?.[0]?.text || '',
+        title,
         author: v.ownerText?.runs?.[0]?.text || '',
         duration: dur,
         durationText: durText,
@@ -72,7 +125,7 @@ async function youtubeSearch(query, limit = 6) {
   } catch { return []; }
 }
 
-// ── IMVDB search (one batch request, no per-video detail fetches) ──
+// ── IMVDB search (music video database — inherently music) ──
 async function imvdbSearch(query, limit = 8) {
   try {
     const res = await fetch(
@@ -82,11 +135,10 @@ async function imvdbSearch(query, limit = 8) {
     if (!res.ok) return [];
     const data = await res.json();
     const videos = (data.results || []).slice(0, limit);
-    // Return what we have — caller can use oEmbed for title/author if needed
     return videos.map(v => ({
-      videoId: null, // will be filled by oEmbed
+      videoId: null, // will be resolved via YouTube search
       title: v.song_title || query,
-      author: '',
+      author: v.artists?.[0]?.name || '',
       year: v.year || null,
     }));
   } catch { return []; }
@@ -99,14 +151,27 @@ function scoreTrack(obvious) {
   return (0.4 + random * 0.3) * (1 + random * 1.2);
 }
 
-// ── Fetch track metadata from YouTube (fills in videoId + title/author) ──
+// ── Resolve a track: get videoId + duration from YouTube ──
 async function resolveTrack(query, videoId) {
+  // If we already have a videoId, get metadata but also need duration
   if (videoId) {
     const meta = await getYouTubeMeta(videoId);
-    if (meta) return { videoId, title: meta.title, author: meta.author_name };
+    if (meta) {
+      // oEmbed doesn't give duration, so search YouTube to find the duration
+      const search = await youtubeSearch(meta.title + ' ' + meta.author_name, 3);
+      const match = search.find(s => s.videoId === videoId);
+      return {
+        videoId,
+        title: meta.title,
+        author: meta.author_name,
+        duration: match?.duration || 0,
+        durationText: match?.durationText || '',
+      };
+    }
   }
-  // Fall back to YouTube search for the query
-  const results = await youtubeSearch(query, 3);
+  // Fall back to YouTube search — results already have duration
+  const artistHint = query.includes(' - ') ? '' : ' official';
+  const results = await youtubeSearch(query + artistHint, 3);
   if (results.length > 0) return results[0];
   return null;
 }
@@ -132,18 +197,44 @@ export default async function handler(req, res) {
   }
 
   const tracks = [];
-  const seen = new Set();
+  const seen = new Set();           // videoId dedup
+  const seenTitles = new Set();     // normalized title dedup
+  const artistCount = new Map();    // author → count (max 4 per artist)
+  const MAX_PER_ARTIST = 4;
 
-  // Seed track
+  function normalizeTitle(t) {
+    return (t || '').toLowerCase().replace(/\s*\(.*?\)/g, '').replace(/\s*\[.*?\]/g, '').replace(/[^a-z0-9]/g, '');
+  }
+
+  function canAddTrack(title, author) {
+    const norm = normalizeTitle(title);
+    if (seenTitles.has(norm)) return false;
+    const normAuthor = (author || '').toLowerCase().trim();
+    if (normAuthor && (artistCount.get(normAuthor) || 0) >= MAX_PER_ARTIST) return false;
+    return true;
+  }
+
+  function markTrackAdded(title, author) {
+    seenTitles.add(normalizeTitle(title));
+    const normAuthor = (author || '').toLowerCase().trim();
+    if (normAuthor) artistCount.set(normAuthor, (artistCount.get(normAuthor) || 0) + 1);
+  }
+
+  // Seed track — resolve with duration
   if (seedVideoId) {
-    const meta = await getYouTubeMeta(seedVideoId);
-    tracks.push({
-      videoId: seedVideoId,
-      title: meta?.title || seedTitle,
-      author: meta?.author_name || '',
-      duration: 0, durationText: '',
-    });
-    seen.add(seedVideoId);
+    const resolved = await resolveTrack(seedTitle, seedVideoId);
+    if (resolved && (!resolved.duration || isValidDuration(resolved.duration))) {
+      const t = {
+        videoId: resolved.videoId,
+        title: resolved.title || seedTitle,
+        author: resolved.author || '',
+        duration: resolved.duration || 0,
+        durationText: resolved.durationText || '',
+      };
+      tracks.push(t);
+      seen.add(t.videoId);
+      markTrackAdded(t.title, t.author);
+    }
   }
 
   // Build query list from seed
@@ -155,18 +246,17 @@ export default async function handler(req, res) {
   const unique = [...new Set(queries)].slice(0, 4);
 
   // Gather candidates in parallel
-  // YouTube scraping may 401/403 from Vercel IPs — wrap each in try/catch so failures don't cascade
   const allRaw = [];
   await Promise.allSettled(unique.map(async (q) => {
     const results = [];
 
-    // Try IMVDB first (music-specific, doesn't block Vercel)
+    // IMVDB — music-specific database
     try {
       const imvdb = await imvdbSearch(q, 8);
       results.push(...imvdb);
     } catch { /* continue */ }
 
-    // Try YouTube search (may 401 on Vercel IPs)
+    // YouTube search with music hint
     try {
       const yt = await youtubeSearch(q, 8);
       results.push(...yt);
@@ -175,18 +265,24 @@ export default async function handler(req, res) {
     allRaw.push(...results);
   }));
 
-  // Resolve video IDs via oEmbed (parallel, up to 32 candidates for a bigger pool)
+  // Resolve video IDs + duration via YouTube (parallel, up to 32 candidates)
   const toResolve = allRaw.slice(0, 32);
   const resolved = await Promise.allSettled(
-    toResolve.map(r => resolveTrack(r.title, r.videoId))
+    toResolve.map(r => resolveTrack(
+      r.author ? `${r.author} ${r.title}` : r.title,
+      r.videoId
+    ))
   );
 
-  // Score and filter
+  // Score and filter — enforce duration, music content, no dup titles, max per artist
   const candidates = [];
   for (const r of resolved) {
     if (r.status !== 'fulfilled' || !r.value) continue;
     const t = r.value;
     if (!t.videoId || seen.has(t.videoId)) continue;
+    if (!looksLikeMusic(t.title)) continue;
+    if (t.duration > 0 && !isValidDuration(t.duration)) continue;
+    if (!canAddTrack(t.title, t.author)) continue;
     candidates.push({ ...t, _score: scoreTrack(true) });
     seen.add(t.videoId);
   }
@@ -200,6 +296,7 @@ export default async function handler(req, res) {
   // Fill to 16 tracks
   while (tracks.length < 16 && initial.length > 0) {
     const next = initial.shift();
+    if (!canAddTrack(next.title, next.author)) continue;
     tracks.push({
       videoId: next.videoId,
       title: next.title || 'Unknown',
@@ -207,19 +304,24 @@ export default async function handler(req, res) {
       duration: next.duration || 0,
       durationText: next.durationText || '',
     });
+    markTrackAdded(next.title, next.author);
   }
 
   // If still not enough, do more YouTube searches with fallback queries
   if (tracks.length < 16) {
     const fallbackQueries = [
       seedTitle + ' best songs',
-      seedTitle + ' music video',
-      keywords + ' playlist',
+      seedTitle + ' similar artists',
+      keywords ? keywords + ' songs' : '80s hits',
     ];
     for (const q of fallbackQueries) {
-      const extra = await youtubeSearch(q, 8);
+      if (tracks.length >= 16) break;
+      const extra = await youtubeSearch(q, 10);
       for (const t of extra) {
         if (seen.has(t.videoId)) continue;
+        if (!looksLikeMusic(t.title)) continue;
+        if (t.duration > 0 && !isValidDuration(t.duration)) continue;
+        if (!canAddTrack(t.title, t.author)) continue;
         tracks.push({
           videoId: t.videoId,
           title: t.title || 'Unknown',
@@ -228,9 +330,9 @@ export default async function handler(req, res) {
           durationText: t.durationText || '',
         });
         seen.add(t.videoId);
+        markTrackAdded(t.title, t.author);
         if (tracks.length >= 16) break;
       }
-      if (tracks.length >= 16) break;
     }
   }
 

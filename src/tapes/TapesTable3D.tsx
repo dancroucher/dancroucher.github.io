@@ -30,10 +30,12 @@ interface TapesTable3DProps {
   onClearMenu: () => void;
   newTapeIds: Set<string>;
   externalDrag?: DragState; // shared mutable object for external drag initiation
+  lockedTapeId?: string | null;
+  lockCamera?: boolean;
 }
 
 function SceneContents({
-  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, externalDrag,
+  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, externalDrag, lockedTapeId, lockCamera,
 }: TapesTable3DProps) {
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
@@ -126,6 +128,7 @@ function SceneContents({
         onClearMenu();
         return;
       }
+      if (lockedTapeId && tapeId === lockedTapeId) return;
       const ps = pointerState.current;
       ps.downTapeId = tapeId;
       ps.active = false;
@@ -210,7 +213,7 @@ function SceneContents({
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
-  }, [gl, drag, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, onDragStart, onDragEnd, onDoubleTap, onClearMenu]);
+  }, [gl, drag, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId]);
 
   // Pick up external drag initiation (e.g. tape ejected from deck)
   const extDragActive = useRef(false);
@@ -299,6 +302,19 @@ function SceneContents({
     }
   });
 
+  // Listen for centre-camera event (used when entering mixtape creation)
+  useEffect(() => {
+    function handleCentre() {
+      camera.position.set(0, 35, 3);
+      if (controlsRef.current) {
+        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.update();
+      }
+    }
+    window.addEventListener('jeem-centre-camera', handleCentre);
+    return () => window.removeEventListener('jeem-centre-camera', handleCentre);
+  }, [camera]);
+
   return (
     <>
       <ambientLight intensity={0.9} color="#fffaf6" />
@@ -340,8 +356,8 @@ function SceneContents({
       <MapControls
         ref={controlsRef}
         enableRotate={false}
-        enablePan={true}
-        enableZoom={true}
+        enablePan={!lockedTapeId && !lockCamera}
+        enableZoom={!lockedTapeId && !lockCamera}
         minDistance={35}
         maxDistance={45}
         panSpeed={1.5}
