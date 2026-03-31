@@ -348,7 +348,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
 
   // ── Wipe transition ──
   const [wipePhase, setWipePhase] = useState<'none' | 'cover' | 'uncover'>('none');
-  const WIPE_DURATION = 150; // ms for each half of the wipe
+  const WIPE_DURATION = 300; // ms for each half of the wipe
 
   // Run a callback behind a wipe: cover → swap → uncover
   const wipeTransition = useCallback((onCovered: () => void, onUncovered?: () => void) => {
@@ -391,8 +391,12 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
 
   const exitPlayerView = useCallback((droppingTapeId?: string) => {
     wipeTransition(
-      // Behind the wipe: swap to table view
+      // Behind the wipe: swap to table view, mark dropping tape as new so it spawns elevated
       () => {
+        if (droppingTapeId) {
+          setNewTapeIds(s => new Set(s).add(droppingTapeId));
+          setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(droppingTapeId); return n; }), 2000);
+        }
         setView('table');
         setPlayerTapeId(null);
         setLoadedTape(null);
@@ -419,11 +423,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         if (startEl) startEl.style.display = 'flex';
         if (window.switchBgType) window.switchBgType(5);
       },
-      // After uncover: drop the tape that was being viewed onto the table
-      droppingTapeId ? () => {
-        setNewTapeIds(s => new Set(s).add(droppingTapeId));
-        setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(droppingTapeId); return n; }), 2000);
-      } : undefined,
     );
   }, [wipeTransition]);
 

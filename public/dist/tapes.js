@@ -76871,7 +76871,7 @@ function TapesTable({ mixtape }) {
   const infinitePageRef = (0, import_react11.useRef)(1);
   const infiniteFetchingRef = (0, import_react11.useRef)(false);
   const [wipePhase, setWipePhase] = (0, import_react11.useState)("none");
-  const WIPE_DURATION = 150;
+  const WIPE_DURATION = 300;
   const wipeTransition = (0, import_react11.useCallback)((onCovered, onUncovered) => {
     setWipePhase("cover");
     setTimeout(() => {
@@ -76912,8 +76912,16 @@ function TapesTable({ mixtape }) {
   }, [wipeTransition]);
   const exitPlayerView = (0, import_react11.useCallback)((droppingTapeId) => {
     wipeTransition(
-      // Behind the wipe: swap to table view
+      // Behind the wipe: swap to table view, mark dropping tape as new so it spawns elevated
       () => {
+        if (droppingTapeId) {
+          setNewTapeIds((s2) => new Set(s2).add(droppingTapeId));
+          setTimeout(() => setNewTapeIds((s2) => {
+            const n2 = new Set(s2);
+            n2.delete(droppingTapeId);
+            return n2;
+          }), 2e3);
+        }
         setView("table");
         setPlayerTapeId(null);
         setLoadedTape(null);
@@ -76942,16 +76950,7 @@ function TapesTable({ mixtape }) {
         const startEl = document.getElementById("start-container");
         if (startEl) startEl.style.display = "flex";
         if (window.switchBgType) window.switchBgType(5);
-      },
-      // After uncover: drop the tape that was being viewed onto the table
-      droppingTapeId ? () => {
-        setNewTapeIds((s2) => new Set(s2).add(droppingTapeId));
-        setTimeout(() => setNewTapeIds((s2) => {
-          const n2 = new Set(s2);
-          n2.delete(droppingTapeId);
-          return n2;
-        }), 2e3);
-      } : void 0
+      }
     );
   }, [wipeTransition]);
   (0, import_react11.useEffect)(() => {
