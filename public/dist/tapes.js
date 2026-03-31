@@ -76870,55 +76870,81 @@ function TapesTable({ mixtape }) {
   });
   const infinitePageRef = (0, import_react11.useRef)(1);
   const infiniteFetchingRef = (0, import_react11.useRef)(false);
-  const enterPlayerView = (0, import_react11.useCallback)((tapeId) => {
-    setPlayerTapeId("__despawn__");
-    setView("player");
-    setMenuId(null);
-    const startForm = document.getElementById("start-form");
-    if (startForm) startForm.style.display = "none";
-    const deckEl = document.getElementById("tape-deck");
-    if (deckEl) deckEl.style.display = "";
-    requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("jeem-centre-camera")));
+  const [wipePhase, setWipePhase] = (0, import_react11.useState)("none");
+  const WIPE_DURATION = 300;
+  const wipeTransition = (0, import_react11.useCallback)((onCovered, onUncovered) => {
+    setWipePhase("cover");
     setTimeout(() => {
-      setPlayerTapeId(tapeId);
-      setNewTapeIds((s2) => new Set(s2).add(tapeId));
-      setTimeout(() => setNewTapeIds((s2) => {
-        const n2 = new Set(s2);
-        n2.delete(tapeId);
-        return n2;
-      }), 2e3);
-    }, 400);
+      onCovered();
+      requestAnimationFrame(() => {
+        setWipePhase("uncover");
+        setTimeout(() => {
+          setWipePhase("none");
+          if (onUncovered) onUncovered();
+        }, WIPE_DURATION);
+      });
+    }, WIPE_DURATION);
   }, []);
+  const enterPlayerView = (0, import_react11.useCallback)((tapeId) => {
+    setMenuId(null);
+    wipeTransition(
+      // Behind the wipe: despawn all, set up player view
+      () => {
+        setPlayerTapeId("__despawn__");
+        setView("player");
+        const startForm = document.getElementById("start-form");
+        if (startForm) startForm.style.display = "none";
+        const deckEl = document.getElementById("tape-deck");
+        if (deckEl) deckEl.style.display = "";
+        requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("jeem-centre-camera")));
+      },
+      // After uncover: spawn the tape dropping from height
+      () => {
+        setPlayerTapeId(tapeId);
+        setNewTapeIds((s2) => new Set(s2).add(tapeId));
+        setTimeout(() => setNewTapeIds((s2) => {
+          const n2 = new Set(s2);
+          n2.delete(tapeId);
+          return n2;
+        }), 2e3);
+      }
+    );
+  }, [wipeTransition]);
   const exitPlayerView = (0, import_react11.useCallback)(() => {
-    setView("table");
-    setPlayerTapeId(null);
-    setLoadedTape(null);
-    setIsPlaying(false);
-    if (window.myApp) {
-      try {
-        window.myApp.player.pause();
-      } catch {
+    wipeTransition(
+      // Behind the wipe: swap to table view
+      () => {
+        setView("table");
+        setPlayerTapeId(null);
+        setLoadedTape(null);
+        setIsPlaying(false);
+        if (window.myApp) {
+          try {
+            window.myApp.player.pause();
+          } catch {
+          }
+          const songEl = document.getElementById("song-container");
+          const titleEl = document.getElementById("title-container");
+          const padEl = document.getElementById("padinfo");
+          if (songEl) songEl.style.display = "none";
+          if (titleEl) titleEl.style.display = "none";
+          if (padEl) padEl.style.display = "none";
+          if (window.AppState) {
+            window.AppState.playing = false;
+            window.AppState.starting = true;
+            window.AppState.infiniteTape = false;
+          }
+        }
+        const deckEl = document.getElementById("tape-deck");
+        if (deckEl) deckEl.style.display = "none";
+        const startForm = document.getElementById("start-form");
+        if (startForm) startForm.style.display = "";
+        const startEl = document.getElementById("start-container");
+        if (startEl) startEl.style.display = "flex";
+        if (window.switchBgType) window.switchBgType(5);
       }
-      const songEl = document.getElementById("song-container");
-      const titleEl = document.getElementById("title-container");
-      const padEl = document.getElementById("padinfo");
-      if (songEl) songEl.style.display = "none";
-      if (titleEl) titleEl.style.display = "none";
-      if (padEl) padEl.style.display = "none";
-      if (window.AppState) {
-        window.AppState.playing = false;
-        window.AppState.starting = true;
-        window.AppState.infiniteTape = false;
-      }
-    }
-    const deckEl = document.getElementById("tape-deck");
-    if (deckEl) deckEl.style.display = "none";
-    const startForm = document.getElementById("start-form");
-    if (startForm) startForm.style.display = "";
-    const startEl = document.getElementById("start-container");
-    if (startEl) startEl.style.display = "flex";
-    if (window.switchBgType) window.switchBgType(5);
-  }, []);
+    );
+  }, [wipeTransition]);
   (0, import_react11.useEffect)(() => {
     function handleLogoClick(e3) {
       if (view !== "player") return;
@@ -77756,6 +77782,8 @@ function TapesTable({ mixtape }) {
         @keyframes tape-loading-spin { to { transform: rotate(360deg) } }
         .tapes-scroll::-webkit-scrollbar { display: none; }
         .tapes-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+        @keyframes wipe-in { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+        @keyframes wipe-out { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 0 0 100%); } }
       ` }),
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       TapesTable3D2,
@@ -77774,6 +77802,17 @@ function TapesTable({ mixtape }) {
         lockCamera: view === "player" || showMixtapeCreator
       }
     ) }),
+    wipePhase !== "none" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      background: "#000",
+      zIndex: 9999,
+      pointerEvents: "none",
+      animation: `${wipePhase === "cover" ? "wipe-in" : "wipe-out"} ${WIPE_DURATION}ms ease-in-out forwards`
+    } }),
     typeof document !== "undefined" && document.getElementById("username-area") && (0, import_react_dom.createPortal)(
       /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "username-bar", children: username ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
         /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "username-display", children: [

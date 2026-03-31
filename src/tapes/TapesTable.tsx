@@ -346,59 +346,81 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const infinitePageRef = useRef(1);
   const infiniteFetchingRef = useRef(false);
 
-  // ── View transitions ──
-  const enterPlayerView = useCallback((tapeId: string) => {
-    // Phase 1: despawn all tapes by entering player view with a dummy ID
-    setPlayerTapeId('__despawn__');
-    setView('player');
-    setMenuId(null);
-    // Hide search bar + mixtape button
-    const startForm = document.getElementById('start-form');
-    if (startForm) startForm.style.display = 'none';
-    // Show deck
-    const deckEl = document.getElementById('tape-deck');
-    if (deckEl) deckEl.style.display = '';
-    // Centre camera + max zoom
-    requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('jeem-centre-camera')));
-    // Phase 2: after 400ms (table visibly empty), spawn chosen tape elevated — it drops via physics
+  // ── Wipe transition ──
+  const [wipePhase, setWipePhase] = useState<'none' | 'cover' | 'uncover'>('none');
+  const WIPE_DURATION = 300; // ms for each half of the wipe
+
+  // Run a callback behind a wipe: cover → swap → uncover
+  const wipeTransition = useCallback((onCovered: () => void, onUncovered?: () => void) => {
+    setWipePhase('cover');
     setTimeout(() => {
-      setPlayerTapeId(tapeId);
-      setNewTapeIds(s => new Set(s).add(tapeId));
-      setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(tapeId); return n; }), 2000);
-    }, 400);
+      onCovered();
+      // Small delay so React renders the swap before uncovering
+      requestAnimationFrame(() => {
+        setWipePhase('uncover');
+        setTimeout(() => {
+          setWipePhase('none');
+          if (onUncovered) onUncovered();
+        }, WIPE_DURATION);
+      });
+    }, WIPE_DURATION);
   }, []);
 
+  // ── View transitions ──
+  const enterPlayerView = useCallback((tapeId: string) => {
+    setMenuId(null);
+    wipeTransition(
+      // Behind the wipe: despawn all, set up player view
+      () => {
+        setPlayerTapeId('__despawn__');
+        setView('player');
+        const startForm = document.getElementById('start-form');
+        if (startForm) startForm.style.display = 'none';
+        const deckEl = document.getElementById('tape-deck');
+        if (deckEl) deckEl.style.display = '';
+        requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('jeem-centre-camera')));
+      },
+      // After uncover: spawn the tape dropping from height
+      () => {
+        setPlayerTapeId(tapeId);
+        setNewTapeIds(s => new Set(s).add(tapeId));
+        setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(tapeId); return n; }), 2000);
+      },
+    );
+  }, [wipeTransition]);
+
   const exitPlayerView = useCallback(() => {
-    setView('table');
-    setPlayerTapeId(null);
-    setLoadedTape(null);
-    setIsPlaying(false);
-    // Stop playback
-    if (window.myApp) {
-      try { window.myApp.player.pause(); } catch {}
-      const songEl = document.getElementById('song-container');
-      const titleEl = document.getElementById('title-container');
-      const padEl = document.getElementById('padinfo');
-      if (songEl) songEl.style.display = 'none';
-      if (titleEl) titleEl.style.display = 'none';
-      if (padEl) padEl.style.display = 'none';
-      if (window.AppState) {
-        window.AppState.playing = false;
-        window.AppState.starting = true;
-        window.AppState.infiniteTape = false;
-      }
-    }
-    // Hide deck
-    const deckEl = document.getElementById('tape-deck');
-    if (deckEl) deckEl.style.display = 'none';
-    // Restore search bar
-    const startForm = document.getElementById('start-form');
-    if (startForm) startForm.style.display = '';
-    const startEl = document.getElementById('start-container');
-    if (startEl) startEl.style.display = 'flex';
-    // Switch bg
-    if (window.switchBgType) window.switchBgType(5);
-  }, []);
+    wipeTransition(
+      // Behind the wipe: swap to table view
+      () => {
+        setView('table');
+        setPlayerTapeId(null);
+        setLoadedTape(null);
+        setIsPlaying(false);
+        if (window.myApp) {
+          try { window.myApp.player.pause(); } catch {}
+          const songEl = document.getElementById('song-container');
+          const titleEl = document.getElementById('title-container');
+          const padEl = document.getElementById('padinfo');
+          if (songEl) songEl.style.display = 'none';
+          if (titleEl) titleEl.style.display = 'none';
+          if (padEl) padEl.style.display = 'none';
+          if (window.AppState) {
+            window.AppState.playing = false;
+            window.AppState.starting = true;
+            window.AppState.infiniteTape = false;
+          }
+        }
+        const deckEl = document.getElementById('tape-deck');
+        if (deckEl) deckEl.style.display = 'none';
+        const startForm = document.getElementById('start-form');
+        if (startForm) startForm.style.display = '';
+        const startEl = document.getElementById('start-container');
+        if (startEl) startEl.style.display = 'flex';
+        if (window.switchBgType) window.switchBgType(5);
+      },
+    );
+  }, [wipeTransition]);
 
   // Listen for logo click to return to table view
   useEffect(() => {
@@ -1354,6 +1376,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         @keyframes tape-loading-spin { to { transform: rotate(360deg) } }
         .tapes-scroll::-webkit-scrollbar { display: none; }
         .tapes-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+        @keyframes wipe-in { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+        @keyframes wipe-out { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 0 0 100%); } }
       `}</style>
 
       {/* 3D table with FBX tapes, physics, drag, camera pan */}
@@ -1375,6 +1399,15 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           lockCamera={view === 'player' || showMixtapeCreator}
         />
       </Suspense>
+
+      {/* Black wipe overlay for view transitions */}
+      {wipePhase !== 'none' && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: '#000', zIndex: 9999, pointerEvents: 'none',
+          animation: `${wipePhase === 'cover' ? 'wipe-in' : 'wipe-out'} ${WIPE_DURATION}ms ease-in-out forwards`,
+        }} />
+      )}
 
       {/* Deck — portaled outside tapes-root so it's visible in all bg modes */}
       {/* Username bar — portaled into start-header */}
