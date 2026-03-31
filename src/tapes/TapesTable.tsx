@@ -348,7 +348,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
 
   // ── Wipe transition ──
   const [wipePhase, setWipePhase] = useState<'none' | 'cover' | 'uncover'>('none');
-  const WIPE_DURATION = 300; // ms for each half of the wipe
+  const WIPE_DURATION = 150; // ms for each half of the wipe
 
   // Run a callback behind a wipe: cover → swap → uncover
   const wipeTransition = useCallback((onCovered: () => void, onUncovered?: () => void) => {
@@ -389,7 +389,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     );
   }, [wipeTransition]);
 
-  const exitPlayerView = useCallback(() => {
+  const exitPlayerView = useCallback((droppingTapeId?: string) => {
     wipeTransition(
       // Behind the wipe: swap to table view
       () => {
@@ -419,6 +419,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         if (startEl) startEl.style.display = 'flex';
         if (window.switchBgType) window.switchBgType(5);
       },
+      // After uncover: drop the tape that was being viewed onto the table
+      droppingTapeId ? () => {
+        setNewTapeIds(s => new Set(s).add(droppingTapeId));
+        setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(droppingTapeId); return n; }), 2000);
+      } : undefined,
     );
   }, [wipeTransition]);
 
@@ -1128,11 +1133,12 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
 
   const handle3DDoubleTap = useCallback((tapeId: string) => {
     if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
-    // Double-tap enters player view for this tape
     if (view === 'table') {
       enterPlayerView(tapeId);
+    } else if (view === 'player') {
+      exitPlayerView(tapeId);
     }
-  }, [showMixtapeCreator, view, enterPlayerView]);
+  }, [showMixtapeCreator, view, enterPlayerView, exitPlayerView]);
 
   const handle3DMenuAction = useCallback((_tapeId: string, _action: 'link' | 'rewind' | 'remove') => {
     // Context menu disabled — functionality will be rebuilt later
@@ -1376,8 +1382,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         @keyframes tape-loading-spin { to { transform: rotate(360deg) } }
         .tapes-scroll::-webkit-scrollbar { display: none; }
         .tapes-scroll { scrollbar-width: none; -ms-overflow-style: none; }
-        @keyframes wipe-in { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-        @keyframes wipe-out { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 0 0 100%); } }
+        @keyframes wipe-in { from { clip-path: polygon(100% 0, 100% 0, 100% 0); } to { clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%); } }
+        @keyframes wipe-out { from { clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%); } to { clip-path: polygon(0 100%, 0 100%, 0 100%); } }
       `}</style>
 
       {/* 3D table with FBX tapes, physics, drag, camera pan */}

@@ -76871,7 +76871,7 @@ function TapesTable({ mixtape }) {
   const infinitePageRef = (0, import_react11.useRef)(1);
   const infiniteFetchingRef = (0, import_react11.useRef)(false);
   const [wipePhase, setWipePhase] = (0, import_react11.useState)("none");
-  const WIPE_DURATION = 300;
+  const WIPE_DURATION = 150;
   const wipeTransition = (0, import_react11.useCallback)((onCovered, onUncovered) => {
     setWipePhase("cover");
     setTimeout(() => {
@@ -76910,7 +76910,7 @@ function TapesTable({ mixtape }) {
       }
     );
   }, [wipeTransition]);
-  const exitPlayerView = (0, import_react11.useCallback)(() => {
+  const exitPlayerView = (0, import_react11.useCallback)((droppingTapeId) => {
     wipeTransition(
       // Behind the wipe: swap to table view
       () => {
@@ -76942,7 +76942,16 @@ function TapesTable({ mixtape }) {
         const startEl = document.getElementById("start-container");
         if (startEl) startEl.style.display = "flex";
         if (window.switchBgType) window.switchBgType(5);
-      }
+      },
+      // After uncover: drop the tape that was being viewed onto the table
+      droppingTapeId ? () => {
+        setNewTapeIds((s2) => new Set(s2).add(droppingTapeId));
+        setTimeout(() => setNewTapeIds((s2) => {
+          const n2 = new Set(s2);
+          n2.delete(droppingTapeId);
+          return n2;
+        }), 2e3);
+      } : void 0
     );
   }, [wipeTransition]);
   (0, import_react11.useEffect)(() => {
@@ -77565,8 +77574,10 @@ function TapesTable({ mixtape }) {
     if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
     if (view === "table") {
       enterPlayerView(tapeId);
+    } else if (view === "player") {
+      exitPlayerView(tapeId);
     }
-  }, [showMixtapeCreator, view, enterPlayerView]);
+  }, [showMixtapeCreator, view, enterPlayerView, exitPlayerView]);
   const handle3DMenuAction = (0, import_react11.useCallback)((_tapeId, _action) => {
   }, []);
   const [newTapeIds, setNewTapeIds] = (0, import_react11.useState)(() => /* @__PURE__ */ new Set());
@@ -77782,8 +77793,8 @@ function TapesTable({ mixtape }) {
         @keyframes tape-loading-spin { to { transform: rotate(360deg) } }
         .tapes-scroll::-webkit-scrollbar { display: none; }
         .tapes-scroll { scrollbar-width: none; -ms-overflow-style: none; }
-        @keyframes wipe-in { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-        @keyframes wipe-out { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 0 0 100%); } }
+        @keyframes wipe-in { from { clip-path: polygon(100% 0, 100% 0, 100% 0); } to { clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%); } }
+        @keyframes wipe-out { from { clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%); } to { clip-path: polygon(0 100%, 0 100%, 0 100%); } }
       ` }),
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       TapesTable3D2,
