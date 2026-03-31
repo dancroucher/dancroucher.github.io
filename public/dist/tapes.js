@@ -76865,7 +76865,7 @@ function TapesTable({ mixtape }) {
   const infinitePageRef = (0, import_react11.useRef)(1);
   const infiniteFetchingRef = (0, import_react11.useRef)(false);
   const enterPlayerView = (0, import_react11.useCallback)((tapeId) => {
-    setPlayerTapeId(tapeId);
+    setPlayerTapeId("__despawn__");
     setView("player");
     setMenuId(null);
     const startForm = document.getElementById("start-form");
@@ -76873,6 +76873,15 @@ function TapesTable({ mixtape }) {
     const deckEl = document.getElementById("tape-deck");
     if (deckEl) deckEl.style.display = "";
     requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("jeem-centre-camera")));
+    setTimeout(() => {
+      setPlayerTapeId(tapeId);
+      setNewTapeIds((s2) => new Set(s2).add(tapeId));
+      setTimeout(() => setNewTapeIds((s2) => {
+        const n2 = new Set(s2);
+        n2.delete(tapeId);
+        return n2;
+      }), 2e3);
+    }, 400);
   }, []);
   const exitPlayerView = (0, import_react11.useCallback)(() => {
     setView("table");

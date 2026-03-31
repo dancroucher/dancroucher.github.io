@@ -348,7 +348,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
 
   // ── View transitions ──
   const enterPlayerView = useCallback((tapeId: string) => {
-    setPlayerTapeId(tapeId);
+    // Phase 1: despawn all tapes by entering player view with a dummy ID
+    setPlayerTapeId('__despawn__');
     setView('player');
     setMenuId(null);
     // Hide search bar + mixtape button
@@ -359,6 +360,12 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     if (deckEl) deckEl.style.display = '';
     // Centre camera + max zoom
     requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('jeem-centre-camera')));
+    // Phase 2: after 400ms (table visibly empty), spawn chosen tape elevated — it drops via physics
+    setTimeout(() => {
+      setPlayerTapeId(tapeId);
+      setNewTapeIds(s => new Set(s).add(tapeId));
+      setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(tapeId); return n; }), 2000);
+    }, 400);
   }, []);
 
   const exitPlayerView = useCallback(() => {
