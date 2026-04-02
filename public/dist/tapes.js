@@ -77479,8 +77479,7 @@ function TapesTable({ mixtape }) {
       }
     }
     if (window.switchBgType) window.switchBgType(5);
-    exitPlayerView();
-  }, [exitPlayerView]);
+  }, []);
   autoEjectRef.current = autoEject;
   const handleLogin = (0, import_react11.useCallback)(async (name) => {
     const normalized = name.toLowerCase().trim();
@@ -77726,11 +77725,10 @@ function TapesTable({ mixtape }) {
         return;
       }
       setDeckEjecting(false);
-      exitPlayerView();
     }
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
-  }, [loadIntoPlayer, exitPlayerView]);
+  }, [loadIntoPlayer]);
   const startPan = (0, import_react11.useCallback)((e3) => {
     if (e3.target.closest("[data-tape]")) return;
     if (e3.target.closest("[data-deck]")) return;

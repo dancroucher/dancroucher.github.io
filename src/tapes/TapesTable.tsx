@@ -1024,9 +1024,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     }
 
     if (window.switchBgType) window.switchBgType(5);
-    // Return to table view
-    exitPlayerView();
-  }, [exitPlayerView]);
+  }, []);
   autoEjectRef.current = autoEject;
 
   // ── Username login/logout ──
@@ -1306,13 +1304,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         return;
       }
       setDeckEjecting(false);
-      // Return to table view after eject
-      exitPlayerView();
     }
 
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
-  }, [loadIntoPlayer, exitPlayerView]);
+  }, [loadIntoPlayer]);
 
   // --- Pan on background ---
   const startPan = useCallback((e: React.PointerEvent) => {
