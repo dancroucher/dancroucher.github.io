@@ -77831,15 +77831,16 @@ function TapesTable({ mixtape }) {
       const hasTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
       return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
         position: "fixed",
-        top: "160px",
-        right: "110px",
+        bottom: "60px",
+        left: "50%",
+        transform: "translateX(-50%)",
         width: "590px",
-        maxHeight: "calc(100vh - 200px)",
+        maxHeight: "40vh",
         fontFamily: "'04b03', monospace",
         fontSize: "1em",
         color: "#e8d5b0",
         background: "transparent",
-        pointerEvents: "none",
+        pointerEvents: "auto",
         zIndex: 200,
         display: "flex",
         flexDirection: "column",
@@ -77857,9 +77858,10 @@ function TapesTable({ mixtape }) {
           textTransform: "uppercase",
           whiteSpace: "nowrap",
           marginBottom: hasTracklist ? "12px" : "0",
-          flexShrink: 0
+          flexShrink: 0,
+          textAlign: "center"
         }, children: tape.title || "Untitled" }),
-        !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { color: "rgba(232,213,176,0.45)", marginTop: "6px", fontSize: "1em" }, children: tape.author }),
+        !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { color: "rgba(232,213,176,0.45)", marginTop: "6px", fontSize: "1em", textAlign: "center" }, children: tape.author }),
         hasTracklist && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
           flex: 1,
           overflowY: "auto",
@@ -77883,7 +77885,56 @@ function TapesTable({ mixtape }) {
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, fontSize: "1em" }, children: track.title }),
           /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { color: "rgba(232,213,176,0.45)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "1em" }, children: track.author })
-        ] }, i4)) })
+        ] }, i4)) }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
+          display: "flex",
+          justifyContent: "center",
+          gap: "16px",
+          marginTop: "16px",
+          paddingTop: "12px",
+          borderTop: "1px solid rgba(201,168,76,0.15)",
+          flexShrink: 0
+        }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+            "button",
+            {
+              onClick: () => {
+                rewindTape(tape.id);
+              },
+              style: {
+                fontFamily: "'04b03', monospace",
+                fontSize: "1em",
+                color: "rgba(201,168,76,0.6)",
+                background: "transparent",
+                border: "1px solid rgba(201,168,76,0.25)",
+                borderRadius: "6px",
+                padding: "6px 18px",
+                cursor: "pointer"
+              },
+              children: "rewind"
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+            "button",
+            {
+              onClick: () => {
+                deleteTape(tape.id);
+                exitPlayerView();
+              },
+              style: {
+                fontFamily: "'04b03', monospace",
+                fontSize: "1em",
+                color: "rgba(200,80,80,0.7)",
+                background: "transparent",
+                border: "1px solid rgba(200,80,80,0.3)",
+                borderRadius: "6px",
+                padding: "6px 18px",
+                cursor: "pointer"
+              },
+              children: "remove"
+            }
+          )
+        ] })
       ] });
     })(),
     typeof document !== "undefined" && document.getElementById("username-area") && (0, import_react_dom.createPortal)(

@@ -1416,17 +1416,17 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         }} />
       )}
 
-      {/* Tape info overlay in player view — visible when not dragging */}
+      {/* Tape info overlay in player view — centred below tape, visible when not dragging */}
       {view === 'player' && playerTapeId && !dragging3D && !showMixtapeCreator && (() => {
         const tape = tapes.find(t => t.id === playerTapeId);
         if (!tape) return null;
         const hasTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
         return (
           <div style={{
-            position: 'fixed', top: '160px', right: '110px', width: '590px',
-            maxHeight: 'calc(100vh - 200px)',
+            position: 'fixed', bottom: '60px', left: '50%', transform: 'translateX(-50%)',
+            width: '590px', maxHeight: '40vh',
             fontFamily: "'04b03', monospace", fontSize: '1em', color: '#e8d5b0',
-            background: 'transparent', pointerEvents: 'none', zIndex: 200,
+            background: 'transparent', pointerEvents: 'auto', zIndex: 200,
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
             border: '1px solid rgba(201,168,76,0.2)', borderRadius: '12px',
             padding: '24px 24px 20px',
@@ -1436,12 +1436,12 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               fontFamily: "'04b03', monospace", fontSize: '1em',
               color: 'rgba(201,168,76,0.5)', letterSpacing: '1.5px',
               textTransform: 'uppercase', whiteSpace: 'nowrap', marginBottom: hasTracklist ? '12px' : '0',
-              flexShrink: 0,
+              flexShrink: 0, textAlign: 'center',
             }}>
               {tape.title || 'Untitled'}
             </div>
             {!hasTracklist && tape.author && (
-              <div style={{ color: 'rgba(232,213,176,0.45)', marginTop: '6px', fontSize: '1em' }}>
+              <div style={{ color: 'rgba(232,213,176,0.45)', marginTop: '6px', fontSize: '1em', textAlign: 'center' }}>
                 {tape.author}
               </div>
             )}
@@ -1473,6 +1473,32 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 ))}
               </div>
             )}
+            {/* Rewind + Remove buttons */}
+            <div style={{
+              display: 'flex', justifyContent: 'center', gap: '16px',
+              marginTop: '16px', paddingTop: '12px',
+              borderTop: '1px solid rgba(201,168,76,0.15)',
+              flexShrink: 0,
+            }}>
+              <button
+                onClick={() => { rewindTape(tape.id); }}
+                style={{
+                  fontFamily: "'04b03', monospace", fontSize: '1em',
+                  color: 'rgba(201,168,76,0.6)', background: 'transparent',
+                  border: '1px solid rgba(201,168,76,0.25)', borderRadius: '6px',
+                  padding: '6px 18px', cursor: 'pointer',
+                }}
+              >rewind</button>
+              <button
+                onClick={() => { deleteTape(tape.id); exitPlayerView(); }}
+                style={{
+                  fontFamily: "'04b03', monospace", fontSize: '1em',
+                  color: 'rgba(200,80,80,0.7)', background: 'transparent',
+                  border: '1px solid rgba(200,80,80,0.3)', borderRadius: '6px',
+                  padding: '6px 18px', cursor: 'pointer',
+                }}
+              >remove</button>
+            </div>
           </div>
         );
       })()}
