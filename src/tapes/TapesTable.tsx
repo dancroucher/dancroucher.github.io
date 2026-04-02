@@ -1416,6 +1416,67 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         }} />
       )}
 
+      {/* Tape info overlay in player view — visible when not dragging */}
+      {view === 'player' && playerTapeId && !dragging3D && !showMixtapeCreator && (() => {
+        const tape = tapes.find(t => t.id === playerTapeId);
+        if (!tape) return null;
+        const hasTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
+        return (
+          <div style={{
+            position: 'fixed', top: '160px', right: '110px', width: '590px',
+            maxHeight: 'calc(100vh - 200px)',
+            fontFamily: "'04b03', monospace", fontSize: '1em', color: '#e8d5b0',
+            background: 'transparent', pointerEvents: 'none', zIndex: 200,
+            display: 'flex', flexDirection: 'column', overflow: 'hidden',
+            border: '1px solid rgba(201,168,76,0.2)', borderRadius: '12px',
+            padding: '24px 24px 20px',
+            transition: 'opacity 0.2s',
+          }}>
+            <div style={{
+              fontFamily: "'04b03', monospace", fontSize: '1em',
+              color: 'rgba(201,168,76,0.5)', letterSpacing: '1.5px',
+              textTransform: 'uppercase', whiteSpace: 'nowrap', marginBottom: hasTracklist ? '12px' : '0',
+              flexShrink: 0,
+            }}>
+              {tape.title || 'Untitled'}
+            </div>
+            {!hasTracklist && tape.author && (
+              <div style={{ color: 'rgba(232,213,176,0.45)', marginTop: '6px', fontSize: '1em' }}>
+                {tape.author}
+              </div>
+            )}
+            {hasTracklist && (
+              <div style={{
+                flex: 1, overflowY: 'auto',
+                scrollbarWidth: 'thin', scrollbarColor: 'rgba(201,168,76,0.3) transparent',
+                padding: '10px 14px',
+              }}>
+                {tape.infiniteHistory!.map((track, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    fontFamily: "'04b03', monospace", fontSize: '1em',
+                    color: 'rgba(201,168,76,0.4)',
+                    padding: '6px 4px',
+                    borderBottom: '1px solid rgba(255,255,255,0.04)',
+                    borderRadius: '3px',
+                  }}>
+                    <span style={{ color: 'rgba(201,168,76,0.5)', width: '30px', flexShrink: 0, textAlign: 'right', fontSize: '1em' }}>
+                      {String(i + 1).padStart(2, '0')}.
+                    </span>
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, fontSize: '1em' }}>
+                      {track.title}
+                    </span>
+                    <span style={{ color: 'rgba(232,213,176,0.45)', flexShrink: 0, width: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '1em' }}>
+                      {track.author}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Deck — portaled outside tapes-root so it's visible in all bg modes */}
       {/* Username bar — portaled into start-header */}
       {typeof document !== 'undefined' && document.getElementById('username-area') && createPortal(

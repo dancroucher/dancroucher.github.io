@@ -77825,6 +77825,67 @@ function TapesTable({ mixtape }) {
       pointerEvents: "none",
       animation: `${wipePhase === "cover" ? "wipe-in" : "wipe-out"} ${WIPE_DURATION}ms ease-in-out forwards`
     } }),
+    view === "player" && playerTapeId && !dragging3D && !showMixtapeCreator && (() => {
+      const tape = tapes.find((t3) => t3.id === playerTapeId);
+      if (!tape) return null;
+      const hasTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
+      return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
+        position: "fixed",
+        top: "160px",
+        right: "110px",
+        width: "590px",
+        maxHeight: "calc(100vh - 200px)",
+        fontFamily: "'04b03', monospace",
+        fontSize: "1em",
+        color: "#e8d5b0",
+        background: "transparent",
+        pointerEvents: "none",
+        zIndex: 200,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        border: "1px solid rgba(201,168,76,0.2)",
+        borderRadius: "12px",
+        padding: "24px 24px 20px",
+        transition: "opacity 0.2s"
+      }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
+          fontFamily: "'04b03', monospace",
+          fontSize: "1em",
+          color: "rgba(201,168,76,0.5)",
+          letterSpacing: "1.5px",
+          textTransform: "uppercase",
+          whiteSpace: "nowrap",
+          marginBottom: hasTracklist ? "12px" : "0",
+          flexShrink: 0
+        }, children: tape.title || "Untitled" }),
+        !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { color: "rgba(232,213,176,0.45)", marginTop: "6px", fontSize: "1em" }, children: tape.author }),
+        hasTracklist && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
+          flex: 1,
+          overflowY: "auto",
+          scrollbarWidth: "thin",
+          scrollbarColor: "rgba(201,168,76,0.3) transparent",
+          padding: "10px 14px"
+        }, children: tape.infiniteHistory.map((track, i4) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          fontFamily: "'04b03', monospace",
+          fontSize: "1em",
+          color: "rgba(201,168,76,0.4)",
+          padding: "6px 4px",
+          borderBottom: "1px solid rgba(255,255,255,0.04)",
+          borderRadius: "3px"
+        }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { style: { color: "rgba(201,168,76,0.5)", width: "30px", flexShrink: 0, textAlign: "right", fontSize: "1em" }, children: [
+            String(i4 + 1).padStart(2, "0"),
+            "."
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, fontSize: "1em" }, children: track.title }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { color: "rgba(232,213,176,0.45)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "1em" }, children: track.author })
+        ] }, i4)) })
+      ] });
+    })(),
     typeof document !== "undefined" && document.getElementById("username-area") && (0, import_react_dom.createPortal)(
       /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "username-bar", children: username ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
         /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "username-display", children: [
