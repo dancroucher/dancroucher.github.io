@@ -389,14 +389,14 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     );
   }, [wipeTransition]);
 
+  // Tape excluded from table render — used to force remount for drop animation
+  const [excludeTapeId, setExcludeTapeId] = useState<string | null>(null);
+
   const exitPlayerView = useCallback((droppingTapeId?: string) => {
     wipeTransition(
-      // Behind the wipe: swap to table view, mark dropping tape as new so it spawns elevated
+      // Behind the wipe: swap to table view, exclude dropping tape so it unmounts
       () => {
-        if (droppingTapeId) {
-          setNewTapeIds(s => new Set(s).add(droppingTapeId));
-          setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(droppingTapeId); return n; }), 2000);
-        }
+        if (droppingTapeId) setExcludeTapeId(droppingTapeId);
         setView('table');
         setPlayerTapeId(null);
         setLoadedTape(null);
@@ -423,6 +423,12 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         if (startEl) startEl.style.display = 'flex';
         if (window.switchBgType) window.switchBgType(5);
       },
+      // After uncover: re-add the tape as new so it remounts and drops from height
+      droppingTapeId ? () => {
+        setNewTapeIds(s => new Set(s).add(droppingTapeId));
+        setExcludeTapeId(null);
+        setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(droppingTapeId); return n; }), 2000);
+      } : undefined,
     );
   }, [wipeTransition]);
 
@@ -1390,7 +1396,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         <TapesTable3D
           tapes={view === 'player' && playerTapeId
             ? positionedTapes.filter(t => t.id === playerTapeId).map(t => ({ ...t, x: CANVAS_W / 2, y: CANVAS_H / 2 }))
-            : positionedTapes}
+            : positionedTapes.filter(t => t.id !== excludeTapeId)}
           loadedTapeId={loadedTape?.id ?? null}
           onDragStart={handle3DDragStart}
           onDragEnd={handle3DDragEnd}

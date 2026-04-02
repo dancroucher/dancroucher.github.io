@@ -76910,18 +76910,12 @@ function TapesTable({ mixtape }) {
       }
     );
   }, [wipeTransition]);
+  const [excludeTapeId, setExcludeTapeId] = (0, import_react11.useState)(null);
   const exitPlayerView = (0, import_react11.useCallback)((droppingTapeId) => {
     wipeTransition(
-      // Behind the wipe: swap to table view, mark dropping tape as new so it spawns elevated
+      // Behind the wipe: swap to table view, exclude dropping tape so it unmounts
       () => {
-        if (droppingTapeId) {
-          setNewTapeIds((s2) => new Set(s2).add(droppingTapeId));
-          setTimeout(() => setNewTapeIds((s2) => {
-            const n2 = new Set(s2);
-            n2.delete(droppingTapeId);
-            return n2;
-          }), 2e3);
-        }
+        if (droppingTapeId) setExcludeTapeId(droppingTapeId);
         setView("table");
         setPlayerTapeId(null);
         setLoadedTape(null);
@@ -76950,7 +76944,17 @@ function TapesTable({ mixtape }) {
         const startEl = document.getElementById("start-container");
         if (startEl) startEl.style.display = "flex";
         if (window.switchBgType) window.switchBgType(5);
-      }
+      },
+      // After uncover: re-add the tape as new so it remounts and drops from height
+      droppingTapeId ? () => {
+        setNewTapeIds((s2) => new Set(s2).add(droppingTapeId));
+        setExcludeTapeId(null);
+        setTimeout(() => setNewTapeIds((s2) => {
+          const n2 = new Set(s2);
+          n2.delete(droppingTapeId);
+          return n2;
+        }), 2e3);
+      } : void 0
     );
   }, [wipeTransition]);
   (0, import_react11.useEffect)(() => {
@@ -77798,7 +77802,7 @@ function TapesTable({ mixtape }) {
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       TapesTable3D2,
       {
-        tapes: view === "player" && playerTapeId ? positionedTapes.filter((t3) => t3.id === playerTapeId).map((t3) => ({ ...t3, x: CANVAS_W2 / 2, y: CANVAS_H2 / 2 })) : positionedTapes,
+        tapes: view === "player" && playerTapeId ? positionedTapes.filter((t3) => t3.id === playerTapeId).map((t3) => ({ ...t3, x: CANVAS_W2 / 2, y: CANVAS_H2 / 2 })) : positionedTapes.filter((t3) => t3.id !== excludeTapeId),
         loadedTapeId: loadedTape?.id ?? null,
         onDragStart: handle3DDragStart,
         onDragEnd: handle3DDragEnd,
