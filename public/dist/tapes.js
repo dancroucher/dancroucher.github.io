@@ -75631,10 +75631,12 @@ function SceneContents({
     }
   });
   (0, import_react10.useEffect)(() => {
-    function handleCentre() {
-      camera.position.set(0, 35, 3);
+    function handleCentre(e3) {
+      const detail = e3.detail;
+      const cx = detail?.x ?? 0;
+      camera.position.set(cx, 35, 3);
       if (controlsRef.current) {
-        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.target.set(cx, 0, 0);
         controlsRef.current.update();
       }
     }
@@ -76896,7 +76898,7 @@ function TapesTable({ mixtape }) {
         if (startForm) startForm.style.display = "none";
         const deckEl = document.getElementById("tape-deck");
         if (deckEl) deckEl.style.display = "";
-        requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("jeem-centre-camera")));
+        requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { x: -4 } })));
       },
       // After uncover: spawn the tape dropping from height
       () => {
@@ -77800,7 +77802,7 @@ function TapesTable({ mixtape }) {
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       TapesTable3D2,
       {
-        tapes: view === "player" && playerTapeId ? positionedTapes.filter((t3) => t3.id === playerTapeId).map((t3) => ({ ...t3, x: CANVAS_W2 / 2, y: CANVAS_H2 / 2 })) : positionedTapes.filter((t3) => t3.id !== excludeTapeId),
+        tapes: view === "player" && playerTapeId ? positionedTapes.filter((t3) => t3.id === playerTapeId).map((t3) => ({ ...t3, x: CANVAS_W2 * 0.35, y: CANVAS_H2 / 2 })) : positionedTapes.filter((t3) => t3.id !== excludeTapeId),
         loadedTapeId: loadedTape?.id ?? null,
         onDragStart: handle3DDragStart,
         onDragEnd: handle3DDragEnd,
@@ -77831,11 +77833,11 @@ function TapesTable({ mixtape }) {
       const hasTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
       return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
         position: "fixed",
-        bottom: "60px",
+        top: "50%",
         left: "50%",
-        transform: "translateX(-50%)",
-        width: "590px",
-        maxHeight: "40vh",
+        transform: "translateY(-50%)",
+        width: "44vw",
+        maxHeight: "70vh",
         fontFamily: "'04b03', monospace",
         fontSize: "1em",
         color: "#e8d5b0",

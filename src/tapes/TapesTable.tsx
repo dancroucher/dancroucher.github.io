@@ -378,7 +378,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         if (startForm) startForm.style.display = 'none';
         const deckEl = document.getElementById('tape-deck');
         if (deckEl) deckEl.style.display = '';
-        requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('jeem-centre-camera')));
+        // Centre camera between tape (x=-12) and UI panel — offset to x=-4
+        requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { x: -4 } })));
       },
       // After uncover: spawn the tape dropping from height
       () => {
@@ -1391,7 +1392,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       <Suspense fallback={<div style={{ flex: 1, background: '#0a0805' }} />}>
         <TapesTable3D
           tapes={view === 'player' && playerTapeId
-            ? positionedTapes.filter(t => t.id === playerTapeId).map(t => ({ ...t, x: CANVAS_W / 2, y: CANVAS_H / 2 }))
+            ? positionedTapes.filter(t => t.id === playerTapeId).map(t => ({ ...t, x: CANVAS_W * 0.35, y: CANVAS_H / 2 }))
             : positionedTapes.filter(t => t.id !== excludeTapeId)}
           loadedTapeId={loadedTape?.id ?? null}
           onDragStart={handle3DDragStart}
@@ -1423,8 +1424,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         const hasTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
         return (
           <div style={{
-            position: 'fixed', bottom: '60px', left: '50%', transform: 'translateX(-50%)',
-            width: '590px', maxHeight: '40vh',
+            position: 'fixed', top: '50%', left: '50%', transform: 'translateY(-50%)',
+            width: '44vw', maxHeight: '70vh',
             fontFamily: "'04b03', monospace", fontSize: '1em', color: '#e8d5b0',
             background: 'transparent', pointerEvents: 'auto', zIndex: 200,
             display: 'flex', flexDirection: 'column', overflow: 'hidden',

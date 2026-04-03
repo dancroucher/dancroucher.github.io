@@ -304,10 +304,12 @@ function SceneContents({
 
   // Listen for centre-camera event (used when entering mixtape creation)
   useEffect(() => {
-    function handleCentre() {
-      camera.position.set(0, 35, 3);
+    function handleCentre(e: Event) {
+      const detail = (e as CustomEvent).detail;
+      const cx = detail?.x ?? 0;
+      camera.position.set(cx, 35, 3);
       if (controlsRef.current) {
-        controlsRef.current.target.set(0, 0, 0);
+        controlsRef.current.target.set(cx, 0, 0);
         controlsRef.current.update();
       }
     }
