@@ -28825,18 +28825,30 @@ function MixtapeCreator({ onBack, onPlay, onGenerated, initialKeywords }) {
       )
     ] })),
     tracks.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: styles.creator, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: styles.trackSide, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-        "input",
-        {
-          style: styles.nameInput,
-          type: "text",
-          placeholder: "Mixtape name...",
-          value: name,
-          onChange: (e2) => setName(e2.target.value),
-          onKeyDown: (e2) => e2.key === "Enter" && canSave && handleSave(),
-          maxLength: 60
-        }
-      ),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: { display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+          "input",
+          {
+            style: { ...styles.nameInput, marginBottom: 0, flex: 1 },
+            type: "text",
+            placeholder: "Mixtape name...",
+            value: name,
+            onChange: (e2) => setName(e2.target.value),
+            onKeyDown: (e2) => e2.key === "Enter" && canSave && handleSave(),
+            maxLength: 60
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+          "button",
+          {
+            className: "tape-ui-btn",
+            style: { ...styles.saveBtn, ...loading || !canSave ? styles.saveBtnDisabled : {}, flexShrink: 0 },
+            onClick: handleSave,
+            disabled: loading || !canSave,
+            children: "Save"
+          }
+        )
+      ] }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("p", { style: styles.trackCount, children: [
         tracks.length,
         ' tracks \u2014 generated from "',
@@ -28852,20 +28864,7 @@ function MixtapeCreator({ onBack, onPlay, onGenerated, initialKeywords }) {
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: styles.trackAuthor, children: track.author }),
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: styles.trackDuration, children: track.durationText || "" })
       ] }, i2)) }),
-      error2 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { style: styles.error, children: error2 }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: styles.actions, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { className: "tape-ui-btn", style: styles.regenerateBtn, onClick: handleRegenerate, disabled: loading, children: "\u2190 Back" }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-          "button",
-          {
-            className: "tape-ui-btn",
-            style: { ...styles.saveBtn, ...loading || !canSave ? styles.saveBtnDisabled : {} },
-            onClick: handleSave,
-            disabled: loading || !canSave,
-            children: loading ? "Saving..." : !canSave ? "Name required" : "Save"
-          }
-        )
-      ] })
+      error2 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { style: styles.error, children: error2 })
     ] }) })
   ] });
 }

@@ -1469,7 +1469,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             )}
             {/* Rewind + Remove buttons */}
             <div style={{
-              display: 'flex', justifyContent: 'center', gap: '8px',
+              display: 'flex', justifyContent: 'flex-start', gap: '8px',
               marginTop: '16px', paddingTop: '12px',
               flexShrink: 0,
             }}>

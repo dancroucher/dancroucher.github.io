@@ -315,16 +315,26 @@ export function MixtapeCreator({ onBack, onPlay, onGenerated, initialKeywords }:
       {tracks.length > 0 && (
         <div style={styles.creator}>
           <div style={styles.trackSide}>
-            {/* Name input — blank until saved */}
-            <input
-              style={styles.nameInput}
-              type="text"
-              placeholder="Mixtape name..."
-              value={name}
-              onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && canSave && handleSave()}
-              maxLength={60}
-            />
+            {/* Name input + save button inline */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+              <input
+                style={{ ...styles.nameInput, marginBottom: 0, flex: 1 }}
+                type="text"
+                placeholder="Mixtape name..."
+                value={name}
+                onChange={e => setName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && canSave && handleSave()}
+                maxLength={60}
+              />
+              <button
+                className="tape-ui-btn"
+                style={{ ...styles.saveBtn, ...((loading || !canSave) ? styles.saveBtnDisabled : {}), flexShrink: 0 }}
+                onClick={handleSave}
+                disabled={loading || !canSave}
+              >
+                Save
+              </button>
+            </div>
 
             {/* Track count */}
             <p style={styles.trackCount}>{tracks.length} tracks — generated from "{seedTitle}"</p>
@@ -341,21 +351,7 @@ export function MixtapeCreator({ onBack, onPlay, onGenerated, initialKeywords }:
               ))}
             </div>
 
-            {/* Actions */}
             {error && <p style={styles.error}>{error}</p>}
-            <div style={styles.actions}>
-              <button className="tape-ui-btn" style={styles.regenerateBtn} onClick={handleRegenerate} disabled={loading}>
-                ← Back
-              </button>
-              <button
-                className="tape-ui-btn"
-                style={{ ...styles.saveBtn, ...((loading || !canSave) ? styles.saveBtnDisabled : {}) }}
-                onClick={handleSave}
-                disabled={loading || !canSave}
-              >
-                {loading ? 'Saving...' : !canSave ? 'Name required' : 'Save'}
-              </button>
-            </div>
           </div>
         </div>
       )}
