@@ -76232,7 +76232,7 @@ function makeMixtapeTape(name, tracks) {
     infiniteConfig: { source: "youtube", type: "artist", value: name }
   };
 }
-function MixtapeCreator({ onBack, onPlay, initialKeywords }) {
+function MixtapeCreator({ onBack, onPlay, onGenerated, initialKeywords }) {
   const [url, setUrl] = (0, import_react9.useState)("");
   const [keywords, setKeywords] = (0, import_react9.useState)(initialKeywords || "");
   const [loading2, setLoading] = (0, import_react9.useState)(false);
@@ -76258,12 +76258,13 @@ function MixtapeCreator({ onBack, onPlay, initialKeywords }) {
       if (!res.ok) throw new Error(data.error || "Generation failed");
       setTracks(data.tracks || []);
       setSeedTitle(data.seedTitle || "Mixtape");
+      if (onGenerated) onGenerated();
     } catch (e3) {
       setError(e3.message || "Failed to generate mixtape");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [onGenerated]);
   const handleGenerate = (0, import_react9.useCallback)(() => {
     doGenerate(url, keywords);
   }, [url, keywords, doGenerate]);
@@ -76286,7 +76287,10 @@ function MixtapeCreator({ onBack, onPlay, initialKeywords }) {
   }, []);
   const mixtapeTape = makeMixtapeTape(name || seedTitle || "Mixtape", tracks);
   return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.overlay, children: [
-    !tracks.length && /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.inputModal, children: [
+    !tracks.length && (loading2 && initialKeywords ? /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.inputModal, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: { ...styles.modalSubtitle, color: "rgba(250,249,246,0.7)" }, children: "Generating..." }),
+      error2 && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: styles.error, children: error2 })
+    ] }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.inputModal, children: [
       /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: styles.modalSubtitle, children: "Enter a YouTube URL or keywords to generate a 16-track mixtape" }),
       /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.inputGroup, children: [
         /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
@@ -76326,7 +76330,7 @@ function MixtapeCreator({ onBack, onPlay, initialKeywords }) {
           children: loading2 ? "Generating..." : "Generate Mixtape"
         }
       )
-    ] }),
+    ] })),
     tracks.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: styles.creator, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.trackSide, children: [
       /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
         "input",
@@ -77278,37 +77282,29 @@ function TapesTable({ mixtape }) {
     }
   }, [loadedTape, mixtape]);
   const [mixtapeKeywords, setMixtapeKeywords] = (0, import_react11.useState)("");
+  const [mixtapeGenerating, setMixtapeGenerating] = (0, import_react11.useState)(false);
   (0, import_react11.useEffect)(() => {
     function handleCreateMixtape(e3) {
       const keywords = e3.detail?.keywords || "";
-      if (!keywords) return;
-      const blankTape = {
-        id: MIXTAPE_ID,
-        videoId: "",
-        isPlaylist: false,
-        isInfinite: true,
-        infiniteConfig: { source: "youtube", type: "artist", value: "Mixtape" },
-        infiniteHistory: [],
-        infiniteIndex: 0,
-        title: "",
-        author: "",
-        tapeStyle: 0,
-        textureVariant: "a",
-        progress: 0,
-        timestamp: Date.now(),
-        x: CANVAS_W2 / 2,
-        y: CANVAS_H2 / 2,
-        angle: 0
-      };
-      setTapes((prev) => [...prev.filter((t3) => t3.id !== MIXTAPE_ID), blankTape]);
-      setZOrder((prev) => [...prev.filter((id) => id !== MIXTAPE_ID), MIXTAPE_ID]);
       setMixtapeKeywords(keywords);
       setShowMixtapeCreator(true);
-      requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("jeem-centre-camera")));
+      setMixtapeGenerating(!!keywords);
+      setMenuId(null);
+      wipeTransition(
+        () => {
+          setPlayerTapeId("__despawn__");
+          setView("player");
+          const startForm = document.getElementById("start-form");
+          if (startForm) startForm.style.display = "none";
+          const deckEl = document.getElementById("tape-deck");
+          if (deckEl) deckEl.style.display = "none";
+          requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { x: -4 } })));
+        }
+      );
     }
     window.addEventListener("jeem-create-mixtape", handleCreateMixtape);
     return () => window.removeEventListener("jeem-create-mixtape", handleCreateMixtape);
-  }, []);
+  }, [wipeTransition]);
   const playVideoById = (0, import_react11.useCallback)((videoId, title, author, seekProgress = 0) => {
     if (!window.myApp || !window.AppState) return;
     const AppState = window.AppState;
@@ -78054,11 +78050,43 @@ function TapesTable({ mixtape }) {
       MixtapeCreator,
       {
         initialKeywords: mixtapeKeywords,
+        onGenerated: () => {
+          const blankTape = {
+            id: MIXTAPE_ID,
+            videoId: "",
+            isPlaylist: false,
+            isInfinite: true,
+            infiniteConfig: { source: "youtube", type: "artist", value: "Mixtape" },
+            infiniteHistory: [],
+            infiniteIndex: 0,
+            title: "",
+            author: "",
+            tapeStyle: 0,
+            textureVariant: "a",
+            progress: 0,
+            timestamp: Date.now(),
+            x: CANVAS_W2 * 0.35,
+            y: CANVAS_H2 / 2,
+            angle: 0
+          };
+          setTapes((prev) => [...prev.filter((t3) => t3.id !== MIXTAPE_ID), blankTape]);
+          setZOrder((prev) => [...prev.filter((id) => id !== MIXTAPE_ID), MIXTAPE_ID]);
+          setPlayerTapeId(MIXTAPE_ID);
+          setNewTapeIds((s2) => new Set(s2).add(MIXTAPE_ID));
+          setTimeout(() => setNewTapeIds((s2) => {
+            const n2 = new Set(s2);
+            n2.delete(MIXTAPE_ID);
+            return n2;
+          }), 2e3);
+          setMixtapeGenerating(false);
+        },
         onBack: () => {
           setTapes((prev) => prev.filter((t3) => t3.id !== MIXTAPE_ID));
           setZOrder((prev) => prev.filter((id) => id !== MIXTAPE_ID));
           setShowMixtapeCreator(false);
           setMixtapeKeywords("");
+          setMixtapeGenerating(false);
+          exitPlayerView();
         },
         onPlay: (tape) => {
           const tracks = tape.tracks.map((t3) => ({

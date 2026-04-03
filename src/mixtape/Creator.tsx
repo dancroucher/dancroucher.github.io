@@ -15,6 +15,7 @@ interface Track {
 interface CreatorProps {
   onBack: () => void;
   onPlay: (tape: { name: string; description: string; tracks: Track[] }) => void;
+  onGenerated?: () => void;
   initialKeywords?: string;
 }
 
@@ -201,7 +202,7 @@ function makeMixtapeTape(name: string, tracks: Track[]): Tape {
   };
 }
 
-export function MixtapeCreator({ onBack, onPlay, initialKeywords }: CreatorProps) {
+export function MixtapeCreator({ onBack, onPlay, onGenerated, initialKeywords }: CreatorProps) {
   const [url, setUrl] = useState('');
   const [keywords, setKeywords] = useState(initialKeywords || '');
   const [loading, setLoading] = useState(false);
@@ -228,12 +229,13 @@ export function MixtapeCreator({ onBack, onPlay, initialKeywords }: CreatorProps
       if (!res.ok) throw new Error(data.error || 'Generation failed');
       setTracks(data.tracks || []);
       setSeedTitle(data.seedTitle || 'Mixtape');
+      if (onGenerated) onGenerated();
     } catch (e: any) {
       setError(e.message || 'Failed to generate mixtape');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [onGenerated]);
 
   const handleGenerate = useCallback(() => {
     doGenerate(url, keywords);
@@ -265,41 +267,48 @@ export function MixtapeCreator({ onBack, onPlay, initialKeywords }: CreatorProps
 
   return (
     <div style={styles.overlay}>
-      {/* ── Step 1: URL / Keywords input ── */}
+      {/* ── Step 1: URL / Keywords input (or just "Generating..." when auto-generating) ── */}
       {!tracks.length && (
-        <div style={styles.inputModal}>
-          <p style={styles.modalSubtitle}>Enter a YouTube URL or keywords to generate a 16-track mixtape</p>
-          <div style={styles.inputGroup}>
-            <input
-              style={styles.input}
-              type="text"
-              placeholder="YouTube URL"
-              value={url}
-              onChange={e => setUrl(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleGenerate()}
-              disabled={loading}
-            />
-            <span style={styles.or}>or</span>
-            <input
-              style={styles.input}
-              type="text"
-              placeholder="Keywords (e.g. 80s synthwave)"
-              value={keywords}
-              onChange={e => setKeywords(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleGenerate()}
-              disabled={loading}
-            />
+        loading && initialKeywords ? (
+          <div style={styles.inputModal}>
+            <p style={{ ...styles.modalSubtitle, color: 'rgba(250,249,246,0.7)' }}>Generating...</p>
+            {error && <p style={styles.error}>{error}</p>}
           </div>
-          {error && <p style={styles.error}>{error}</p>}
-          <button
-            className="tape-ui-btn"
-            style={{ ...styles.generateBtn, ...(loading ? styles.generateBtnDisabled : {}) }}
-            onClick={handleGenerate}
-            disabled={loading}
-          >
-            {loading ? 'Generating...' : 'Generate Mixtape'}
-          </button>
-        </div>
+        ) : (
+          <div style={styles.inputModal}>
+            <p style={styles.modalSubtitle}>Enter a YouTube URL or keywords to generate a 16-track mixtape</p>
+            <div style={styles.inputGroup}>
+              <input
+                style={styles.input}
+                type="text"
+                placeholder="YouTube URL"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleGenerate()}
+                disabled={loading}
+              />
+              <span style={styles.or}>or</span>
+              <input
+                style={styles.input}
+                type="text"
+                placeholder="Keywords (e.g. 80s synthwave)"
+                value={keywords}
+                onChange={e => setKeywords(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleGenerate()}
+                disabled={loading}
+              />
+            </div>
+            {error && <p style={styles.error}>{error}</p>}
+            <button
+              className="tape-ui-btn"
+              style={{ ...styles.generateBtn, ...(loading ? styles.generateBtnDisabled : {}) }}
+              onClick={handleGenerate}
+              disabled={loading}
+            >
+              {loading ? 'Generating...' : 'Generate Mixtape'}
+            </button>
+          </div>
+        )
       )}
 
       {/* ── Step 2: tracklist (tape is visible on table behind) ── */}

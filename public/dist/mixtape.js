@@ -28725,7 +28725,7 @@ function makeMixtapeTape(name, tracks) {
     infiniteConfig: { source: "youtube", type: "artist", value: name }
   };
 }
-function MixtapeCreator({ onBack, onPlay, initialKeywords }) {
+function MixtapeCreator({ onBack, onPlay, onGenerated, initialKeywords }) {
   const [url, setUrl] = (0, import_react5.useState)("");
   const [keywords, setKeywords] = (0, import_react5.useState)(initialKeywords || "");
   const [loading, setLoading] = (0, import_react5.useState)(false);
@@ -28751,12 +28751,13 @@ function MixtapeCreator({ onBack, onPlay, initialKeywords }) {
       if (!res.ok) throw new Error(data.error || "Generation failed");
       setTracks(data.tracks || []);
       setSeedTitle(data.seedTitle || "Mixtape");
+      if (onGenerated) onGenerated();
     } catch (e2) {
       setError(e2.message || "Failed to generate mixtape");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [onGenerated]);
   const handleGenerate = (0, import_react5.useCallback)(() => {
     doGenerate(url, keywords);
   }, [url, keywords, doGenerate]);
@@ -28779,7 +28780,10 @@ function MixtapeCreator({ onBack, onPlay, initialKeywords }) {
   }, []);
   const mixtapeTape = makeMixtapeTape(name || seedTitle || "Mixtape", tracks);
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: styles.overlay, children: [
-    !tracks.length && /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: styles.inputModal, children: [
+    !tracks.length && (loading && initialKeywords ? /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: styles.inputModal, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { style: { ...styles.modalSubtitle, color: "rgba(250,249,246,0.7)" }, children: "Generating..." }),
+      error2 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { style: styles.error, children: error2 })
+    ] }) : /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: styles.inputModal, children: [
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { style: styles.modalSubtitle, children: "Enter a YouTube URL or keywords to generate a 16-track mixtape" }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: styles.inputGroup, children: [
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
@@ -28819,7 +28823,7 @@ function MixtapeCreator({ onBack, onPlay, initialKeywords }) {
           children: loading ? "Generating..." : "Generate Mixtape"
         }
       )
-    ] }),
+    ] })),
     tracks.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: styles.creator, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: styles.trackSide, children: [
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
         "input",

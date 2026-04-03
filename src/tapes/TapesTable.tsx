@@ -763,40 +763,33 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // ── Listen for "create mixtape" event from vanilla JS ──
   const [mixtapeKeywords, setMixtapeKeywords] = useState('');
 
+  const [mixtapeGenerating, setMixtapeGenerating] = useState(false);
+
   useEffect(() => {
     function handleCreateMixtape(e: Event) {
       const keywords = (e as CustomEvent).detail?.keywords || '';
-      if (!keywords) return; // Need keywords from search bar
 
-      // Spawn a blank mixtape tape at centre of the table
-      const blankTape: Tape = {
-        id: MIXTAPE_ID,
-        videoId: '',
-        isPlaylist: false,
-        isInfinite: true,
-        infiniteConfig: { source: 'youtube', type: 'artist', value: 'Mixtape' } as InfiniteConfig,
-        infiniteHistory: [],
-        infiniteIndex: 0,
-        title: '',
-        author: '',
-        tapeStyle: 0,
-        textureVariant: 'a',
-        progress: 0,
-        timestamp: Date.now(),
-        x: CANVAS_W / 2,
-        y: CANVAS_H / 2,
-        angle: 0,
-      };
-      setTapes(prev => [...prev.filter(t => t.id !== MIXTAPE_ID), blankTape]);
-      setZOrder(prev => [...prev.filter(id => id !== MIXTAPE_ID), MIXTAPE_ID]);
       setMixtapeKeywords(keywords);
       setShowMixtapeCreator(true);
-      // Stay in view 1 — lock tape and camera during creation
-      requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('jeem-centre-camera')));
+      setMixtapeGenerating(!!keywords);
+
+      // Wipe to view 2 — no tape yet, just empty table with generating overlay
+      setMenuId(null);
+      wipeTransition(
+        () => {
+          setPlayerTapeId('__despawn__');
+          setView('player');
+          const startForm = document.getElementById('start-form');
+          if (startForm) startForm.style.display = 'none';
+          const deckEl = document.getElementById('tape-deck');
+          if (deckEl) deckEl.style.display = 'none';
+          requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { x: -4 } })));
+        },
+      );
     }
     window.addEventListener('jeem-create-mixtape', handleCreateMixtape);
     return () => window.removeEventListener('jeem-create-mixtape', handleCreateMixtape);
-  }, []);
+  }, [wipeTransition]);
 
   // ── Play a single video by ID (used for infinite tape tracks) ──
   const playVideoById = useCallback((videoId: string, title: string, author: string, seekProgress = 0) => {
@@ -1615,12 +1608,41 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       {showMixtapeCreator && (
         <MixtapeCreator
           initialKeywords={mixtapeKeywords}
+          onGenerated={() => {
+            // Spawn blank mixtape tape and drop it
+            const blankTape: Tape = {
+              id: MIXTAPE_ID,
+              videoId: '',
+              isPlaylist: false,
+              isInfinite: true,
+              infiniteConfig: { source: 'youtube', type: 'artist', value: 'Mixtape' } as InfiniteConfig,
+              infiniteHistory: [],
+              infiniteIndex: 0,
+              title: '',
+              author: '',
+              tapeStyle: 0,
+              textureVariant: 'a',
+              progress: 0,
+              timestamp: Date.now(),
+              x: CANVAS_W * 0.35,
+              y: CANVAS_H / 2,
+              angle: 0,
+            };
+            setTapes(prev => [...prev.filter(t => t.id !== MIXTAPE_ID), blankTape]);
+            setZOrder(prev => [...prev.filter(id => id !== MIXTAPE_ID), MIXTAPE_ID]);
+            setPlayerTapeId(MIXTAPE_ID);
+            setNewTapeIds(s => new Set(s).add(MIXTAPE_ID));
+            setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(MIXTAPE_ID); return n; }), 2000);
+            setMixtapeGenerating(false);
+          }}
           onBack={() => {
             // Remove the blank mixtape tape and close creator
             setTapes(prev => prev.filter(t => t.id !== MIXTAPE_ID));
             setZOrder(prev => prev.filter(id => id !== MIXTAPE_ID));
             setShowMixtapeCreator(false);
             setMixtapeKeywords('');
+            setMixtapeGenerating(false);
+            exitPlayerView();
           }}
           onPlay={(tape) => {
             // Populate the spawned mixtape tape with generated tracks
