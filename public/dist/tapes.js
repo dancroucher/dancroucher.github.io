@@ -77286,9 +77286,10 @@ function TapesTable({ mixtape }) {
   (0, import_react11.useEffect)(() => {
     function handleCreateMixtape(e3) {
       const keywords = e3.detail?.keywords || "";
+      if (!keywords) return;
       setMixtapeKeywords(keywords);
       setShowMixtapeCreator(true);
-      setMixtapeGenerating(!!keywords);
+      setMixtapeGenerating(true);
       setMenuId(null);
       wipeTransition(
         () => {

@@ -768,10 +768,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   useEffect(() => {
     function handleCreateMixtape(e: Event) {
       const keywords = (e as CustomEvent).detail?.keywords || '';
+      if (!keywords) return;
 
       setMixtapeKeywords(keywords);
       setShowMixtapeCreator(true);
-      setMixtapeGenerating(!!keywords);
+      setMixtapeGenerating(true);
 
       // Wipe to view 2 — no tape yet, just empty table with generating overlay
       setMenuId(null);

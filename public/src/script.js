@@ -333,6 +333,7 @@ const InfinitePopup = {
         if (mixtapeBtn) mixtapeBtn.addEventListener("click", () => {
           const searchInput = document.getElementById('idEntry');
           const keywords = searchInput ? searchInput.value.trim() : '';
+          if (!keywords) return; // nothing to generate from
           window.dispatchEvent(new CustomEvent('jeem-create-mixtape', { detail: { keywords } }));
           // Close the infinite popup if open
           popup.style.display = "none";
@@ -443,6 +444,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     InfinitePopup.init();
+
+    // Grey out mixtape button when search bar is empty
+    const mixtapeBtn = document.getElementById("mixtape-btn");
+    function updateMixtapeBtnState() {
+        if (!mixtapeBtn) return;
+        const hasText = input && input.value.trim().length > 0;
+        mixtapeBtn.style.opacity = hasText ? '1' : '0.35';
+        mixtapeBtn.style.pointerEvents = hasText ? '' : 'none';
+    }
+    if (input) {
+        input.addEventListener("input", updateMixtapeBtnState);
+    }
+    updateMixtapeBtnState();
 
     if (input) {
         input.addEventListener("keydown", (e) => {
