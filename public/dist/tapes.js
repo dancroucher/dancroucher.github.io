@@ -76885,6 +76885,7 @@ function TapesTable({ mixtape }) {
   const mixtapeLoadedRef = (0, import_react11.useRef)(false);
   const [showMixtapeCreator, setShowMixtapeCreator] = (0, import_react11.useState)(false);
   const [mixtapeData, setMixtapeData] = (0, import_react11.useState)(mixtape ?? null);
+  const [playlistTracks, setPlaylistTracks] = (0, import_react11.useState)(null);
   const [view, setView] = (0, import_react11.useState)("table");
   const [playerTapeId, setPlayerTapeId] = (0, import_react11.useState)(null);
   const tapesRef = (0, import_react11.useRef)(tapes);
@@ -76912,6 +76913,18 @@ function TapesTable({ mixtape }) {
   }, []);
   const enterPlayerView = (0, import_react11.useCallback)((tapeId) => {
     setMenuId(null);
+    const tape = tapesRef.current.find((t3) => t3.id === tapeId);
+    if (tape?.isPlaylist && tape.playlistId) {
+      setPlaylistTracks(null);
+      fetch(`/api/playlist-tracks?list=${encodeURIComponent(tape.playlistId)}`).then((r3) => r3.ok ? r3.json() : []).then((tracks) => {
+        if (tracks.length > 0) {
+          setPlaylistTracks({ name: tape.title || "Playlist", description: "", tracks });
+        }
+      }).catch(() => {
+      });
+    } else {
+      setPlaylistTracks(null);
+    }
     wipeTransition(
       // Behind the wipe: despawn all, set up player view
       () => {
@@ -76945,6 +76958,7 @@ function TapesTable({ mixtape }) {
         setPlayerTapeId(null);
         setLoadedTape(null);
         setIsPlaying(false);
+        setPlaylistTracks(null);
         if (window.myApp) {
           try {
             window.myApp.player.pause();
@@ -77294,6 +77308,15 @@ function TapesTable({ mixtape }) {
       if (padinfo) padinfo.style.display = "";
     }
   }, [loadedTape, mixtape]);
+  (0, import_react11.useEffect)(() => {
+    const padinfo = document.getElementById("padinfo");
+    if (!padinfo) return;
+    if (playlistTracks && loadedTape?.isPlaylist) {
+      padinfo.style.display = "none";
+    } else if (!mixtape || loadedTape?.id !== MIXTAPE_ID) {
+      padinfo.style.display = "";
+    }
+  }, [playlistTracks, loadedTape, mixtape]);
   const [mixtapeKeywords, setMixtapeKeywords] = (0, import_react11.useState)("");
   const [mixtapeGenerating, setMixtapeGenerating] = (0, import_react11.useState)(false);
   (0, import_react11.useEffect)(() => {
@@ -77444,6 +77467,17 @@ function TapesTable({ mixtape }) {
       AppState.songTitle = tape.title;
       AppState.songAuthor = tape.author;
       window.myApp.submitVideoNameFromSaved(tape.playlistId, tape.playlistIndex ?? 0, tape.progress ?? 0);
+      setPlaylistTracks(null);
+      fetch(`/api/playlist-tracks?list=${encodeURIComponent(tape.playlistId)}`).then((r3) => r3.ok ? r3.json() : []).then((tracks) => {
+        if (tracks.length > 0) {
+          setPlaylistTracks({
+            name: tape.title || "Playlist",
+            description: "",
+            tracks
+          });
+        }
+      }).catch(() => {
+      });
     } else {
       AppState.singleVideo = true;
       AppState.myVideoName = tape.videoId;
@@ -77482,6 +77516,7 @@ function TapesTable({ mixtape }) {
     setTimeout(() => setRewindingId(null), 400);
     setLoadedTape(null);
     setIsPlaying(false);
+    setPlaylistTracks(null);
     if (window.myApp) {
       try {
         window.myApp.player.pause();
@@ -77854,7 +77889,10 @@ function TapesTable({ mixtape }) {
     view === "player" && playerTapeId && !dragging3D && !showMixtapeCreator && !loadedTape && (() => {
       const tape = tapes.find((t3) => t3.id === playerTapeId);
       if (!tape) return null;
-      const hasTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
+      const hasInfiniteTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
+      const hasPlaylistTracklist = tape.isPlaylist && playlistTracks && playlistTracks.tracks.length > 0;
+      const tracklistItems = hasInfiniteTracklist ? tape.infiniteHistory.map((t3) => ({ title: t3.title, author: t3.author })) : hasPlaylistTracklist ? playlistTracks.tracks.map((t3) => ({ title: t3.title, author: t3.author })) : [];
+      const hasTracklist = tracklistItems.length > 0;
       return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "tape-info-panel", style: {
         position: "fixed",
         top: "50%",
@@ -77891,7 +77929,7 @@ function TapesTable({ mixtape }) {
           scrollbarWidth: "thin",
           scrollbarColor: "rgba(250,249,246,0.2) transparent",
           padding: "10px 14px"
-        }, children: tape.infiniteHistory.map((track, i4) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
+        }, children: tracklistItems.map((track, i4) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
           display: "flex",
           alignItems: "center",
           gap: "8px",
@@ -78063,6 +78101,20 @@ function TapesTable({ mixtape }) {
         }
       }
     ),
+    playlistTracks && loadedTape?.isPlaylist && loadedTape.playlistId && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      MixtapeOverlayEffect,
+      {
+        elementId: "playlist-tracklist",
+        mixtape: playlistTracks,
+        currentIndex: loadedTape.playlistIndex ?? 0,
+        onSelectTrack: (i4, _track) => {
+          if (!window.myApp?.player) return;
+          window.myApp.player.goto_at(i4);
+          setLoadedTape((prev) => prev ? { ...prev, playlistIndex: i4, progress: 0 } : prev);
+          setTapes((prev) => prev.map((t3) => t3.id === loadedTape.id ? { ...t3, playlistIndex: i4, progress: 0 } : t3));
+        }
+      }
+    ),
     showMixtapeCreator && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       MixtapeCreator,
       {
@@ -78142,14 +78194,15 @@ function TapesTable({ mixtape }) {
 function MixtapeOverlayEffect({
   mixtape,
   currentIndex,
-  onSelectTrack
+  onSelectTrack,
+  elementId = "mixtape-tracklist"
 }) {
   const elRef = import_react11.default.useRef(null);
   (0, import_react11.useEffect)(() => {
-    let el = document.getElementById("mixtape-tracklist");
+    let el = document.getElementById(elementId);
     if (!el) {
       el = document.createElement("div");
-      el.id = "mixtape-tracklist";
+      el.id = elementId;
       document.body.appendChild(el);
     }
     elRef.current = el;
@@ -78157,7 +78210,7 @@ function MixtapeOverlayEffect({
       el?.remove();
       elRef.current = null;
     };
-  }, []);
+  }, [elementId]);
   (0, import_react11.useEffect)(() => {
     const el = elRef.current;
     if (!el) return;
