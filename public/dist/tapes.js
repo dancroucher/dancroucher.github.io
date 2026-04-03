@@ -76369,15 +76369,15 @@ var MIXTAPE_PANEL_STYLES = {
   maxHeight: "70vh",
   fontFamily: "'04b03', monospace",
   fontSize: "1em",
-  color: "#ddd",
-  background: "transparent",
+  color: "rgba(250, 249, 246, 0.9)",
+  background: "rgba(0, 0, 0, 0.3)",
   pointerEvents: "auto",
   zIndex: 200,
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
   border: "none",
-  borderRadius: 12,
+  borderRadius: 0,
   padding: "24px 24px 20px"
 };
 var MIXTAPE_TRACK_ROW = {
@@ -76391,7 +76391,7 @@ var MIXTAPE_TRACK_ROW = {
 };
 var MIXTAPE_TRACK_NUM = {
   fontFamily: "'04b03', monospace",
-  color: "rgba(255,255,255,0.4)",
+  color: "rgba(250,249,246,0.5)",
   width: 30,
   flexShrink: 0,
   textAlign: "right",
@@ -76400,7 +76400,7 @@ var MIXTAPE_TRACK_NUM = {
 var MIXTAPE_TRACK_TITLE = {
   fontFamily: "'04b03', monospace",
   flex: 1,
-  color: "#ddd",
+  color: "rgba(250,249,246,0.9)",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
@@ -76409,7 +76409,7 @@ var MIXTAPE_TRACK_TITLE = {
 };
 var MIXTAPE_TRACK_AUTHOR = {
   fontFamily: "'04b03', monospace",
-  color: "rgba(255,255,255,0.4)",
+  color: "rgba(250,249,246,0.5)",
   flexShrink: 0,
   width: 140,
   overflow: "hidden",
@@ -76419,7 +76419,7 @@ var MIXTAPE_TRACK_AUTHOR = {
 };
 var MIXTAPE_TRACK_DURATION = {
   fontFamily: "'04b03', monospace",
-  color: "rgba(255,255,255,0.35)",
+  color: "rgba(250,249,246,0.4)",
   flexShrink: 0,
   width: 50,
   textAlign: "right",
@@ -76453,7 +76453,7 @@ var styles = {
   modalSubtitle: {
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
-    color: "rgba(255,255,255,0.5)",
+    color: "rgba(250,249,246,0.5)",
     textAlign: "center",
     margin: 0
   },
@@ -76464,12 +76464,12 @@ var styles = {
     gap: 10
   },
   input: {
-    width: "100%",
+    width: "33%",
     padding: "10px 14px",
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.2)",
+    background: "rgba(0,0,0,0.3)",
+    border: "1px solid rgba(250,249,246,0.2)",
     borderRadius: 6,
-    color: "#ddd",
+    color: "rgba(250,249,246,0.9)",
     fontSize: "1em",
     fontFamily: "'04b03', monospace",
     outline: "none",
@@ -76477,7 +76477,7 @@ var styles = {
   },
   or: {
     textAlign: "center",
-    color: "rgba(255,255,255,0.35)",
+    color: "rgba(250,249,246,0.4)",
     fontSize: "1em",
     fontFamily: "'04b03', monospace"
   },
@@ -76488,15 +76488,15 @@ var styles = {
     margin: 0
   },
   generateBtn: {
-    padding: "6px 18px",
-    background: "transparent",
-    border: "1px solid rgba(255,255,255,0.2)",
-    borderRadius: 6,
-    color: "rgba(255,255,255,0.5)",
+    padding: "4px 8px",
+    background: "rgba(0,0,0,0.3)",
+    border: "none",
+    borderRadius: 0,
+    color: "rgba(250,249,246,0.9)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
-    letterSpacing: 1,
-    cursor: "pointer"
+    cursor: "pointer",
+    width: "fit-content"
   },
   generateBtnDisabled: {
     opacity: 0.6,
@@ -76517,10 +76517,10 @@ var styles = {
   },
   nameInput: {
     padding: "10px 14px",
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.2)",
+    background: "rgba(0,0,0,0.3)",
+    border: "1px solid rgba(250,249,246,0.2)",
     borderRadius: 6,
-    color: "#ddd",
+    color: "rgba(250,249,246,0.9)",
     fontSize: "1em",
     fontFamily: "'04b03', monospace",
     letterSpacing: 0.5,
@@ -76532,7 +76532,7 @@ var styles = {
   trackCount: {
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
-    color: "rgba(255,255,255,0.35)",
+    color: "rgba(250,249,246,0.4)",
     margin: "0 0 8px",
     letterSpacing: "0.05em"
   },
@@ -76549,25 +76549,24 @@ var styles = {
     marginTop: 14
   },
   regenerateBtn: {
-    padding: "6px 18px",
-    background: "transparent",
-    border: "1px solid rgba(255,255,255,0.2)",
-    borderRadius: 6,
-    color: "rgba(255,255,255,0.5)",
+    padding: "4px 8px",
+    background: "rgba(0,0,0,0.3)",
+    border: "none",
+    borderRadius: 0,
+    color: "rgba(250,249,246,0.9)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
     cursor: "pointer"
   },
   saveBtn: {
-    padding: "6px 18px",
-    background: "transparent",
-    border: "1px solid rgba(255,255,255,0.2)",
-    borderRadius: 6,
-    color: "rgba(255,255,255,0.5)",
+    padding: "4px 8px",
+    background: "rgba(0,0,0,0.3)",
+    border: "none",
+    borderRadius: 0,
+    color: "rgba(250,249,246,0.9)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
-    cursor: "pointer",
-    flex: 1
+    cursor: "pointer"
   },
   saveBtnDisabled: {
     opacity: 0.6,
@@ -76789,31 +76788,31 @@ function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
     maxHeight: "70vh",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
-    color: "#ddd",
-    background: "transparent",
+    color: "rgba(250,249,246,0.9)",
+    background: "rgba(0,0,0,0.3)",
     pointerEvents: "auto",
     zIndex: "200",
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
     border: "none",
-    borderRadius: "12px",
+    borderRadius: "0",
     transition: "opacity 1s ease",
     padding: "24px 24px 20px"
   });
   el.innerHTML = `
-    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(255,255,255,0.6);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
+    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(250,249,246,0.7);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
       ${mixtape.name}
     </div>
-    <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.2) transparent;padding:10px 14px;">
+    <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(250,249,246,0.2) transparent;padding:10px 14px;">
       ${mixtape.tracks.map((track, i4) => `
         <div data-idx="${i4}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
-          style="display:flex;align-items:center;gap:8px;font-family:'04b03',monospace;font-size:1em;color:${i4 === currentIndex ? "#fff" : "rgba(255,255,255,0.4)"};cursor:pointer;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.04);border-radius:3px;background:${i4 === currentIndex ? "rgba(255,255,255,0.08)" : "transparent"};transition:color 0.15s;"
+          style="display:flex;align-items:center;gap:8px;font-family:'04b03',monospace;font-size:1em;color:${i4 === currentIndex ? "rgba(250,249,246,0.9)" : "rgba(250,249,246,0.5)"};cursor:pointer;padding:6px 4px;border-bottom:1px solid rgba(250,249,246,0.04);background:${i4 === currentIndex ? "rgba(250,249,246,0.08)" : "transparent"};transition:color 0.15s;"
           title="${track.title} \u2014 ${track.author}">
-          <span style="color:rgba(255,255,255,0.4);width:30px;flex-shrink:0;text-align:right;font-size:1em;">${String(i4 + 1).padStart(2, "0")}.</span>
-          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:1em;">${track.title}</span>
-          <span style="color:rgba(255,255,255,0.4);flex-shrink:0;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:1em;">${track.author}</span>
-          <span style="color:rgba(255,255,255,0.35);flex-shrink:0;width:50px;text-align:right;font-size:1em;">${track.durationText || ""}</span>
+          <span style="color:rgba(250,249,246,0.5);width:30px;flex-shrink:0;text-align:right;">${String(i4 + 1).padStart(2, "0")}.</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${track.title}</span>
+          <span style="color:rgba(250,249,246,0.5);flex-shrink:0;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${track.author}</span>
+          <span style="color:rgba(250,249,246,0.4);flex-shrink:0;width:50px;text-align:right;">${track.durationText || ""}</span>
         </div>
       `).join("")}
     </div>
@@ -77284,7 +77283,7 @@ function TapesTable({ mixtape }) {
         textureVariant: "a",
         progress: 0,
         timestamp: Date.now(),
-        x: CANVAS_W2 / 2,
+        x: CANVAS_W2 * 0.35,
         y: CANVAS_H2 / 2,
         angle: 0
       };
@@ -77842,33 +77841,33 @@ function TapesTable({ mixtape }) {
         maxHeight: "70vh",
         fontFamily: "'04b03', monospace",
         fontSize: "1em",
-        color: "#ddd",
-        background: "transparent",
+        color: "rgba(250,249,246,0.9)",
+        background: "rgba(0,0,0,0.3)",
         pointerEvents: "auto",
         zIndex: 200,
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
         border: "none",
-        borderRadius: "12px",
+        borderRadius: 0,
         padding: "24px 24px 20px"
       }, children: [
         /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
           fontFamily: "'04b03', monospace",
           fontSize: "1.3em",
-          color: "rgba(255,255,255,0.6)",
+          color: "rgba(250,249,246,0.7)",
           letterSpacing: "1.5px",
           textTransform: "uppercase",
           whiteSpace: "nowrap",
           marginBottom: hasTracklist ? "12px" : "0",
           flexShrink: 0
         }, children: tape.title || "Untitled" }),
-        !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { color: "rgba(255,255,255,0.4)", marginTop: "6px", fontSize: "1em" }, children: tape.author }),
+        !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { color: "rgba(250,249,246,0.5)", marginTop: "6px", fontSize: "1em" }, children: tape.author }),
         hasTracklist && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
           flex: 1,
           overflowY: "auto",
           scrollbarWidth: "thin",
-          scrollbarColor: "rgba(255,255,255,0.2) transparent",
+          scrollbarColor: "rgba(250,249,246,0.2) transparent",
           padding: "10px 14px"
         }, children: tape.infiniteHistory.map((track, i4) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
           display: "flex",
@@ -77876,25 +77875,23 @@ function TapesTable({ mixtape }) {
           gap: "8px",
           fontFamily: "'04b03', monospace",
           fontSize: "1em",
-          color: "rgba(255,255,255,0.4)",
+          color: "rgba(250,249,246,0.5)",
           padding: "6px 4px",
-          borderBottom: "1px solid rgba(255,255,255,0.04)",
-          borderRadius: "3px"
+          borderBottom: "1px solid rgba(250,249,246,0.04)"
         }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { style: { color: "rgba(255,255,255,0.4)", width: "30px", flexShrink: 0, textAlign: "right", fontSize: "1em" }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { style: { color: "rgba(250,249,246,0.5)", width: "30px", flexShrink: 0, textAlign: "right" }, children: [
             String(i4 + 1).padStart(2, "0"),
             "."
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, fontSize: "1em" }, children: track.title }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { color: "rgba(255,255,255,0.4)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "1em" }, children: track.author })
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, color: "rgba(250,249,246,0.9)" }, children: track.title }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { color: "rgba(250,249,246,0.5)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: track.author })
         ] }, i4)) }),
         /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
           display: "flex",
           justifyContent: "center",
-          gap: "16px",
+          gap: "8px",
           marginTop: "16px",
           paddingTop: "12px",
-          borderTop: "1px solid rgba(255,255,255,0.1)",
           flexShrink: 0
         }, children: [
           /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
@@ -77906,11 +77903,11 @@ function TapesTable({ mixtape }) {
               style: {
                 fontFamily: "'04b03', monospace",
                 fontSize: "1em",
-                color: "rgba(255,255,255,0.5)",
-                background: "transparent",
-                border: "1px solid rgba(255,255,255,0.2)",
-                borderRadius: "6px",
-                padding: "6px 18px",
+                color: "rgba(250,249,246,0.9)",
+                background: "rgba(0,0,0,0.3)",
+                border: "none",
+                borderRadius: 0,
+                padding: "4px 8px",
                 cursor: "pointer"
               },
               children: "rewind"
@@ -77926,11 +77923,11 @@ function TapesTable({ mixtape }) {
               style: {
                 fontFamily: "'04b03', monospace",
                 fontSize: "1em",
-                color: "rgba(200,80,80,0.7)",
-                background: "transparent",
-                border: "1px solid rgba(200,80,80,0.3)",
-                borderRadius: "6px",
-                padding: "6px 18px",
+                color: "rgba(250,249,246,0.9)",
+                background: "rgba(0,0,0,0.3)",
+                border: "none",
+                borderRadius: 0,
+                padding: "4px 8px",
                 cursor: "pointer"
               },
               children: "remove"
@@ -78071,7 +78068,7 @@ function TapesTable({ mixtape }) {
             textureVariant: "a",
             progress: 0,
             timestamp: Date.now(),
-            x: CANVAS_W2 / 2,
+            x: CANVAS_W2 * 0.35,
             y: CANVAS_H2 / 2,
             angle: 0
           };

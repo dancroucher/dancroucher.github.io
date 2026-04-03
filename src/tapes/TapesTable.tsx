@@ -259,31 +259,31 @@ function mountMixtapeOverlay(el: HTMLElement, mixtape: MixtapeData, currentIndex
     maxHeight: '70vh',
     fontFamily: "'04b03', monospace",
     fontSize: '1em',
-    color: '#ddd',
-    background: 'transparent',
+    color: 'rgba(250,249,246,0.9)',
+    background: 'rgba(0,0,0,0.3)',
     pointerEvents: 'auto',
     zIndex: '200',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
     border: 'none',
-    borderRadius: '12px',
+    borderRadius: '0',
     transition: 'opacity 1s ease',
     padding: '24px 24px 20px',
   });
   el.innerHTML = `
-    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(255,255,255,0.6);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
+    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(250,249,246,0.7);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
       ${mixtape.name}
     </div>
-    <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.2) transparent;padding:10px 14px;">
+    <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(250,249,246,0.2) transparent;padding:10px 14px;">
       ${mixtape.tracks.map((track, i) => `
         <div data-idx="${i}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
-          style="display:flex;align-items:center;gap:8px;font-family:'04b03',monospace;font-size:1em;color:${i === currentIndex ? '#fff' : 'rgba(255,255,255,0.4)'};cursor:pointer;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.04);border-radius:3px;background:${i === currentIndex ? 'rgba(255,255,255,0.08)' : 'transparent'};transition:color 0.15s;"
+          style="display:flex;align-items:center;gap:8px;font-family:'04b03',monospace;font-size:1em;color:${i === currentIndex ? 'rgba(250,249,246,0.9)' : 'rgba(250,249,246,0.5)'};cursor:pointer;padding:6px 4px;border-bottom:1px solid rgba(250,249,246,0.04);background:${i === currentIndex ? 'rgba(250,249,246,0.08)' : 'transparent'};transition:color 0.15s;"
           title="${track.title} — ${track.author}">
-          <span style="color:rgba(255,255,255,0.4);width:30px;flex-shrink:0;text-align:right;font-size:1em;">${String(i + 1).padStart(2, '0')}.</span>
-          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:1em;">${track.title}</span>
-          <span style="color:rgba(255,255,255,0.4);flex-shrink:0;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:1em;">${track.author}</span>
-          <span style="color:rgba(255,255,255,0.35);flex-shrink:0;width:50px;text-align:right;font-size:1em;">${track.durationText || ''}</span>
+          <span style="color:rgba(250,249,246,0.5);width:30px;flex-shrink:0;text-align:right;">${String(i + 1).padStart(2, '0')}.</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${track.title}</span>
+          <span style="color:rgba(250,249,246,0.5);flex-shrink:0;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${track.author}</span>
+          <span style="color:rgba(250,249,246,0.4);flex-shrink:0;width:50px;text-align:right;">${track.durationText || ''}</span>
         </div>
       `).join('')}
     </div>
@@ -782,7 +782,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         textureVariant: 'a',
         progress: 0,
         timestamp: Date.now(),
-        x: CANVAS_W / 2,
+        x: CANVAS_W * 0.35,
         y: CANVAS_H / 2,
         angle: 0,
       };
@@ -1428,47 +1428,46 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           <div className="tape-info-panel" style={{
             position: 'fixed', top: '50%', left: 'calc(50% - 20px)', transform: 'translateY(-50%)',
             width: '50vw', maxHeight: '70vh',
-            fontFamily: "'04b03', monospace", fontSize: '1em', color: '#ddd',
-            background: 'transparent', pointerEvents: 'auto', zIndex: 200,
+            fontFamily: "'04b03', monospace", fontSize: '1em', color: 'rgba(250,249,246,0.9)',
+            background: 'rgba(0,0,0,0.3)', pointerEvents: 'auto', zIndex: 200,
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
-            border: 'none', borderRadius: '12px',
+            border: 'none', borderRadius: 0,
             padding: '24px 24px 20px',
           }}>
             <div style={{
               fontFamily: "'04b03', monospace", fontSize: '1.3em',
-              color: 'rgba(255,255,255,0.6)', letterSpacing: '1.5px',
+              color: 'rgba(250,249,246,0.7)', letterSpacing: '1.5px',
               textTransform: 'uppercase', whiteSpace: 'nowrap', marginBottom: hasTracklist ? '12px' : '0',
               flexShrink: 0,
             }}>
               {tape.title || 'Untitled'}
             </div>
             {!hasTracklist && tape.author && (
-              <div style={{ color: 'rgba(255,255,255,0.4)', marginTop: '6px', fontSize: '1em' }}>
+              <div style={{ color: 'rgba(250,249,246,0.5)', marginTop: '6px', fontSize: '1em' }}>
                 {tape.author}
               </div>
             )}
             {hasTracklist && (
               <div style={{
                 flex: 1, overflowY: 'auto',
-                scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.2) transparent',
+                scrollbarWidth: 'thin', scrollbarColor: 'rgba(250,249,246,0.2) transparent',
                 padding: '10px 14px',
               }}>
                 {tape.infiniteHistory!.map((track, i) => (
                   <div key={i} style={{
                     display: 'flex', alignItems: 'center', gap: '8px',
                     fontFamily: "'04b03', monospace", fontSize: '1em',
-                    color: 'rgba(255,255,255,0.4)',
+                    color: 'rgba(250,249,246,0.5)',
                     padding: '6px 4px',
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
-                    borderRadius: '3px',
+                    borderBottom: '1px solid rgba(250,249,246,0.04)',
                   }}>
-                    <span style={{ color: 'rgba(255,255,255,0.4)', width: '30px', flexShrink: 0, textAlign: 'right', fontSize: '1em' }}>
+                    <span style={{ color: 'rgba(250,249,246,0.5)', width: '30px', flexShrink: 0, textAlign: 'right' }}>
                       {String(i + 1).padStart(2, '0')}.
                     </span>
-                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, fontSize: '1em' }}>
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, color: 'rgba(250,249,246,0.9)' }}>
                       {track.title}
                     </span>
-                    <span style={{ color: 'rgba(255,255,255,0.4)', flexShrink: 0, width: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '1em' }}>
+                    <span style={{ color: 'rgba(250,249,246,0.5)', flexShrink: 0, width: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {track.author}
                     </span>
                   </div>
@@ -1477,27 +1476,26 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             )}
             {/* Rewind + Remove buttons */}
             <div style={{
-              display: 'flex', justifyContent: 'center', gap: '16px',
+              display: 'flex', justifyContent: 'center', gap: '8px',
               marginTop: '16px', paddingTop: '12px',
-              borderTop: '1px solid rgba(255,255,255,0.1)',
               flexShrink: 0,
             }}>
               <button
                 onClick={() => { rewindTape(tape.id); }}
                 style={{
                   fontFamily: "'04b03', monospace", fontSize: '1em',
-                  color: 'rgba(255,255,255,0.5)', background: 'transparent',
-                  border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px',
-                  padding: '6px 18px', cursor: 'pointer',
+                  color: 'rgba(250,249,246,0.9)', background: 'rgba(0,0,0,0.3)',
+                  border: 'none', borderRadius: 0,
+                  padding: '4px 8px', cursor: 'pointer',
                 }}
               >rewind</button>
               <button
                 onClick={() => { deleteTape(tape.id); exitPlayerView(); }}
                 style={{
                   fontFamily: "'04b03', monospace", fontSize: '1em',
-                  color: 'rgba(200,80,80,0.7)', background: 'transparent',
-                  border: '1px solid rgba(200,80,80,0.3)', borderRadius: '6px',
-                  padding: '6px 18px', cursor: 'pointer',
+                  color: 'rgba(250,249,246,0.9)', background: 'rgba(0,0,0,0.3)',
+                  border: 'none', borderRadius: 0,
+                  padding: '4px 8px', cursor: 'pointer',
                 }}
               >remove</button>
             </div>
@@ -1646,7 +1644,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               textureVariant: 'a',
               progress: 0,
               timestamp: Date.now(),
-              x: CANVAS_W / 2,
+              x: CANVAS_W * 0.35,
               y: CANVAS_H / 2,
               angle: 0,
             };

@@ -28862,15 +28862,15 @@ var MIXTAPE_PANEL_STYLES = {
   maxHeight: "70vh",
   fontFamily: "'04b03', monospace",
   fontSize: "1em",
-  color: "#ddd",
-  background: "transparent",
+  color: "rgba(250, 249, 246, 0.9)",
+  background: "rgba(0, 0, 0, 0.3)",
   pointerEvents: "auto",
   zIndex: 200,
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
   border: "none",
-  borderRadius: 12,
+  borderRadius: 0,
   padding: "24px 24px 20px"
 };
 var MIXTAPE_TRACK_ROW = {
@@ -28884,7 +28884,7 @@ var MIXTAPE_TRACK_ROW = {
 };
 var MIXTAPE_TRACK_NUM = {
   fontFamily: "'04b03', monospace",
-  color: "rgba(255,255,255,0.4)",
+  color: "rgba(250,249,246,0.5)",
   width: 30,
   flexShrink: 0,
   textAlign: "right",
@@ -28893,7 +28893,7 @@ var MIXTAPE_TRACK_NUM = {
 var MIXTAPE_TRACK_TITLE = {
   fontFamily: "'04b03', monospace",
   flex: 1,
-  color: "#ddd",
+  color: "rgba(250,249,246,0.9)",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
@@ -28902,7 +28902,7 @@ var MIXTAPE_TRACK_TITLE = {
 };
 var MIXTAPE_TRACK_AUTHOR = {
   fontFamily: "'04b03', monospace",
-  color: "rgba(255,255,255,0.4)",
+  color: "rgba(250,249,246,0.5)",
   flexShrink: 0,
   width: 140,
   overflow: "hidden",
@@ -28912,7 +28912,7 @@ var MIXTAPE_TRACK_AUTHOR = {
 };
 var MIXTAPE_TRACK_DURATION = {
   fontFamily: "'04b03', monospace",
-  color: "rgba(255,255,255,0.35)",
+  color: "rgba(250,249,246,0.4)",
   flexShrink: 0,
   width: 50,
   textAlign: "right",
@@ -28946,7 +28946,7 @@ var styles = {
   modalSubtitle: {
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
-    color: "rgba(255,255,255,0.5)",
+    color: "rgba(250,249,246,0.5)",
     textAlign: "center",
     margin: 0
   },
@@ -28957,12 +28957,12 @@ var styles = {
     gap: 10
   },
   input: {
-    width: "100%",
+    width: "33%",
     padding: "10px 14px",
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.2)",
+    background: "rgba(0,0,0,0.3)",
+    border: "1px solid rgba(250,249,246,0.2)",
     borderRadius: 6,
-    color: "#ddd",
+    color: "rgba(250,249,246,0.9)",
     fontSize: "1em",
     fontFamily: "'04b03', monospace",
     outline: "none",
@@ -28970,7 +28970,7 @@ var styles = {
   },
   or: {
     textAlign: "center",
-    color: "rgba(255,255,255,0.35)",
+    color: "rgba(250,249,246,0.4)",
     fontSize: "1em",
     fontFamily: "'04b03', monospace"
   },
@@ -28981,15 +28981,15 @@ var styles = {
     margin: 0
   },
   generateBtn: {
-    padding: "6px 18px",
-    background: "transparent",
-    border: "1px solid rgba(255,255,255,0.2)",
-    borderRadius: 6,
-    color: "rgba(255,255,255,0.5)",
+    padding: "4px 8px",
+    background: "rgba(0,0,0,0.3)",
+    border: "none",
+    borderRadius: 0,
+    color: "rgba(250,249,246,0.9)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
-    letterSpacing: 1,
-    cursor: "pointer"
+    cursor: "pointer",
+    width: "fit-content"
   },
   generateBtnDisabled: {
     opacity: 0.6,
@@ -29010,10 +29010,10 @@ var styles = {
   },
   nameInput: {
     padding: "10px 14px",
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.2)",
+    background: "rgba(0,0,0,0.3)",
+    border: "1px solid rgba(250,249,246,0.2)",
     borderRadius: 6,
-    color: "#ddd",
+    color: "rgba(250,249,246,0.9)",
     fontSize: "1em",
     fontFamily: "'04b03', monospace",
     letterSpacing: 0.5,
@@ -29025,7 +29025,7 @@ var styles = {
   trackCount: {
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
-    color: "rgba(255,255,255,0.35)",
+    color: "rgba(250,249,246,0.4)",
     margin: "0 0 8px",
     letterSpacing: "0.05em"
   },
@@ -29042,25 +29042,24 @@ var styles = {
     marginTop: 14
   },
   regenerateBtn: {
-    padding: "6px 18px",
-    background: "transparent",
-    border: "1px solid rgba(255,255,255,0.2)",
-    borderRadius: 6,
-    color: "rgba(255,255,255,0.5)",
+    padding: "4px 8px",
+    background: "rgba(0,0,0,0.3)",
+    border: "none",
+    borderRadius: 0,
+    color: "rgba(250,249,246,0.9)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
     cursor: "pointer"
   },
   saveBtn: {
-    padding: "6px 18px",
-    background: "transparent",
-    border: "1px solid rgba(255,255,255,0.2)",
-    borderRadius: 6,
-    color: "rgba(255,255,255,0.5)",
+    padding: "4px 8px",
+    background: "rgba(0,0,0,0.3)",
+    border: "none",
+    borderRadius: 0,
+    color: "rgba(250,249,246,0.9)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
-    cursor: "pointer",
-    flex: 1
+    cursor: "pointer"
   },
   saveBtnDisabled: {
     opacity: 0.6,
