@@ -253,7 +253,7 @@ function mountMixtapeOverlay(el: HTMLElement, mixtape: MixtapeData, currentIndex
   Object.assign(el.style, {
     position: 'fixed',
     top: '50%',
-    left: 'calc(50% - 40px)',
+    left: 'calc(50% - 70px)',
     transform: 'translateY(-50%)',
     width: '50vw',
     maxHeight: '70vh',
@@ -1426,7 +1426,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         const hasTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
         return (
           <div className="tape-info-panel" style={{
-            position: 'fixed', top: '50%', left: 'calc(50% - 40px)', transform: 'translateY(-50%)',
+            position: 'fixed', top: '50%', left: 'calc(50% - 70px)', transform: 'translateY(-50%)',
             width: '50vw', maxHeight: '70vh',
             fontFamily: "'04b03', monospace", fontSize: '1em', color: 'rgba(250,249,246,0.9)',
             background: 'transparent', pointerEvents: 'auto', zIndex: 200,

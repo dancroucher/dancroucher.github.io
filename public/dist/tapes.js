@@ -76363,7 +76363,7 @@ function MixtapeCreator({ onBack, onPlay }) {
 var MIXTAPE_PANEL_STYLES = {
   position: "fixed",
   top: "50%",
-  left: "calc(50% - 40px)",
+  left: "calc(50% - 70px)",
   transform: "translateY(-50%)",
   width: "50vw",
   maxHeight: "70vh",
@@ -76782,7 +76782,7 @@ function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
   Object.assign(el.style, {
     position: "fixed",
     top: "50%",
-    left: "calc(50% - 40px)",
+    left: "calc(50% - 70px)",
     transform: "translateY(-50%)",
     width: "50vw",
     maxHeight: "70vh",
@@ -77835,7 +77835,7 @@ function TapesTable({ mixtape }) {
       return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "tape-info-panel", style: {
         position: "fixed",
         top: "50%",
-        left: "calc(50% - 40px)",
+        left: "calc(50% - 70px)",
         transform: "translateY(-50%)",
         width: "50vw",
         maxHeight: "70vh",

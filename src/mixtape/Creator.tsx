@@ -342,7 +342,7 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
 export const MIXTAPE_PANEL_STYLES = {
   position: 'fixed' as const,
   top: '50%',
-  left: 'calc(50% - 40px)',
+  left: 'calc(50% - 70px)',
   transform: 'translateY(-50%)',
   width: '50vw',
   maxHeight: '70vh',
