@@ -76365,10 +76365,10 @@ var MIXTAPE_PANEL_STYLES = {
   top: "50%",
   left: "50%",
   transform: "translateY(-50%)",
-  width: "44vw",
+  width: "50vw",
   maxHeight: "70vh",
   fontFamily: "'04b03', monospace",
-  fontSize: "1.2em",
+  fontSize: "1em",
   color: "#ddd",
   background: "transparent",
   pointerEvents: "auto",
@@ -76386,7 +76386,7 @@ var MIXTAPE_TRACK_ROW = {
   gap: 8,
   padding: "6px 4px",
   borderBottom: "1px solid rgba(255,255,255,0.04)",
-  fontSize: "1.2em",
+  fontSize: "1em",
   fontFamily: "'04b03', monospace"
 };
 var MIXTAPE_TRACK_NUM = {
@@ -76395,7 +76395,7 @@ var MIXTAPE_TRACK_NUM = {
   width: 30,
   flexShrink: 0,
   textAlign: "right",
-  fontSize: "1.2em"
+  fontSize: "1em"
 };
 var MIXTAPE_TRACK_TITLE = {
   fontFamily: "'04b03', monospace",
@@ -76405,7 +76405,7 @@ var MIXTAPE_TRACK_TITLE = {
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
   minWidth: 0,
-  fontSize: "1.2em"
+  fontSize: "1em"
 };
 var MIXTAPE_TRACK_AUTHOR = {
   fontFamily: "'04b03', monospace",
@@ -76415,7 +76415,7 @@ var MIXTAPE_TRACK_AUTHOR = {
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
-  fontSize: "1.2em"
+  fontSize: "1em"
 };
 var MIXTAPE_TRACK_DURATION = {
   fontFamily: "'04b03', monospace",
@@ -76423,7 +76423,7 @@ var MIXTAPE_TRACK_DURATION = {
   flexShrink: 0,
   width: 50,
   textAlign: "right",
-  fontSize: "1.2em"
+  fontSize: "1em"
 };
 var MIXTAPE_TRACK_LIST = {
   flex: 1,
@@ -76452,7 +76452,7 @@ var styles = {
   },
   modalSubtitle: {
     fontFamily: "'04b03', monospace",
-    fontSize: "1.2em",
+    fontSize: "1em",
     color: "rgba(255,255,255,0.5)",
     textAlign: "center",
     margin: 0
@@ -76470,7 +76470,7 @@ var styles = {
     border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: 6,
     color: "#ddd",
-    fontSize: "1.2em",
+    fontSize: "1em",
     fontFamily: "'04b03', monospace",
     outline: "none",
     boxSizing: "border-box"
@@ -76478,13 +76478,13 @@ var styles = {
   or: {
     textAlign: "center",
     color: "rgba(255,255,255,0.35)",
-    fontSize: "1.2em",
+    fontSize: "1em",
     fontFamily: "'04b03', monospace"
   },
   error: {
     fontFamily: "'04b03', monospace",
     color: "#ff6b6b",
-    fontSize: "1.2em",
+    fontSize: "1em",
     margin: 0
   },
   generateBtn: {
@@ -76494,7 +76494,7 @@ var styles = {
     borderRadius: 6,
     color: "#111",
     fontFamily: "'04b03', monospace",
-    fontSize: "1.2em",
+    fontSize: "1em",
     letterSpacing: 1,
     cursor: "pointer"
   },
@@ -76521,7 +76521,7 @@ var styles = {
     border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: 6,
     color: "#ddd",
-    fontSize: "1.2em",
+    fontSize: "1em",
     fontFamily: "'04b03', monospace",
     letterSpacing: 0.5,
     outline: "none",
@@ -76531,7 +76531,7 @@ var styles = {
   },
   trackCount: {
     fontFamily: "'04b03', monospace",
-    fontSize: "1.2em",
+    fontSize: "1em",
     color: "rgba(255,255,255,0.35)",
     margin: "0 0 8px",
     letterSpacing: "0.05em"
@@ -76555,7 +76555,7 @@ var styles = {
     borderRadius: 6,
     color: "rgba(255,255,255,0.6)",
     fontFamily: "'04b03', monospace",
-    fontSize: "1.2em",
+    fontSize: "1em",
     cursor: "pointer"
   },
   saveBtn: {
@@ -76565,7 +76565,7 @@ var styles = {
     borderRadius: 6,
     color: "#111",
     fontFamily: "'04b03', monospace",
-    fontSize: "1.2em",
+    fontSize: "1em",
     letterSpacing: 1,
     cursor: "pointer",
     flex: 1
@@ -76786,10 +76786,10 @@ function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
     top: "50%",
     left: "50%",
     transform: "translateY(-50%)",
-    width: "44vw",
+    width: "50vw",
     maxHeight: "70vh",
     fontFamily: "'04b03', monospace",
-    fontSize: "1.2em",
+    fontSize: "1em",
     color: "#ddd",
     background: "transparent",
     pointerEvents: "auto",
@@ -76802,18 +76802,18 @@ function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
     padding: "24px 24px 20px"
   });
   el.innerHTML = `
-    <div style="font-family:'04b03',monospace;font-size:1.2em;color:rgba(255,255,255,0.5);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
+    <div style="font-family:'04b03',monospace;font-size:1em;color:rgba(255,255,255,0.5);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
       ${mixtape.name}
     </div>
     <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.2) transparent;padding:10px 14px;">
       ${mixtape.tracks.map((track, i4) => `
         <div data-idx="${i4}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
-          style="display:flex;align-items:center;gap:8px;font-family:'04b03',monospace;font-size:1.2em;color:${i4 === currentIndex ? "#fff" : "rgba(255,255,255,0.4)"};cursor:pointer;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.04);border-radius:3px;background:${i4 === currentIndex ? "rgba(255,255,255,0.08)" : "transparent"};transition:color 0.15s;"
+          style="display:flex;align-items:center;gap:8px;font-family:'04b03',monospace;font-size:1em;color:${i4 === currentIndex ? "#fff" : "rgba(255,255,255,0.4)"};cursor:pointer;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.04);border-radius:3px;background:${i4 === currentIndex ? "rgba(255,255,255,0.08)" : "transparent"};transition:color 0.15s;"
           title="${track.title} \u2014 ${track.author}">
-          <span style="color:rgba(255,255,255,0.4);width:30px;flex-shrink:0;text-align:right;font-size:1.2em;">${String(i4 + 1).padStart(2, "0")}.</span>
-          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:1.2em;">${track.title}</span>
-          <span style="color:rgba(255,255,255,0.4);flex-shrink:0;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:1.2em;">${track.author}</span>
-          <span style="color:rgba(255,255,255,0.35);flex-shrink:0;width:50px;text-align:right;font-size:1.2em;">${track.durationText || ""}</span>
+          <span style="color:rgba(255,255,255,0.4);width:30px;flex-shrink:0;text-align:right;font-size:1em;">${String(i4 + 1).padStart(2, "0")}.</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:1em;">${track.title}</span>
+          <span style="color:rgba(255,255,255,0.4);flex-shrink:0;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:1em;">${track.author}</span>
+          <span style="color:rgba(255,255,255,0.35);flex-shrink:0;width:50px;text-align:right;font-size:1em;">${track.durationText || ""}</span>
         </div>
       `).join("")}
     </div>
@@ -77829,7 +77829,7 @@ function TapesTable({ mixtape }) {
       pointerEvents: "none",
       animation: `${wipePhase === "cover" ? "wipe-in" : "wipe-out"} ${WIPE_DURATION}ms ease-in-out forwards`
     } }),
-    view === "player" && playerTapeId && !dragging3D && !showMixtapeCreator && (() => {
+    view === "player" && playerTapeId && !dragging3D && !showMixtapeCreator && !loadedTape && (() => {
       const tape = tapes.find((t3) => t3.id === playerTapeId);
       if (!tape) return null;
       const hasTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
@@ -77838,10 +77838,10 @@ function TapesTable({ mixtape }) {
         top: "50%",
         left: "50%",
         transform: "translateY(-50%)",
-        width: "44vw",
+        width: "50vw",
         maxHeight: "70vh",
         fontFamily: "'04b03', monospace",
-        fontSize: "1.2em",
+        fontSize: "1em",
         color: "#ddd",
         background: "transparent",
         pointerEvents: "auto",
@@ -77855,7 +77855,7 @@ function TapesTable({ mixtape }) {
       }, children: [
         /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
           fontFamily: "'04b03', monospace",
-          fontSize: "1.2em",
+          fontSize: "1em",
           color: "rgba(255,255,255,0.5)",
           letterSpacing: "1.5px",
           textTransform: "uppercase",
@@ -77863,7 +77863,7 @@ function TapesTable({ mixtape }) {
           marginBottom: hasTracklist ? "12px" : "0",
           flexShrink: 0
         }, children: tape.title || "Untitled" }),
-        !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { color: "rgba(255,255,255,0.4)", marginTop: "6px", fontSize: "1.2em" }, children: tape.author }),
+        !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { color: "rgba(255,255,255,0.4)", marginTop: "6px", fontSize: "1em" }, children: tape.author }),
         hasTracklist && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
           flex: 1,
           overflowY: "auto",
@@ -77875,18 +77875,18 @@ function TapesTable({ mixtape }) {
           alignItems: "center",
           gap: "8px",
           fontFamily: "'04b03', monospace",
-          fontSize: "1.2em",
+          fontSize: "1em",
           color: "rgba(255,255,255,0.4)",
           padding: "6px 4px",
           borderBottom: "1px solid rgba(255,255,255,0.04)",
           borderRadius: "3px"
         }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { style: { color: "rgba(255,255,255,0.4)", width: "30px", flexShrink: 0, textAlign: "right", fontSize: "1.2em" }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { style: { color: "rgba(255,255,255,0.4)", width: "30px", flexShrink: 0, textAlign: "right", fontSize: "1em" }, children: [
             String(i4 + 1).padStart(2, "0"),
             "."
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, fontSize: "1.2em" }, children: track.title }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { color: "rgba(255,255,255,0.4)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "1.2em" }, children: track.author })
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, fontSize: "1em" }, children: track.title }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { color: "rgba(255,255,255,0.4)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "1em" }, children: track.author })
         ] }, i4)) }),
         /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
           display: "flex",
@@ -77905,7 +77905,7 @@ function TapesTable({ mixtape }) {
               },
               style: {
                 fontFamily: "'04b03', monospace",
-                fontSize: "1.2em",
+                fontSize: "1em",
                 color: "rgba(255,255,255,0.5)",
                 background: "transparent",
                 border: "1px solid rgba(255,255,255,0.2)",
@@ -77925,7 +77925,7 @@ function TapesTable({ mixtape }) {
               },
               style: {
                 fontFamily: "'04b03', monospace",
-                fontSize: "1.2em",
+                fontSize: "1em",
                 color: "rgba(200,80,80,0.7)",
                 background: "transparent",
                 border: "1px solid rgba(200,80,80,0.3)",

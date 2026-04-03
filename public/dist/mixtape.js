@@ -28858,10 +28858,10 @@ var MIXTAPE_PANEL_STYLES = {
   top: "50%",
   left: "50%",
   transform: "translateY(-50%)",
-  width: "44vw",
+  width: "50vw",
   maxHeight: "70vh",
   fontFamily: "'04b03', monospace",
-  fontSize: "1.2em",
+  fontSize: "1em",
   color: "#ddd",
   background: "transparent",
   pointerEvents: "auto",
@@ -28879,7 +28879,7 @@ var MIXTAPE_TRACK_ROW = {
   gap: 8,
   padding: "6px 4px",
   borderBottom: "1px solid rgba(255,255,255,0.04)",
-  fontSize: "1.2em",
+  fontSize: "1em",
   fontFamily: "'04b03', monospace"
 };
 var MIXTAPE_TRACK_NUM = {
@@ -28888,7 +28888,7 @@ var MIXTAPE_TRACK_NUM = {
   width: 30,
   flexShrink: 0,
   textAlign: "right",
-  fontSize: "1.2em"
+  fontSize: "1em"
 };
 var MIXTAPE_TRACK_TITLE = {
   fontFamily: "'04b03', monospace",
@@ -28898,7 +28898,7 @@ var MIXTAPE_TRACK_TITLE = {
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
   minWidth: 0,
-  fontSize: "1.2em"
+  fontSize: "1em"
 };
 var MIXTAPE_TRACK_AUTHOR = {
   fontFamily: "'04b03', monospace",
@@ -28908,7 +28908,7 @@ var MIXTAPE_TRACK_AUTHOR = {
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
-  fontSize: "1.2em"
+  fontSize: "1em"
 };
 var MIXTAPE_TRACK_DURATION = {
   fontFamily: "'04b03', monospace",
@@ -28916,7 +28916,7 @@ var MIXTAPE_TRACK_DURATION = {
   flexShrink: 0,
   width: 50,
   textAlign: "right",
-  fontSize: "1.2em"
+  fontSize: "1em"
 };
 var MIXTAPE_TRACK_LIST = {
   flex: 1,
@@ -28945,7 +28945,7 @@ var styles = {
   },
   modalSubtitle: {
     fontFamily: "'04b03', monospace",
-    fontSize: "1.2em",
+    fontSize: "1em",
     color: "rgba(255,255,255,0.5)",
     textAlign: "center",
     margin: 0
@@ -28963,7 +28963,7 @@ var styles = {
     border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: 6,
     color: "#ddd",
-    fontSize: "1.2em",
+    fontSize: "1em",
     fontFamily: "'04b03', monospace",
     outline: "none",
     boxSizing: "border-box"
@@ -28971,13 +28971,13 @@ var styles = {
   or: {
     textAlign: "center",
     color: "rgba(255,255,255,0.35)",
-    fontSize: "1.2em",
+    fontSize: "1em",
     fontFamily: "'04b03', monospace"
   },
   error: {
     fontFamily: "'04b03', monospace",
     color: "#ff6b6b",
-    fontSize: "1.2em",
+    fontSize: "1em",
     margin: 0
   },
   generateBtn: {
@@ -28987,7 +28987,7 @@ var styles = {
     borderRadius: 6,
     color: "#111",
     fontFamily: "'04b03', monospace",
-    fontSize: "1.2em",
+    fontSize: "1em",
     letterSpacing: 1,
     cursor: "pointer"
   },
@@ -29014,7 +29014,7 @@ var styles = {
     border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: 6,
     color: "#ddd",
-    fontSize: "1.2em",
+    fontSize: "1em",
     fontFamily: "'04b03', monospace",
     letterSpacing: 0.5,
     outline: "none",
@@ -29024,7 +29024,7 @@ var styles = {
   },
   trackCount: {
     fontFamily: "'04b03', monospace",
-    fontSize: "1.2em",
+    fontSize: "1em",
     color: "rgba(255,255,255,0.35)",
     margin: "0 0 8px",
     letterSpacing: "0.05em"
@@ -29048,7 +29048,7 @@ var styles = {
     borderRadius: 6,
     color: "rgba(255,255,255,0.6)",
     fontFamily: "'04b03', monospace",
-    fontSize: "1.2em",
+    fontSize: "1em",
     cursor: "pointer"
   },
   saveBtn: {
@@ -29058,7 +29058,7 @@ var styles = {
     borderRadius: 6,
     color: "#111",
     fontFamily: "'04b03', monospace",
-    fontSize: "1.2em",
+    fontSize: "1em",
     letterSpacing: 1,
     cursor: "pointer",
     flex: 1

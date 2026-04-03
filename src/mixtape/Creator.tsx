@@ -344,10 +344,10 @@ export const MIXTAPE_PANEL_STYLES = {
   top: '50%',
   left: '50%',
   transform: 'translateY(-50%)',
-  width: '44vw',
+  width: '50vw',
   maxHeight: '70vh',
   fontFamily: "'04b03', monospace",
-  fontSize: '1.2em',
+  fontSize: '1em',
   color: '#ddd',
   background: 'transparent',
   pointerEvents: 'auto' as const,
@@ -364,34 +364,34 @@ export const MIXTAPE_TRACK_ROW: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 8,
   padding: '6px 4px',
   borderBottom: '1px solid rgba(255,255,255,0.04)',
-  fontSize: '1.2em',
+  fontSize: '1em',
   fontFamily: "'04b03', monospace",
 };
 
 export const MIXTAPE_TRACK_NUM: React.CSSProperties = {
   fontFamily: "'04b03', monospace",
   color: 'rgba(255,255,255,0.4)', width: 30, flexShrink: 0,
-  textAlign: 'right', fontSize: '1.2em',
+  textAlign: 'right', fontSize: '1em',
 };
 
 export const MIXTAPE_TRACK_TITLE: React.CSSProperties = {
   fontFamily: "'04b03', monospace",
   flex: 1, color: '#ddd', overflow: 'hidden',
   textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-  minWidth: 0, fontSize: '1.2em',
+  minWidth: 0, fontSize: '1em',
 };
 
 export const MIXTAPE_TRACK_AUTHOR: React.CSSProperties = {
   fontFamily: "'04b03', monospace",
   color: 'rgba(255,255,255,0.4)', flexShrink: 0,
   width: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-  fontSize: '1.2em',
+  fontSize: '1em',
 };
 
 export const MIXTAPE_TRACK_DURATION: React.CSSProperties = {
   fontFamily: "'04b03', monospace",
   color: 'rgba(255,255,255,0.35)', flexShrink: 0,
-  width: 50, textAlign: 'right', fontSize: '1.2em',
+  width: 50, textAlign: 'right', fontSize: '1em',
 };
 
 export const MIXTAPE_TRACK_LIST: React.CSSProperties = {
@@ -420,7 +420,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   modalSubtitle: {
     fontFamily: "'04b03', monospace",
-    fontSize: '1.2em', color: 'rgba(255,255,255,0.5)',
+    fontSize: '1em', color: 'rgba(255,255,255,0.5)',
     textAlign: 'center', margin: 0,
   },
   inputGroup: {
@@ -430,23 +430,23 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%', padding: '10px 14px',
     background: 'rgba(255,255,255,0.05)',
     border: '1px solid rgba(255,255,255,0.2)',
-    borderRadius: 6, color: '#ddd', fontSize: '1.2em',
+    borderRadius: 6, color: '#ddd', fontSize: '1em',
     fontFamily: "'04b03', monospace",
     outline: 'none', boxSizing: 'border-box',
   },
   or: {
-    textAlign: 'center', color: 'rgba(255,255,255,0.35)', fontSize: '1.2em',
+    textAlign: 'center', color: 'rgba(255,255,255,0.35)', fontSize: '1em',
     fontFamily: "'04b03', monospace",
   },
   error: {
     fontFamily: "'04b03', monospace",
-    color: '#ff6b6b', fontSize: '1.2em', margin: 0,
+    color: '#ff6b6b', fontSize: '1em', margin: 0,
   },
   generateBtn: {
     padding: '10px 28px',
     background: 'linear-gradient(135deg, #666, #aaa)',
     border: 'none', borderRadius: 6, color: '#111',
-    fontFamily: "'04b03', monospace", fontSize: '1.2em', letterSpacing: 1,
+    fontFamily: "'04b03', monospace", fontSize: '1em', letterSpacing: 1,
     cursor: 'pointer',
   },
   generateBtnDisabled: {
@@ -467,13 +467,13 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '10px 14px',
     background: 'rgba(255,255,255,0.06)',
     border: '1px solid rgba(255,255,255,0.2)',
-    borderRadius: 6, color: '#ddd', fontSize: '1.2em',
+    borderRadius: 6, color: '#ddd', fontSize: '1em',
     fontFamily: "'04b03', monospace", letterSpacing: 0.5,
     outline: 'none', width: '100%', boxSizing: 'border-box', marginBottom: 12,
   },
   trackCount: {
     fontFamily: "'04b03', monospace",
-    fontSize: '1.2em', color: 'rgba(255,255,255,0.35)', margin: '0 0 8px',
+    fontSize: '1em', color: 'rgba(255,255,255,0.35)', margin: '0 0 8px',
     letterSpacing: '0.05em',
   },
   trackList: MIXTAPE_TRACK_LIST,
@@ -491,14 +491,14 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: '1px solid rgba(255,255,255,0.25)',
     borderRadius: 6, color: 'rgba(255,255,255,0.6)',
-    fontFamily: "'04b03', monospace", fontSize: '1.2em',
+    fontFamily: "'04b03', monospace", fontSize: '1em',
     cursor: 'pointer',
   },
   saveBtn: {
     padding: '10px 28px',
     background: 'linear-gradient(135deg, #666, #aaa)',
     border: 'none', borderRadius: 6, color: '#111',
-    fontFamily: "'04b03', monospace", fontSize: '1.2em', letterSpacing: 1,
+    fontFamily: "'04b03', monospace", fontSize: '1em', letterSpacing: 1,
     cursor: 'pointer',
     flex: 1,
   },
