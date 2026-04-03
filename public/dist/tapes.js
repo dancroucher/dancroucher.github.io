@@ -77836,7 +77836,7 @@ function TapesTable({ mixtape }) {
         newTapeIds,
         externalDrag: externalDrag.current,
         lockedTapeId: showMixtapeCreator ? MIXTAPE_ID : null,
-        maxDragX: view === "player" ? 3 : void 0,
+        maxDragX: view === "player" ? -6 : void 0,
         lockCamera: view === "player" || showMixtapeCreator
       }
     ) }),

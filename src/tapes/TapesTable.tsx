@@ -1410,7 +1410,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           newTapeIds={newTapeIds}
           externalDrag={externalDrag.current}
           lockedTapeId={showMixtapeCreator ? MIXTAPE_ID : null}
-          maxDragX={view === 'player' ? 3 : undefined}
+          maxDragX={view === 'player' ? -6 : undefined}
           lockCamera={view === 'player' || showMixtapeCreator}
         />
       </Suspense>
