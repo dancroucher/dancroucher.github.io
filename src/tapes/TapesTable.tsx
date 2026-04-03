@@ -253,7 +253,7 @@ function mountMixtapeOverlay(el: HTMLElement, mixtape: MixtapeData, currentIndex
   Object.assign(el.style, {
     position: 'fixed',
     top: '50%',
-    left: '50%',
+    left: 'calc(50% - 20px)',
     transform: 'translateY(-50%)',
     width: '50vw',
     maxHeight: '70vh',
@@ -266,12 +266,13 @@ function mountMixtapeOverlay(el: HTMLElement, mixtape: MixtapeData, currentIndex
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
-    border: '1px solid rgba(255,255,255,0.15)',
+    border: 'none',
     borderRadius: '12px',
+    transition: 'opacity 1s ease',
     padding: '24px 24px 20px',
   });
   el.innerHTML = `
-    <div style="font-family:'04b03',monospace;font-size:1em;color:rgba(255,255,255,0.5);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
+    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(255,255,255,0.6);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
       ${mixtape.name}
     </div>
     <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.2) transparent;padding:10px 14px;">
@@ -1424,18 +1425,18 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         if (!tape) return null;
         const hasTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
         return (
-          <div style={{
-            position: 'fixed', top: '50%', left: '50%', transform: 'translateY(-50%)',
+          <div className="tape-info-panel" style={{
+            position: 'fixed', top: '50%', left: 'calc(50% - 20px)', transform: 'translateY(-50%)',
             width: '50vw', maxHeight: '70vh',
             fontFamily: "'04b03', monospace", fontSize: '1em', color: '#ddd',
             background: 'transparent', pointerEvents: 'auto', zIndex: 200,
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
-            border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px',
+            border: 'none', borderRadius: '12px',
             padding: '24px 24px 20px',
           }}>
             <div style={{
-              fontFamily: "'04b03', monospace", fontSize: '1em',
-              color: 'rgba(255,255,255,0.5)', letterSpacing: '1.5px',
+              fontFamily: "'04b03', monospace", fontSize: '1.3em',
+              color: 'rgba(255,255,255,0.6)', letterSpacing: '1.5px',
               textTransform: 'uppercase', whiteSpace: 'nowrap', marginBottom: hasTracklist ? '12px' : '0',
               flexShrink: 0,
             }}>

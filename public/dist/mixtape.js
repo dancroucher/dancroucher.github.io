@@ -28856,7 +28856,7 @@ function MixtapeCreator({ onBack, onPlay }) {
 var MIXTAPE_PANEL_STYLES = {
   position: "fixed",
   top: "50%",
-  left: "50%",
+  left: "calc(50% - 20px)",
   transform: "translateY(-50%)",
   width: "50vw",
   maxHeight: "70vh",
@@ -28869,7 +28869,7 @@ var MIXTAPE_PANEL_STYLES = {
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
-  border: "1px solid rgba(255,255,255,0.15)",
+  border: "none",
   borderRadius: 12,
   padding: "24px 24px 20px"
 };
@@ -28981,11 +28981,11 @@ var styles = {
     margin: 0
   },
   generateBtn: {
-    padding: "10px 28px",
-    background: "linear-gradient(135deg, #666, #aaa)",
-    border: "none",
+    padding: "6px 18px",
+    background: "transparent",
+    border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: 6,
-    color: "#111",
+    color: "rgba(255,255,255,0.5)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
     letterSpacing: 1,
@@ -29042,24 +29042,23 @@ var styles = {
     marginTop: 14
   },
   regenerateBtn: {
-    padding: "10px 20px",
+    padding: "6px 18px",
     background: "transparent",
-    border: "1px solid rgba(255,255,255,0.25)",
+    border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: 6,
-    color: "rgba(255,255,255,0.6)",
+    color: "rgba(255,255,255,0.5)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
     cursor: "pointer"
   },
   saveBtn: {
-    padding: "10px 28px",
-    background: "linear-gradient(135deg, #666, #aaa)",
-    border: "none",
+    padding: "6px 18px",
+    background: "transparent",
+    border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: 6,
-    color: "#111",
+    color: "rgba(255,255,255,0.5)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
-    letterSpacing: 1,
     cursor: "pointer",
     flex: 1
   },

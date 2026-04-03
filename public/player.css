@@ -860,6 +860,10 @@ html.glitching, html.glitching body {
   100% { text-shadow: 2.62px 0 1px rgba(0,30,255,0.5), -2.62px 0 1px rgba(255,0,80,0.3), 0 0 2px; }
 }
 
+#mixtape-tracklist, .tape-info-panel {
+  animation: textShadow 3.6s infinite;
+}
+
 @keyframes slideOut {
   0%   { bottom: 0; }
   100% { bottom: -450px; }

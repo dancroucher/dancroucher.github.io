@@ -495,6 +495,8 @@ const Inactivity = {
             DOM.padinfo.style.opacity = "0";
             DOM.tapeDeck.style.opacity = "0";
             if (DOM.titleContainer) DOM.titleContainer.style.opacity = "0.25";
+            const tracklist = document.getElementById('mixtape-tracklist');
+            if (tracklist) tracklist.style.opacity = "0";
             this._visible = false;
             document.body.style.cursor = "none";
         }
@@ -506,6 +508,8 @@ const Inactivity = {
             DOM.padinfo.style.opacity = "1";
             DOM.tapeDeck.style.opacity = "1";
             if (DOM.titleContainer) DOM.titleContainer.style.opacity = "1";
+            const tracklist = document.getElementById('mixtape-tracklist');
+            if (tracklist) tracklist.style.opacity = "1";
             this._visible = true;
             document.body.style.cursor = "default";
         }

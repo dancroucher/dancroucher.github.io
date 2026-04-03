@@ -76363,7 +76363,7 @@ function MixtapeCreator({ onBack, onPlay }) {
 var MIXTAPE_PANEL_STYLES = {
   position: "fixed",
   top: "50%",
-  left: "50%",
+  left: "calc(50% - 20px)",
   transform: "translateY(-50%)",
   width: "50vw",
   maxHeight: "70vh",
@@ -76376,7 +76376,7 @@ var MIXTAPE_PANEL_STYLES = {
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
-  border: "1px solid rgba(255,255,255,0.15)",
+  border: "none",
   borderRadius: 12,
   padding: "24px 24px 20px"
 };
@@ -76488,11 +76488,11 @@ var styles = {
     margin: 0
   },
   generateBtn: {
-    padding: "10px 28px",
-    background: "linear-gradient(135deg, #666, #aaa)",
-    border: "none",
+    padding: "6px 18px",
+    background: "transparent",
+    border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: 6,
-    color: "#111",
+    color: "rgba(255,255,255,0.5)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
     letterSpacing: 1,
@@ -76549,24 +76549,23 @@ var styles = {
     marginTop: 14
   },
   regenerateBtn: {
-    padding: "10px 20px",
+    padding: "6px 18px",
     background: "transparent",
-    border: "1px solid rgba(255,255,255,0.25)",
+    border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: 6,
-    color: "rgba(255,255,255,0.6)",
+    color: "rgba(255,255,255,0.5)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
     cursor: "pointer"
   },
   saveBtn: {
-    padding: "10px 28px",
-    background: "linear-gradient(135deg, #666, #aaa)",
-    border: "none",
+    padding: "6px 18px",
+    background: "transparent",
+    border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: 6,
-    color: "#111",
+    color: "rgba(255,255,255,0.5)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
-    letterSpacing: 1,
     cursor: "pointer",
     flex: 1
   },
@@ -76784,7 +76783,7 @@ function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
   Object.assign(el.style, {
     position: "fixed",
     top: "50%",
-    left: "50%",
+    left: "calc(50% - 20px)",
     transform: "translateY(-50%)",
     width: "50vw",
     maxHeight: "70vh",
@@ -76797,12 +76796,13 @@ function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
-    border: "1px solid rgba(255,255,255,0.15)",
+    border: "none",
     borderRadius: "12px",
+    transition: "opacity 1s ease",
     padding: "24px 24px 20px"
   });
   el.innerHTML = `
-    <div style="font-family:'04b03',monospace;font-size:1em;color:rgba(255,255,255,0.5);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
+    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(255,255,255,0.6);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
       ${mixtape.name}
     </div>
     <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.2) transparent;padding:10px 14px;">
@@ -77833,10 +77833,10 @@ function TapesTable({ mixtape }) {
       const tape = tapes.find((t3) => t3.id === playerTapeId);
       if (!tape) return null;
       const hasTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
-      return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
+      return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "tape-info-panel", style: {
         position: "fixed",
         top: "50%",
-        left: "50%",
+        left: "calc(50% - 20px)",
         transform: "translateY(-50%)",
         width: "50vw",
         maxHeight: "70vh",
@@ -77849,14 +77849,14 @@ function TapesTable({ mixtape }) {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        border: "1px solid rgba(255,255,255,0.15)",
+        border: "none",
         borderRadius: "12px",
         padding: "24px 24px 20px"
       }, children: [
         /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
           fontFamily: "'04b03', monospace",
-          fontSize: "1em",
-          color: "rgba(255,255,255,0.5)",
+          fontSize: "1.3em",
+          color: "rgba(255,255,255,0.6)",
           letterSpacing: "1.5px",
           textTransform: "uppercase",
           whiteSpace: "nowrap",
