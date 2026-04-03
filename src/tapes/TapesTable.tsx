@@ -761,11 +761,12 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   }, [loadedTape, mixtape]);
 
   // ── Listen for "create mixtape" event from vanilla JS ──
+  const [mixtapeKeywords, setMixtapeKeywords] = useState('');
+
   useEffect(() => {
-    function handleCreateMixtape() {
-      // Hide search bar / header while creating
-      const startForm = document.getElementById('start-form');
-      if (startForm) startForm.style.display = 'none';
+    function handleCreateMixtape(e: Event) {
+      const keywords = (e as CustomEvent).detail?.keywords || '';
+      if (!keywords) return; // Need keywords from search bar
 
       // Spawn a blank mixtape tape at centre of the table
       const blankTape: Tape = {
@@ -782,19 +783,15 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         textureVariant: 'a',
         progress: 0,
         timestamp: Date.now(),
-        x: CANVAS_W * 0.35,
+        x: CANVAS_W / 2,
         y: CANVAS_H / 2,
         angle: 0,
       };
       setTapes(prev => [...prev.filter(t => t.id !== MIXTAPE_ID), blankTape]);
       setZOrder(prev => [...prev.filter(id => id !== MIXTAPE_ID), MIXTAPE_ID]);
+      setMixtapeKeywords(keywords);
       setShowMixtapeCreator(true);
-      // Enter player view (single tape, centred) but keep deck hidden during creation
-      setPlayerTapeId(MIXTAPE_ID);
-      setView('player');
-      const deckEl = document.getElementById('tape-deck');
-      if (deckEl) deckEl.style.display = 'none';
-      // Centre camera on tape and max zoom
+      // Stay in view 1 — lock tape and camera during creation
       requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('jeem-centre-camera')));
     }
     window.addEventListener('jeem-create-mixtape', handleCreateMixtape);
@@ -1617,13 +1614,13 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       {/* Mixtape creator overlay — shown inline when user clicks "+ mixtape" */}
       {showMixtapeCreator && (
         <MixtapeCreator
+          initialKeywords={mixtapeKeywords}
           onBack={() => {
             // Remove the blank mixtape tape and close creator
             setTapes(prev => prev.filter(t => t.id !== MIXTAPE_ID));
             setZOrder(prev => prev.filter(id => id !== MIXTAPE_ID));
             setShowMixtapeCreator(false);
-            // Exit player view back to table
-            exitPlayerView();
+            setMixtapeKeywords('');
           }}
           onPlay={(tape) => {
             // Populate the spawned mixtape tape with generated tracks
@@ -1646,7 +1643,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               textureVariant: 'a',
               progress: 0,
               timestamp: Date.now(),
-              x: CANVAS_W * 0.35,
+              x: CANVAS_W / 2,
               y: CANVAS_H / 2,
               angle: 0,
             };
@@ -1654,9 +1651,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             setMixtapeData({ name: tape.name || 'Mixtape', description: tape.description || '', tracks: tape.tracks });
             mixtapeLoadedRef.current = true;
             setShowMixtapeCreator(false);
-            // Stay in player view — show deck so user can drag tape to play
-            const deckEl = document.getElementById('tape-deck');
-            if (deckEl) deckEl.style.display = '';
+            setMixtapeKeywords('');
           }}
         />
       )}

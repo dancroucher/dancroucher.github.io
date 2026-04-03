@@ -331,7 +331,9 @@ const InfinitePopup = {
 
         const mixtapeBtn = document.getElementById("mixtape-btn");
         if (mixtapeBtn) mixtapeBtn.addEventListener("click", () => {
-          window.dispatchEvent(new CustomEvent('jeem-create-mixtape'));
+          const searchInput = document.getElementById('idEntry');
+          const keywords = searchInput ? searchInput.value.trim() : '';
+          window.dispatchEvent(new CustomEvent('jeem-create-mixtape', { detail: { keywords } }));
           // Close the infinite popup if open
           popup.style.display = "none";
           this._open = false;
