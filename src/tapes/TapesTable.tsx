@@ -28,6 +28,9 @@ function nextTextureVariant(): string {
   nextVariantIndex++;
   return v;
 }
+function randomTextureVariant(): string {
+  return TEXTURE_VARIANTS[Math.floor(Math.random() * TEXTURE_VARIANTS.length)];
+}
 
 // ── Tape sounds (real samples) ──
 
@@ -440,13 +443,21 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     function handleLogoClick(e: Event) {
       if (view !== 'player') return;
       e.preventDefault();
+      // Clean up any in-progress mixtape creation
+      if (showMixtapeCreator) {
+        setTapes(prev => prev.filter(t => t.id !== MIXTAPE_ID));
+        setZOrder(prev => prev.filter(id => id !== MIXTAPE_ID));
+        setShowMixtapeCreator(false);
+        setMixtapeKeywords('');
+        setMixtapeGenerating(false);
+      }
       exitPlayerView();
     }
     // Both logo links: title bar and start header
     const logos = document.querySelectorAll('.start-title a, .title a');
     logos.forEach(el => el.addEventListener('click', handleLogoClick));
     return () => logos.forEach(el => el.removeEventListener('click', handleLogoClick));
-  }, [view, exitPlayerView]);
+  }, [view, exitPlayerView, showMixtapeCreator]);
 
   // Hide deck in table view on mount
   useEffect(() => {
@@ -728,8 +739,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       infiniteIndex: 0,
       title: mixtape.name,
       author: 'mixtape',
-      tapeStyle: 0,
-      textureVariant: 'a',
+      tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+      textureVariant: randomTextureVariant(),
       progress: 0,
       timestamp: Date.now(),
       x: 30,
@@ -1399,6 +1410,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           newTapeIds={newTapeIds}
           externalDrag={externalDrag.current}
           lockedTapeId={showMixtapeCreator ? MIXTAPE_ID : null}
+          maxDragX={view === 'player' ? 3 : undefined}
           lockCamera={view === 'player' || showMixtapeCreator}
         />
       </Suspense>
@@ -1621,8 +1633,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               infiniteIndex: 0,
               title: '',
               author: '',
-              tapeStyle: 0,
-              textureVariant: 'a',
+              tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+              textureVariant: randomTextureVariant(),
               progress: 0,
               timestamp: Date.now(),
               x: CANVAS_W * 0.35,
@@ -1662,8 +1674,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               infiniteIndex: 0,
               title: tape.name || 'Mixtape',
               author: 'mixtape',
-              tapeStyle: 0,
-              textureVariant: 'a',
+              tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+              textureVariant: randomTextureVariant(),
               progress: 0,
               timestamp: Date.now(),
               x: CANVAS_W / 2,

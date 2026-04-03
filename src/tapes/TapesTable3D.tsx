@@ -32,10 +32,11 @@ interface TapesTable3DProps {
   externalDrag?: DragState; // shared mutable object for external drag initiation
   lockedTapeId?: string | null;
   lockCamera?: boolean;
+  maxDragX?: number;
 }
 
 function SceneContents({
-  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, externalDrag, lockedTapeId, lockCamera,
+  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, externalDrag, lockedTapeId, lockCamera, maxDragX,
 }: TapesTable3DProps) {
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
@@ -167,7 +168,8 @@ function SceneContents({
       // Update target — tape follows pointer with offset, clamped to bounds
       const hit = raycastToPlane(ev.clientX, ev.clientY, DRAG_HEIGHT);
       if (hit) {
-        drag.targetX = Math.max(-DRAG_BOUND_X, Math.min(DRAG_BOUND_X, hit.x + ps.offsetX));
+        const boundX = maxDragX != null ? maxDragX : DRAG_BOUND_X;
+        drag.targetX = Math.max(-DRAG_BOUND_X, Math.min(boundX, hit.x + ps.offsetX));
         drag.targetZ = Math.max(-DRAG_BOUND_Z, Math.min(DRAG_BOUND_Z, hit.z + ps.offsetZ));
       }
     }
@@ -213,7 +215,7 @@ function SceneContents({
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
-  }, [gl, drag, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId]);
+  }, [gl, drag, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, maxDragX]);
 
   // Pick up external drag initiation (e.g. tape ejected from deck)
   const extDragActive = useRef(false);

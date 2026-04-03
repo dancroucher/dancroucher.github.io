@@ -421,8 +421,12 @@ function doStart() {
     AppState.playing = true;
     DOM.startContainer.style.display = "none";
     DOM.songContainer.style.display = "block";
-    DOM.padinfo.style.display = "flex";
-    DOM.tapeDeck.style.display = "block";
+    // Don't show padinfo/tapeDeck if tapes table is managing the view (player view)
+    const tapesManaged = AppState.infiniteTape && document.querySelector('.crt.tapes-active');
+    if (!tapesManaged) {
+        DOM.padinfo.style.display = "flex";
+        DOM.tapeDeck.style.display = "block";
+    }
     DOM.bgYoutube.style.display = "block";
 
     if (AppState.infiniteTape) {

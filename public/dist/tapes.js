@@ -75407,7 +75407,8 @@ function SceneContents({
   newTapeIds,
   externalDrag,
   lockedTapeId,
-  lockCamera
+  lockCamera,
+  maxDragX
 }) {
   const { camera, gl, scene } = useThree();
   const controlsRef = (0, import_react10.useRef)(null);
@@ -75518,7 +75519,8 @@ function SceneContents({
       }
       const hit = raycastToPlane(ev.clientX, ev.clientY, DRAG_HEIGHT);
       if (hit) {
-        drag.targetX = Math.max(-DRAG_BOUND_X, Math.min(DRAG_BOUND_X, hit.x + ps.offsetX));
+        const boundX = maxDragX != null ? maxDragX : DRAG_BOUND_X;
+        drag.targetX = Math.max(-DRAG_BOUND_X, Math.min(boundX, hit.x + ps.offsetX));
         drag.targetZ = Math.max(-DRAG_BOUND_Z, Math.min(DRAG_BOUND_Z, hit.z + ps.offsetZ));
       }
     }
@@ -75557,7 +75559,7 @@ function SceneContents({
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
     };
-  }, [gl, drag, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId]);
+  }, [gl, drag, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, maxDragX]);
   const extDragActive = (0, import_react10.useRef)(false);
   useFrame(() => {
     if (!externalDrag || extDragActive.current) return;
@@ -76601,6 +76603,9 @@ function nextTextureVariant() {
   nextVariantIndex++;
   return v5;
 }
+function randomTextureVariant() {
+  return TEXTURE_VARIANTS[Math.floor(Math.random() * TEXTURE_VARIANTS.length)];
+}
 function playSfx(src, volume = 1, trimEnd = 0) {
   const a3 = new Audio(src);
   a3.volume = volume;
@@ -76981,12 +76986,19 @@ function TapesTable({ mixtape }) {
     function handleLogoClick(e3) {
       if (view !== "player") return;
       e3.preventDefault();
+      if (showMixtapeCreator) {
+        setTapes((prev) => prev.filter((t3) => t3.id !== MIXTAPE_ID));
+        setZOrder((prev) => prev.filter((id) => id !== MIXTAPE_ID));
+        setShowMixtapeCreator(false);
+        setMixtapeKeywords("");
+        setMixtapeGenerating(false);
+      }
       exitPlayerView();
     }
     const logos = document.querySelectorAll(".start-title a, .title a");
     logos.forEach((el) => el.addEventListener("click", handleLogoClick));
     return () => logos.forEach((el) => el.removeEventListener("click", handleLogoClick));
-  }, [view, exitPlayerView]);
+  }, [view, exitPlayerView, showMixtapeCreator]);
   (0, import_react11.useEffect)(() => {
     const deckEl = document.getElementById("tape-deck");
     if (deckEl) deckEl.style.display = view === "table" ? "none" : "";
@@ -77257,8 +77269,8 @@ function TapesTable({ mixtape }) {
       infiniteIndex: 0,
       title: mixtape.name,
       author: "mixtape",
-      tapeStyle: 0,
-      textureVariant: "a",
+      tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+      textureVariant: randomTextureVariant(),
       progress: 0,
       timestamp: Date.now(),
       x: 30,
@@ -77824,6 +77836,7 @@ function TapesTable({ mixtape }) {
         newTapeIds,
         externalDrag: externalDrag.current,
         lockedTapeId: showMixtapeCreator ? MIXTAPE_ID : null,
+        maxDragX: view === "player" ? 3 : void 0,
         lockCamera: view === "player" || showMixtapeCreator
       }
     ) }),
@@ -78065,8 +78078,8 @@ function TapesTable({ mixtape }) {
             infiniteIndex: 0,
             title: "",
             author: "",
-            tapeStyle: 0,
-            textureVariant: "a",
+            tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+            textureVariant: randomTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
             x: CANVAS_W2 * 0.35,
@@ -78108,8 +78121,8 @@ function TapesTable({ mixtape }) {
             infiniteIndex: 0,
             title: tape.name || "Mixtape",
             author: "mixtape",
-            tapeStyle: 0,
-            textureVariant: "a",
+            tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+            textureVariant: randomTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
             x: CANVAS_W2 / 2,
