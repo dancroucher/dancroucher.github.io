@@ -76531,12 +76531,13 @@ var styles = {
     background: "transparent"
   },
   nameInput: {
-    padding: "10px 14px",
-    background: "transparent",
-    border: "1px solid rgba(250,249,246,0.2)",
-    borderRadius: 6,
-    color: "rgba(250,249,246,0.9)",
+    padding: "6px 5px 3px 6px",
+    backgroundColor: "rgba(250, 249, 246, 0.9)",
+    border: "1.5px dashed rgba(250, 249, 246, 0.5)",
+    borderRadius: 0,
+    color: "rgba(0, 0, 0, 1)",
     fontSize: "1em",
+    lineHeight: "1em",
     fontFamily: "'04b03', monospace",
     letterSpacing: 0.5,
     outline: "none",
@@ -76574,13 +76575,14 @@ var styles = {
     cursor: "pointer"
   },
   saveBtn: {
-    padding: "4px 8px",
+    padding: "6px 10px 3px",
     background: "transparent",
     border: "none",
     borderRadius: 0,
     color: "rgba(250,249,246,0.9)",
     fontFamily: "'04b03', monospace",
     fontSize: "1em",
+    lineHeight: "1em",
     cursor: "pointer"
   },
   saveBtnDisabled: {
@@ -77911,10 +77913,11 @@ function TapesTable({ mixtape }) {
               style: {
                 fontFamily: "'04b03', monospace",
                 fontSize: "1em",
+                lineHeight: "1em",
                 color: "rgba(250,249,246,0.9)",
                 background: "transparent",
                 borderRadius: 0,
-                padding: "4px 8px",
+                padding: "6px 10px 3px",
                 cursor: "pointer"
               },
               children: "rewind"
@@ -77931,10 +77934,11 @@ function TapesTable({ mixtape }) {
               style: {
                 fontFamily: "'04b03', monospace",
                 fontSize: "1em",
+                lineHeight: "1em",
                 color: "rgba(250,249,246,0.9)",
                 background: "transparent",
                 borderRadius: 0,
-                padding: "4px 8px",
+                padding: "6px 10px 3px",
                 cursor: "pointer"
               },
               children: "remove"

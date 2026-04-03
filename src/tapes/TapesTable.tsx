@@ -1477,18 +1477,18 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 className="tape-ui-btn"
                 onClick={() => { rewindTape(tape.id); }}
                 style={{
-                  fontFamily: "'04b03', monospace", fontSize: '1em',
+                  fontFamily: "'04b03', monospace", fontSize: '1em', lineHeight: '1em',
                   color: 'rgba(250,249,246,0.9)', background: 'transparent',
-                  borderRadius: 0, padding: '4px 8px', cursor: 'pointer',
+                  borderRadius: 0, padding: '6px 10px 3px', cursor: 'pointer',
                 }}
               >rewind</button>
               <button
                 className="tape-ui-btn"
                 onClick={() => { deleteTape(tape.id); exitPlayerView(); }}
                 style={{
-                  fontFamily: "'04b03', monospace", fontSize: '1em',
+                  fontFamily: "'04b03', monospace", fontSize: '1em', lineHeight: '1em',
                   color: 'rgba(250,249,246,0.9)', background: 'transparent',
-                  borderRadius: 0, padding: '4px 8px', cursor: 'pointer',
+                  borderRadius: 0, padding: '6px 10px 3px', cursor: 'pointer',
                 }}
               >remove</button>
             </div>
