@@ -253,14 +253,14 @@ function mountMixtapeOverlay(el: HTMLElement, mixtape: MixtapeData, currentIndex
   Object.assign(el.style, {
     position: 'fixed',
     top: '50%',
-    left: 'calc(50% - 20px)',
+    left: 'calc(50% - 40px)',
     transform: 'translateY(-50%)',
     width: '50vw',
     maxHeight: '70vh',
     fontFamily: "'04b03', monospace",
     fontSize: '1em',
     color: 'rgba(250,249,246,0.9)',
-    background: 'rgba(0,0,0,0.3)',
+    background: 'transparent',
     pointerEvents: 'auto',
     zIndex: '200',
     display: 'flex',
@@ -1426,10 +1426,10 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         const hasTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
         return (
           <div className="tape-info-panel" style={{
-            position: 'fixed', top: '50%', left: 'calc(50% - 20px)', transform: 'translateY(-50%)',
+            position: 'fixed', top: '50%', left: 'calc(50% - 40px)', transform: 'translateY(-50%)',
             width: '50vw', maxHeight: '70vh',
             fontFamily: "'04b03', monospace", fontSize: '1em', color: 'rgba(250,249,246,0.9)',
-            background: 'rgba(0,0,0,0.3)', pointerEvents: 'auto', zIndex: 200,
+            background: 'transparent', pointerEvents: 'auto', zIndex: 200,
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
             border: 'none', borderRadius: 0,
             padding: '24px 24px 20px',
@@ -1484,7 +1484,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 onClick={() => { rewindTape(tape.id); }}
                 style={{
                   fontFamily: "'04b03', monospace", fontSize: '1em',
-                  color: 'rgba(250,249,246,0.9)', background: 'rgba(0,0,0,0.3)',
+                  color: 'rgba(250,249,246,0.9)', background: 'transparent',
                   border: 'none', borderRadius: 0,
                   padding: '4px 8px', cursor: 'pointer',
                 }}
@@ -1493,7 +1493,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 onClick={() => { deleteTape(tape.id); exitPlayerView(); }}
                 style={{
                   fontFamily: "'04b03', monospace", fontSize: '1em',
-                  color: 'rgba(250,249,246,0.9)', background: 'rgba(0,0,0,0.3)',
+                  color: 'rgba(250,249,246,0.9)', background: 'transparent',
                   border: 'none', borderRadius: 0,
                   padding: '4px 8px', cursor: 'pointer',
                 }}

@@ -28856,14 +28856,14 @@ function MixtapeCreator({ onBack, onPlay }) {
 var MIXTAPE_PANEL_STYLES = {
   position: "fixed",
   top: "50%",
-  left: "calc(50% - 20px)",
+  left: "calc(50% - 40px)",
   transform: "translateY(-50%)",
   width: "50vw",
   maxHeight: "70vh",
   fontFamily: "'04b03', monospace",
   fontSize: "1em",
   color: "rgba(250, 249, 246, 0.9)",
-  background: "rgba(0, 0, 0, 0.3)",
+  background: "transparent",
   pointerEvents: "auto",
   zIndex: 200,
   display: "flex",
@@ -28959,7 +28959,7 @@ var styles = {
   input: {
     width: "33%",
     padding: "10px 14px",
-    background: "rgba(0,0,0,0.3)",
+    background: "transparent",
     border: "1px solid rgba(250,249,246,0.2)",
     borderRadius: 6,
     color: "rgba(250,249,246,0.9)",
@@ -28982,7 +28982,7 @@ var styles = {
   },
   generateBtn: {
     padding: "4px 8px",
-    background: "rgba(0,0,0,0.3)",
+    background: "transparent",
     border: "none",
     borderRadius: 0,
     color: "rgba(250,249,246,0.9)",
@@ -29010,7 +29010,7 @@ var styles = {
   },
   nameInput: {
     padding: "10px 14px",
-    background: "rgba(0,0,0,0.3)",
+    background: "transparent",
     border: "1px solid rgba(250,249,246,0.2)",
     borderRadius: 6,
     color: "rgba(250,249,246,0.9)",
@@ -29043,7 +29043,7 @@ var styles = {
   },
   regenerateBtn: {
     padding: "4px 8px",
-    background: "rgba(0,0,0,0.3)",
+    background: "transparent",
     border: "none",
     borderRadius: 0,
     color: "rgba(250,249,246,0.9)",
@@ -29053,7 +29053,7 @@ var styles = {
   },
   saveBtn: {
     padding: "4px 8px",
-    background: "rgba(0,0,0,0.3)",
+    background: "transparent",
     border: "none",
     borderRadius: 0,
     color: "rgba(250,249,246,0.9)",

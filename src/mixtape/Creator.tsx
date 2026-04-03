@@ -342,14 +342,14 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
 export const MIXTAPE_PANEL_STYLES = {
   position: 'fixed' as const,
   top: '50%',
-  left: 'calc(50% - 20px)',
+  left: 'calc(50% - 40px)',
   transform: 'translateY(-50%)',
   width: '50vw',
   maxHeight: '70vh',
   fontFamily: "'04b03', monospace",
   fontSize: '1em',
   color: 'rgba(250, 249, 246, 0.9)',
-  background: 'rgba(0, 0, 0, 0.3)',
+  background: 'transparent',
   pointerEvents: 'auto' as const,
   zIndex: 200,
   display: 'flex' as const,
@@ -428,7 +428,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   input: {
     width: '33%', padding: '10px 14px',
-    background: 'rgba(0,0,0,0.3)',
+    background: 'transparent',
     border: '1px solid rgba(250,249,246,0.2)',
     borderRadius: 6, color: 'rgba(250,249,246,0.9)', fontSize: '1em',
     fontFamily: "'04b03', monospace",
@@ -444,7 +444,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   generateBtn: {
     padding: '4px 8px',
-    background: 'rgba(0,0,0,0.3)',
+    background: 'transparent',
     border: 'none', borderRadius: 0, color: 'rgba(250,249,246,0.9)',
     fontFamily: "'04b03', monospace", fontSize: '1em',
     cursor: 'pointer', width: 'fit-content',
@@ -465,7 +465,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   nameInput: {
     padding: '10px 14px',
-    background: 'rgba(0,0,0,0.3)',
+    background: 'transparent',
     border: '1px solid rgba(250,249,246,0.2)',
     borderRadius: 6, color: 'rgba(250,249,246,0.9)', fontSize: '1em',
     fontFamily: "'04b03', monospace", letterSpacing: 0.5,
@@ -488,7 +488,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   regenerateBtn: {
     padding: '4px 8px',
-    background: 'rgba(0,0,0,0.3)',
+    background: 'transparent',
     border: 'none', borderRadius: 0,
     color: 'rgba(250,249,246,0.9)',
     fontFamily: "'04b03', monospace", fontSize: '1em',
@@ -496,7 +496,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   saveBtn: {
     padding: '4px 8px',
-    background: 'rgba(0,0,0,0.3)',
+    background: 'transparent',
     border: 'none', borderRadius: 0,
     color: 'rgba(250,249,246,0.9)',
     fontFamily: "'04b03', monospace", fontSize: '1em',
