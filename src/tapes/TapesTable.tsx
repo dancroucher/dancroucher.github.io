@@ -1386,6 +1386,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         @keyframes tape-loading-spin { to { transform: rotate(360deg) } }
         .tapes-scroll::-webkit-scrollbar { display: none; }
         .tapes-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+        .tape-ui-btn { border: 1px solid rgba(250,249,246,0.7) !important; transition: background 0.15s; }
+        .tape-ui-btn:hover { background: rgba(250,249,246,0.12) !important; }
         @keyframes wipe-in { from { clip-path: polygon(100% 0, 100% 0, 100% 0); } to { clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%); } }
         @keyframes wipe-out { from { clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%); } to { clip-path: polygon(0 100%, 0 100%, 0 100%); } }
       `}</style>
@@ -1481,21 +1483,21 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               flexShrink: 0,
             }}>
               <button
+                className="tape-ui-btn"
                 onClick={() => { rewindTape(tape.id); }}
                 style={{
                   fontFamily: "'04b03', monospace", fontSize: '1em',
                   color: 'rgba(250,249,246,0.9)', background: 'transparent',
-                  border: 'none', borderRadius: 0,
-                  padding: '4px 8px', cursor: 'pointer',
+                  borderRadius: 0, padding: '4px 8px', cursor: 'pointer',
                 }}
               >rewind</button>
               <button
+                className="tape-ui-btn"
                 onClick={() => { deleteTape(tape.id); exitPlayerView(); }}
                 style={{
                   fontFamily: "'04b03', monospace", fontSize: '1em',
                   color: 'rgba(250,249,246,0.9)', background: 'transparent',
-                  border: 'none', borderRadius: 0,
-                  padding: '4px 8px', cursor: 'pointer',
+                  borderRadius: 0, padding: '4px 8px', cursor: 'pointer',
                 }}
               >remove</button>
             </div>

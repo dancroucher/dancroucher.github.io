@@ -28802,6 +28802,7 @@ function MixtapeCreator({ onBack, onPlay }) {
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
         "button",
         {
+          className: "tape-ui-btn",
           style: { ...styles.generateBtn, ...loading ? styles.generateBtnDisabled : {} },
           onClick: handleGenerate,
           disabled: loading,
@@ -28839,10 +28840,11 @@ function MixtapeCreator({ onBack, onPlay }) {
       ] }, i2)) }),
       error2 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { style: styles.error, children: error2 }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: styles.actions, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: styles.regenerateBtn, onClick: handleRegenerate, disabled: loading, children: "\u2190 Back" }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { className: "tape-ui-btn", style: styles.regenerateBtn, onClick: handleRegenerate, disabled: loading, children: "\u2190 Back" }),
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
           "button",
           {
+            className: "tape-ui-btn",
             style: { ...styles.saveBtn, ...loading || !canSave ? styles.saveBtnDisabled : {} },
             onClick: handleSave,
             disabled: loading || !canSave,

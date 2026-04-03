@@ -76309,6 +76309,7 @@ function MixtapeCreator({ onBack, onPlay }) {
       /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
         "button",
         {
+          className: "tape-ui-btn",
           style: { ...styles.generateBtn, ...loading2 ? styles.generateBtnDisabled : {} },
           onClick: handleGenerate,
           disabled: loading2,
@@ -76346,10 +76347,11 @@ function MixtapeCreator({ onBack, onPlay }) {
       ] }, i4)) }),
       error2 && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: styles.error, children: error2 }),
       /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.actions, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { style: styles.regenerateBtn, onClick: handleRegenerate, disabled: loading2, children: "\u2190 Back" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { className: "tape-ui-btn", style: styles.regenerateBtn, onClick: handleRegenerate, disabled: loading2, children: "\u2190 Back" }),
         /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
           "button",
           {
+            className: "tape-ui-btn",
             style: { ...styles.saveBtn, ...loading2 || !canSave ? styles.saveBtnDisabled : {} },
             onClick: handleSave,
             disabled: loading2 || !canSave,
@@ -77797,6 +77799,8 @@ function TapesTable({ mixtape }) {
         @keyframes tape-loading-spin { to { transform: rotate(360deg) } }
         .tapes-scroll::-webkit-scrollbar { display: none; }
         .tapes-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+        .tape-ui-btn { border: 1px solid rgba(250,249,246,0.7) !important; transition: background 0.15s; }
+        .tape-ui-btn:hover { background: rgba(250,249,246,0.12) !important; }
         @keyframes wipe-in { from { clip-path: polygon(100% 0, 100% 0, 100% 0); } to { clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%); } }
         @keyframes wipe-out { from { clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%); } to { clip-path: polygon(0 100%, 0 100%, 0 100%); } }
       ` }),
@@ -77896,6 +77900,7 @@ function TapesTable({ mixtape }) {
           /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
             "button",
             {
+              className: "tape-ui-btn",
               onClick: () => {
                 rewindTape(tape.id);
               },
@@ -77904,7 +77909,6 @@ function TapesTable({ mixtape }) {
                 fontSize: "1em",
                 color: "rgba(250,249,246,0.9)",
                 background: "transparent",
-                border: "none",
                 borderRadius: 0,
                 padding: "4px 8px",
                 cursor: "pointer"
@@ -77915,6 +77919,7 @@ function TapesTable({ mixtape }) {
           /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
             "button",
             {
+              className: "tape-ui-btn",
               onClick: () => {
                 deleteTape(tape.id);
                 exitPlayerView();
@@ -77924,7 +77929,6 @@ function TapesTable({ mixtape }) {
                 fontSize: "1em",
                 color: "rgba(250,249,246,0.9)",
                 background: "transparent",
-                border: "none",
                 borderRadius: 0,
                 padding: "4px 8px",
                 cursor: "pointer"

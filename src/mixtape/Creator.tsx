@@ -278,6 +278,7 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
           </div>
           {error && <p style={styles.error}>{error}</p>}
           <button
+            className="tape-ui-btn"
             style={{ ...styles.generateBtn, ...(loading ? styles.generateBtnDisabled : {}) }}
             onClick={handleGenerate}
             disabled={loading}
@@ -320,10 +321,11 @@ export function MixtapeCreator({ onBack, onPlay }: CreatorProps) {
             {/* Actions */}
             {error && <p style={styles.error}>{error}</p>}
             <div style={styles.actions}>
-              <button style={styles.regenerateBtn} onClick={handleRegenerate} disabled={loading}>
+              <button className="tape-ui-btn" style={styles.regenerateBtn} onClick={handleRegenerate} disabled={loading}>
                 ← Back
               </button>
               <button
+                className="tape-ui-btn"
                 style={{ ...styles.saveBtn, ...((loading || !canSave) ? styles.saveBtnDisabled : {}) }}
                 onClick={handleSave}
                 disabled={loading || !canSave}
