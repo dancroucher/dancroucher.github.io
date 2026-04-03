@@ -76801,7 +76801,7 @@ function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
     padding: "24px 24px 20px"
   });
   el.innerHTML = `
-    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(250,249,246,0.7);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
+    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(250,249,246,0.7);letter-spacing:1.5px;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
       ${mixtape.name}
     </div>
     <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(250,249,246,0.2) transparent;padding:10px 14px;">
@@ -77857,7 +77857,6 @@ function TapesTable({ mixtape }) {
           fontSize: "1.3em",
           color: "rgba(250,249,246,0.7)",
           letterSpacing: "1.5px",
-          textTransform: "uppercase",
           whiteSpace: "nowrap",
           marginBottom: hasTracklist ? "12px" : "0",
           flexShrink: 0
@@ -78088,6 +78087,7 @@ function MixtapeOverlayEffect({
   currentIndex,
   onSelectTrack
 }) {
+  const elRef = import_react11.default.useRef(null);
   (0, import_react11.useEffect)(() => {
     let el = document.getElementById("mixtape-tracklist");
     if (!el) {
@@ -78095,10 +78095,18 @@ function MixtapeOverlayEffect({
       el.id = "mixtape-tracklist";
       document.body.appendChild(el);
     }
-    mountMixtapeOverlay(el, mixtape, currentIndex, onSelectTrack);
+    elRef.current = el;
     return () => {
       el?.remove();
+      elRef.current = null;
     };
+  }, []);
+  (0, import_react11.useEffect)(() => {
+    const el = elRef.current;
+    if (!el) return;
+    const prevOpacity = el.style.opacity;
+    mountMixtapeOverlay(el, mixtape, currentIndex, onSelectTrack);
+    if (prevOpacity) el.style.opacity = prevOpacity;
   }, [mixtape, currentIndex, onSelectTrack]);
   return null;
 }

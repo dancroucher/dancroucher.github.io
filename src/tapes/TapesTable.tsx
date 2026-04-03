@@ -272,7 +272,7 @@ function mountMixtapeOverlay(el: HTMLElement, mixtape: MixtapeData, currentIndex
     padding: '24px 24px 20px',
   });
   el.innerHTML = `
-    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(250,249,246,0.7);letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
+    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(250,249,246,0.7);letter-spacing:1.5px;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
       ${mixtape.name}
     </div>
     <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(250,249,246,0.2) transparent;padding:10px 14px;">
@@ -1437,7 +1437,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             <div style={{
               fontFamily: "'04b03', monospace", fontSize: '1.3em',
               color: 'rgba(250,249,246,0.7)', letterSpacing: '1.5px',
-              textTransform: 'uppercase', whiteSpace: 'nowrap', marginBottom: hasTracklist ? '12px' : '0',
+              whiteSpace: 'nowrap', marginBottom: hasTracklist ? '12px' : '0',
               flexShrink: 0,
             }}>
               {tape.title || 'Untitled'}
@@ -1673,11 +1673,24 @@ function MixtapeOverlayEffect({
   currentIndex: number;
   onSelectTrack: (index: number, track: MixtapeTrack) => void;
 }) {
+  const elRef = React.useRef<HTMLElement | null>(null);
+
+  // Create element once on mount, remove on unmount
   useEffect(() => {
     let el = document.getElementById('mixtape-tracklist');
     if (!el) { el = document.createElement('div'); el.id = 'mixtape-tracklist'; document.body.appendChild(el); }
+    elRef.current = el;
+    return () => { el?.remove(); elRef.current = null; };
+  }, []);
+
+  // Update content when track changes — preserve opacity
+  useEffect(() => {
+    const el = elRef.current;
+    if (!el) return;
+    const prevOpacity = el.style.opacity;
     mountMixtapeOverlay(el, mixtape, currentIndex, onSelectTrack);
-    return () => { el?.remove(); };
+    if (prevOpacity) el.style.opacity = prevOpacity;
   }, [mixtape, currentIndex, onSelectTrack]);
+
   return null;
 }
