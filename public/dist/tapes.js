@@ -76823,8 +76823,11 @@ function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
     padding: "24px 24px 20px"
   });
   el.innerHTML = `
-    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(250,249,246,0.7);letter-spacing:1.5px;white-space:nowrap;margin-bottom:12px;flex-shrink:0;">
+    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(250,249,246,0.7);letter-spacing:1.5px;white-space:nowrap;margin-bottom:4px;flex-shrink:0;">
       ${mixtape.name}
+    </div>
+    <div style="font-family:'04b03',monospace;font-size:1em;color:rgba(250,249,246,0.5);margin-bottom:12px;flex-shrink:0;">
+      ${currentIndex + 1}&nbsp;/&nbsp;${mixtape.tracks.length}
     </div>
     <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(250,249,246,0.2) transparent;padding:10px 14px;">
       ${mixtape.tracks.map((track, i4) => `
