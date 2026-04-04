@@ -7,6 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(express.json());
+
 // Serve your static files (index.html, player.js, and the video folders)
 app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -91,12 +93,30 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+app.get('/api/random', async (req, res) => {
+  try {
+    const { default: handler } = await import('./api/random.js');
+    await handler(req, res);
+  } catch (error) {
+    res.status(500).json({ error: 'Random video failed: ' + error.message });
+  }
+});
+
 app.get('/api/random-playlist', async (req, res) => {
   try {
     const { default: handler } = await import('./api/random-playlist.js');
     await handler(req, res);
   } catch (error) {
     res.status(500).json({ error: 'Random playlist failed: ' + error.message });
+  }
+});
+
+app.post('/api/mixtape/generate', async (req, res) => {
+  try {
+    const { default: handler } = await import('./api/mixtape/generate.js');
+    await handler(req, res);
+  } catch (error) {
+    res.status(500).json({ error: 'Mixtape generate failed: ' + error.message });
   }
 });
 

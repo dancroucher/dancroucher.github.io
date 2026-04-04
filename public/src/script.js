@@ -308,61 +308,84 @@ const Search = {
     },
 };
 
-// ── Infinite tape popup ──
-const InfinitePopup = {
-    _open: false,
-
+// ── Lucky pick buttons (single video + mixtape) ──
+const LuckyPicks = {
     init() {
-        const btn = document.getElementById("infinite-btn");
-        const popup = document.getElementById("infinite-popup");
-        const typeSelect = document.getElementById("inf-type");
-        const createBtn = document.getElementById("inf-create");
-
-        btn.addEventListener("click", () => {
-            this._open = !this._open;
-            popup.style.display = this._open ? "block" : "none";
-        });
-
-        typeSelect.addEventListener("change", () => this._updateValueField());
-        createBtn.addEventListener("click", () => this._create());
-
-        const luckyBtn = document.getElementById("inf-lucky");
-        if (luckyBtn) luckyBtn.addEventListener("click", () => this._lucky());
-
         const mixtapeBtn = document.getElementById("mixtape-btn");
         if (mixtapeBtn) mixtapeBtn.addEventListener("click", () => {
           const searchInput = document.getElementById('idEntry');
           const keywords = searchInput ? searchInput.value.trim() : '';
-          if (!keywords) return; // nothing to generate from
+          if (!keywords) return;
           window.dispatchEvent(new CustomEvent('jeem-create-mixtape', { detail: { keywords } }));
-          // Close the infinite popup if open
-          popup.style.display = "none";
-          this._open = false;
         });
 
-        // Close popup on outside click
-        document.addEventListener("click", (e) => {
-            if (this._open && !popup.contains(e.target) && e.target !== btn) {
-                this._open = false;
-                popup.style.display = "none";
+        const videoBtn = document.getElementById("lucky-video-btn");
+        if (videoBtn) videoBtn.addEventListener("click", () => this._luckyVideo(videoBtn));
+
+        const mixBtn = document.getElementById("lucky-mixtape-btn");
+        if (mixBtn) mixBtn.addEventListener("click", () => this._luckyMixtape(mixBtn));
+    },
+
+    _setLoading(btn, loading) {
+        if (!btn) return;
+        if (loading) {
+            btn.dataset.originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.6';
+        } else {
+            if (btn.dataset.originalText) btn.innerHTML = btn.dataset.originalText;
+            btn.disabled = false;
+            btn.style.pointerEvents = '';
+            btn.style.opacity = '';
+        }
+    },
+
+    async _luckyVideo(btn) {
+        this._setLoading(btn, true);
+        try {
+            const res = await fetch('/api/random');
+            const data = await res.json();
+            if (data && data.videoId && window.TapesBridge) {
+                const title = data.title || 'Untitled';
+                const artist = data.artist || '';
+                window.TapesBridge.addTapeFromSearch(data.videoId, title, artist, false);
+            } else {
+                console.warn('Lucky video: no result', data);
             }
-        });
+        } catch (e) {
+            console.warn('Lucky video failed', e);
+        } finally {
+            this._setLoading(btn, false);
+        }
     },
 
-    _updateValueField() {
-        const type = document.getElementById("inf-type").value;
-        document.getElementById("inf-value-decade").style.display = type === "decade" ? "" : "none";
-        document.getElementById("inf-value-genre").style.display = type === "genre" ? "" : "none";
-        document.getElementById("inf-value-text").style.display = (type === "year" || type === "artist") ? "" : "none";
-        if (type === "year") document.getElementById("inf-value-text").placeholder = "e.g. 1985";
-        if (type === "artist") document.getElementById("inf-value-text").placeholder = "e.g. Depeche Mode";
-    },
-
-    _getValue() {
-        const type = document.getElementById("inf-type").value;
-        if (type === "decade") return document.getElementById("inf-value-decade").value;
-        if (type === "genre") return document.getElementById("inf-value-genre").value.trim();
-        return document.getElementById("inf-value-text").value.trim();
+    async _luckyMixtape(btn) {
+        const queries = this._luckyQueries;
+        const pick = queries[Math.floor(Math.random() * queries.length)];
+        this._setLoading(btn, true);
+        try {
+            const res = await fetch('/api/mixtape/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: '', keywords: pick }),
+            });
+            const data = await res.json();
+            if (data && data.tracks && data.tracks.length && window.TapesBridge) {
+                const label = pick.charAt(0).toUpperCase() + pick.slice(1);
+                const name = `🎲 ${label}`;
+                window.TapesBridge.addMixtapeTape(name, data.tracks.map(t => ({
+                    videoId: t.videoId, title: t.title, author: t.author,
+                })));
+            } else {
+                console.warn('Lucky mixtape: no tracks', data);
+            }
+        } catch (e) {
+            console.warn('Lucky mixtape failed', e);
+        } finally {
+            this._setLoading(btn, false);
+        }
     },
 
     _luckyQueries: [
@@ -383,44 +406,6 @@ const InfinitePopup = {
         'shoegaze', 'dream pop', 'lo-fi music',
     ],
 
-    _lucky() {
-        const queries = this._luckyQueries;
-        const pick = queries[Math.floor(Math.random() * queries.length)];
-        const config = { source: 'youtube', type: 'genre', value: pick };
-        const label = pick.charAt(0).toUpperCase() + pick.slice(1);
-        const title = `∞ 🎲 ${label}`;
-
-        if (window.TapesBridge) {
-            window.TapesBridge.addInfiniteTape(config, title);
-        }
-
-        this._open = false;
-        document.getElementById("infinite-popup").style.display = "none";
-    },
-
-    _create() {
-        const source = document.getElementById("inf-source").value;
-        const type = document.getElementById("inf-type").value;
-        const value = this._getValue();
-
-        if (!value) return;
-
-        const config = { source, type, value };
-
-        // Build label for the tape
-        let label = value;
-        if (type === "decade") label = value + "s";
-        if (type === "genre") label = value.charAt(0).toUpperCase() + value.slice(1);
-
-        const title = `∞ ${label} / YouTube`;
-
-        if (window.TapesBridge) {
-            window.TapesBridge.addInfiniteTape(config, title);
-        }
-
-        this._open = false;
-        document.getElementById("infinite-popup").style.display = "none";
-    },
 };
 
 // ── Form submit binding ──
@@ -443,7 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    InfinitePopup.init();
+    LuckyPicks.init();
 
     // Grey out mixtape button when search bar is empty
     const mixtapeBtn = document.getElementById("mixtape-btn");

@@ -76,37 +76,9 @@
                         <form id="video-form">
                             <input class="videobox" type="text" autocomplete="on" id="idEntry" placeholder="paste url or search...">
                         </form>
-                            <button class="infinite-btn" id="infinite-btn" title="Create infinite tape">∞</button>
                             <button class="infinite-btn" id="mixtape-btn" title="Create mixtape" style="background: linear-gradient(135deg, #8a5a20, #c9a84c); color: #0a0805; font-weight: bold; font-size: 13px; font-family: '04b03', monospace; letter-spacing: 0.5px;">+ mixtape</button>
-                        <div class="infinite-popup" id="infinite-popup" style="display: none">
-                            <div class="infinite-popup-title">∞ infinite tape</div>
-                            <input type="hidden" id="inf-source" value="youtube">
-                            <div class="infinite-row">
-                                <label>type</label>
-                                <select id="inf-type">
-                                    <option value="decade">Decade</option>
-                                    <option value="genre">Genre</option>
-                                    <option value="artist">Artist</option>
-                                    <option value="year">Year</option>
-                                </select>
-                            </div>
-                            <div class="infinite-row" id="inf-value-row">
-                                <label>value</label>
-                                <select id="inf-value-decade">
-                                    <option value="1960">1960s</option>
-                                    <option value="1970">1970s</option>
-                                    <option value="1980" selected>1980s</option>
-                                    <option value="1990">1990s</option>
-                                    <option value="2000">2000s</option>
-                                    <option value="2010">2010s</option>
-                                    <option value="2020">2020s</option>
-                                </select>
-                                <input type="text" id="inf-value-genre" style="display: none" placeholder="e.g. rock, pop, jazz">
-                                <input type="text" id="inf-value-text" style="display: none" placeholder="e.g. 1985 or artist name">
-                            </div>
-                            <button class="infinite-create" id="inf-create">create tape</button>
-                            <button class="infinite-create" id="inf-lucky" style="background: #b8860b; margin-top: 4px">🎲 lucky pick</button>
-                        </div>
+                            <button class="infinite-btn" id="lucky-video-btn" title="Lucky pick — random video">🎲 video</button>
+                            <button class="infinite-btn" id="lucky-mixtape-btn" title="Lucky pick — random mixtape">🎲 mix</button>
                     </div>
                 </div>
                 <div class="history-container" id="saved-videos-container" style="display:none"></div>

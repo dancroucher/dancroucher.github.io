@@ -181,6 +181,7 @@ declare global {
       updatePlaylistIndex: (videoId: string, index: number) => void;
       addTapeFromSearch: (videoId: string, title: string, author: string, isPlaylist: boolean, playlistId?: string) => void;
       addInfiniteTape: (config: InfiniteConfig, title: string) => void;
+      addMixtapeTape: (name: string, tracks: { videoId: string; title: string; author: string }[]) => void;
       notifyPlayState: (playing: boolean) => void;
       onTrackEnded: () => void;
       loadNextInfiniteTrack: () => void;
@@ -671,6 +672,37 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             author: '',
             tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
             textureVariant: nextTextureVariant(),
+            progress: 0,
+            timestamp: Date.now(),
+            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 80),
+            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 60),
+            angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
+            ownerId: getOwnerId(),
+          };
+          const next = [tape, ...prev];
+          if (next.length > 50) next.pop();
+          setZOrder(o => [tape.id, ...o]);
+          locallyDirtyIds.add(tape.id);
+          setNewTapeIds(s => new Set(s).add(tape.id));
+          setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(tape.id); return n; }), 2000);
+          scheduleRemoteSave();
+          return next;
+        });
+      },
+      addMixtapeTape: (name: string, tracks: { videoId: string; title: string; author: string }[]) => {
+        setTapes(prev => {
+          const tape: Tape = {
+            id: crypto.randomUUID?.() ?? `${Date.now()}`,
+            videoId: tracks[0]?.videoId || '',
+            isPlaylist: false,
+            isInfinite: true,
+            infiniteConfig: { source: 'youtube', type: 'artist', value: name } as InfiniteConfig,
+            infiniteHistory: tracks,
+            infiniteIndex: 0,
+            title: name,
+            author: 'mixtape',
+            tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+            textureVariant: randomTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
             x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 80),
