@@ -120,7 +120,7 @@ const STAMP_DEBUG = false;
 export function stampTitle(baseColor: THREE.Texture, title: string, variant: string, tape?: Tape): THREE.CanvasTexture {
   const isInfinite = tape?.isInfinite ?? false;
   const isPlaylist = tape?.isPlaylist ?? false;
-  const isMixtape = tape?.id === '__jeem_mixtape__';
+  const isMixtape = tape?.author === 'mixtape' && !!tape?.isInfinite;
   const cacheKey = `${variant}:${title}:${isInfinite ? 'inf' : ''}${isPlaylist ? 'pl' : ''}${isMixtape ? 'mx' : ''}`;
   const cached = stampCache.get(cacheKey);
   if (cached) return cached;
