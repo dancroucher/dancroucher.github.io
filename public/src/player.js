@@ -441,7 +441,9 @@ function doStart() {
 
     Inactivity.init();
     // Don't reset background when tapes table is managing it (infinite/mixtape tapes)
-    if (!AppState.infiniteTape) {
+    // Don't reset background when tapes table is managing the view
+    const tapesActive = document.querySelector('.crt.tapes-active');
+    if (!tapesActive) {
         Backgrounds.loadSavedType();
         Backgrounds.setType(Backgrounds.bgTypeIndex);
         Backgrounds.loadSavedChangeTime();
