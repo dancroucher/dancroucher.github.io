@@ -1552,7 +1552,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       {/* Deck — portaled outside tapes-root so it's visible in all bg modes */}
       {/* Username bar — portaled into start-header */}
       {typeof document !== 'undefined' && document.getElementById('username-area') && createPortal(
-        <div className="username-bar">
+        <div className="username-bar" style={{ display: view === 'player' || loadedTape ? 'none' : '' }}>
           {username ? (
             <>
               <span className="username-display">@ {username}</span>

@@ -77991,7 +77991,7 @@ function TapesTable({ mixtape }) {
       ] });
     })(),
     typeof document !== "undefined" && document.getElementById("username-area") && (0, import_react_dom.createPortal)(
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "username-bar", children: username ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "username-bar", style: { display: view === "player" || loadedTape ? "none" : "" }, children: username ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
         /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "username-display", children: [
           "@ ",
           username
