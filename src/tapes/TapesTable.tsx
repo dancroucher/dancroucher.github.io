@@ -357,23 +357,19 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const infiniteFetchingRef = useRef(false);
 
   // ── Wipe transition ──
-  const [wipePhase, setWipePhase] = useState<'none' | 'cover' | 'uncover'>('none');
-  const WIPE_DURATION = 300; // ms for each half of the wipe
-
-  // Run a callback behind a wipe: cover → swap → uncover
+  // Run a callback inside a glitch flare transition: swap happens at peak blowout.
+  // Same signature as the old wipe so all callers can stay put.
   const wipeTransition = useCallback((onCovered: () => void, onUncovered?: () => void) => {
-    setWipePhase('cover');
+    document.body.classList.add('view-flaring');
+    // Peak blowout (~270ms into 600ms) — swap views here so the change is masked by the flare
     setTimeout(() => {
       onCovered();
-      // Small delay so React renders the swap before uncovering
-      requestAnimationFrame(() => {
-        setWipePhase('uncover');
-        setTimeout(() => {
-          setWipePhase('none');
-          if (onUncovered) onUncovered();
-        }, WIPE_DURATION);
-      });
-    }, WIPE_DURATION);
+    }, 270);
+    // End of animation
+    setTimeout(() => {
+      document.body.classList.remove('view-flaring');
+      if (onUncovered) onUncovered();
+    }, 600);
   }, []);
 
   // ── View transitions ──
@@ -1459,8 +1455,17 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         .tapes-scroll { scrollbar-width: none; -ms-overflow-style: none; }
         .tape-ui-btn { border: 1px solid rgba(250,249,246,0.7) !important; transition: background 0.15s; }
         .tape-ui-btn:hover { background: rgba(250,249,246,0.12) !important; }
-        @keyframes wipe-in { from { clip-path: polygon(100% 0, 100% 0, 100% 0); } to { clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%); } }
-        @keyframes wipe-out { from { clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%); } to { clip-path: polygon(0 100%, 0 100%, 0 100%); } }
+        @keyframes view-flare {
+          0%   { filter: brightness(1) contrast(1) saturate(1); transform: translate(0) scale(1); }
+          15%  { filter: brightness(2) contrast(1.6) saturate(2); transform: translate(-3px, 1px) scale(1.01); }
+          30%  { filter: brightness(4) contrast(0.4) saturate(0) hue-rotate(20deg); transform: translate(4px, -2px) scale(1.02); }
+          45%  { filter: brightness(5) contrast(0.2); transform: translate(-2px, 2px) scale(1.01); }
+          55%  { filter: brightness(5) contrast(0.2); transform: translate(2px, -1px) scale(1.02); }
+          70%  { filter: brightness(3) contrast(1.5) saturate(1.5) hue-rotate(-10deg); transform: translate(-1px, 1px) scale(1.01); }
+          85%  { filter: brightness(1.5) contrast(1.3); transform: translate(1px, 0) scale(1); }
+          100% { filter: brightness(1) contrast(1) saturate(1); transform: translate(0) scale(1); }
+        }
+        body.view-flaring { animation: view-flare 0.6s ease-in-out; overflow: hidden; }
       `}</style>
 
       {/* 3D table with FBX tapes, physics, drag, camera pan */}
@@ -1484,16 +1489,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         />
       </Suspense>
 
-      {/* Black wipe overlay for view transitions */}
-      {wipePhase !== 'none' && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          background: '#000', zIndex: 9999, pointerEvents: 'none',
-          animation: `${wipePhase === 'cover' ? 'wipe-in' : 'wipe-out'} ${WIPE_DURATION}ms ease-in-out forwards`,
-        }} />
-      )}
-
-      {/* Tape info overlay in player view — centred below tape, visible when not dragging */}
+{/* Tape info overlay in player view — centred below tape, visible when not dragging */}
       {view === 'player' && playerTapeId && !dragging3D && !showMixtapeCreator && !loadedTape && (() => {
         const tape = tapes.find(t => t.id === playerTapeId);
         if (!tape) return null;
