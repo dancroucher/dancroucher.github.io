@@ -76829,12 +76829,12 @@ function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
     <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(250,249,246,0.2) transparent;padding:10px 14px;">
       ${mixtape.tracks.map((track, i4) => `
         <div data-idx="${i4}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
-          style="display:flex;align-items:center;gap:8px;font-family:'04b03',monospace;font-size:1em;color:${i4 === currentIndex ? "rgba(250,249,246,0.9)" : "rgba(250,249,246,0.5)"};cursor:pointer;padding:6px 4px;border-bottom:1px solid rgba(250,249,246,0.04);background:${i4 === currentIndex ? "rgba(250,249,246,0.08)" : "transparent"};transition:color 0.15s;"
+          style="display:flex;align-items:center;gap:8px;font-family:'04b03',monospace;font-size:1em;color:${i4 === currentIndex ? "rgba(250,249,246,0.95)" : "rgba(250,249,246,0.7)"};cursor:pointer;padding:6px 4px;border-bottom:1px solid rgba(250,249,246,0.04);background:${i4 === currentIndex ? "rgba(250,249,246,0.08)" : "transparent"};transition:color 0.15s;"
           title="${track.title} \u2014 ${track.author}">
-          <span style="color:rgba(250,249,246,0.5);width:30px;flex-shrink:0;text-align:right;">${String(i4 + 1).padStart(2, "0")}.</span>
+          <span style="color:rgba(250,249,246,0.6);width:30px;flex-shrink:0;text-align:right;">${String(i4 + 1).padStart(2, "0")}.</span>
           <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${track.title}</span>
-          <span style="color:rgba(250,249,246,0.5);flex-shrink:0;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${track.author}</span>
-          <span style="color:rgba(250,249,246,0.4);flex-shrink:0;width:50px;text-align:right;">${track.durationText || ""}</span>
+          <span style="color:rgba(250,249,246,0.6);flex-shrink:0;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${track.author}</span>
+          <span style="color:rgba(250,249,246,0.5);flex-shrink:0;width:50px;text-align:right;">${track.durationText || ""}</span>
         </div>
       `).join("")}
     </div>
@@ -77308,15 +77308,6 @@ function TapesTable({ mixtape }) {
       if (padinfo) padinfo.style.display = "";
     }
   }, [loadedTape, mixtape]);
-  (0, import_react11.useEffect)(() => {
-    const padinfo = document.getElementById("padinfo");
-    if (!padinfo) return;
-    if (playlistTracks && loadedTape?.isPlaylist) {
-      padinfo.style.display = "none";
-    } else if (!mixtape || loadedTape?.id !== MIXTAPE_ID) {
-      padinfo.style.display = "";
-    }
-  }, [playlistTracks, loadedTape, mixtape]);
   const [mixtapeKeywords, setMixtapeKeywords] = (0, import_react11.useState)("");
   const [mixtapeGenerating, setMixtapeGenerating] = (0, import_react11.useState)(false);
   (0, import_react11.useEffect)(() => {
