@@ -341,6 +341,8 @@ var Demo = (function () {
             if (!AppState.singleVideo && AppState.myVideoPlaylistName && window.TapesBridge) {
                 window.TapesBridge.updatePlaylistIndex(AppState.myVideoPlaylistName, currentIndex);
             }
+            // Re-show UI on track change
+            if (window.Inactivity) window.Inactivity.reset();
         },
     };
 

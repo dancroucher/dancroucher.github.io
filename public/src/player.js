@@ -440,10 +440,12 @@ function doStart() {
     }
 
     Inactivity.init();
-    // Don't reset background when tapes table is managing it (infinite/mixtape tapes)
     // Don't reset background when tapes table is managing the view
     const tapesActive = document.querySelector('.crt.tapes-active');
-    if (!tapesActive) {
+    if (tapesActive) {
+        // Just populate the button label without switching bg
+        DOM.backgroundType.innerHTML = `<i class='fas fa-file-image'></i>&nbsp;${BG_TYPES[Backgrounds.bgTypeIndex]}`;
+    } else {
         Backgrounds.loadSavedType();
         Backgrounds.setType(Backgrounds.bgTypeIndex);
         Backgrounds.loadSavedChangeTime();
@@ -584,6 +586,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     DOM.bgNone.addEventListener("dblclick", () => { clearTimeout(clickTimer); clickTimer = null; doFullscreen(); });
 });
+
+// Expose inactivity for track-change re-fade
+window.Inactivity = Inactivity;
 
 // Expose bg switch for React bridge
 // Called from React eject — switches display without persisting to localStorage

@@ -858,6 +858,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       const padinfo = document.getElementById('padinfo');
       if (padinfo) padinfo.style.display = 'none';
     }
+
+    // Re-show UI on track change (fade back in if hidden by inactivity)
+    if ((window as any).Inactivity) (window as any).Inactivity.reset();
   }, []);
 
   // ── Load next track for infinite tape ──

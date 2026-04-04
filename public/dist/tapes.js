@@ -77361,6 +77361,7 @@ function TapesTable({ mixtape }) {
       const padinfo = document.getElementById("padinfo");
       if (padinfo) padinfo.style.display = "none";
     }
+    if (window.Inactivity) window.Inactivity.reset();
   }, []);
   const loadNextInfiniteTrack = (0, import_react11.useCallback)(async () => {
     const tape = loadedRef.current;
