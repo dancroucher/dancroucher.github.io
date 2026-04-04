@@ -77273,8 +77273,9 @@ function TapesTable({ mixtape }) {
       title: t3.title,
       author: t3.author
     }));
+    const mixtapeRealId = crypto.randomUUID?.() ?? `${Date.now()}`;
     const mixtapeTape = {
-      id: MIXTAPE_ID,
+      id: mixtapeRealId,
       videoId: tracks[0]?.videoId || "",
       isPlaylist: false,
       isInfinite: true,
@@ -77292,7 +77293,7 @@ function TapesTable({ mixtape }) {
       angle: 0
     };
     setTapes([mixtapeTape]);
-    setZOrder([MIXTAPE_ID]);
+    setZOrder([mixtapeRealId]);
     setMounted(true);
     try {
       sessionStorage.removeItem("jeem_mixtape");
@@ -77303,7 +77304,7 @@ function TapesTable({ mixtape }) {
   }, [mixtape]);
   (0, import_react11.useEffect)(() => {
     if (!mixtape) return;
-    if (loadedTape?.id !== MIXTAPE_ID) {
+    if (!(loadedTape?.isInfinite && loadedTape?.author === "mixtape")) {
       const padinfo = document.getElementById("padinfo");
       if (padinfo) padinfo.style.display = "";
     }
@@ -77353,7 +77354,7 @@ function TapesTable({ mixtape }) {
     window.myApp.submitVideoNameFromSaved(videoId, 0, seekProgress);
     setCurrentVideoId(videoId);
     window.switchBgType(5);
-    if (loadedRef.current?.id === MIXTAPE_ID) {
+    if (loadedRef.current?.isInfinite && loadedRef.current?.author === "mixtape") {
       const padinfo = document.getElementById("padinfo");
       if (padinfo) padinfo.style.display = "none";
     }
@@ -78080,14 +78081,15 @@ function TapesTable({ mixtape }) {
       ),
       deckPortal
     ),
-    mixtapeData && loadedTape?.id === MIXTAPE_ID && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    mixtapeData && loadedTape?.isInfinite && loadedTape?.author === "mixtape" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       MixtapeOverlayEffect,
       {
         mixtape: mixtapeData,
         currentIndex: loadedTape.infiniteIndex ?? 0,
         onSelectTrack: (i4, track) => {
+          const tapeId = loadedTape.id;
           setLoadedTape((prev) => prev ? { ...prev, infiniteIndex: i4, videoId: track.videoId, progress: 0 } : prev);
-          setTapes((prev) => prev.map((t3) => t3.id === MIXTAPE_ID ? { ...t3, infiniteIndex: i4, videoId: track.videoId, progress: 0 } : t3));
+          setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, infiniteIndex: i4, videoId: track.videoId, progress: 0 } : t3));
           playVideoById(track.videoId, track.title, track.author);
         }
       }
@@ -78154,8 +78156,9 @@ function TapesTable({ mixtape }) {
             title: t3.title,
             author: t3.author
           }));
+          const realId = crypto.randomUUID?.() ?? `${Date.now()}`;
           const mixtapeTape = {
-            id: MIXTAPE_ID,
+            id: realId,
             videoId: tracks[0]?.videoId || "",
             isPlaylist: false,
             isInfinite: true,
@@ -78170,9 +78173,11 @@ function TapesTable({ mixtape }) {
             timestamp: Date.now(),
             x: CANVAS_W2 / 2,
             y: CANVAS_H2 / 2,
-            angle: 0
+            angle: 0,
+            ownerId: getOwnerId()
           };
           setTapes((prev) => prev.map((t3) => t3.id === MIXTAPE_ID ? mixtapeTape : t3));
+          setPlayerTapeId(realId);
           setMixtapeData({ name: tape.name || "Mixtape", description: tape.description || "", tracks: tape.tracks });
           mixtapeLoadedRef.current = true;
           setShowMixtapeCreator(false);

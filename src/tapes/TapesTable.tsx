@@ -746,8 +746,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     }));
 
     // Place mixtape in a visible spot on the table (left side, below header)
+    const mixtapeRealId = crypto.randomUUID?.() ?? `${Date.now()}`;
     const mixtapeTape: Tape = {
-      id: MIXTAPE_ID,
+      id: mixtapeRealId,
       videoId: tracks[0]?.videoId || '',
       isPlaylist: false,
       isInfinite: true,
@@ -766,7 +767,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     };
 
     setTapes([mixtapeTape]);
-    setZOrder([MIXTAPE_ID]);
+    setZOrder([mixtapeRealId]);
     setMounted(true);
 
     // Clear sessionStorage so a refresh exits mixtape mode
@@ -782,7 +783,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   useEffect(() => {
     if (!mixtape) return;
     // After mixtape ejects (loadedTape becomes null or non-mixtape), restore padinfo
-    if (loadedTape?.id !== MIXTAPE_ID) {
+    if (!(loadedTape?.isInfinite && loadedTape?.author === 'mixtape')) {
       const padinfo = document.getElementById('padinfo');
       if (padinfo) padinfo.style.display = '';
     }
@@ -850,7 +851,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     window.switchBgType(5);
 
     // Hide vanilla padinfo if mixtape is active
-    if (loadedRef.current?.id === MIXTAPE_ID) {
+    if (loadedRef.current?.isInfinite && loadedRef.current?.author === 'mixtape') {
       const padinfo = document.getElementById('padinfo');
       if (padinfo) padinfo.style.display = 'none';
     }
@@ -1645,13 +1646,14 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       )}
 
       {/* Mixtape track list — direct DOM mount, no React portal */}
-      {mixtapeData && loadedTape?.id === MIXTAPE_ID && (
+      {mixtapeData && loadedTape?.isInfinite && loadedTape?.author === 'mixtape' && (
         <MixtapeOverlayEffect
           mixtape={mixtapeData}
           currentIndex={loadedTape.infiniteIndex ?? 0}
           onSelectTrack={(i, track) => {
+            const tapeId = loadedTape.id;
             setLoadedTape(prev => prev ? { ...prev, infiniteIndex: i, videoId: track.videoId, progress: 0 } : prev);
-            setTapes(prev => prev.map(t => t.id === MIXTAPE_ID ? { ...t, infiniteIndex: i, videoId: track.videoId, progress: 0 } : t));
+            setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, infiniteIndex: i, videoId: track.videoId, progress: 0 } : t));
             playVideoById(track.videoId, track.title, track.author);
           }}
         />
@@ -1719,8 +1721,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               title: t.title,
               author: t.author,
             }));
+            const realId = crypto.randomUUID?.() ?? `${Date.now()}`;
             const mixtapeTape: Tape = {
-              id: MIXTAPE_ID,
+              id: realId,
               videoId: tracks[0]?.videoId || '',
               isPlaylist: false,
               isInfinite: true,
@@ -1736,8 +1739,10 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               x: CANVAS_W / 2,
               y: CANVAS_H / 2,
               angle: 0,
+              ownerId: getOwnerId(),
             };
             setTapes(prev => prev.map(t => t.id === MIXTAPE_ID ? mixtapeTape : t));
+            setPlayerTapeId(realId);
             setMixtapeData({ name: tape.name || 'Mixtape', description: tape.description || '', tracks: tape.tracks });
             mixtapeLoadedRef.current = true;
             setShowMixtapeCreator(false);
