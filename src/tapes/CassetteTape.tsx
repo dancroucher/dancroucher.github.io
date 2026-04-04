@@ -6,7 +6,7 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
   const st = TAPE_STYLES[(tape.tapeStyle ?? 0) % TAPE_STYLES.length];
   const s = big ? 1.35 : 1;
   const R = (v: number) => Math.round(v * s);
-  const isMixtape = tape.id === '__jeem_mixtape__';
+  const isMixtape = tape.author === 'mixtape' && !!tape.isInfinite;
 
   const w = R(234), h = R(143);
   const padT = R(16), padLR = R(16);
@@ -333,7 +333,7 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
             {stripVariant === 1 && <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40%', background: 'rgba(0,0,0,0.15)' }} />}
             {stripVariant === 2 && <div style={{ position: 'absolute', left: '50%', top: R(2), bottom: R(2), width: 1, background: 'rgba(255,255,255,0.15)' }} />}
             {stripVariant === 3 && <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: R(4), height: R(4), borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '0.5px solid rgba(255,255,255,0.15)' }} />}
-            {tape.id === '__jeem_mixtape__' ? <>
+            {isMixtape ? <>
               <span style={{ fontSize: R(5), color: 'rgba(255,255,255,0.4)', fontFamily: "'04b03', monospace", fontWeight: 500, wordSpacing: R(3), position: 'relative' }}>YOUTUBE</span>
               <span style={{ fontSize: R(6), color: '#4a8adf', fontFamily: "'04b03', monospace", fontWeight: 800, letterSpacing: '0.08em', wordSpacing: R(3), position: 'relative' }}>MIXTAPE</span>
             </> : tape.isInfinite ? <>
@@ -352,7 +352,7 @@ export function CassetteTape({ tape, playing, big, loading }: { tape: Tape; play
 
       {/* Infinity sticker for infinite tapes / blue Mixtape sticker for mixtape */}
       {tape.isInfinite && (() => {
-        const isMixtape = tape.id === '__jeem_mixtape__';
+        const isMixtape = tape.author === 'mixtape' && !!tape.isInfinite;
         const stickerW = isMixtape ? R(50) : R(36), stickerH = R(26);
         return (
           <div style={{

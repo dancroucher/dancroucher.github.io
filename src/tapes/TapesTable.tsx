@@ -882,9 +882,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     window.myApp.submitVideoNameFromSaved(videoId, 0, seekProgress);
     setCurrentVideoId(videoId);
 
-    // Switch to tapes background mode so the table stays visible while playing
-    window.switchBgType(5);
-
     // Hide vanilla padinfo if mixtape is active
     if (loadedRef.current?.isInfinite && loadedRef.current?.author === 'mixtape') {
       const padinfo = document.getElementById('padinfo');

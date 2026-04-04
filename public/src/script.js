@@ -348,9 +348,11 @@ const LuckyPicks = {
             const res = await fetch('/api/random');
             const data = await res.json();
             if (data && data.videoId && window.TapesBridge) {
-                const title = data.title || 'Untitled';
+                const song = data.title || '';
                 const artist = data.artist || '';
-                window.TapesBridge.addTapeFromSearch(data.videoId, title, artist, false);
+                // Use the full combined "Artist - Title" as the tape label
+                const fullTitle = artist && song ? `${artist} - ${song}` : (song || artist || 'Untitled');
+                window.TapesBridge.addTapeFromSearch(data.videoId, fullTitle, artist, false);
             } else {
                 console.warn('Lucky video: no result', data);
             }

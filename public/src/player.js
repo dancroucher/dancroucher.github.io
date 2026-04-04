@@ -440,17 +440,13 @@ function doStart() {
     }
 
     Inactivity.init();
-    // Don't reset background when tapes table is managing the view
-    const tapesActive = document.querySelector('.crt.tapes-active');
-    if (tapesActive) {
-        // Just populate the button label without switching bg
-        DOM.backgroundType.innerHTML = `<i class='fas fa-file-image'></i>&nbsp;${BG_TYPES[Backgrounds.bgTypeIndex]}`;
-    } else {
-        Backgrounds.loadSavedType();
-        Backgrounds.setType(Backgrounds.bgTypeIndex);
-        Backgrounds.loadSavedChangeTime();
-        Backgrounds.applyChangeTime();
-    }
+    // Load the user's saved background type and apply it (without re-persisting).
+    // This populates the bg button label, sets bg-change button visibility, and
+    // restores the saved bg across tape switches.
+    Backgrounds.loadSavedType();
+    Backgrounds.setType(Backgrounds.bgTypeIndex, false);
+    Backgrounds.loadSavedChangeTime();
+    Backgrounds.applyChangeTime();
     // Metadata save handled by video_data_change event in demo.js — no setTimeout race
 }
 
