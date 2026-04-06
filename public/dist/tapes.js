@@ -55952,11 +55952,11 @@ var require_use_sync_external_store_shim_production = __commonJS({
     var objectIs = "function" === typeof Object.is ? Object.is : is2;
     var useState11 = React14.useState;
     var useEffect12 = React14.useEffect;
-    var useLayoutEffect4 = React14.useLayoutEffect;
+    var useLayoutEffect5 = React14.useLayoutEffect;
     var useDebugValue = React14.useDebugValue;
     function useSyncExternalStore$2(subscribe, getSnapshot) {
       var value = getSnapshot(), _useState = useState11({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
-      useLayoutEffect4(
+      useLayoutEffect5(
         function() {
           inst.value = value;
           inst.getSnapshot = getSnapshot;
@@ -77148,7 +77148,7 @@ function TapesTable({ mixtape }) {
     logos.forEach((el) => el.addEventListener("click", handleLogoClick));
     return () => logos.forEach((el) => el.removeEventListener("click", handleLogoClick));
   }, [view, exitPlayerView, showMixtapeCreator]);
-  (0, import_react11.useEffect)(() => {
+  (0, import_react11.useLayoutEffect)(() => {
     const deckEl = document.getElementById("tape-deck");
     if (deckEl) deckEl.style.display = view === "table" ? "none" : "";
   }, [view]);

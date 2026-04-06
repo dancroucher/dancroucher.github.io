@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, InfiniteConfig, InfiniteTrack } from './types';
 import { loadTapes, saveTapes } from './db';
@@ -350,8 +350,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     return () => logos.forEach(el => el.removeEventListener('click', handleLogoClick));
   }, [view, exitPlayerView, showMixtapeCreator]);
 
-  // Hide deck in table view on mount
-  useEffect(() => {
+  // Hide deck in table view — useLayoutEffect runs before paint, preventing any flash
+  useLayoutEffect(() => {
     const deckEl = document.getElementById('tape-deck');
     if (deckEl) deckEl.style.display = view === 'table' ? 'none' : '';
   }, [view]);
