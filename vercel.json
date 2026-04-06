@@ -1,23 +1,10 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "functions": {
-    "api/list-files.js": {
-      "includeFiles": "file-index.json"
-    }
-  },
   "routes": [
-    {
-      "src": "/api/list-files",
-      "dest": "/api/list-files.js"
-    },
     {
       "src": "/api/search",
       "dest": "/api/search.js"
-    },
-    {
-      "src": "/api/tapes",
-      "dest": "/api/tapes.js"
     },
     {
       "src": "/api/random",
@@ -28,12 +15,8 @@
       "dest": "/api/random-playlist.js"
     },
     {
-      "src": "/api/imvdb-search",
-      "dest": "/api/imvdb-search.js"
-    },
-    {
-      "src": "/api/user",
-      "dest": "/api/user.js"
+      "src": "/api/playlist-tracks",
+      "dest": "/api/playlist-tracks.js"
     },
     {
       "src": "/api/mixtape/generate",
