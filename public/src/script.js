@@ -196,14 +196,12 @@ function checkAndLoadFromURL() {
         // Show start screen with tapes — don't auto-play
         document.getElementById("start-container").style.display = "flex";
         document.getElementById("tapes-root").style.display = "flex";
-        document.getElementById("tape-deck").style.display = "block";
         document.querySelector(".crt")?.classList.add("tapes-active");
         return true;
     }
 
     document.getElementById("start-container").style.display = "flex";
     document.getElementById("tapes-root").style.display = "flex";
-    document.getElementById("tape-deck").style.display = "block";
     document.querySelector(".crt")?.classList.add("tapes-active");
     return false;
 }
