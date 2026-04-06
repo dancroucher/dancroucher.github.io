@@ -1,6 +1,8 @@
 // Random music playlist discovery via YouTube search
 // Searches for a random music playlist and returns its metadata
 
+import { YT_HEADERS, parseYtInitialData } from './utils/youtube.js';
+
 const QUERIES = [
   // Decade mixes
   '80s music playlist', '90s music playlist', '70s music playlist',
@@ -43,22 +45,16 @@ async function tryQuery(query) {
   // sp=EgIQAw== is the YouTube filter for "Playlist" results
   const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAw%3D%3D`;
   const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept-Language': 'en-US,en;q=0.9',
-    },
+    headers: YT_HEADERS,
     signal: AbortSignal.timeout(8000),
   });
 
   if (!response.ok) return null;
 
   const html = await response.text();
-  const match = html.match(/var ytInitialData\s*=\s*({.*?});\s*<\/script>/s);
-  if (!match) return null;
+  const data = parseYtInitialData(html);
+  if (!data) return null;
 
-  const data = JSON.parse(match[1]);
-
-  // Search entire response tree for playlist renderers
   const allPl = findPlaylists(data);
   const playlists = [];
 

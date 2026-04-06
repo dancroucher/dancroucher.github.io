@@ -75019,7 +75019,7 @@ function extractVariant(fbx, meshName) {
 function stampTitle(baseColor, title, variant, tape) {
   const isInfinite = tape?.isInfinite ?? false;
   const isPlaylist = tape?.isPlaylist ?? false;
-  const isMixtape = tape?.id === "__jeem_mixtape__";
+  const isMixtape = tape?.author === "mixtape" && !!tape?.isInfinite;
   const cacheKey = `${variant}:${title}:${isInfinite ? "inf" : ""}${isPlaylist ? "pl" : ""}${isMixtape ? "mx" : ""}`;
   const cached = stampCache.get(cacheKey);
   if (cached) return cached;
@@ -76013,10 +76013,269 @@ var TAPE_STYLES = [
     stripes: ["#484850", "#404048", "#383840", "#303038"]
   }
 ];
-var STORAGE_KEY_BASE = "jeem_tapes";
-function getStorageKey() {
-  const user = localStorage.getItem("jeem_username");
-  return user ? `jeem_tapes:${user}` : STORAGE_KEY_BASE;
+
+// node_modules/idb/build/index.js
+var instanceOfAny = (object, constructors) => constructors.some((c3) => object instanceof c3);
+var idbProxyableTypes;
+var cursorAdvanceMethods;
+function getIdbProxyableTypes() {
+  return idbProxyableTypes || (idbProxyableTypes = [
+    IDBDatabase,
+    IDBObjectStore,
+    IDBIndex,
+    IDBCursor,
+    IDBTransaction
+  ]);
+}
+function getCursorAdvanceMethods() {
+  return cursorAdvanceMethods || (cursorAdvanceMethods = [
+    IDBCursor.prototype.advance,
+    IDBCursor.prototype.continue,
+    IDBCursor.prototype.continuePrimaryKey
+  ]);
+}
+var transactionDoneMap = /* @__PURE__ */ new WeakMap();
+var transformCache = /* @__PURE__ */ new WeakMap();
+var reverseTransformCache = /* @__PURE__ */ new WeakMap();
+function promisifyRequest(request) {
+  const promise = new Promise((resolve2, reject) => {
+    const unlisten = () => {
+      request.removeEventListener("success", success);
+      request.removeEventListener("error", error2);
+    };
+    const success = () => {
+      resolve2(wrap(request.result));
+      unlisten();
+    };
+    const error2 = () => {
+      reject(request.error);
+      unlisten();
+    };
+    request.addEventListener("success", success);
+    request.addEventListener("error", error2);
+  });
+  reverseTransformCache.set(promise, request);
+  return promise;
+}
+function cacheDonePromiseForTransaction(tx) {
+  if (transactionDoneMap.has(tx))
+    return;
+  const done = new Promise((resolve2, reject) => {
+    const unlisten = () => {
+      tx.removeEventListener("complete", complete);
+      tx.removeEventListener("error", error2);
+      tx.removeEventListener("abort", error2);
+    };
+    const complete = () => {
+      resolve2();
+      unlisten();
+    };
+    const error2 = () => {
+      reject(tx.error || new DOMException("AbortError", "AbortError"));
+      unlisten();
+    };
+    tx.addEventListener("complete", complete);
+    tx.addEventListener("error", error2);
+    tx.addEventListener("abort", error2);
+  });
+  transactionDoneMap.set(tx, done);
+}
+var idbProxyTraps = {
+  get(target, prop, receiver) {
+    if (target instanceof IDBTransaction) {
+      if (prop === "done")
+        return transactionDoneMap.get(target);
+      if (prop === "store") {
+        return receiver.objectStoreNames[1] ? void 0 : receiver.objectStore(receiver.objectStoreNames[0]);
+      }
+    }
+    return wrap(target[prop]);
+  },
+  set(target, prop, value) {
+    target[prop] = value;
+    return true;
+  },
+  has(target, prop) {
+    if (target instanceof IDBTransaction && (prop === "done" || prop === "store")) {
+      return true;
+    }
+    return prop in target;
+  }
+};
+function replaceTraps(callback) {
+  idbProxyTraps = callback(idbProxyTraps);
+}
+function wrapFunction(func) {
+  if (getCursorAdvanceMethods().includes(func)) {
+    return function(...args) {
+      func.apply(unwrap(this), args);
+      return wrap(this.request);
+    };
+  }
+  return function(...args) {
+    return wrap(func.apply(unwrap(this), args));
+  };
+}
+function transformCachableValue(value) {
+  if (typeof value === "function")
+    return wrapFunction(value);
+  if (value instanceof IDBTransaction)
+    cacheDonePromiseForTransaction(value);
+  if (instanceOfAny(value, getIdbProxyableTypes()))
+    return new Proxy(value, idbProxyTraps);
+  return value;
+}
+function wrap(value) {
+  if (value instanceof IDBRequest)
+    return promisifyRequest(value);
+  if (transformCache.has(value))
+    return transformCache.get(value);
+  const newValue = transformCachableValue(value);
+  if (newValue !== value) {
+    transformCache.set(value, newValue);
+    reverseTransformCache.set(newValue, value);
+  }
+  return newValue;
+}
+var unwrap = (value) => reverseTransformCache.get(value);
+function openDB(name, version, { blocked, upgrade, blocking, terminated } = {}) {
+  const request = indexedDB.open(name, version);
+  const openPromise = wrap(request);
+  if (upgrade) {
+    request.addEventListener("upgradeneeded", (event) => {
+      upgrade(wrap(request.result), event.oldVersion, event.newVersion, wrap(request.transaction), event);
+    });
+  }
+  if (blocked) {
+    request.addEventListener("blocked", (event) => blocked(
+      // Casting due to https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1405
+      event.oldVersion,
+      event.newVersion,
+      event
+    ));
+  }
+  openPromise.then((db) => {
+    if (terminated)
+      db.addEventListener("close", () => terminated());
+    if (blocking) {
+      db.addEventListener("versionchange", (event) => blocking(event.oldVersion, event.newVersion, event));
+    }
+  }).catch(() => {
+  });
+  return openPromise;
+}
+var readMethods = ["get", "getKey", "getAll", "getAllKeys", "count"];
+var writeMethods = ["put", "add", "delete", "clear"];
+var cachedMethods = /* @__PURE__ */ new Map();
+function getMethod(target, prop) {
+  if (!(target instanceof IDBDatabase && !(prop in target) && typeof prop === "string")) {
+    return;
+  }
+  if (cachedMethods.get(prop))
+    return cachedMethods.get(prop);
+  const targetFuncName = prop.replace(/FromIndex$/, "");
+  const useIndex = prop !== targetFuncName;
+  const isWrite = writeMethods.includes(targetFuncName);
+  if (
+    // Bail if the target doesn't exist on the target. Eg, getAll isn't in Edge.
+    !(targetFuncName in (useIndex ? IDBIndex : IDBObjectStore).prototype) || !(isWrite || readMethods.includes(targetFuncName))
+  ) {
+    return;
+  }
+  const method = async function(storeName, ...args) {
+    const tx = this.transaction(storeName, isWrite ? "readwrite" : "readonly");
+    let target2 = tx.store;
+    if (useIndex)
+      target2 = target2.index(args.shift());
+    return (await Promise.all([
+      target2[targetFuncName](...args),
+      isWrite && tx.done
+    ]))[0];
+  };
+  cachedMethods.set(prop, method);
+  return method;
+}
+replaceTraps((oldTraps) => ({
+  ...oldTraps,
+  get: (target, prop, receiver) => getMethod(target, prop) || oldTraps.get(target, prop, receiver),
+  has: (target, prop) => !!getMethod(target, prop) || oldTraps.has(target, prop)
+}));
+var advanceMethodProps = ["continue", "continuePrimaryKey", "advance"];
+var methodMap = {};
+var advanceResults = /* @__PURE__ */ new WeakMap();
+var ittrProxiedCursorToOriginalProxy = /* @__PURE__ */ new WeakMap();
+var cursorIteratorTraps = {
+  get(target, prop) {
+    if (!advanceMethodProps.includes(prop))
+      return target[prop];
+    let cachedFunc = methodMap[prop];
+    if (!cachedFunc) {
+      cachedFunc = methodMap[prop] = function(...args) {
+        advanceResults.set(this, ittrProxiedCursorToOriginalProxy.get(this)[prop](...args));
+      };
+    }
+    return cachedFunc;
+  }
+};
+async function* iterate(...args) {
+  let cursor = this;
+  if (!(cursor instanceof IDBCursor)) {
+    cursor = await cursor.openCursor(...args);
+  }
+  if (!cursor)
+    return;
+  cursor = cursor;
+  const proxiedCursor = new Proxy(cursor, cursorIteratorTraps);
+  ittrProxiedCursorToOriginalProxy.set(proxiedCursor, cursor);
+  reverseTransformCache.set(proxiedCursor, unwrap(cursor));
+  while (cursor) {
+    yield proxiedCursor;
+    cursor = await (advanceResults.get(proxiedCursor) || cursor.continue());
+    advanceResults.delete(proxiedCursor);
+  }
+}
+function isIteratorProp(target, prop) {
+  return prop === Symbol.asyncIterator && instanceOfAny(target, [IDBIndex, IDBObjectStore, IDBCursor]) || prop === "iterate" && instanceOfAny(target, [IDBIndex, IDBObjectStore]);
+}
+replaceTraps((oldTraps) => ({
+  ...oldTraps,
+  get(target, prop, receiver) {
+    if (isIteratorProp(target, prop))
+      return iterate;
+    return oldTraps.get(target, prop, receiver);
+  },
+  has(target, prop) {
+    return isIteratorProp(target, prop) || oldTraps.has(target, prop);
+  }
+}));
+
+// src/tapes/db.ts
+var DB_NAME = "jeem-fm";
+var DB_VERSION = 1;
+var STORE = "tapes";
+var _db = null;
+async function getDB() {
+  if (!_db) {
+    _db = await openDB(DB_NAME, DB_VERSION, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains(STORE)) {
+          db.createObjectStore(STORE, { keyPath: "id" });
+        }
+      }
+    });
+  }
+  return _db;
+}
+async function loadTapes() {
+  const db = await getDB();
+  return db.getAll(STORE);
+}
+async function saveTapes(tapes) {
+  const db = await getDB();
+  const tx = db.transaction(STORE, "readwrite");
+  await tx.store.clear();
+  await Promise.all(tapes.map((tape) => tx.store.put(tape)));
+  await tx.done;
 }
 
 // src/tapes/DeckTape3D.tsx
@@ -76629,128 +76888,9 @@ function playTapeEject() {
 function playTapeWhirr() {
   playSfx("/sfx/tape-play.mp3", 0.5);
 }
-var currentUsername = localStorage.getItem("jeem_username") || null;
-function userParam(prefix = "?") {
-  if (!currentUsername) return "";
-  return `${prefix}user=${encodeURIComponent(currentUsername)}`;
-}
-function loadTapesLocal() {
-  try {
-    return JSON.parse(localStorage.getItem(getStorageKey()) || "[]");
-  } catch {
-    return [];
-  }
-}
-var saveTimer = null;
-var saveInFlight = false;
-var pendingSave = false;
-var locallyDirtyIds = /* @__PURE__ */ new Set();
-var locallyDeletedIds = /* @__PURE__ */ new Set();
-var lastKnownVersion = "";
-var lastUploadedVersion = "";
-function mergeState(localItems, remoteItems, dirtySnapshot, deletedSnapshot) {
-  const remoteIds = /* @__PURE__ */ new Set();
-  for (const ri of remoteItems) {
-    remoteIds.add(ri.id);
-    if (deletedSnapshot.has(ri.id)) continue;
-    if (localItems.has(ri.id)) {
-      if (!dirtySnapshot.has(ri.id)) localItems.set(ri.id, ri);
-    } else {
-      localItems.set(ri.id, ri);
-    }
-  }
-  for (const [id] of localItems) {
-    if (!remoteIds.has(id) && !dirtySnapshot.has(id)) localItems.delete(id);
-  }
-  return Array.from(localItems.values());
-}
-function scheduleRemoteSave() {
-  if (!currentUsername) return;
-  pendingSave = true;
-  if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => flushRemote(), 500);
-}
-async function flushRemote(retries = 2) {
-  if (saveInFlight || !pendingSave) return;
-  saveInFlight = true;
-  pendingSave = false;
-  const dirtySnapshot = new Set(locallyDirtyIds);
-  try {
-    let localTapes = JSON.parse(localStorage.getItem(getStorageKey()) || "[]");
-    if (!currentUsername) {
-      saveInFlight = false;
-      return;
-    }
-    try {
-      const rr = await fetch(`/api/tapes?t=${Date.now()}${userParam("&")}`, { cache: "no-store" });
-      if (rr.ok) {
-        const remote = await rr.json();
-        const v5 = remote._v || "";
-        if (v5 && v5 > lastKnownVersion) {
-          const remoteTapes = remote.tapes || [];
-          localTapes = mergeState(new Map(localTapes.map((t3) => [t3.id, t3])), remoteTapes, dirtySnapshot, locallyDeletedIds);
-          try {
-            localStorage.setItem(getStorageKey(), JSON.stringify(localTapes));
-          } catch {
-          }
-        }
-      }
-    } catch {
-    }
-    const r3 = await fetch(`/api/tapes${userParam()}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tapes: localTapes })
-    });
-    if (!r3.ok) throw new Error(`HTTP ${r3.status}`);
-    for (const id of dirtySnapshot) locallyDirtyIds.delete(id);
-    locallyDeletedIds.clear();
-    try {
-      const res = await r3.json();
-      if (res._v) {
-        lastKnownVersion = res._v;
-        lastUploadedVersion = res._v;
-      }
-    } catch {
-    }
-  } catch (e3) {
-    console.error("saveRemote failed:", e3);
-    if (retries > 0) {
-      pendingSave = true;
-      setTimeout(() => {
-        saveInFlight = false;
-        flushRemote(retries - 1);
-      }, 2e3);
-      return;
-    }
-  }
-  saveInFlight = false;
-  if (pendingSave) setTimeout(() => flushRemote(), 100);
-}
-function saveTapesToStorage(tapes, dirtyIds) {
-  if (!currentUsername) return;
-  try {
-    localStorage.setItem(getStorageKey(), JSON.stringify(tapes));
-  } catch {
-  }
-  if (dirtyIds) dirtyIds.forEach((id) => locallyDirtyIds.add(id));
-  else tapes.forEach((t3) => locallyDirtyIds.add(t3.id));
-  scheduleRemoteSave();
-}
-function markDeleted(id) {
-  locallyDeletedIds.add(id);
-}
 var CANVAS_W2 = 4e3;
 var CANVAS_H2 = 2400;
 var HEADER_BLOCK_H = 160;
-function getOwnerId() {
-  let id = localStorage.getItem("jeem_owner_id");
-  if (!id) {
-    id = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    localStorage.setItem("jeem_owner_id", id);
-  }
-  return id;
-}
 function tidyTapes(tapes) {
   const cols = 4;
   return tapes.map((t3, i4) => ({
@@ -76879,7 +77019,6 @@ function TapesTable({ mixtape }) {
   const [usernameInput, setUsernameInput] = (0, import_react11.useState)("");
   const [usernameError, setUsernameError] = (0, import_react11.useState)("");
   const [usernameLoading, setUsernameLoading] = (0, import_react11.useState)(false);
-  const ownerId = (0, import_react11.useRef)(getOwnerId()).current;
   const tableRef = (0, import_react11.useRef)(null);
   const playerZoneRef = (0, import_react11.useRef)(null);
   const deckPortal = typeof document !== "undefined" ? document.getElementById("tape-deck") : null;
@@ -76899,20 +77038,15 @@ function TapesTable({ mixtape }) {
   });
   const infinitePageRef = (0, import_react11.useRef)(1);
   const infiniteFetchingRef = (0, import_react11.useRef)(false);
-  const [wipePhase, setWipePhase] = (0, import_react11.useState)("none");
-  const WIPE_DURATION = 300;
   const wipeTransition = (0, import_react11.useCallback)((onCovered, onUncovered) => {
-    setWipePhase("cover");
+    document.body.classList.add("view-flaring");
     setTimeout(() => {
       onCovered();
-      requestAnimationFrame(() => {
-        setWipePhase("uncover");
-        setTimeout(() => {
-          setWipePhase("none");
-          if (onUncovered) onUncovered();
-        }, WIPE_DURATION);
-      });
-    }, WIPE_DURATION);
+    }, 270);
+    setTimeout(() => {
+      document.body.classList.remove("view-flaring");
+      if (onUncovered) onUncovered();
+    }, 600);
   }, []);
   const enterPlayerView = (0, import_react11.useCallback)((tapeId) => {
     setMenuId(null);
@@ -77029,94 +77163,69 @@ function TapesTable({ mixtape }) {
     return isDbl;
   }, []);
   (0, import_react11.useEffect)(() => {
-    let loaded = [];
-    if (currentUsername) {
-      loaded = loadTapesLocal();
-    } else {
-      try {
-        localStorage.removeItem(getStorageKey());
-      } catch {
-      }
-    }
-    if (currentUsername && (!loaded || loaded.length === 0)) {
-      try {
-        const oldHistory = JSON.parse(localStorage.getItem("userVideoHistory") || "[]");
-        if (Array.isArray(oldHistory) && oldHistory.length > 0) {
-          loaded = oldHistory.map((v5, i4) => {
-            const isPlaylist = v5.type !== "single";
-            const col = i4 % 4;
-            const row = Math.floor(i4 / 4);
-            return {
-              id: crypto.randomUUID?.() ?? `${Date.now()}-${i4}`,
-              videoId: isPlaylist ? "" : v5.id,
-              playlistId: isPlaylist ? v5.id : void 0,
-              isPlaylist,
-              title: v5.name || "Untitled",
-              author: v5.author || "",
-              tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
-              textureVariant: nextTextureVariant(),
-              progress: v5.progress || 0,
-              playlistIndex: v5.track || 0,
-              timestamp: v5.timestamp || Date.now(),
-              x: 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
-              y: HEADER_BLOCK_H + row * 170 + Math.round((Math.random() - 0.5) * 30),
-              angle: Math.round((Math.random() * 40 - 20) * 10) / 10
-            };
-          });
-          saveTapesToStorage(loaded);
-        }
-      } catch {
-      }
-    }
-    if (!loaded) loaded = [];
-    if (localStorage.getItem("jeem_keep_tidy") === "1") {
-      loaded = tidyTapes(loaded);
-    }
-    setTapes(loaded);
-    setZOrder(loaded.map((t3) => t3.id));
-    setMounted(true);
-    async function pollSync() {
-      if (!currentUsername) return;
-      if (mixtapeLoadedRef.current) return;
-      try {
-        const r3 = await fetch(`/api/tapes?t=${Date.now()}${userParam("&")}`, { cache: "no-store" });
-        if (!r3.ok) return;
-        const remote = await r3.json();
-        const v5 = remote._v || "";
-        if (!v5 || v5 === lastKnownVersion || v5 === lastUploadedVersion) return;
-        lastKnownVersion = v5;
-        const remoteTapes = remote.tapes || [];
-        const localTapes = loadTapesLocal();
-        const merged = mergeState(
-          new Map(localTapes.map((t3) => [t3.id, t3])),
-          remoteTapes,
-          new Set(locallyDirtyIds),
-          new Set(locallyDeletedIds)
-        );
+    async function init() {
+      let loaded = await loadTapes();
+      if (loaded.length === 0) {
         try {
-          localStorage.setItem(getStorageKey(), JSON.stringify(merged));
+          const username2 = localStorage.getItem("jeem_username");
+          const keys = username2 ? [`jeem_tapes:${username2}`, "jeem_tapes"] : ["jeem_tapes"];
+          for (const key of keys) {
+            const stored = localStorage.getItem(key);
+            if (stored) {
+              const parsed = JSON.parse(stored);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                loaded = parsed;
+                break;
+              }
+            }
+          }
         } catch {
         }
-        setTapes(merged);
-        setZOrder((prev) => {
-          const ids = new Set(merged.map((t3) => t3.id));
-          const kept = prev.filter((id) => ids.has(id));
-          const newIds = merged.filter((t3) => !prev.includes(t3.id)).map((t3) => t3.id);
-          return [...newIds, ...kept];
-        });
-      } catch {
+        if (loaded.length === 0) {
+          try {
+            const oldHistory = JSON.parse(localStorage.getItem("userVideoHistory") || "[]");
+            if (Array.isArray(oldHistory) && oldHistory.length > 0) {
+              loaded = oldHistory.map((v5, i4) => {
+                const isPlaylist = v5.type !== "single";
+                const col = i4 % 4;
+                const row = Math.floor(i4 / 4);
+                return {
+                  id: crypto.randomUUID?.() ?? `${Date.now()}-${i4}`,
+                  videoId: isPlaylist ? "" : v5.id,
+                  playlistId: isPlaylist ? v5.id : void 0,
+                  isPlaylist,
+                  title: v5.name || "Untitled",
+                  author: v5.author || "",
+                  tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+                  textureVariant: nextTextureVariant(),
+                  progress: v5.progress || 0,
+                  playlistIndex: v5.track || 0,
+                  timestamp: v5.timestamp || Date.now(),
+                  x: 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
+                  y: HEADER_BLOCK_H + row * 170 + Math.round((Math.random() - 0.5) * 30),
+                  angle: Math.round((Math.random() * 40 - 20) * 10) / 10
+                };
+              });
+            }
+          } catch {
+          }
+        }
+        if (loaded.length > 0) {
+          await saveTapes(loaded);
+        }
       }
+      if (localStorage.getItem("jeem_keep_tidy") === "1") {
+        loaded = tidyTapes(loaded);
+      }
+      setTapes(loaded);
+      setZOrder(loaded.map((t3) => t3.id));
+      setMounted(true);
     }
-    pollSync();
-    const interval = setInterval(pollSync, 2e3);
-    return () => clearInterval(interval);
+    init().catch(console.error);
   }, []);
   (0, import_react11.useEffect)(() => {
-    if (mounted && currentUsername) {
-      try {
-        localStorage.setItem(getStorageKey(), JSON.stringify(tapes));
-      } catch {
-      }
+    if (mounted) {
+      saveTapes(tapes).catch(console.error);
     }
   }, [tapes, mounted]);
   (0, import_react11.useEffect)(() => {
@@ -77127,12 +77236,10 @@ function TapesTable({ mixtape }) {
         setTapes((prev) => {
           const updated = prev.map((t3) => {
             if (t3.videoId === videoId || t3.playlistId === videoId) {
-              locallyDirtyIds.add(t3.id);
               return { ...t3, progress };
             }
             return t3;
           });
-          scheduleRemoteSave();
           return updated;
         });
         setLoadedTape((prev) => {
@@ -77147,12 +77254,10 @@ function TapesTable({ mixtape }) {
         setTapes((prev) => {
           const updated = prev.map((t3) => {
             if (t3.playlistId === videoId) {
-              locallyDirtyIds.add(t3.id);
               return { ...t3, playlistIndex: index, progress: 0 };
             }
             return t3;
           });
-          scheduleRemoteSave();
           return updated;
         });
         setLoadedTape((prev) => {
@@ -77200,20 +77305,49 @@ function TapesTable({ mixtape }) {
             timestamp: Date.now(),
             x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 80),
             y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 60),
-            angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
-            ownerId: getOwnerId()
+            angle: Math.round((Math.random() * 40 - 20) * 10) / 10
           };
           const next = [tape, ...prev];
           if (next.length > 50) next.pop();
           setZOrder((o4) => [tape.id, ...o4]);
-          locallyDirtyIds.add(tape.id);
           setNewTapeIds((s2) => new Set(s2).add(tape.id));
           setTimeout(() => setNewTapeIds((s2) => {
             const n2 = new Set(s2);
             n2.delete(tape.id);
             return n2;
           }), 2e3);
-          scheduleRemoteSave();
+          return next;
+        });
+      },
+      addMixtapeTape: (name, tracks) => {
+        setTapes((prev) => {
+          const tape = {
+            id: crypto.randomUUID?.() ?? `${Date.now()}`,
+            videoId: tracks[0]?.videoId || "",
+            isPlaylist: false,
+            isInfinite: true,
+            infiniteConfig: { source: "youtube", type: "artist", value: name },
+            infiniteHistory: tracks,
+            infiniteIndex: 0,
+            title: name,
+            author: "mixtape",
+            tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+            textureVariant: randomTextureVariant(),
+            progress: 0,
+            timestamp: Date.now(),
+            x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 80),
+            y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 60),
+            angle: Math.round((Math.random() * 40 - 20) * 10) / 10
+          };
+          const next = [tape, ...prev];
+          if (next.length > 50) next.pop();
+          setZOrder((o4) => [tape.id, ...o4]);
+          setNewTapeIds((s2) => new Set(s2).add(tape.id));
+          setTimeout(() => setNewTapeIds((s2) => {
+            const n2 = new Set(s2);
+            n2.delete(tape.id);
+            return n2;
+          }), 2e3);
           return next;
         });
       },
@@ -77223,12 +77357,10 @@ function TapesTable({ mixtape }) {
           if (prev.some((t3) => isPlaylist ? t3.playlistId === dedupKey : t3.videoId === dedupKey)) {
             const updated = prev.map((t3) => {
               if (isPlaylist ? t3.playlistId === dedupKey : t3.videoId === dedupKey) {
-                locallyDirtyIds.add(t3.id);
                 return { ...t3, timestamp: Date.now() };
               }
               return t3;
             });
-            scheduleRemoteSave();
             return updated;
           }
           const col = prev.length % 3;
@@ -77246,20 +77378,17 @@ function TapesTable({ mixtape }) {
             timestamp: Date.now(),
             x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 80),
             y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 60),
-            angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
-            ownerId: getOwnerId()
+            angle: Math.round((Math.random() * 40 - 20) * 10) / 10
           };
           const next = [tape, ...prev];
           if (next.length > 50) next.pop();
           setZOrder((o4) => [tape.id, ...o4]);
-          locallyDirtyIds.add(tape.id);
           setNewTapeIds((s2) => new Set(s2).add(tape.id));
           setTimeout(() => setNewTapeIds((s2) => {
             const n2 = new Set(s2);
             n2.delete(tape.id);
             return n2;
           }), 2e3);
-          scheduleRemoteSave();
           return next;
         });
       }
@@ -77356,7 +77485,6 @@ function TapesTable({ mixtape }) {
     if (trackEl) trackEl.style.display = "none";
     window.myApp.submitVideoNameFromSaved(videoId, 0, seekProgress);
     setCurrentVideoId(videoId);
-    window.switchBgType(5);
     if (loadedRef.current?.isInfinite && loadedRef.current?.author === "mixtape") {
       const padinfo = document.getElementById("padinfo");
       if (padinfo) padinfo.style.display = "none";
@@ -77373,8 +77501,6 @@ function TapesTable({ mixtape }) {
       const track2 = history[nextIdx2];
       setLoadedTape((prev) => prev ? { ...prev, infiniteIndex: nextIdx2, videoId: track2.videoId, progress: 0 } : prev);
       setTapes((prev) => prev.map((t3) => t3.id === tape.id ? { ...t3, infiniteIndex: nextIdx2, videoId: track2.videoId, progress: 0 } : t3));
-      locallyDirtyIds.add(tape.id);
-      scheduleRemoteSave();
       playVideoById(track2.videoId, track2.title, track2.author);
       return;
     }
@@ -77400,8 +77526,6 @@ function TapesTable({ mixtape }) {
     setInfiniteLoading(false);
     setLoadedTape((prev) => prev ? { ...prev, infiniteHistory: updatedHistory, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : prev);
     setTapes((prev) => prev.map((t3) => t3.id === tape.id ? { ...t3, infiniteHistory: updatedHistory, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : t3));
-    locallyDirtyIds.add(tape.id);
-    scheduleRemoteSave();
     playVideoById(track.videoId, track.title, track.author);
   }, [playVideoById]);
   const loadPrevInfiniteTrack = (0, import_react11.useCallback)(() => {
@@ -77414,8 +77538,6 @@ function TapesTable({ mixtape }) {
     const track = history[prevIdx];
     setLoadedTape((prev) => prev ? { ...prev, infiniteIndex: prevIdx, videoId: track.videoId, progress: 0 } : prev);
     setTapes((prev) => prev.map((t3) => t3.id === tape.id ? { ...t3, infiniteIndex: prevIdx, videoId: track.videoId, progress: 0 } : t3));
-    locallyDirtyIds.add(tape.id);
-    scheduleRemoteSave();
     playVideoById(track.videoId, track.title, track.author);
   }, [playVideoById]);
   const loadNextRef = (0, import_react11.useRef)(loadNextInfiniteTrack);
@@ -77450,8 +77572,6 @@ function TapesTable({ mixtape }) {
         const updatedTape = { ...tape, infiniteHistory: tracks, infiniteIndex: 0, videoId: tracks[0].videoId };
         setLoadedTape(updatedTape);
         setTapes((prev) => prev.map((t3) => t3.id === tape.id ? updatedTape : t3));
-        locallyDirtyIds.add(tape.id);
-        scheduleRemoteSave();
         playVideoById(tracks[0].videoId, tracks[0].title, tracks[0].author);
       });
       return;
@@ -77484,9 +77604,7 @@ function TapesTable({ mixtape }) {
   }, [playVideoById]);
   loadIntoPlayerRef.current = loadIntoPlayer;
   const deleteTape = (0, import_react11.useCallback)((id) => {
-    markDeleted(id);
     setTapes((prev) => prev.filter((t3) => t3.id !== id));
-    scheduleRemoteSave();
     setZOrder((prev) => prev.filter((i4) => i4 !== id));
     setLoadedTape((cur) => {
       if (cur?.id === id) return null;
@@ -77495,9 +77613,7 @@ function TapesTable({ mixtape }) {
     setMenuId(null);
   }, []);
   const rewindTape = (0, import_react11.useCallback)((id) => {
-    locallyDirtyIds.add(id);
     setTapes((prev) => prev.map((t3) => t3.id === id ? { ...t3, progress: 0 } : t3));
-    scheduleRemoteSave();
     setRewindingId(id);
     setTimeout(() => setRewindingId(null), 400);
     setMenuId(null);
@@ -77505,9 +77621,7 @@ function TapesTable({ mixtape }) {
   const autoEject = (0, import_react11.useCallback)(() => {
     const tape = loadedRef.current;
     if (!tape) return;
-    locallyDirtyIds.add(tape.id);
     setTapes((prev) => prev.map((t3) => t3.id === tape.id ? { ...t3, progress: 0 } : t3));
-    scheduleRemoteSave();
     setRewindingId(tape.id);
     setTimeout(() => setRewindingId(null), 400);
     setLoadedTape(null);
@@ -77535,76 +77649,18 @@ function TapesTable({ mixtape }) {
     if (window.switchBgType) window.switchBgType(5);
   }, []);
   autoEjectRef.current = autoEject;
-  const handleLogin = (0, import_react11.useCallback)(async (name) => {
+  const handleLogin = (0, import_react11.useCallback)((name) => {
     const normalized = name.toLowerCase().trim();
     if (!/^[a-z0-9-]{3,20}$/.test(normalized)) {
       setUsernameError("3-20 chars, a-z 0-9 -");
       return;
     }
-    setUsernameLoading(true);
-    setUsernameError("");
-    try {
-      const checkRes = await fetch(`/api/user?username=${encodeURIComponent(normalized)}`);
-      const checkData = await checkRes.json();
-      if (!checkData.exists) {
-        const claimRes = await fetch("/api/user", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: normalized })
-        });
-        const claimData = await claimRes.json();
-        if (claimData.error === "taken") {
-          setUsernameError("name taken");
-          setUsernameLoading(false);
-          return;
-        }
-        if (!claimRes.ok) {
-          setUsernameError(claimData.error || "failed");
-          setUsernameLoading(false);
-          return;
-        }
-      }
-      currentUsername = normalized;
-      localStorage.setItem("jeem_username", normalized);
-      setUsername(normalized);
-      locallyDirtyIds.clear();
-      locallyDeletedIds.clear();
-      lastKnownVersion = "";
-      lastUploadedVersion = "";
-      const r3 = await fetch(`/api/tapes?t=${Date.now()}${userParam("&")}`, { cache: "no-store" });
-      if (r3.ok) {
-        const remote = await r3.json();
-        const remoteTapes = remote.tapes || [];
-        if (remoteTapes.length > 0) {
-          setTapes(remoteTapes);
-          setZOrder(remoteTapes.map((t3) => t3.id));
-          try {
-            localStorage.setItem(getStorageKey(), JSON.stringify(remoteTapes));
-          } catch {
-          }
-          if (remote._v) {
-            lastKnownVersion = remote._v;
-            lastUploadedVersion = remote._v;
-          }
-        } else {
-          const local = loadTapesLocal();
-          if (local.length > 0) {
-            local.forEach((t3) => locallyDirtyIds.add(t3.id));
-            scheduleRemoteSave();
-          }
-        }
-      }
-    } catch (e3) {
-      setUsernameError("network error");
-    }
-    setUsernameLoading(false);
+    localStorage.setItem("jeem_username", normalized);
+    setUsername(normalized);
   }, []);
   const handleLogout = (0, import_react11.useCallback)(() => {
-    localStorage.removeItem(getStorageKey());
-    localStorage.removeItem("jeem_tapes");
-    currentUsername = null;
     localStorage.removeItem("jeem_username");
-    window.location.reload();
+    setUsername(null);
   }, []);
   const cancelMenu = (0, import_react11.useCallback)(() => {
     setMenuId(null);
@@ -77621,9 +77677,7 @@ function TapesTable({ mixtape }) {
       const t3 = tapesRef.current.find((t4) => t4.id === tapeId);
       if (t3) loadIntoPlayer(t3);
     } else if (!droppedOnDeck && view === "table") {
-      locallyDirtyIds.add(tapeId);
       setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, x: x2d, y: y2d } : t3));
-      scheduleRemoteSave();
     }
   }, [loadIntoPlayer, showMixtapeCreator, view]);
   const handle3DDoubleTap = (0, import_react11.useCallback)((tapeId) => {
@@ -77686,9 +77740,7 @@ function TapesTable({ mixtape }) {
         if (t3) loadIntoPlayer(t3);
       } else {
         const { cx: cx2, cy: cy2 } = posFromEvent(ev);
-        locallyDirtyIds.add(tape.id);
         setTapes((prev) => prev.map((t3) => t3.id === tape.id ? { ...t3, x: cx2, y: Math.max(cy2, HEADER_BLOCK_H) } : t3));
-        scheduleRemoteSave();
       }
       setDragId(null);
       setDragPos(null);
@@ -77728,9 +77780,7 @@ function TapesTable({ mixtape }) {
           }
         })();
         if (progress > 0) {
-          locallyDirtyIds.add(tape.id);
           setTapes((prev) => prev.map((t3) => t3.id === tape.id ? { ...t3, progress } : t3));
-          scheduleRemoteSave();
         }
       }
       setLoadedTape(null);
@@ -77850,8 +77900,17 @@ function TapesTable({ mixtape }) {
         .tapes-scroll { scrollbar-width: none; -ms-overflow-style: none; }
         .tape-ui-btn { border: 1px solid rgba(250,249,246,0.7) !important; transition: background 0.15s; }
         .tape-ui-btn:hover { background: rgba(250,249,246,0.12) !important; }
-        @keyframes wipe-in { from { clip-path: polygon(100% 0, 100% 0, 100% 0); } to { clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%); } }
-        @keyframes wipe-out { from { clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%); } to { clip-path: polygon(0 100%, 0 100%, 0 100%); } }
+        @keyframes view-flare {
+          0%   { filter: brightness(1) contrast(1) saturate(1); transform: translate(0) scale(1); }
+          15%  { filter: brightness(2) contrast(1.6) saturate(2); transform: translate(-3px, 1px) scale(1.01); }
+          30%  { filter: brightness(4) contrast(0.4) saturate(0) hue-rotate(20deg); transform: translate(4px, -2px) scale(1.02); }
+          45%  { filter: brightness(5) contrast(0.2); transform: translate(-2px, 2px) scale(1.01); }
+          55%  { filter: brightness(5) contrast(0.2); transform: translate(2px, -1px) scale(1.02); }
+          70%  { filter: brightness(3) contrast(1.5) saturate(1.5) hue-rotate(-10deg); transform: translate(-1px, 1px) scale(1.01); }
+          85%  { filter: brightness(1.5) contrast(1.3); transform: translate(1px, 0) scale(1); }
+          100% { filter: brightness(1) contrast(1) saturate(1); transform: translate(0) scale(1); }
+        }
+        body.view-flaring { animation: view-flare 0.6s ease-in-out; overflow: hidden; }
       ` }),
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       TapesTable3D2,
@@ -77871,17 +77930,6 @@ function TapesTable({ mixtape }) {
         lockCamera: view === "player" || showMixtapeCreator
       }
     ) }),
-    wipePhase !== "none" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100vh",
-      background: "#000",
-      zIndex: 9999,
-      pointerEvents: "none",
-      animation: `${wipePhase === "cover" ? "wipe-in" : "wipe-out"} ${WIPE_DURATION}ms ease-in-out forwards`
-    } }),
     view === "player" && playerTapeId && !dragging3D && !showMixtapeCreator && !loadedTape && (() => {
       const tape = tapes.find((t3) => t3.id === playerTapeId);
       if (!tape) return null;
@@ -78177,8 +78225,7 @@ function TapesTable({ mixtape }) {
             timestamp: Date.now(),
             x: CANVAS_W2 / 2,
             y: CANVAS_H2 / 2,
-            angle: 0,
-            ownerId: getOwnerId()
+            angle: 0
           };
           setTapes((prev) => prev.map((t3) => t3.id === MIXTAPE_ID ? mixtapeTape : t3));
           setPlayerTapeId(realId);

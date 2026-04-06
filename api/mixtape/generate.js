@@ -3,36 +3,10 @@
 // Uses IMVDB + YouTube search with BFS + eclectic sampling.
 // Filters: music content only, max 20 minutes per track.
 
+import { YT_HEADERS, IMVDB_HEADERS, parseDuration, parseYtInitialData, shuffle } from '../utils/youtube.js';
+
 const MAX_DURATION = 20 * 60; // 20 minutes in seconds
 const MIN_DURATION = 30;      // skip very short clips
-
-const HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-  'Accept-Language': 'en-US,en;q=0.9',
-};
-
-const IMVDB_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (compatible; jeem-fm/1.0)',
-  'Accept': 'application/json',
-};
-
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-// Parse "3:45" or "1:02:30" to seconds
-function parseDuration(text) {
-  if (!text) return 0;
-  const parts = text.split(':').map(Number);
-  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-  if (parts.length === 2) return parts[0] * 60 + parts[1];
-  return 0;
-}
 
 // Check if duration is within acceptable range for a music track
 function isValidDuration(dur) {
@@ -80,20 +54,18 @@ async function getYouTubeMeta(videoId) {
 
 // ── YouTube search (scrapes ytInitialData) ──
 // sp=EgIQAQ%3D%3D = filter to Videos only
-// sp=EgWKAQIIAQ%3D%3D = filter to Music + Videos
 async function youtubeSearch(query, limit = 8) {
   try {
-    // Add "music video" hint and use Music category filter
     const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' music video')}&sp=EgIQAQ%3D%3D`;
     const res = await fetch(url, {
-      headers: HEADERS,
+      headers: YT_HEADERS,
       signal: AbortSignal.timeout(6000),
     });
     if (!res.ok) return [];
     const html = await res.text();
-    const match = html.match(/var ytInitialData\s*=\s*({.*?});\s*<\/script>/s);
-    if (!match) return [];
-    const data = JSON.parse(match[1]);
+    const data = parseYtInitialData(html);
+    if (!data) return [];
+
     const contents = data?.contents?.twoColumnSearchResultsRenderer?.primaryContents
       ?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents;
     if (!contents) return [];
@@ -106,10 +78,8 @@ async function youtubeSearch(query, limit = 8) {
       const durText = v.lengthText?.simpleText || '';
       const dur = parseDuration(durText);
 
-      // Skip non-music and wrong-length tracks
       if (!looksLikeMusic(title)) continue;
       if (dur > 0 && !isValidDuration(dur)) continue;
-      // Skip if no duration info (likely a livestream)
       if (!durText) continue;
 
       results.push({
@@ -153,11 +123,9 @@ function scoreTrack(obvious) {
 
 // ── Resolve a track: get videoId + duration from YouTube ──
 async function resolveTrack(query, videoId) {
-  // If we already have a videoId, get metadata but also need duration
   if (videoId) {
     const meta = await getYouTubeMeta(videoId);
     if (meta) {
-      // oEmbed doesn't give duration, so search YouTube to find the duration
       const search = await youtubeSearch(meta.title + ' ' + meta.author_name, 3);
       const match = search.find(s => s.videoId === videoId);
       return {
@@ -169,7 +137,6 @@ async function resolveTrack(query, videoId) {
       };
     }
   }
-  // Fall back to YouTube search — results already have duration
   const artistHint = query.includes(' - ') ? '' : ' official';
   const results = await youtubeSearch(query + artistHint, 3);
   if (results.length > 0) return results[0];
@@ -197,9 +164,9 @@ export default async function handler(req, res) {
   }
 
   const tracks = [];
-  const seen = new Set();           // videoId dedup
-  const seenTitles = new Set();     // normalized title dedup
-  const artistCount = new Map();    // author → count (max 4 per artist)
+  const seen = new Set();
+  const seenTitles = new Set();
+  const artistCount = new Map();
   const MAX_PER_ARTIST = 4;
 
   function normalizeTitle(t) {
@@ -249,19 +216,14 @@ export default async function handler(req, res) {
   const allRaw = [];
   await Promise.allSettled(unique.map(async (q) => {
     const results = [];
-
-    // IMVDB — music-specific database
     try {
       const imvdb = await imvdbSearch(q, 8);
       results.push(...imvdb);
     } catch { /* continue */ }
-
-    // YouTube search with music hint
     try {
       const yt = await youtubeSearch(q, 8);
       results.push(...yt);
     } catch { /* continue */ }
-
     allRaw.push(...results);
   }));
 
@@ -274,7 +236,7 @@ export default async function handler(req, res) {
     ))
   );
 
-  // Score and filter — enforce duration, music content, no dup titles, max per artist
+  // Score and filter
   const candidates = [];
   for (const r of resolved) {
     if (r.status !== 'fulfilled' || !r.value) continue;
@@ -287,13 +249,11 @@ export default async function handler(req, res) {
     seen.add(t.videoId);
   }
 
-  // Sort: top scored first, shuffle in some lower-ranked for eclecticism
   candidates.sort((a, b) => b._score - a._score);
   const obvious = candidates.slice(0, 8);
   const eclectic = shuffle(candidates.slice(8));
   const initial = shuffle([...obvious, ...eclectic]);
 
-  // Fill to 16 tracks
   while (tracks.length < 16 && initial.length > 0) {
     const next = initial.shift();
     if (!canAddTrack(next.title, next.author)) continue;

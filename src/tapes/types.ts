@@ -24,7 +24,6 @@ export interface Tape {
   x?: number;
   y?: number;
   angle?: number;
-  ownerId?: string;
   // 3D texture variant: 'a', 'b', or 'c'
   textureVariant?: string;
   // Infinite tape fields
@@ -267,12 +266,3 @@ export const TAPE_STYLES: {
   },
 ];
 
-export const STORAGE_KEY_BASE = 'jeem_tapes';
-
-export function getStorageKey(): string {
-  const user = localStorage.getItem('jeem_username');
-  return user ? `jeem_tapes:${user}` : STORAGE_KEY_BASE;
-}
-
-// Legacy compat — default key
-export const STORAGE_KEY = STORAGE_KEY_BASE;
