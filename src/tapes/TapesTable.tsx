@@ -207,10 +207,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [infiniteLoading, setInfiniteLoading] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(() => localStorage.getItem('jeem_username') || null);
-  const [usernameInput, setUsernameInput] = useState('');
-  const [usernameError, setUsernameError] = useState('');
-  const [usernameLoading, setUsernameLoading] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
   const playerZoneRef = useRef<HTMLDivElement>(null);
   const deckPortal = typeof document !== 'undefined' ? document.getElementById('tape-deck') : null;
@@ -228,6 +224,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   tapesRef.current = tapes;
   const loadedRef = useRef(loadedTape);
   loadedRef.current = loadedTape;
+  const viewRef = useRef(view);
+  viewRef.current = view;
   const autoEjectRef = useRef<() => void>(() => {});
   const infinitePageRef = useRef(1);
   const infiniteFetchingRef = useRef(false);
@@ -926,21 +924,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   }, []);
   autoEjectRef.current = autoEject;
 
-  // ── Username (display label only — no remote sync) ──
-  const handleLogin = useCallback((name: string) => {
-    const normalized = name.toLowerCase().trim();
-    if (!/^[a-z0-9-]{3,20}$/.test(normalized)) {
-      setUsernameError('3-20 chars, a-z 0-9 -');
-      return;
-    }
-    localStorage.setItem('jeem_username', normalized);
-    setUsername(normalized);
-  }, []);
-
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem('jeem_username');
-    setUsername(null);
-  }, []);
 
   const cancelMenu = useCallback(() => { setMenuId(null); }, []);
 
@@ -1033,7 +1016,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       // Check if dropped on deck
       const pr = playerZoneRef.current?.getBoundingClientRect();
       const overPlayer = !!pr && ev.clientX >= pr.left && ev.clientX <= pr.right && ev.clientY >= pr.top && ev.clientY <= pr.bottom;
-      if (overPlayer) {
+      if (overPlayer && viewRef.current === 'player') {
         const t = tapesRef.current.find(t => t.id === tape.id);
         if (t) loadIntoPlayer(t);
       } else {
@@ -1338,34 +1321,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         );
       })()}
 
-      {/* Deck — portaled outside tapes-root so it's visible in all bg modes */}
-      {/* Username bar — portaled into start-header */}
-      {typeof document !== 'undefined' && document.getElementById('username-area') && createPortal(
-        <div className="username-bar" style={{ display: view === 'player' || loadedTape ? 'none' : '' }}>
-          {username ? (
-            <>
-              <span className="username-display">@ {username}</span>
-              <button onClick={handleLogout}>x</button>
-            </>
-          ) : (
-            <>
-              <form onSubmit={e => { e.preventDefault(); handleLogin(usernameInput); }} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <input
-                  type="text"
-                  value={usernameInput}
-                  onChange={e => { setUsernameInput(e.target.value); setUsernameError(''); }}
-                  placeholder="set username..."
-                  maxLength={20}
-                  disabled={usernameLoading}
-                />
-                <button type="submit" disabled={usernameLoading}>{usernameLoading ? '...' : 'set'}</button>
-              </form>
-              {usernameError && <span className="username-error">{usernameError}</span>}
-            </>
-          )}
-        </div>,
-        document.getElementById('username-area')!
-      )}
 
       {deckPortal && createPortal(
         <div
@@ -1432,6 +1387,31 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           )}
         </div>,
         deckPortal
+      )}
+
+      {/* Infinite tape track list — lucky pick / decade / genre tapes */}
+      {loadedTape?.isInfinite && loadedTape.author !== 'mixtape' && (loadedTape.infiniteHistory?.length ?? 0) > 0 && (
+        <MixtapeOverlayEffect
+          elementId="infinite-tracklist"
+          mixtape={{
+            name: loadedTape.title,
+            description: '',
+            tracks: loadedTape.infiniteHistory!.map(t => ({
+              videoId: t.videoId,
+              title: t.title,
+              author: t.author,
+              duration: 0,
+              durationText: '',
+            })),
+          }}
+          currentIndex={loadedTape.infiniteIndex ?? 0}
+          onSelectTrack={(i, track) => {
+            const tapeId = loadedTape.id;
+            setLoadedTape(prev => prev ? { ...prev, infiniteIndex: i, videoId: track.videoId, progress: 0 } : prev);
+            setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, infiniteIndex: i, videoId: track.videoId, progress: 0 } : t));
+            playVideoById(track.videoId, track.title, track.author);
+          }}
+        />
       )}
 
       {/* Mixtape track list — direct DOM mount, no React portal */}

@@ -77015,10 +77015,6 @@ function TapesTable({ mixtape }) {
   const [isPlaying, setIsPlaying] = (0, import_react11.useState)(false);
   const [infiniteLoading, setInfiniteLoading] = (0, import_react11.useState)(false);
   const [currentVideoId, setCurrentVideoId] = (0, import_react11.useState)(null);
-  const [username, setUsername] = (0, import_react11.useState)(() => localStorage.getItem("jeem_username") || null);
-  const [usernameInput, setUsernameInput] = (0, import_react11.useState)("");
-  const [usernameError, setUsernameError] = (0, import_react11.useState)("");
-  const [usernameLoading, setUsernameLoading] = (0, import_react11.useState)(false);
   const tableRef = (0, import_react11.useRef)(null);
   const playerZoneRef = (0, import_react11.useRef)(null);
   const deckPortal = typeof document !== "undefined" ? document.getElementById("tape-deck") : null;
@@ -77034,6 +77030,8 @@ function TapesTable({ mixtape }) {
   tapesRef.current = tapes;
   const loadedRef = (0, import_react11.useRef)(loadedTape);
   loadedRef.current = loadedTape;
+  const viewRef = (0, import_react11.useRef)(view);
+  viewRef.current = view;
   const autoEjectRef = (0, import_react11.useRef)(() => {
   });
   const infinitePageRef = (0, import_react11.useRef)(1);
@@ -77167,8 +77165,8 @@ function TapesTable({ mixtape }) {
       let loaded = await loadTapes();
       if (loaded.length === 0) {
         try {
-          const username2 = localStorage.getItem("jeem_username");
-          const keys = username2 ? [`jeem_tapes:${username2}`, "jeem_tapes"] : ["jeem_tapes"];
+          const username = localStorage.getItem("jeem_username");
+          const keys = username ? [`jeem_tapes:${username}`, "jeem_tapes"] : ["jeem_tapes"];
           for (const key of keys) {
             const stored = localStorage.getItem(key);
             if (stored) {
@@ -77649,19 +77647,6 @@ function TapesTable({ mixtape }) {
     if (window.switchBgType) window.switchBgType(5);
   }, []);
   autoEjectRef.current = autoEject;
-  const handleLogin = (0, import_react11.useCallback)((name) => {
-    const normalized = name.toLowerCase().trim();
-    if (!/^[a-z0-9-]{3,20}$/.test(normalized)) {
-      setUsernameError("3-20 chars, a-z 0-9 -");
-      return;
-    }
-    localStorage.setItem("jeem_username", normalized);
-    setUsername(normalized);
-  }, []);
-  const handleLogout = (0, import_react11.useCallback)(() => {
-    localStorage.removeItem("jeem_username");
-    setUsername(null);
-  }, []);
   const cancelMenu = (0, import_react11.useCallback)(() => {
     setMenuId(null);
   }, []);
@@ -77735,7 +77720,7 @@ function TapesTable({ mixtape }) {
       if (!dragging) return;
       const pr = playerZoneRef.current?.getBoundingClientRect();
       const overPlayer = !!pr && ev.clientX >= pr.left && ev.clientX <= pr.right && ev.clientY >= pr.top && ev.clientY <= pr.bottom;
-      if (overPlayer) {
+      if (overPlayer && viewRef.current === "player") {
         const t3 = tapesRef.current.find((t4) => t4.id === tape.id);
         if (t3) loadIntoPlayer(t3);
       } else {
@@ -78042,38 +78027,6 @@ function TapesTable({ mixtape }) {
         ] })
       ] });
     })(),
-    typeof document !== "undefined" && document.getElementById("username-area") && (0, import_react_dom.createPortal)(
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "username-bar", style: { display: view === "player" || loadedTape ? "none" : "" }, children: username ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "username-display", children: [
-          "@ ",
-          username
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { onClick: handleLogout, children: "x" })
-      ] }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("form", { onSubmit: (e3) => {
-          e3.preventDefault();
-          handleLogin(usernameInput);
-        }, style: { display: "flex", gap: 6, alignItems: "center" }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-            "input",
-            {
-              type: "text",
-              value: usernameInput,
-              onChange: (e3) => {
-                setUsernameInput(e3.target.value);
-                setUsernameError("");
-              },
-              placeholder: "set username...",
-              maxLength: 20,
-              disabled: usernameLoading
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { type: "submit", disabled: usernameLoading, children: usernameLoading ? "..." : "set" })
-        ] }),
-        usernameError && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "username-error", children: usernameError })
-      ] }) }),
-      document.getElementById("username-area")
-    ),
     deckPortal && (0, import_react_dom.createPortal)(
       /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
         "div",
@@ -78132,6 +78085,30 @@ function TapesTable({ mixtape }) {
         }
       ),
       deckPortal
+    ),
+    loadedTape?.isInfinite && loadedTape.author !== "mixtape" && (loadedTape.infiniteHistory?.length ?? 0) > 0 && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      MixtapeOverlayEffect,
+      {
+        elementId: "infinite-tracklist",
+        mixtape: {
+          name: loadedTape.title,
+          description: "",
+          tracks: loadedTape.infiniteHistory.map((t3) => ({
+            videoId: t3.videoId,
+            title: t3.title,
+            author: t3.author,
+            duration: 0,
+            durationText: ""
+          }))
+        },
+        currentIndex: loadedTape.infiniteIndex ?? 0,
+        onSelectTrack: (i4, track) => {
+          const tapeId = loadedTape.id;
+          setLoadedTape((prev) => prev ? { ...prev, infiniteIndex: i4, videoId: track.videoId, progress: 0 } : prev);
+          setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, infiniteIndex: i4, videoId: track.videoId, progress: 0 } : t3));
+          playVideoById(track.videoId, track.title, track.author);
+        }
+      }
     ),
     mixtapeData && loadedTape?.isInfinite && loadedTape?.author === "mixtape" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       MixtapeOverlayEffect,
