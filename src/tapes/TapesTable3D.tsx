@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { Tape } from './types';
 import { TableSurface } from './TableSurface';
 import { TapeBody } from './TapeBody';
+import { Recorder3D } from './Recorder3D';
 import { to2D, DRAG_HEIGHT, CAM_BOUND_X, CAM_BOUND_Z, DRAG_BOUND_X, DRAG_BOUND_Z, TAPE_W, TAPE_H } from './coords';
 
 // Matches DragState in coords.ts — inlined to avoid bundler issues
@@ -321,28 +322,36 @@ function SceneContents({
 
   return (
     <>
-      <ambientLight intensity={0.9} color="#fffaf6" />
+      <ambientLight intensity={0.55} color="#fffaf6" />
       <directionalLight
-        position={[8, 30, -6]}
-        intensity={1.8}
+        position={[-11, 28, 8]}
+        intensity={1.0}
         color="#fff0e6"
         castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
-        shadow-bias={-0.001}
-        shadow-camera-left={-37}
-        shadow-camera-right={37}
-        shadow-camera-top={27}
-        shadow-camera-bottom={-27}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-bias={-0.0001}
+        shadow-camera-left={-50}
+        shadow-camera-right={50}
+        shadow-camera-top={40}
+        shadow-camera-bottom={-40}
         shadow-camera-near={0.5}
-        shadow-camera-far={100}
+        shadow-camera-far={150}
         shadow-radius={2}
       />
-      <pointLight position={[-8, 6, -4]} intensity={0.4} color="#ffe8d6" />
+      {/* Fill light from opposite side — no shadows, softens the shaded faces */}
+      <directionalLight
+        position={[11, 20, -8]}
+        intensity={0.45}
+        color="#dce7ff"
+      />
+      <pointLight position={[-8, 6, -4]} intensity={0.25} color="#ffe8d6" />
 
       <Suspense fallback={null}>
         <Physics gravity={[0, -400, 0]} timeStep={1 / 60}>
           <TableSurface />
+          {/* Recorder — lower-left, partially running off the table edge */}
+          <Recorder3D position={[-18, 0, 8]} rotationY={Math.PI / 6} />
           {tableTapes.map(tape => (
             <TapeBody
               key={tape.id}

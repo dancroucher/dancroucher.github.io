@@ -773,7 +773,7 @@ var require_react = __commonJS({
 var require_react_dom_production = __commonJS({
   "node_modules/react-dom/cjs/react-dom.production.js"(exports) {
     "use strict";
-    var React14 = require_react();
+    var React15 = require_react();
     function formatProdErrorMessage(code) {
       var url = "https://react.dev/errors/" + code;
       if (1 < arguments.length) {
@@ -813,7 +813,7 @@ var require_react_dom_production = __commonJS({
         implementation
       };
     }
-    var ReactSharedInternals = React14.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+    var ReactSharedInternals = React15.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     function getCrossOriginStringAs(as, input) {
       if ("font" === as) return "";
       if ("string" === typeof input)
@@ -949,7 +949,7 @@ var require_react_dom_client_production = __commonJS({
   "node_modules/react-dom/cjs/react-dom-client.production.js"(exports) {
     "use strict";
     var Scheduler = require_scheduler();
-    var React14 = require_react();
+    var React15 = require_react();
     var ReactDOM2 = require_react_dom();
     function formatProdErrorMessage(code) {
       var url = "https://react.dev/errors/" + code;
@@ -1140,7 +1140,7 @@ var require_react_dom_client_production = __commonJS({
       return null;
     }
     var isArrayImpl = Array.isArray;
-    var ReactSharedInternals = React14.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+    var ReactSharedInternals = React15.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     var ReactDOMSharedInternals = ReactDOM2.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     var sharedNotPendingObject = {
       pending: false,
@@ -3944,14 +3944,14 @@ var require_react_dom_client_production = __commonJS({
         queue = queue.firstBaseUpdate;
         if (null !== queue) {
           do {
-            var clone = {
+            var clone2 = {
               lane: queue.lane,
               tag: queue.tag,
               payload: queue.payload,
               callback: null,
               next: null
             };
-            null === newLast ? newFirst = newLast = clone : newLast = newLast.next = clone;
+            null === newLast ? newFirst = newLast = clone2 : newLast = newLast.next = clone2;
             queue = queue.next;
           } while (null !== queue);
           null === newLast ? newFirst = newLast = capturedUpdate : newLast = newLast.next = capturedUpdate;
@@ -12586,7 +12586,7 @@ var require_react_dom_client_production = __commonJS({
         0 === i4 && attemptExplicitHydrationTarget(target);
       }
     };
-    var isomorphicReactPackageVersion$jscomp$inline_1840 = React14.version;
+    var isomorphicReactPackageVersion$jscomp$inline_1840 = React15.version;
     if ("19.2.4" !== isomorphicReactPackageVersion$jscomp$inline_1840)
       throw Error(
         formatProdErrorMessage(
@@ -55945,17 +55945,17 @@ void main() {
 var require_use_sync_external_store_shim_production = __commonJS({
   "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.production.js"(exports) {
     "use strict";
-    var React14 = require_react();
+    var React15 = require_react();
     function is2(x3, y2) {
       return x3 === y2 && (0 !== x3 || 1 / x3 === 1 / y2) || x3 !== x3 && y2 !== y2;
     }
     var objectIs = "function" === typeof Object.is ? Object.is : is2;
-    var useState11 = React14.useState;
-    var useEffect12 = React14.useEffect;
-    var useLayoutEffect5 = React14.useLayoutEffect;
-    var useDebugValue = React14.useDebugValue;
+    var useState12 = React15.useState;
+    var useEffect13 = React15.useEffect;
+    var useLayoutEffect5 = React15.useLayoutEffect;
+    var useDebugValue = React15.useDebugValue;
     function useSyncExternalStore$2(subscribe, getSnapshot) {
-      var value = getSnapshot(), _useState = useState11({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
+      var value = getSnapshot(), _useState = useState12({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
       useLayoutEffect5(
         function() {
           inst.value = value;
@@ -55964,7 +55964,7 @@ var require_use_sync_external_store_shim_production = __commonJS({
         },
         [subscribe, value, getSnapshot]
       );
-      useEffect12(
+      useEffect13(
         function() {
           checkIfSnapshotChanged(inst) && forceUpdate({ inst });
           return subscribe(function() {
@@ -55990,7 +55990,7 @@ var require_use_sync_external_store_shim_production = __commonJS({
       return getSnapshot();
     }
     var shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
-    exports.useSyncExternalStore = void 0 !== React14.useSyncExternalStore ? React14.useSyncExternalStore : shim;
+    exports.useSyncExternalStore = void 0 !== React15.useSyncExternalStore ? React15.useSyncExternalStore : shim;
   }
 });
 
@@ -56010,17 +56010,17 @@ var require_shim = __commonJS({
 var require_with_selector_production = __commonJS({
   "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim/with-selector.production.js"(exports) {
     "use strict";
-    var React14 = require_react();
+    var React15 = require_react();
     var shim = require_shim();
     function is2(x3, y2) {
       return x3 === y2 && (0 !== x3 || 1 / x3 === 1 / y2) || x3 !== x3 && y2 !== y2;
     }
     var objectIs = "function" === typeof Object.is ? Object.is : is2;
     var useSyncExternalStore = shim.useSyncExternalStore;
-    var useRef12 = React14.useRef;
-    var useEffect12 = React14.useEffect;
-    var useMemo12 = React14.useMemo;
-    var useDebugValue = React14.useDebugValue;
+    var useRef12 = React15.useRef;
+    var useEffect13 = React15.useEffect;
+    var useMemo12 = React15.useMemo;
+    var useDebugValue = React15.useDebugValue;
     exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
       var instRef = useRef12(null);
       if (null === instRef.current) {
@@ -56062,7 +56062,7 @@ var require_with_selector_production = __commonJS({
         [getSnapshot, getServerSnapshot, selector, isEqual]
       );
       var value = useSyncExternalStore(subscribe, instRef[0], instRef[1]);
-      useEffect12(
+      useEffect13(
         function() {
           inst.hasValue = true;
           inst.value = value;
@@ -74961,7 +74961,7 @@ var init_Tape3D = __esm({
 
 // src/tapes/TapeBody.tsx
 function extractVariant(fbx, meshName) {
-  const clone = fbx.clone();
+  const clone2 = fbx.clone();
   if (!fbxDumped) {
     fbxDumped = true;
     const dumpNode = (node, depth = 0) => {
@@ -74978,10 +74978,10 @@ function extractVariant(fbx, meshName) {
       console.log(info);
       for (const child of node.children) dumpNode(child, depth + 1);
     };
-    dumpNode(clone);
+    dumpNode(clone2);
   }
   let targetMesh = null;
-  clone.traverse((child) => {
+  clone2.traverse((child) => {
     if (child.isMesh && child.name === meshName) {
       targetMesh = child;
     }
@@ -75390,6 +75390,2763 @@ var init_TapeBody = __esm({
   }
 });
 
+// node_modules/three/examples/jsm/utils/BufferGeometryUtils.js
+function toTrianglesDrawMode2(geometry, drawMode) {
+  if (drawMode === TrianglesDrawMode) {
+    console.warn("THREE.BufferGeometryUtils.toTrianglesDrawMode(): Geometry already defined as triangles.");
+    return geometry;
+  }
+  if (drawMode === TriangleFanDrawMode || drawMode === TriangleStripDrawMode) {
+    let index = geometry.getIndex();
+    if (index === null) {
+      const indices = [];
+      const position = geometry.getAttribute("position");
+      if (position !== void 0) {
+        for (let i4 = 0; i4 < position.count; i4++) {
+          indices.push(i4);
+        }
+        geometry.setIndex(indices);
+        index = geometry.getIndex();
+      } else {
+        console.error("THREE.BufferGeometryUtils.toTrianglesDrawMode(): Undefined position attribute. Processing not possible.");
+        return geometry;
+      }
+    }
+    const numberOfTriangles = index.count - 2;
+    const newIndices = [];
+    if (drawMode === TriangleFanDrawMode) {
+      for (let i4 = 1; i4 <= numberOfTriangles; i4++) {
+        newIndices.push(index.getX(0));
+        newIndices.push(index.getX(i4));
+        newIndices.push(index.getX(i4 + 1));
+      }
+    } else {
+      for (let i4 = 0; i4 < numberOfTriangles; i4++) {
+        if (i4 % 2 === 0) {
+          newIndices.push(index.getX(i4));
+          newIndices.push(index.getX(i4 + 1));
+          newIndices.push(index.getX(i4 + 2));
+        } else {
+          newIndices.push(index.getX(i4 + 2));
+          newIndices.push(index.getX(i4 + 1));
+          newIndices.push(index.getX(i4));
+        }
+      }
+    }
+    if (newIndices.length / 3 !== numberOfTriangles) {
+      console.error("THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unable to generate correct amount of triangles.");
+    }
+    const newGeometry = geometry.clone();
+    newGeometry.setIndex(newIndices);
+    newGeometry.clearGroups();
+    return newGeometry;
+  } else {
+    console.error("THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unknown draw mode:", drawMode);
+    return geometry;
+  }
+}
+var init_BufferGeometryUtils2 = __esm({
+  "node_modules/three/examples/jsm/utils/BufferGeometryUtils.js"() {
+    init_three_module();
+  }
+});
+
+// node_modules/three/examples/jsm/utils/SkeletonUtils.js
+function clone(source) {
+  const sourceLookup = /* @__PURE__ */ new Map();
+  const cloneLookup = /* @__PURE__ */ new Map();
+  const clone2 = source.clone();
+  parallelTraverse(source, clone2, function(sourceNode, clonedNode) {
+    sourceLookup.set(clonedNode, sourceNode);
+    cloneLookup.set(sourceNode, clonedNode);
+  });
+  clone2.traverse(function(node) {
+    if (!node.isSkinnedMesh) return;
+    const clonedMesh = node;
+    const sourceMesh = sourceLookup.get(node);
+    const sourceBones = sourceMesh.skeleton.bones;
+    clonedMesh.skeleton = sourceMesh.skeleton.clone();
+    clonedMesh.bindMatrix.copy(sourceMesh.bindMatrix);
+    clonedMesh.skeleton.bones = sourceBones.map(function(bone) {
+      return cloneLookup.get(bone);
+    });
+    clonedMesh.bind(clonedMesh.skeleton, clonedMesh.bindMatrix);
+  });
+  return clone2;
+}
+function parallelTraverse(a3, b3, callback) {
+  callback(a3, b3);
+  for (let i4 = 0; i4 < a3.children.length; i4++) {
+    parallelTraverse(a3.children[i4], b3.children[i4], callback);
+  }
+}
+var init_SkeletonUtils = __esm({
+  "node_modules/three/examples/jsm/utils/SkeletonUtils.js"() {
+  }
+});
+
+// node_modules/three/examples/jsm/loaders/GLTFLoader.js
+function GLTFRegistry() {
+  let objects = {};
+  return {
+    get: function(key) {
+      return objects[key];
+    },
+    add: function(key, object) {
+      objects[key] = object;
+    },
+    remove: function(key) {
+      delete objects[key];
+    },
+    removeAll: function() {
+      objects = {};
+    }
+  };
+}
+function getMaterialExtension(parser, materialIndex, extensionName) {
+  const materialDef = parser.json.materials[materialIndex];
+  if (materialDef.extensions && materialDef.extensions[extensionName]) {
+    return materialDef.extensions[extensionName];
+  }
+  return null;
+}
+function createDefaultMaterial(cache) {
+  if (cache["DefaultMaterial"] === void 0) {
+    cache["DefaultMaterial"] = new MeshStandardMaterial({
+      color: 16777215,
+      emissive: 0,
+      metalness: 1,
+      roughness: 1,
+      transparent: false,
+      depthTest: true,
+      side: FrontSide
+    });
+  }
+  return cache["DefaultMaterial"];
+}
+function addUnknownExtensionsToUserData(knownExtensions, object, objectDef) {
+  for (const name in objectDef.extensions) {
+    if (knownExtensions[name] === void 0) {
+      object.userData.gltfExtensions = object.userData.gltfExtensions || {};
+      object.userData.gltfExtensions[name] = objectDef.extensions[name];
+    }
+  }
+}
+function assignExtrasToUserData(object, gltfDef) {
+  if (gltfDef.extras !== void 0) {
+    if (typeof gltfDef.extras === "object") {
+      Object.assign(object.userData, gltfDef.extras);
+    } else {
+      console.warn("THREE.GLTFLoader: Ignoring primitive type .extras, " + gltfDef.extras);
+    }
+  }
+}
+function addMorphTargets(geometry, targets, parser) {
+  let hasMorphPosition = false;
+  let hasMorphNormal = false;
+  let hasMorphColor = false;
+  for (let i4 = 0, il = targets.length; i4 < il; i4++) {
+    const target = targets[i4];
+    if (target.POSITION !== void 0) hasMorphPosition = true;
+    if (target.NORMAL !== void 0) hasMorphNormal = true;
+    if (target.COLOR_0 !== void 0) hasMorphColor = true;
+    if (hasMorphPosition && hasMorphNormal && hasMorphColor) break;
+  }
+  if (!hasMorphPosition && !hasMorphNormal && !hasMorphColor) return Promise.resolve(geometry);
+  const pendingPositionAccessors = [];
+  const pendingNormalAccessors = [];
+  const pendingColorAccessors = [];
+  for (let i4 = 0, il = targets.length; i4 < il; i4++) {
+    const target = targets[i4];
+    if (hasMorphPosition) {
+      const pendingAccessor = target.POSITION !== void 0 ? parser.getDependency("accessor", target.POSITION) : geometry.attributes.position;
+      pendingPositionAccessors.push(pendingAccessor);
+    }
+    if (hasMorphNormal) {
+      const pendingAccessor = target.NORMAL !== void 0 ? parser.getDependency("accessor", target.NORMAL) : geometry.attributes.normal;
+      pendingNormalAccessors.push(pendingAccessor);
+    }
+    if (hasMorphColor) {
+      const pendingAccessor = target.COLOR_0 !== void 0 ? parser.getDependency("accessor", target.COLOR_0) : geometry.attributes.color;
+      pendingColorAccessors.push(pendingAccessor);
+    }
+  }
+  return Promise.all([
+    Promise.all(pendingPositionAccessors),
+    Promise.all(pendingNormalAccessors),
+    Promise.all(pendingColorAccessors)
+  ]).then(function(accessors) {
+    const morphPositions = accessors[0];
+    const morphNormals = accessors[1];
+    const morphColors = accessors[2];
+    if (hasMorphPosition) geometry.morphAttributes.position = morphPositions;
+    if (hasMorphNormal) geometry.morphAttributes.normal = morphNormals;
+    if (hasMorphColor) geometry.morphAttributes.color = morphColors;
+    geometry.morphTargetsRelative = true;
+    return geometry;
+  });
+}
+function updateMorphTargets(mesh, meshDef) {
+  mesh.updateMorphTargets();
+  if (meshDef.weights !== void 0) {
+    for (let i4 = 0, il = meshDef.weights.length; i4 < il; i4++) {
+      mesh.morphTargetInfluences[i4] = meshDef.weights[i4];
+    }
+  }
+  if (meshDef.extras && Array.isArray(meshDef.extras.targetNames)) {
+    const targetNames = meshDef.extras.targetNames;
+    if (mesh.morphTargetInfluences.length === targetNames.length) {
+      mesh.morphTargetDictionary = {};
+      for (let i4 = 0, il = targetNames.length; i4 < il; i4++) {
+        mesh.morphTargetDictionary[targetNames[i4]] = i4;
+      }
+    } else {
+      console.warn("THREE.GLTFLoader: Invalid extras.targetNames length. Ignoring names.");
+    }
+  }
+}
+function createPrimitiveKey(primitiveDef) {
+  let geometryKey;
+  const dracoExtension = primitiveDef.extensions && primitiveDef.extensions[EXTENSIONS.KHR_DRACO_MESH_COMPRESSION];
+  if (dracoExtension) {
+    geometryKey = "draco:" + dracoExtension.bufferView + ":" + dracoExtension.indices + ":" + createAttributesKey(dracoExtension.attributes);
+  } else {
+    geometryKey = primitiveDef.indices + ":" + createAttributesKey(primitiveDef.attributes) + ":" + primitiveDef.mode;
+  }
+  if (primitiveDef.targets !== void 0) {
+    for (let i4 = 0, il = primitiveDef.targets.length; i4 < il; i4++) {
+      geometryKey += ":" + createAttributesKey(primitiveDef.targets[i4]);
+    }
+  }
+  return geometryKey;
+}
+function createAttributesKey(attributes) {
+  let attributesKey = "";
+  const keys = Object.keys(attributes).sort();
+  for (let i4 = 0, il = keys.length; i4 < il; i4++) {
+    attributesKey += keys[i4] + ":" + attributes[keys[i4]] + ";";
+  }
+  return attributesKey;
+}
+function getNormalizedComponentScale(constructor) {
+  switch (constructor) {
+    case Int8Array:
+      return 1 / 127;
+    case Uint8Array:
+      return 1 / 255;
+    case Int16Array:
+      return 1 / 32767;
+    case Uint16Array:
+      return 1 / 65535;
+    default:
+      throw new Error("THREE.GLTFLoader: Unsupported normalized accessor component type.");
+  }
+}
+function getImageURIMimeType(uri) {
+  if (uri.search(/\.jpe?g($|\?)/i) > 0 || uri.search(/^data\:image\/jpeg/) === 0) return "image/jpeg";
+  if (uri.search(/\.webp($|\?)/i) > 0 || uri.search(/^data\:image\/webp/) === 0) return "image/webp";
+  if (uri.search(/\.ktx2($|\?)/i) > 0 || uri.search(/^data\:image\/ktx2/) === 0) return "image/ktx2";
+  return "image/png";
+}
+function computeBounds(geometry, primitiveDef, parser) {
+  const attributes = primitiveDef.attributes;
+  const box = new Box3();
+  if (attributes.POSITION !== void 0) {
+    const accessor = parser.json.accessors[attributes.POSITION];
+    const min = accessor.min;
+    const max2 = accessor.max;
+    if (min !== void 0 && max2 !== void 0) {
+      box.set(
+        new Vector3(min[0], min[1], min[2]),
+        new Vector3(max2[0], max2[1], max2[2])
+      );
+      if (accessor.normalized) {
+        const boxScale = getNormalizedComponentScale(WEBGL_COMPONENT_TYPES[accessor.componentType]);
+        box.min.multiplyScalar(boxScale);
+        box.max.multiplyScalar(boxScale);
+      }
+    } else {
+      console.warn("THREE.GLTFLoader: Missing min/max properties for accessor POSITION.");
+      return;
+    }
+  } else {
+    return;
+  }
+  const targets = primitiveDef.targets;
+  if (targets !== void 0) {
+    const maxDisplacement = new Vector3();
+    const vector = new Vector3();
+    for (let i4 = 0, il = targets.length; i4 < il; i4++) {
+      const target = targets[i4];
+      if (target.POSITION !== void 0) {
+        const accessor = parser.json.accessors[target.POSITION];
+        const min = accessor.min;
+        const max2 = accessor.max;
+        if (min !== void 0 && max2 !== void 0) {
+          vector.setX(Math.max(Math.abs(min[0]), Math.abs(max2[0])));
+          vector.setY(Math.max(Math.abs(min[1]), Math.abs(max2[1])));
+          vector.setZ(Math.max(Math.abs(min[2]), Math.abs(max2[2])));
+          if (accessor.normalized) {
+            const boxScale = getNormalizedComponentScale(WEBGL_COMPONENT_TYPES[accessor.componentType]);
+            vector.multiplyScalar(boxScale);
+          }
+          maxDisplacement.max(vector);
+        } else {
+          console.warn("THREE.GLTFLoader: Missing min/max properties for accessor POSITION.");
+        }
+      }
+    }
+    box.expandByVector(maxDisplacement);
+  }
+  geometry.boundingBox = box;
+  const sphere = new Sphere();
+  box.getCenter(sphere.center);
+  sphere.radius = box.min.distanceTo(box.max) / 2;
+  geometry.boundingSphere = sphere;
+}
+function addPrimitiveAttributes(geometry, primitiveDef, parser) {
+  const attributes = primitiveDef.attributes;
+  const pending = [];
+  function assignAttributeAccessor(accessorIndex, attributeName) {
+    return parser.getDependency("accessor", accessorIndex).then(function(accessor) {
+      geometry.setAttribute(attributeName, accessor);
+    });
+  }
+  for (const gltfAttributeName in attributes) {
+    const threeAttributeName = ATTRIBUTES[gltfAttributeName] || gltfAttributeName.toLowerCase();
+    if (threeAttributeName in geometry.attributes) continue;
+    pending.push(assignAttributeAccessor(attributes[gltfAttributeName], threeAttributeName));
+  }
+  if (primitiveDef.indices !== void 0 && !geometry.index) {
+    const accessor = parser.getDependency("accessor", primitiveDef.indices).then(function(accessor2) {
+      geometry.setIndex(accessor2);
+    });
+    pending.push(accessor);
+  }
+  if (ColorManagement.workingColorSpace !== LinearSRGBColorSpace && "COLOR_0" in attributes) {
+    console.warn(`THREE.GLTFLoader: Converting vertex colors from "srgb-linear" to "${ColorManagement.workingColorSpace}" not supported.`);
+  }
+  assignExtrasToUserData(geometry, primitiveDef);
+  computeBounds(geometry, primitiveDef, parser);
+  return Promise.all(pending).then(function() {
+    return primitiveDef.targets !== void 0 ? addMorphTargets(geometry, primitiveDef.targets, parser) : geometry;
+  });
+}
+var GLTFLoader, EXTENSIONS, GLTFLightsExtension, GLTFMaterialsUnlitExtension, GLTFMaterialsEmissiveStrengthExtension, GLTFMaterialsClearcoatExtension, GLTFMaterialsDispersionExtension, GLTFMaterialsIridescenceExtension, GLTFMaterialsSheenExtension, GLTFMaterialsTransmissionExtension, GLTFMaterialsVolumeExtension, GLTFMaterialsIorExtension, GLTFMaterialsSpecularExtension, GLTFMaterialsBumpExtension, GLTFMaterialsAnisotropyExtension, GLTFTextureBasisUExtension, GLTFTextureWebPExtension, GLTFTextureAVIFExtension, GLTFMeshoptCompression, GLTFMeshGpuInstancing, BINARY_EXTENSION_HEADER_MAGIC, BINARY_EXTENSION_HEADER_LENGTH, BINARY_EXTENSION_CHUNK_TYPES, GLTFBinaryExtension, GLTFDracoMeshCompressionExtension, GLTFTextureTransformExtension, GLTFMeshQuantizationExtension, GLTFCubicSplineInterpolant, _quaternion3, GLTFCubicSplineQuaternionInterpolant, WEBGL_CONSTANTS, WEBGL_COMPONENT_TYPES, WEBGL_FILTERS, WEBGL_WRAPPINGS, WEBGL_TYPE_SIZES, ATTRIBUTES, PATH_PROPERTIES, INTERPOLATION, ALPHA_MODES, _identityMatrix2, GLTFParser;
+var init_GLTFLoader = __esm({
+  "node_modules/three/examples/jsm/loaders/GLTFLoader.js"() {
+    init_three_module();
+    init_BufferGeometryUtils2();
+    init_SkeletonUtils();
+    GLTFLoader = class extends Loader {
+      /**
+       * Constructs a new glTF loader.
+       *
+       * @param {LoadingManager} [manager] - The loading manager.
+       */
+      constructor(manager) {
+        super(manager);
+        this.dracoLoader = null;
+        this.ktx2Loader = null;
+        this.meshoptDecoder = null;
+        this.pluginCallbacks = [];
+        this.register(function(parser) {
+          return new GLTFMaterialsClearcoatExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFMaterialsDispersionExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFTextureBasisUExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFTextureWebPExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFTextureAVIFExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFMaterialsSheenExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFMaterialsTransmissionExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFMaterialsVolumeExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFMaterialsIorExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFMaterialsEmissiveStrengthExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFMaterialsSpecularExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFMaterialsIridescenceExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFMaterialsAnisotropyExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFMaterialsBumpExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFLightsExtension(parser);
+        });
+        this.register(function(parser) {
+          return new GLTFMeshoptCompression(parser, EXTENSIONS.EXT_MESHOPT_COMPRESSION);
+        });
+        this.register(function(parser) {
+          return new GLTFMeshoptCompression(parser, EXTENSIONS.KHR_MESHOPT_COMPRESSION);
+        });
+        this.register(function(parser) {
+          return new GLTFMeshGpuInstancing(parser);
+        });
+      }
+      /**
+       * Starts loading from the given URL and passes the loaded glTF asset
+       * to the `onLoad()` callback.
+       *
+       * @param {string} url - The path/URL of the file to be loaded. This can also be a data URI.
+       * @param {function(GLTFLoader~LoadObject)} onLoad - Executed when the loading process has been finished.
+       * @param {onProgressCallback} onProgress - Executed while the loading is in progress.
+       * @param {onErrorCallback} onError - Executed when errors occur.
+       */
+      load(url, onLoad, onProgress, onError) {
+        const scope = this;
+        let resourcePath;
+        if (this.resourcePath !== "") {
+          resourcePath = this.resourcePath;
+        } else if (this.path !== "") {
+          const relativeUrl = LoaderUtils.extractUrlBase(url);
+          resourcePath = LoaderUtils.resolveURL(relativeUrl, this.path);
+        } else {
+          resourcePath = LoaderUtils.extractUrlBase(url);
+        }
+        this.manager.itemStart(url);
+        const _onError = function(e3) {
+          if (onError) {
+            onError(e3);
+          } else {
+            console.error(e3);
+          }
+          scope.manager.itemError(url);
+          scope.manager.itemEnd(url);
+        };
+        const loader = new FileLoader(this.manager);
+        loader.setPath(this.path);
+        loader.setResponseType("arraybuffer");
+        loader.setRequestHeader(this.requestHeader);
+        loader.setWithCredentials(this.withCredentials);
+        loader.load(url, function(data) {
+          try {
+            scope.parse(data, resourcePath, function(gltf) {
+              onLoad(gltf);
+              scope.manager.itemEnd(url);
+            }, _onError);
+          } catch (e3) {
+            _onError(e3);
+          }
+        }, onProgress, _onError);
+      }
+      /**
+       * Sets the given Draco loader to this loader. Required for decoding assets
+       * compressed with the `KHR_draco_mesh_compression` extension.
+       *
+       * @param {DRACOLoader} dracoLoader - The Draco loader to set.
+       * @return {GLTFLoader} A reference to this loader.
+       */
+      setDRACOLoader(dracoLoader) {
+        this.dracoLoader = dracoLoader;
+        return this;
+      }
+      /**
+       * Sets the given KTX2 loader to this loader. Required for loading KTX2
+       * compressed textures.
+       *
+       * @param {KTX2Loader} ktx2Loader - The KTX2 loader to set.
+       * @return {GLTFLoader} A reference to this loader.
+       */
+      setKTX2Loader(ktx2Loader) {
+        this.ktx2Loader = ktx2Loader;
+        return this;
+      }
+      /**
+       * Sets the given meshopt decoder. Required for decoding assets
+       * compressed with the `EXT_meshopt_compression` extension.
+       *
+       * @param {Object} meshoptDecoder - The meshopt decoder to set.
+       * @return {GLTFLoader} A reference to this loader.
+       */
+      setMeshoptDecoder(meshoptDecoder) {
+        this.meshoptDecoder = meshoptDecoder;
+        return this;
+      }
+      /**
+       * Registers a plugin callback. This API is internally used to implement the various
+       * glTF extensions but can also used by third-party code to add additional logic
+       * to the loader.
+       *
+       * @param {function(parser:GLTFParser)} callback - The callback function to register.
+       * @return {GLTFLoader} A reference to this loader.
+       */
+      register(callback) {
+        if (this.pluginCallbacks.indexOf(callback) === -1) {
+          this.pluginCallbacks.push(callback);
+        }
+        return this;
+      }
+      /**
+       * Unregisters a plugin callback.
+       *
+       * @param {Function} callback - The callback function to unregister.
+       * @return {GLTFLoader} A reference to this loader.
+       */
+      unregister(callback) {
+        if (this.pluginCallbacks.indexOf(callback) !== -1) {
+          this.pluginCallbacks.splice(this.pluginCallbacks.indexOf(callback), 1);
+        }
+        return this;
+      }
+      /**
+       * Parses the given glTF data and returns the resulting group.
+       *
+       * @param {string|ArrayBuffer} data - The raw glTF data.
+       * @param {string} path - The URL base path.
+       * @param {function(GLTFLoader~LoadObject)} onLoad - Executed when the loading process has been finished.
+       * @param {onErrorCallback} onError - Executed when errors occur.
+       */
+      parse(data, path, onLoad, onError) {
+        let json;
+        const extensions = {};
+        const plugins = {};
+        const textDecoder = new TextDecoder();
+        if (typeof data === "string") {
+          json = JSON.parse(data);
+        } else if (data instanceof ArrayBuffer) {
+          const magic = textDecoder.decode(new Uint8Array(data, 0, 4));
+          if (magic === BINARY_EXTENSION_HEADER_MAGIC) {
+            try {
+              extensions[EXTENSIONS.KHR_BINARY_GLTF] = new GLTFBinaryExtension(data);
+            } catch (error2) {
+              if (onError) onError(error2);
+              return;
+            }
+            json = JSON.parse(extensions[EXTENSIONS.KHR_BINARY_GLTF].content);
+          } else {
+            json = JSON.parse(textDecoder.decode(data));
+          }
+        } else {
+          json = data;
+        }
+        if (json.asset === void 0 || json.asset.version[0] < 2) {
+          if (onError) onError(new Error("THREE.GLTFLoader: Unsupported asset. glTF versions >=2.0 are supported."));
+          return;
+        }
+        const parser = new GLTFParser(json, {
+          path: path || this.resourcePath || "",
+          crossOrigin: this.crossOrigin,
+          requestHeader: this.requestHeader,
+          manager: this.manager,
+          ktx2Loader: this.ktx2Loader,
+          meshoptDecoder: this.meshoptDecoder
+        });
+        parser.fileLoader.setRequestHeader(this.requestHeader);
+        for (let i4 = 0; i4 < this.pluginCallbacks.length; i4++) {
+          const plugin = this.pluginCallbacks[i4](parser);
+          if (!plugin.name) console.error("THREE.GLTFLoader: Invalid plugin found: missing name");
+          plugins[plugin.name] = plugin;
+          extensions[plugin.name] = true;
+        }
+        if (json.extensionsUsed) {
+          for (let i4 = 0; i4 < json.extensionsUsed.length; ++i4) {
+            const extensionName = json.extensionsUsed[i4];
+            const extensionsRequired = json.extensionsRequired || [];
+            switch (extensionName) {
+              case EXTENSIONS.KHR_MATERIALS_UNLIT:
+                extensions[extensionName] = new GLTFMaterialsUnlitExtension();
+                break;
+              case EXTENSIONS.KHR_DRACO_MESH_COMPRESSION:
+                extensions[extensionName] = new GLTFDracoMeshCompressionExtension(json, this.dracoLoader);
+                break;
+              case EXTENSIONS.KHR_TEXTURE_TRANSFORM:
+                extensions[extensionName] = new GLTFTextureTransformExtension();
+                break;
+              case EXTENSIONS.KHR_MESH_QUANTIZATION:
+                extensions[extensionName] = new GLTFMeshQuantizationExtension();
+                break;
+              default:
+                if (extensionsRequired.indexOf(extensionName) >= 0 && plugins[extensionName] === void 0) {
+                  console.warn('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
+                }
+            }
+          }
+        }
+        parser.setExtensions(extensions);
+        parser.setPlugins(plugins);
+        parser.parse(onLoad, onError);
+      }
+      /**
+       * Async version of {@link GLTFLoader#parse}.
+       *
+       * @async
+       * @param {string|ArrayBuffer} data - The raw glTF data.
+       * @param {string} path - The URL base path.
+       * @return {Promise<GLTFLoader~LoadObject>} A Promise that resolves with the loaded glTF when the parsing has been finished.
+       */
+      parseAsync(data, path) {
+        const scope = this;
+        return new Promise(function(resolve2, reject) {
+          scope.parse(data, path, resolve2, reject);
+        });
+      }
+    };
+    EXTENSIONS = {
+      KHR_BINARY_GLTF: "KHR_binary_glTF",
+      KHR_DRACO_MESH_COMPRESSION: "KHR_draco_mesh_compression",
+      KHR_LIGHTS_PUNCTUAL: "KHR_lights_punctual",
+      KHR_MATERIALS_CLEARCOAT: "KHR_materials_clearcoat",
+      KHR_MATERIALS_DISPERSION: "KHR_materials_dispersion",
+      KHR_MATERIALS_IOR: "KHR_materials_ior",
+      KHR_MATERIALS_SHEEN: "KHR_materials_sheen",
+      KHR_MATERIALS_SPECULAR: "KHR_materials_specular",
+      KHR_MATERIALS_TRANSMISSION: "KHR_materials_transmission",
+      KHR_MATERIALS_IRIDESCENCE: "KHR_materials_iridescence",
+      KHR_MATERIALS_ANISOTROPY: "KHR_materials_anisotropy",
+      KHR_MATERIALS_UNLIT: "KHR_materials_unlit",
+      KHR_MATERIALS_VOLUME: "KHR_materials_volume",
+      KHR_TEXTURE_BASISU: "KHR_texture_basisu",
+      KHR_TEXTURE_TRANSFORM: "KHR_texture_transform",
+      KHR_MESH_QUANTIZATION: "KHR_mesh_quantization",
+      KHR_MATERIALS_EMISSIVE_STRENGTH: "KHR_materials_emissive_strength",
+      EXT_MATERIALS_BUMP: "EXT_materials_bump",
+      EXT_TEXTURE_WEBP: "EXT_texture_webp",
+      EXT_TEXTURE_AVIF: "EXT_texture_avif",
+      EXT_MESHOPT_COMPRESSION: "EXT_meshopt_compression",
+      KHR_MESHOPT_COMPRESSION: "KHR_meshopt_compression",
+      EXT_MESH_GPU_INSTANCING: "EXT_mesh_gpu_instancing"
+    };
+    GLTFLightsExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.KHR_LIGHTS_PUNCTUAL;
+        this.cache = { refs: {}, uses: {} };
+      }
+      _markDefs() {
+        const parser = this.parser;
+        const nodeDefs = this.parser.json.nodes || [];
+        for (let nodeIndex = 0, nodeLength = nodeDefs.length; nodeIndex < nodeLength; nodeIndex++) {
+          const nodeDef = nodeDefs[nodeIndex];
+          if (nodeDef.extensions && nodeDef.extensions[this.name] && nodeDef.extensions[this.name].light !== void 0) {
+            parser._addNodeRef(this.cache, nodeDef.extensions[this.name].light);
+          }
+        }
+      }
+      _loadLight(lightIndex) {
+        const parser = this.parser;
+        const cacheKey = "light:" + lightIndex;
+        let dependency = parser.cache.get(cacheKey);
+        if (dependency) return dependency;
+        const json = parser.json;
+        const extensions = json.extensions && json.extensions[this.name] || {};
+        const lightDefs = extensions.lights || [];
+        const lightDef = lightDefs[lightIndex];
+        let lightNode;
+        const color = new Color(16777215);
+        if (lightDef.color !== void 0) color.setRGB(lightDef.color[0], lightDef.color[1], lightDef.color[2], LinearSRGBColorSpace);
+        const range = lightDef.range !== void 0 ? lightDef.range : 0;
+        switch (lightDef.type) {
+          case "directional":
+            lightNode = new DirectionalLight(color);
+            lightNode.target.position.set(0, 0, -1);
+            lightNode.add(lightNode.target);
+            break;
+          case "point":
+            lightNode = new PointLight(color);
+            lightNode.distance = range;
+            break;
+          case "spot":
+            lightNode = new SpotLight(color);
+            lightNode.distance = range;
+            lightDef.spot = lightDef.spot || {};
+            lightDef.spot.innerConeAngle = lightDef.spot.innerConeAngle !== void 0 ? lightDef.spot.innerConeAngle : 0;
+            lightDef.spot.outerConeAngle = lightDef.spot.outerConeAngle !== void 0 ? lightDef.spot.outerConeAngle : Math.PI / 4;
+            lightNode.angle = lightDef.spot.outerConeAngle;
+            lightNode.penumbra = 1 - lightDef.spot.innerConeAngle / lightDef.spot.outerConeAngle;
+            lightNode.target.position.set(0, 0, -1);
+            lightNode.add(lightNode.target);
+            break;
+          default:
+            throw new Error("THREE.GLTFLoader: Unexpected light type: " + lightDef.type);
+        }
+        lightNode.position.set(0, 0, 0);
+        assignExtrasToUserData(lightNode, lightDef);
+        if (lightDef.intensity !== void 0) lightNode.intensity = lightDef.intensity;
+        lightNode.name = parser.createUniqueName(lightDef.name || "light_" + lightIndex);
+        dependency = Promise.resolve(lightNode);
+        parser.cache.add(cacheKey, dependency);
+        return dependency;
+      }
+      getDependency(type, index) {
+        if (type !== "light") return;
+        return this._loadLight(index);
+      }
+      createNodeAttachment(nodeIndex) {
+        const self2 = this;
+        const parser = this.parser;
+        const json = parser.json;
+        const nodeDef = json.nodes[nodeIndex];
+        const lightDef = nodeDef.extensions && nodeDef.extensions[this.name] || {};
+        const lightIndex = lightDef.light;
+        if (lightIndex === void 0) return null;
+        return this._loadLight(lightIndex).then(function(light) {
+          return parser._getNodeRef(self2.cache, lightIndex, light);
+        });
+      }
+    };
+    GLTFMaterialsUnlitExtension = class {
+      constructor() {
+        this.name = EXTENSIONS.KHR_MATERIALS_UNLIT;
+      }
+      getMaterialType() {
+        return MeshBasicMaterial;
+      }
+      extendParams(materialParams, materialDef, parser) {
+        const pending = [];
+        materialParams.color = new Color(1, 1, 1);
+        materialParams.opacity = 1;
+        const metallicRoughness = materialDef.pbrMetallicRoughness;
+        if (metallicRoughness) {
+          if (Array.isArray(metallicRoughness.baseColorFactor)) {
+            const array = metallicRoughness.baseColorFactor;
+            materialParams.color.setRGB(array[0], array[1], array[2], LinearSRGBColorSpace);
+            materialParams.opacity = array[3];
+          }
+          if (metallicRoughness.baseColorTexture !== void 0) {
+            pending.push(parser.assignTexture(materialParams, "map", metallicRoughness.baseColorTexture, SRGBColorSpace));
+          }
+        }
+        return Promise.all(pending);
+      }
+    };
+    GLTFMaterialsEmissiveStrengthExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.KHR_MATERIALS_EMISSIVE_STRENGTH;
+      }
+      extendMaterialParams(materialIndex, materialParams) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        if (extension === null) return Promise.resolve();
+        if (extension.emissiveStrength !== void 0) {
+          materialParams.emissiveIntensity = extension.emissiveStrength;
+        }
+        return Promise.resolve();
+      }
+    };
+    GLTFMaterialsClearcoatExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.KHR_MATERIALS_CLEARCOAT;
+      }
+      getMaterialType(materialIndex) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        return extension !== null ? MeshPhysicalMaterial : null;
+      }
+      extendMaterialParams(materialIndex, materialParams) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        if (extension === null) return Promise.resolve();
+        const pending = [];
+        if (extension.clearcoatFactor !== void 0) {
+          materialParams.clearcoat = extension.clearcoatFactor;
+        }
+        if (extension.clearcoatTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "clearcoatMap", extension.clearcoatTexture));
+        }
+        if (extension.clearcoatRoughnessFactor !== void 0) {
+          materialParams.clearcoatRoughness = extension.clearcoatRoughnessFactor;
+        }
+        if (extension.clearcoatRoughnessTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "clearcoatRoughnessMap", extension.clearcoatRoughnessTexture));
+        }
+        if (extension.clearcoatNormalTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "clearcoatNormalMap", extension.clearcoatNormalTexture));
+          if (extension.clearcoatNormalTexture.scale !== void 0) {
+            const scale = extension.clearcoatNormalTexture.scale;
+            materialParams.clearcoatNormalScale = new Vector2(scale, scale);
+          }
+        }
+        return Promise.all(pending);
+      }
+    };
+    GLTFMaterialsDispersionExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.KHR_MATERIALS_DISPERSION;
+      }
+      getMaterialType(materialIndex) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        return extension !== null ? MeshPhysicalMaterial : null;
+      }
+      extendMaterialParams(materialIndex, materialParams) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        if (extension === null) return Promise.resolve();
+        materialParams.dispersion = extension.dispersion !== void 0 ? extension.dispersion : 0;
+        return Promise.resolve();
+      }
+    };
+    GLTFMaterialsIridescenceExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.KHR_MATERIALS_IRIDESCENCE;
+      }
+      getMaterialType(materialIndex) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        return extension !== null ? MeshPhysicalMaterial : null;
+      }
+      extendMaterialParams(materialIndex, materialParams) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        if (extension === null) return Promise.resolve();
+        const pending = [];
+        if (extension.iridescenceFactor !== void 0) {
+          materialParams.iridescence = extension.iridescenceFactor;
+        }
+        if (extension.iridescenceTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "iridescenceMap", extension.iridescenceTexture));
+        }
+        if (extension.iridescenceIor !== void 0) {
+          materialParams.iridescenceIOR = extension.iridescenceIor;
+        }
+        if (materialParams.iridescenceThicknessRange === void 0) {
+          materialParams.iridescenceThicknessRange = [100, 400];
+        }
+        if (extension.iridescenceThicknessMinimum !== void 0) {
+          materialParams.iridescenceThicknessRange[0] = extension.iridescenceThicknessMinimum;
+        }
+        if (extension.iridescenceThicknessMaximum !== void 0) {
+          materialParams.iridescenceThicknessRange[1] = extension.iridescenceThicknessMaximum;
+        }
+        if (extension.iridescenceThicknessTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "iridescenceThicknessMap", extension.iridescenceThicknessTexture));
+        }
+        return Promise.all(pending);
+      }
+    };
+    GLTFMaterialsSheenExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.KHR_MATERIALS_SHEEN;
+      }
+      getMaterialType(materialIndex) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        return extension !== null ? MeshPhysicalMaterial : null;
+      }
+      extendMaterialParams(materialIndex, materialParams) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        if (extension === null) return Promise.resolve();
+        const pending = [];
+        materialParams.sheenColor = new Color(0, 0, 0);
+        materialParams.sheenRoughness = 0;
+        materialParams.sheen = 1;
+        if (extension.sheenColorFactor !== void 0) {
+          const colorFactor = extension.sheenColorFactor;
+          materialParams.sheenColor.setRGB(colorFactor[0], colorFactor[1], colorFactor[2], LinearSRGBColorSpace);
+        }
+        if (extension.sheenRoughnessFactor !== void 0) {
+          materialParams.sheenRoughness = extension.sheenRoughnessFactor;
+        }
+        if (extension.sheenColorTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "sheenColorMap", extension.sheenColorTexture, SRGBColorSpace));
+        }
+        if (extension.sheenRoughnessTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "sheenRoughnessMap", extension.sheenRoughnessTexture));
+        }
+        return Promise.all(pending);
+      }
+    };
+    GLTFMaterialsTransmissionExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.KHR_MATERIALS_TRANSMISSION;
+      }
+      getMaterialType(materialIndex) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        return extension !== null ? MeshPhysicalMaterial : null;
+      }
+      extendMaterialParams(materialIndex, materialParams) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        if (extension === null) return Promise.resolve();
+        const pending = [];
+        if (extension.transmissionFactor !== void 0) {
+          materialParams.transmission = extension.transmissionFactor;
+        }
+        if (extension.transmissionTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "transmissionMap", extension.transmissionTexture));
+        }
+        return Promise.all(pending);
+      }
+    };
+    GLTFMaterialsVolumeExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.KHR_MATERIALS_VOLUME;
+      }
+      getMaterialType(materialIndex) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        return extension !== null ? MeshPhysicalMaterial : null;
+      }
+      extendMaterialParams(materialIndex, materialParams) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        if (extension === null) return Promise.resolve();
+        const pending = [];
+        materialParams.thickness = extension.thicknessFactor !== void 0 ? extension.thicknessFactor : 0;
+        if (extension.thicknessTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "thicknessMap", extension.thicknessTexture));
+        }
+        materialParams.attenuationDistance = extension.attenuationDistance || Infinity;
+        const colorArray = extension.attenuationColor || [1, 1, 1];
+        materialParams.attenuationColor = new Color().setRGB(colorArray[0], colorArray[1], colorArray[2], LinearSRGBColorSpace);
+        return Promise.all(pending);
+      }
+    };
+    GLTFMaterialsIorExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.KHR_MATERIALS_IOR;
+      }
+      getMaterialType(materialIndex) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        return extension !== null ? MeshPhysicalMaterial : null;
+      }
+      extendMaterialParams(materialIndex, materialParams) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        if (extension === null) return Promise.resolve();
+        materialParams.ior = extension.ior !== void 0 ? extension.ior : 1.5;
+        return Promise.resolve();
+      }
+    };
+    GLTFMaterialsSpecularExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.KHR_MATERIALS_SPECULAR;
+      }
+      getMaterialType(materialIndex) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        return extension !== null ? MeshPhysicalMaterial : null;
+      }
+      extendMaterialParams(materialIndex, materialParams) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        if (extension === null) return Promise.resolve();
+        const pending = [];
+        materialParams.specularIntensity = extension.specularFactor !== void 0 ? extension.specularFactor : 1;
+        if (extension.specularTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "specularIntensityMap", extension.specularTexture));
+        }
+        const colorArray = extension.specularColorFactor || [1, 1, 1];
+        materialParams.specularColor = new Color().setRGB(colorArray[0], colorArray[1], colorArray[2], LinearSRGBColorSpace);
+        if (extension.specularColorTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "specularColorMap", extension.specularColorTexture, SRGBColorSpace));
+        }
+        return Promise.all(pending);
+      }
+    };
+    GLTFMaterialsBumpExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.EXT_MATERIALS_BUMP;
+      }
+      getMaterialType(materialIndex) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        return extension !== null ? MeshPhysicalMaterial : null;
+      }
+      extendMaterialParams(materialIndex, materialParams) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        if (extension === null) return Promise.resolve();
+        const pending = [];
+        materialParams.bumpScale = extension.bumpFactor !== void 0 ? extension.bumpFactor : 1;
+        if (extension.bumpTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "bumpMap", extension.bumpTexture));
+        }
+        return Promise.all(pending);
+      }
+    };
+    GLTFMaterialsAnisotropyExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.KHR_MATERIALS_ANISOTROPY;
+      }
+      getMaterialType(materialIndex) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        return extension !== null ? MeshPhysicalMaterial : null;
+      }
+      extendMaterialParams(materialIndex, materialParams) {
+        const extension = getMaterialExtension(this.parser, materialIndex, this.name);
+        if (extension === null) return Promise.resolve();
+        const pending = [];
+        if (extension.anisotropyStrength !== void 0) {
+          materialParams.anisotropy = extension.anisotropyStrength;
+        }
+        if (extension.anisotropyRotation !== void 0) {
+          materialParams.anisotropyRotation = extension.anisotropyRotation;
+        }
+        if (extension.anisotropyTexture !== void 0) {
+          pending.push(this.parser.assignTexture(materialParams, "anisotropyMap", extension.anisotropyTexture));
+        }
+        return Promise.all(pending);
+      }
+    };
+    GLTFTextureBasisUExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.KHR_TEXTURE_BASISU;
+      }
+      loadTexture(textureIndex) {
+        const parser = this.parser;
+        const json = parser.json;
+        const textureDef = json.textures[textureIndex];
+        if (!textureDef.extensions || !textureDef.extensions[this.name]) {
+          return null;
+        }
+        const extension = textureDef.extensions[this.name];
+        const loader = parser.options.ktx2Loader;
+        if (!loader) {
+          if (json.extensionsRequired && json.extensionsRequired.indexOf(this.name) >= 0) {
+            throw new Error("THREE.GLTFLoader: setKTX2Loader must be called before loading KTX2 textures");
+          } else {
+            return null;
+          }
+        }
+        return parser.loadTextureImage(textureIndex, extension.source, loader);
+      }
+    };
+    GLTFTextureWebPExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.EXT_TEXTURE_WEBP;
+      }
+      loadTexture(textureIndex) {
+        const name = this.name;
+        const parser = this.parser;
+        const json = parser.json;
+        const textureDef = json.textures[textureIndex];
+        if (!textureDef.extensions || !textureDef.extensions[name]) {
+          return null;
+        }
+        const extension = textureDef.extensions[name];
+        const source = json.images[extension.source];
+        let loader = parser.textureLoader;
+        if (source.uri) {
+          const handler = parser.options.manager.getHandler(source.uri);
+          if (handler !== null) loader = handler;
+        }
+        return parser.loadTextureImage(textureIndex, extension.source, loader);
+      }
+    };
+    GLTFTextureAVIFExtension = class {
+      constructor(parser) {
+        this.parser = parser;
+        this.name = EXTENSIONS.EXT_TEXTURE_AVIF;
+      }
+      loadTexture(textureIndex) {
+        const name = this.name;
+        const parser = this.parser;
+        const json = parser.json;
+        const textureDef = json.textures[textureIndex];
+        if (!textureDef.extensions || !textureDef.extensions[name]) {
+          return null;
+        }
+        const extension = textureDef.extensions[name];
+        const source = json.images[extension.source];
+        let loader = parser.textureLoader;
+        if (source.uri) {
+          const handler = parser.options.manager.getHandler(source.uri);
+          if (handler !== null) loader = handler;
+        }
+        return parser.loadTextureImage(textureIndex, extension.source, loader);
+      }
+    };
+    GLTFMeshoptCompression = class {
+      constructor(parser, name) {
+        this.name = name;
+        this.parser = parser;
+      }
+      loadBufferView(index) {
+        const json = this.parser.json;
+        const bufferView = json.bufferViews[index];
+        if (bufferView.extensions && bufferView.extensions[this.name]) {
+          const extensionDef = bufferView.extensions[this.name];
+          const buffer = this.parser.getDependency("buffer", extensionDef.buffer);
+          const decoder = this.parser.options.meshoptDecoder;
+          if (!decoder || !decoder.supported) {
+            if (json.extensionsRequired && json.extensionsRequired.indexOf(this.name) >= 0) {
+              throw new Error("THREE.GLTFLoader: setMeshoptDecoder must be called before loading compressed files");
+            } else {
+              return null;
+            }
+          }
+          return buffer.then(function(res) {
+            const byteOffset = extensionDef.byteOffset || 0;
+            const byteLength = extensionDef.byteLength || 0;
+            const count = extensionDef.count;
+            const stride = extensionDef.byteStride;
+            const source = new Uint8Array(res, byteOffset, byteLength);
+            if (decoder.decodeGltfBufferAsync) {
+              return decoder.decodeGltfBufferAsync(count, stride, source, extensionDef.mode, extensionDef.filter).then(function(res2) {
+                return res2.buffer;
+              });
+            } else {
+              return decoder.ready.then(function() {
+                const result = new ArrayBuffer(count * stride);
+                decoder.decodeGltfBuffer(new Uint8Array(result), count, stride, source, extensionDef.mode, extensionDef.filter);
+                return result;
+              });
+            }
+          });
+        } else {
+          return null;
+        }
+      }
+    };
+    GLTFMeshGpuInstancing = class {
+      constructor(parser) {
+        this.name = EXTENSIONS.EXT_MESH_GPU_INSTANCING;
+        this.parser = parser;
+      }
+      createNodeMesh(nodeIndex) {
+        const json = this.parser.json;
+        const nodeDef = json.nodes[nodeIndex];
+        if (!nodeDef.extensions || !nodeDef.extensions[this.name] || nodeDef.mesh === void 0) {
+          return null;
+        }
+        const meshDef = json.meshes[nodeDef.mesh];
+        for (const primitive of meshDef.primitives) {
+          if (primitive.mode !== WEBGL_CONSTANTS.TRIANGLES && primitive.mode !== WEBGL_CONSTANTS.TRIANGLE_STRIP && primitive.mode !== WEBGL_CONSTANTS.TRIANGLE_FAN && primitive.mode !== void 0) {
+            return null;
+          }
+        }
+        const extensionDef = nodeDef.extensions[this.name];
+        const attributesDef = extensionDef.attributes;
+        const pending = [];
+        const attributes = {};
+        for (const key in attributesDef) {
+          pending.push(this.parser.getDependency("accessor", attributesDef[key]).then((accessor) => {
+            attributes[key] = accessor;
+            return attributes[key];
+          }));
+        }
+        if (pending.length < 1) {
+          return null;
+        }
+        pending.push(this.parser.createNodeMesh(nodeIndex));
+        return Promise.all(pending).then((results) => {
+          const nodeObject = results.pop();
+          const meshes = nodeObject.isGroup ? nodeObject.children : [nodeObject];
+          const count = results[0].count;
+          const instancedMeshes = [];
+          for (const mesh of meshes) {
+            const m3 = new Matrix4();
+            const p4 = new Vector3();
+            const q2 = new Quaternion();
+            const s2 = new Vector3(1, 1, 1);
+            const instancedMesh = new InstancedMesh(mesh.geometry, mesh.material, count);
+            for (let i4 = 0; i4 < count; i4++) {
+              if (attributes.TRANSLATION) {
+                p4.fromBufferAttribute(attributes.TRANSLATION, i4);
+              }
+              if (attributes.ROTATION) {
+                q2.fromBufferAttribute(attributes.ROTATION, i4);
+              }
+              if (attributes.SCALE) {
+                s2.fromBufferAttribute(attributes.SCALE, i4);
+              }
+              instancedMesh.setMatrixAt(i4, m3.compose(p4, q2, s2));
+            }
+            for (const attributeName in attributes) {
+              if (attributeName === "_COLOR_0") {
+                const attr = attributes[attributeName];
+                instancedMesh.instanceColor = new InstancedBufferAttribute(attr.array, attr.itemSize, attr.normalized);
+              } else if (attributeName !== "TRANSLATION" && attributeName !== "ROTATION" && attributeName !== "SCALE") {
+                mesh.geometry.setAttribute(attributeName, attributes[attributeName]);
+              }
+            }
+            Object3D.prototype.copy.call(instancedMesh, mesh);
+            this.parser.assignFinalMaterial(instancedMesh);
+            instancedMeshes.push(instancedMesh);
+          }
+          if (nodeObject.isGroup) {
+            nodeObject.clear();
+            nodeObject.add(...instancedMeshes);
+            return nodeObject;
+          }
+          return instancedMeshes[0];
+        });
+      }
+    };
+    BINARY_EXTENSION_HEADER_MAGIC = "glTF";
+    BINARY_EXTENSION_HEADER_LENGTH = 12;
+    BINARY_EXTENSION_CHUNK_TYPES = { JSON: 1313821514, BIN: 5130562 };
+    GLTFBinaryExtension = class {
+      constructor(data) {
+        this.name = EXTENSIONS.KHR_BINARY_GLTF;
+        this.content = null;
+        this.body = null;
+        const headerView = new DataView(data, 0, BINARY_EXTENSION_HEADER_LENGTH);
+        const textDecoder = new TextDecoder();
+        this.header = {
+          magic: textDecoder.decode(new Uint8Array(data.slice(0, 4))),
+          version: headerView.getUint32(4, true),
+          length: headerView.getUint32(8, true)
+        };
+        if (this.header.magic !== BINARY_EXTENSION_HEADER_MAGIC) {
+          throw new Error("THREE.GLTFLoader: Unsupported glTF-Binary header.");
+        } else if (this.header.version < 2) {
+          throw new Error("THREE.GLTFLoader: Legacy binary file detected.");
+        }
+        const chunkContentsLength = this.header.length - BINARY_EXTENSION_HEADER_LENGTH;
+        const chunkView = new DataView(data, BINARY_EXTENSION_HEADER_LENGTH);
+        let chunkIndex = 0;
+        while (chunkIndex < chunkContentsLength) {
+          const chunkLength = chunkView.getUint32(chunkIndex, true);
+          chunkIndex += 4;
+          const chunkType = chunkView.getUint32(chunkIndex, true);
+          chunkIndex += 4;
+          if (chunkType === BINARY_EXTENSION_CHUNK_TYPES.JSON) {
+            const contentArray = new Uint8Array(data, BINARY_EXTENSION_HEADER_LENGTH + chunkIndex, chunkLength);
+            this.content = textDecoder.decode(contentArray);
+          } else if (chunkType === BINARY_EXTENSION_CHUNK_TYPES.BIN) {
+            const byteOffset = BINARY_EXTENSION_HEADER_LENGTH + chunkIndex;
+            this.body = data.slice(byteOffset, byteOffset + chunkLength);
+          }
+          chunkIndex += chunkLength;
+        }
+        if (this.content === null) {
+          throw new Error("THREE.GLTFLoader: JSON content not found.");
+        }
+      }
+    };
+    GLTFDracoMeshCompressionExtension = class {
+      constructor(json, dracoLoader) {
+        if (!dracoLoader) {
+          throw new Error("THREE.GLTFLoader: No DRACOLoader instance provided.");
+        }
+        this.name = EXTENSIONS.KHR_DRACO_MESH_COMPRESSION;
+        this.json = json;
+        this.dracoLoader = dracoLoader;
+        this.dracoLoader.preload();
+      }
+      decodePrimitive(primitive, parser) {
+        const json = this.json;
+        const dracoLoader = this.dracoLoader;
+        const bufferViewIndex = primitive.extensions[this.name].bufferView;
+        const gltfAttributeMap = primitive.extensions[this.name].attributes;
+        const threeAttributeMap = {};
+        const attributeNormalizedMap = {};
+        const attributeTypeMap = {};
+        for (const attributeName in gltfAttributeMap) {
+          const threeAttributeName = ATTRIBUTES[attributeName] || attributeName.toLowerCase();
+          threeAttributeMap[threeAttributeName] = gltfAttributeMap[attributeName];
+        }
+        for (const attributeName in primitive.attributes) {
+          const threeAttributeName = ATTRIBUTES[attributeName] || attributeName.toLowerCase();
+          if (gltfAttributeMap[attributeName] !== void 0) {
+            const accessorDef = json.accessors[primitive.attributes[attributeName]];
+            const componentType = WEBGL_COMPONENT_TYPES[accessorDef.componentType];
+            attributeTypeMap[threeAttributeName] = componentType.name;
+            attributeNormalizedMap[threeAttributeName] = accessorDef.normalized === true;
+          }
+        }
+        return parser.getDependency("bufferView", bufferViewIndex).then(function(bufferView) {
+          return new Promise(function(resolve2, reject) {
+            dracoLoader.decodeDracoFile(bufferView, function(geometry) {
+              for (const attributeName in geometry.attributes) {
+                const attribute = geometry.attributes[attributeName];
+                const normalized = attributeNormalizedMap[attributeName];
+                if (normalized !== void 0) attribute.normalized = normalized;
+              }
+              resolve2(geometry);
+            }, threeAttributeMap, attributeTypeMap, LinearSRGBColorSpace, reject);
+          });
+        });
+      }
+    };
+    GLTFTextureTransformExtension = class {
+      constructor() {
+        this.name = EXTENSIONS.KHR_TEXTURE_TRANSFORM;
+      }
+      extendTexture(texture, transform) {
+        if ((transform.texCoord === void 0 || transform.texCoord === texture.channel) && transform.offset === void 0 && transform.rotation === void 0 && transform.scale === void 0) {
+          return texture;
+        }
+        texture = texture.clone();
+        if (transform.texCoord !== void 0) {
+          texture.channel = transform.texCoord;
+        }
+        if (transform.offset !== void 0) {
+          texture.offset.fromArray(transform.offset);
+        }
+        if (transform.rotation !== void 0) {
+          texture.rotation = transform.rotation;
+        }
+        if (transform.scale !== void 0) {
+          texture.repeat.fromArray(transform.scale);
+        }
+        texture.needsUpdate = true;
+        return texture;
+      }
+    };
+    GLTFMeshQuantizationExtension = class {
+      constructor() {
+        this.name = EXTENSIONS.KHR_MESH_QUANTIZATION;
+      }
+    };
+    GLTFCubicSplineInterpolant = class extends Interpolant {
+      constructor(parameterPositions, sampleValues, sampleSize, resultBuffer) {
+        super(parameterPositions, sampleValues, sampleSize, resultBuffer);
+      }
+      copySampleValue_(index) {
+        const result = this.resultBuffer, values = this.sampleValues, valueSize = this.valueSize, offset = index * valueSize * 3 + valueSize;
+        for (let i4 = 0; i4 !== valueSize; i4++) {
+          result[i4] = values[offset + i4];
+        }
+        return result;
+      }
+      interpolate_(i1, t02, t3, t1) {
+        const result = this.resultBuffer;
+        const values = this.sampleValues;
+        const stride = this.valueSize;
+        const stride2 = stride * 2;
+        const stride3 = stride * 3;
+        const td2 = t1 - t02;
+        const p4 = (t3 - t02) / td2;
+        const pp = p4 * p4;
+        const ppp = pp * p4;
+        const offset1 = i1 * stride3;
+        const offset0 = offset1 - stride3;
+        const s2 = -2 * ppp + 3 * pp;
+        const s3 = ppp - pp;
+        const s0 = 1 - s2;
+        const s1 = s3 - pp + p4;
+        for (let i4 = 0; i4 !== stride; i4++) {
+          const p0 = values[offset0 + i4 + stride];
+          const m0 = values[offset0 + i4 + stride2] * td2;
+          const p1 = values[offset1 + i4 + stride];
+          const m1 = values[offset1 + i4] * td2;
+          result[i4] = s0 * p0 + s1 * m0 + s2 * p1 + s3 * m1;
+        }
+        return result;
+      }
+    };
+    _quaternion3 = new Quaternion();
+    GLTFCubicSplineQuaternionInterpolant = class extends GLTFCubicSplineInterpolant {
+      interpolate_(i1, t02, t3, t1) {
+        const result = super.interpolate_(i1, t02, t3, t1);
+        _quaternion3.fromArray(result).normalize().toArray(result);
+        return result;
+      }
+    };
+    WEBGL_CONSTANTS = {
+      FLOAT: 5126,
+      //FLOAT_MAT2: 35674,
+      FLOAT_MAT3: 35675,
+      FLOAT_MAT4: 35676,
+      FLOAT_VEC2: 35664,
+      FLOAT_VEC3: 35665,
+      FLOAT_VEC4: 35666,
+      LINEAR: 9729,
+      REPEAT: 10497,
+      SAMPLER_2D: 35678,
+      POINTS: 0,
+      LINES: 1,
+      LINE_LOOP: 2,
+      LINE_STRIP: 3,
+      TRIANGLES: 4,
+      TRIANGLE_STRIP: 5,
+      TRIANGLE_FAN: 6,
+      UNSIGNED_BYTE: 5121,
+      UNSIGNED_SHORT: 5123
+    };
+    WEBGL_COMPONENT_TYPES = {
+      5120: Int8Array,
+      5121: Uint8Array,
+      5122: Int16Array,
+      5123: Uint16Array,
+      5125: Uint32Array,
+      5126: Float32Array
+    };
+    WEBGL_FILTERS = {
+      9728: NearestFilter,
+      9729: LinearFilter,
+      9984: NearestMipmapNearestFilter,
+      9985: LinearMipmapNearestFilter,
+      9986: NearestMipmapLinearFilter,
+      9987: LinearMipmapLinearFilter
+    };
+    WEBGL_WRAPPINGS = {
+      33071: ClampToEdgeWrapping,
+      33648: MirroredRepeatWrapping,
+      10497: RepeatWrapping
+    };
+    WEBGL_TYPE_SIZES = {
+      "SCALAR": 1,
+      "VEC2": 2,
+      "VEC3": 3,
+      "VEC4": 4,
+      "MAT2": 4,
+      "MAT3": 9,
+      "MAT4": 16
+    };
+    ATTRIBUTES = {
+      POSITION: "position",
+      NORMAL: "normal",
+      TANGENT: "tangent",
+      TEXCOORD_0: "uv",
+      TEXCOORD_1: "uv1",
+      TEXCOORD_2: "uv2",
+      TEXCOORD_3: "uv3",
+      COLOR_0: "color",
+      WEIGHTS_0: "skinWeight",
+      JOINTS_0: "skinIndex"
+    };
+    PATH_PROPERTIES = {
+      scale: "scale",
+      translation: "position",
+      rotation: "quaternion",
+      weights: "morphTargetInfluences"
+    };
+    INTERPOLATION = {
+      CUBICSPLINE: void 0,
+      // We use a custom interpolant (GLTFCubicSplineInterpolation) for CUBICSPLINE tracks. Each
+      // keyframe track will be initialized with a default interpolation type, then modified.
+      LINEAR: InterpolateLinear,
+      STEP: InterpolateDiscrete
+    };
+    ALPHA_MODES = {
+      OPAQUE: "OPAQUE",
+      MASK: "MASK",
+      BLEND: "BLEND"
+    };
+    _identityMatrix2 = new Matrix4();
+    GLTFParser = class {
+      constructor(json = {}, options = {}) {
+        this.json = json;
+        this.extensions = {};
+        this.plugins = {};
+        this.options = options;
+        this.cache = new GLTFRegistry();
+        this.associations = /* @__PURE__ */ new Map();
+        this.primitiveCache = {};
+        this.nodeCache = {};
+        this.meshCache = { refs: {}, uses: {} };
+        this.cameraCache = { refs: {}, uses: {} };
+        this.lightCache = { refs: {}, uses: {} };
+        this.sourceCache = {};
+        this.textureCache = {};
+        this.nodeNamesUsed = {};
+        let isSafari = false;
+        let safariVersion = -1;
+        let isFirefox = false;
+        let firefoxVersion = -1;
+        if (typeof navigator !== "undefined" && typeof navigator.userAgent !== "undefined") {
+          const userAgent = navigator.userAgent;
+          isSafari = /^((?!chrome|android).)*safari/i.test(userAgent) === true;
+          const safariMatch = userAgent.match(/Version\/(\d+)/);
+          safariVersion = isSafari && safariMatch ? parseInt(safariMatch[1], 10) : -1;
+          isFirefox = userAgent.indexOf("Firefox") > -1;
+          firefoxVersion = isFirefox ? userAgent.match(/Firefox\/([0-9]+)\./)[1] : -1;
+        }
+        if (typeof createImageBitmap === "undefined" || isSafari && safariVersion < 17 || isFirefox && firefoxVersion < 98) {
+          this.textureLoader = new TextureLoader(this.options.manager);
+        } else {
+          this.textureLoader = new ImageBitmapLoader(this.options.manager);
+        }
+        this.textureLoader.setCrossOrigin(this.options.crossOrigin);
+        this.textureLoader.setRequestHeader(this.options.requestHeader);
+        this.fileLoader = new FileLoader(this.options.manager);
+        this.fileLoader.setResponseType("arraybuffer");
+        if (this.options.crossOrigin === "use-credentials") {
+          this.fileLoader.setWithCredentials(true);
+        }
+      }
+      setExtensions(extensions) {
+        this.extensions = extensions;
+      }
+      setPlugins(plugins) {
+        this.plugins = plugins;
+      }
+      parse(onLoad, onError) {
+        const parser = this;
+        const json = this.json;
+        const extensions = this.extensions;
+        this.cache.removeAll();
+        this.nodeCache = {};
+        this._invokeAll(function(ext) {
+          return ext._markDefs && ext._markDefs();
+        });
+        Promise.all(this._invokeAll(function(ext) {
+          return ext.beforeRoot && ext.beforeRoot();
+        })).then(function() {
+          return Promise.all([
+            parser.getDependencies("scene"),
+            parser.getDependencies("animation"),
+            parser.getDependencies("camera")
+          ]);
+        }).then(function(dependencies) {
+          const result = {
+            scene: dependencies[0][json.scene || 0],
+            scenes: dependencies[0],
+            animations: dependencies[1],
+            cameras: dependencies[2],
+            asset: json.asset,
+            parser,
+            userData: {}
+          };
+          addUnknownExtensionsToUserData(extensions, result, json);
+          assignExtrasToUserData(result, json);
+          return Promise.all(parser._invokeAll(function(ext) {
+            return ext.afterRoot && ext.afterRoot(result);
+          })).then(function() {
+            for (const scene of result.scenes) {
+              scene.updateMatrixWorld();
+            }
+            onLoad(result);
+          });
+        }).catch(onError);
+      }
+      /**
+       * Marks the special nodes/meshes in json for efficient parse.
+       *
+       * @private
+       */
+      _markDefs() {
+        const nodeDefs = this.json.nodes || [];
+        const skinDefs = this.json.skins || [];
+        const meshDefs = this.json.meshes || [];
+        for (let skinIndex = 0, skinLength = skinDefs.length; skinIndex < skinLength; skinIndex++) {
+          const joints = skinDefs[skinIndex].joints;
+          for (let i4 = 0, il = joints.length; i4 < il; i4++) {
+            nodeDefs[joints[i4]].isBone = true;
+          }
+        }
+        for (let nodeIndex = 0, nodeLength = nodeDefs.length; nodeIndex < nodeLength; nodeIndex++) {
+          const nodeDef = nodeDefs[nodeIndex];
+          if (nodeDef.mesh !== void 0) {
+            this._addNodeRef(this.meshCache, nodeDef.mesh);
+            if (nodeDef.skin !== void 0) {
+              meshDefs[nodeDef.mesh].isSkinnedMesh = true;
+            }
+          }
+          if (nodeDef.camera !== void 0) {
+            this._addNodeRef(this.cameraCache, nodeDef.camera);
+          }
+        }
+      }
+      /**
+       * Counts references to shared node / Object3D resources. These resources
+       * can be reused, or "instantiated", at multiple nodes in the scene
+       * hierarchy. Mesh, Camera, and Light instances are instantiated and must
+       * be marked. Non-scenegraph resources (like Materials, Geometries, and
+       * Textures) can be reused directly and are not marked here.
+       *
+       * Example: CesiumMilkTruck sample model reuses "Wheel" meshes.
+       *
+       * @private
+       * @param {Object} cache
+       * @param {Object3D} index
+       */
+      _addNodeRef(cache, index) {
+        if (index === void 0) return;
+        if (cache.refs[index] === void 0) {
+          cache.refs[index] = cache.uses[index] = 0;
+        }
+        cache.refs[index]++;
+      }
+      /**
+       * Returns a reference to a shared resource, cloning it if necessary.
+       *
+       * @private
+       * @param {Object} cache
+       * @param {number} index
+       * @param {Object} object
+       * @return {Object}
+       */
+      _getNodeRef(cache, index, object) {
+        if (cache.refs[index] <= 1) return object;
+        const ref = object.clone();
+        const updateMappings = (original, clone2) => {
+          const mappings = this.associations.get(original);
+          if (mappings != null) {
+            this.associations.set(clone2, mappings);
+          }
+          for (const [i4, child] of original.children.entries()) {
+            updateMappings(child, clone2.children[i4]);
+          }
+        };
+        updateMappings(object, ref);
+        ref.name += "_instance_" + cache.uses[index]++;
+        return ref;
+      }
+      _invokeOne(func) {
+        const extensions = Object.values(this.plugins);
+        extensions.push(this);
+        for (let i4 = 0; i4 < extensions.length; i4++) {
+          const result = func(extensions[i4]);
+          if (result) return result;
+        }
+        return null;
+      }
+      _invokeAll(func) {
+        const extensions = Object.values(this.plugins);
+        extensions.unshift(this);
+        const pending = [];
+        for (let i4 = 0; i4 < extensions.length; i4++) {
+          const result = func(extensions[i4]);
+          if (result) pending.push(result);
+        }
+        return pending;
+      }
+      /**
+       * Requests the specified dependency asynchronously, with caching.
+       *
+       * @private
+       * @param {string} type
+       * @param {number} index
+       * @return {Promise<Object3D|Material|Texture|AnimationClip|ArrayBuffer|Object>}
+       */
+      getDependency(type, index) {
+        const cacheKey = type + ":" + index;
+        let dependency = this.cache.get(cacheKey);
+        if (!dependency) {
+          switch (type) {
+            case "scene":
+              dependency = this.loadScene(index);
+              break;
+            case "node":
+              dependency = this._invokeOne(function(ext) {
+                return ext.loadNode && ext.loadNode(index);
+              });
+              break;
+            case "mesh":
+              dependency = this._invokeOne(function(ext) {
+                return ext.loadMesh && ext.loadMesh(index);
+              });
+              break;
+            case "accessor":
+              dependency = this.loadAccessor(index);
+              break;
+            case "bufferView":
+              dependency = this._invokeOne(function(ext) {
+                return ext.loadBufferView && ext.loadBufferView(index);
+              });
+              break;
+            case "buffer":
+              dependency = this.loadBuffer(index);
+              break;
+            case "material":
+              dependency = this._invokeOne(function(ext) {
+                return ext.loadMaterial && ext.loadMaterial(index);
+              });
+              break;
+            case "texture":
+              dependency = this._invokeOne(function(ext) {
+                return ext.loadTexture && ext.loadTexture(index);
+              });
+              break;
+            case "skin":
+              dependency = this.loadSkin(index);
+              break;
+            case "animation":
+              dependency = this._invokeOne(function(ext) {
+                return ext.loadAnimation && ext.loadAnimation(index);
+              });
+              break;
+            case "camera":
+              dependency = this.loadCamera(index);
+              break;
+            default:
+              dependency = this._invokeOne(function(ext) {
+                return ext != this && ext.getDependency && ext.getDependency(type, index);
+              });
+              if (!dependency) {
+                throw new Error("Unknown type: " + type);
+              }
+              break;
+          }
+          this.cache.add(cacheKey, dependency);
+        }
+        return dependency;
+      }
+      /**
+       * Requests all dependencies of the specified type asynchronously, with caching.
+       *
+       * @private
+       * @param {string} type
+       * @return {Promise<Array<Object>>}
+       */
+      getDependencies(type) {
+        let dependencies = this.cache.get(type);
+        if (!dependencies) {
+          const parser = this;
+          const defs = this.json[type + (type === "mesh" ? "es" : "s")] || [];
+          dependencies = Promise.all(defs.map(function(def, index) {
+            return parser.getDependency(type, index);
+          }));
+          this.cache.add(type, dependencies);
+        }
+        return dependencies;
+      }
+      /**
+       * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#buffers-and-buffer-views
+       *
+       * @private
+       * @param {number} bufferIndex
+       * @return {Promise<ArrayBuffer>}
+       */
+      loadBuffer(bufferIndex) {
+        const bufferDef = this.json.buffers[bufferIndex];
+        const loader = this.fileLoader;
+        if (bufferDef.type && bufferDef.type !== "arraybuffer") {
+          throw new Error("THREE.GLTFLoader: " + bufferDef.type + " buffer type is not supported.");
+        }
+        if (bufferDef.uri === void 0 && bufferIndex === 0) {
+          return Promise.resolve(this.extensions[EXTENSIONS.KHR_BINARY_GLTF].body);
+        }
+        const options = this.options;
+        return new Promise(function(resolve2, reject) {
+          loader.load(LoaderUtils.resolveURL(bufferDef.uri, options.path), resolve2, void 0, function() {
+            reject(new Error('THREE.GLTFLoader: Failed to load buffer "' + bufferDef.uri + '".'));
+          });
+        });
+      }
+      /**
+       * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#buffers-and-buffer-views
+       *
+       * @private
+       * @param {number} bufferViewIndex
+       * @return {Promise<ArrayBuffer>}
+       */
+      loadBufferView(bufferViewIndex) {
+        const bufferViewDef = this.json.bufferViews[bufferViewIndex];
+        return this.getDependency("buffer", bufferViewDef.buffer).then(function(buffer) {
+          const byteLength = bufferViewDef.byteLength || 0;
+          const byteOffset = bufferViewDef.byteOffset || 0;
+          return buffer.slice(byteOffset, byteOffset + byteLength);
+        });
+      }
+      /**
+       * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#accessors
+       *
+       * @private
+       * @param {number} accessorIndex
+       * @return {Promise<BufferAttribute|InterleavedBufferAttribute>}
+       */
+      loadAccessor(accessorIndex) {
+        const parser = this;
+        const json = this.json;
+        const accessorDef = this.json.accessors[accessorIndex];
+        if (accessorDef.bufferView === void 0 && accessorDef.sparse === void 0) {
+          const itemSize = WEBGL_TYPE_SIZES[accessorDef.type];
+          const TypedArray = WEBGL_COMPONENT_TYPES[accessorDef.componentType];
+          const normalized = accessorDef.normalized === true;
+          const array = new TypedArray(accessorDef.count * itemSize);
+          return Promise.resolve(new BufferAttribute(array, itemSize, normalized));
+        }
+        const pendingBufferViews = [];
+        if (accessorDef.bufferView !== void 0) {
+          pendingBufferViews.push(this.getDependency("bufferView", accessorDef.bufferView));
+        } else {
+          pendingBufferViews.push(null);
+        }
+        if (accessorDef.sparse !== void 0) {
+          pendingBufferViews.push(this.getDependency("bufferView", accessorDef.sparse.indices.bufferView));
+          pendingBufferViews.push(this.getDependency("bufferView", accessorDef.sparse.values.bufferView));
+        }
+        return Promise.all(pendingBufferViews).then(function(bufferViews) {
+          const bufferView = bufferViews[0];
+          const itemSize = WEBGL_TYPE_SIZES[accessorDef.type];
+          const TypedArray = WEBGL_COMPONENT_TYPES[accessorDef.componentType];
+          const elementBytes = TypedArray.BYTES_PER_ELEMENT;
+          const itemBytes = elementBytes * itemSize;
+          const byteOffset = accessorDef.byteOffset || 0;
+          const byteStride = accessorDef.bufferView !== void 0 ? json.bufferViews[accessorDef.bufferView].byteStride : void 0;
+          const normalized = accessorDef.normalized === true;
+          let array, bufferAttribute;
+          if (byteStride && byteStride !== itemBytes) {
+            const ibSlice = Math.floor(byteOffset / byteStride);
+            const ibCacheKey = "InterleavedBuffer:" + accessorDef.bufferView + ":" + accessorDef.componentType + ":" + ibSlice + ":" + accessorDef.count;
+            let ib = parser.cache.get(ibCacheKey);
+            if (!ib) {
+              array = new TypedArray(bufferView, ibSlice * byteStride, accessorDef.count * byteStride / elementBytes);
+              ib = new InterleavedBuffer(array, byteStride / elementBytes);
+              parser.cache.add(ibCacheKey, ib);
+            }
+            bufferAttribute = new InterleavedBufferAttribute(ib, itemSize, byteOffset % byteStride / elementBytes, normalized);
+          } else {
+            if (bufferView === null) {
+              array = new TypedArray(accessorDef.count * itemSize);
+            } else {
+              array = new TypedArray(bufferView, byteOffset, accessorDef.count * itemSize);
+            }
+            bufferAttribute = new BufferAttribute(array, itemSize, normalized);
+          }
+          if (accessorDef.sparse !== void 0) {
+            const itemSizeIndices = WEBGL_TYPE_SIZES.SCALAR;
+            const TypedArrayIndices = WEBGL_COMPONENT_TYPES[accessorDef.sparse.indices.componentType];
+            const byteOffsetIndices = accessorDef.sparse.indices.byteOffset || 0;
+            const byteOffsetValues = accessorDef.sparse.values.byteOffset || 0;
+            const sparseIndices = new TypedArrayIndices(bufferViews[1], byteOffsetIndices, accessorDef.sparse.count * itemSizeIndices);
+            const sparseValues = new TypedArray(bufferViews[2], byteOffsetValues, accessorDef.sparse.count * itemSize);
+            if (bufferView !== null) {
+              bufferAttribute = new BufferAttribute(bufferAttribute.array.slice(), bufferAttribute.itemSize, bufferAttribute.normalized);
+            }
+            bufferAttribute.normalized = false;
+            for (let i4 = 0, il = sparseIndices.length; i4 < il; i4++) {
+              const index = sparseIndices[i4];
+              bufferAttribute.setX(index, sparseValues[i4 * itemSize]);
+              if (itemSize >= 2) bufferAttribute.setY(index, sparseValues[i4 * itemSize + 1]);
+              if (itemSize >= 3) bufferAttribute.setZ(index, sparseValues[i4 * itemSize + 2]);
+              if (itemSize >= 4) bufferAttribute.setW(index, sparseValues[i4 * itemSize + 3]);
+              if (itemSize >= 5) throw new Error("THREE.GLTFLoader: Unsupported itemSize in sparse BufferAttribute.");
+            }
+            bufferAttribute.normalized = normalized;
+          }
+          return bufferAttribute;
+        });
+      }
+      /**
+       * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#textures
+       *
+       * @private
+       * @param {number} textureIndex
+       * @return {Promise<?Texture>}
+       */
+      loadTexture(textureIndex) {
+        const json = this.json;
+        const options = this.options;
+        const textureDef = json.textures[textureIndex];
+        const sourceIndex = textureDef.source;
+        const sourceDef = json.images[sourceIndex];
+        let loader = this.textureLoader;
+        if (sourceDef.uri) {
+          const handler = options.manager.getHandler(sourceDef.uri);
+          if (handler !== null) loader = handler;
+        }
+        return this.loadTextureImage(textureIndex, sourceIndex, loader);
+      }
+      loadTextureImage(textureIndex, sourceIndex, loader) {
+        const parser = this;
+        const json = this.json;
+        const textureDef = json.textures[textureIndex];
+        const sourceDef = json.images[sourceIndex];
+        const cacheKey = (sourceDef.uri || sourceDef.bufferView) + ":" + textureDef.sampler;
+        if (this.textureCache[cacheKey]) {
+          return this.textureCache[cacheKey];
+        }
+        const promise = this.loadImageSource(sourceIndex, loader).then(function(texture) {
+          texture.flipY = false;
+          texture.name = textureDef.name || sourceDef.name || "";
+          if (texture.name === "" && typeof sourceDef.uri === "string" && sourceDef.uri.startsWith("data:image/") === false) {
+            texture.name = sourceDef.uri;
+          }
+          const samplers = json.samplers || {};
+          const sampler = samplers[textureDef.sampler] || {};
+          texture.magFilter = WEBGL_FILTERS[sampler.magFilter] || LinearFilter;
+          texture.minFilter = WEBGL_FILTERS[sampler.minFilter] || LinearMipmapLinearFilter;
+          texture.wrapS = WEBGL_WRAPPINGS[sampler.wrapS] || RepeatWrapping;
+          texture.wrapT = WEBGL_WRAPPINGS[sampler.wrapT] || RepeatWrapping;
+          texture.generateMipmaps = !texture.isCompressedTexture && texture.minFilter !== NearestFilter && texture.minFilter !== LinearFilter;
+          parser.associations.set(texture, { textures: textureIndex });
+          return texture;
+        }).catch(function() {
+          return null;
+        });
+        this.textureCache[cacheKey] = promise;
+        return promise;
+      }
+      loadImageSource(sourceIndex, loader) {
+        const parser = this;
+        const json = this.json;
+        const options = this.options;
+        if (this.sourceCache[sourceIndex] !== void 0) {
+          return this.sourceCache[sourceIndex].then((texture) => texture.clone());
+        }
+        const sourceDef = json.images[sourceIndex];
+        const URL2 = self.URL || self.webkitURL;
+        let sourceURI = sourceDef.uri || "";
+        let isObjectURL = false;
+        if (sourceDef.bufferView !== void 0) {
+          sourceURI = parser.getDependency("bufferView", sourceDef.bufferView).then(function(bufferView) {
+            isObjectURL = true;
+            const blob = new Blob([bufferView], { type: sourceDef.mimeType });
+            sourceURI = URL2.createObjectURL(blob);
+            return sourceURI;
+          });
+        } else if (sourceDef.uri === void 0) {
+          throw new Error("THREE.GLTFLoader: Image " + sourceIndex + " is missing URI and bufferView");
+        }
+        const promise = Promise.resolve(sourceURI).then(function(sourceURI2) {
+          return new Promise(function(resolve2, reject) {
+            let onLoad = resolve2;
+            if (loader.isImageBitmapLoader === true) {
+              onLoad = function(imageBitmap) {
+                const texture = new Texture(imageBitmap);
+                texture.needsUpdate = true;
+                resolve2(texture);
+              };
+            }
+            loader.load(LoaderUtils.resolveURL(sourceURI2, options.path), onLoad, void 0, reject);
+          });
+        }).then(function(texture) {
+          if (isObjectURL === true) {
+            URL2.revokeObjectURL(sourceURI);
+          }
+          assignExtrasToUserData(texture, sourceDef);
+          texture.userData.mimeType = sourceDef.mimeType || getImageURIMimeType(sourceDef.uri);
+          return texture;
+        }).catch(function(error2) {
+          console.error("THREE.GLTFLoader: Couldn't load texture", sourceURI);
+          throw error2;
+        });
+        this.sourceCache[sourceIndex] = promise;
+        return promise;
+      }
+      /**
+       * Asynchronously assigns a texture to the given material parameters.
+       *
+       * @private
+       * @param {Object} materialParams
+       * @param {string} mapName
+       * @param {Object} mapDef
+       * @param {string} [colorSpace]
+       * @return {Promise<Texture>}
+       */
+      assignTexture(materialParams, mapName, mapDef, colorSpace) {
+        const parser = this;
+        return this.getDependency("texture", mapDef.index).then(function(texture) {
+          if (!texture) return null;
+          if (mapDef.texCoord !== void 0 && mapDef.texCoord > 0) {
+            texture = texture.clone();
+            texture.channel = mapDef.texCoord;
+          }
+          if (parser.extensions[EXTENSIONS.KHR_TEXTURE_TRANSFORM]) {
+            const transform = mapDef.extensions !== void 0 ? mapDef.extensions[EXTENSIONS.KHR_TEXTURE_TRANSFORM] : void 0;
+            if (transform) {
+              const gltfReference = parser.associations.get(texture);
+              texture = parser.extensions[EXTENSIONS.KHR_TEXTURE_TRANSFORM].extendTexture(texture, transform);
+              parser.associations.set(texture, gltfReference);
+            }
+          }
+          if (colorSpace !== void 0) {
+            texture.colorSpace = colorSpace;
+          }
+          materialParams[mapName] = texture;
+          return texture;
+        });
+      }
+      /**
+       * Assigns final material to a Mesh, Line, or Points instance. The instance
+       * already has a material (generated from the glTF material options alone)
+       * but reuse of the same glTF material may require multiple threejs materials
+       * to accommodate different primitive types, defines, etc. New materials will
+       * be created if necessary, and reused from a cache.
+       *
+       * @private
+       * @param {Object3D} mesh Mesh, Line, or Points instance.
+       */
+      assignFinalMaterial(mesh) {
+        const geometry = mesh.geometry;
+        let material = mesh.material;
+        const useDerivativeTangents = geometry.attributes.tangent === void 0;
+        const useVertexColors = geometry.attributes.color !== void 0;
+        const useFlatShading = geometry.attributes.normal === void 0;
+        if (mesh.isPoints) {
+          const cacheKey = "PointsMaterial:" + material.uuid;
+          let pointsMaterial = this.cache.get(cacheKey);
+          if (!pointsMaterial) {
+            pointsMaterial = new PointsMaterial();
+            Material.prototype.copy.call(pointsMaterial, material);
+            pointsMaterial.color.copy(material.color);
+            pointsMaterial.map = material.map;
+            pointsMaterial.sizeAttenuation = false;
+            this.cache.add(cacheKey, pointsMaterial);
+          }
+          material = pointsMaterial;
+        } else if (mesh.isLine) {
+          const cacheKey = "LineBasicMaterial:" + material.uuid;
+          let lineMaterial = this.cache.get(cacheKey);
+          if (!lineMaterial) {
+            lineMaterial = new LineBasicMaterial();
+            Material.prototype.copy.call(lineMaterial, material);
+            lineMaterial.color.copy(material.color);
+            lineMaterial.map = material.map;
+            this.cache.add(cacheKey, lineMaterial);
+          }
+          material = lineMaterial;
+        }
+        if (useDerivativeTangents || useVertexColors || useFlatShading) {
+          let cacheKey = "ClonedMaterial:" + material.uuid + ":";
+          if (useDerivativeTangents) cacheKey += "derivative-tangents:";
+          if (useVertexColors) cacheKey += "vertex-colors:";
+          if (useFlatShading) cacheKey += "flat-shading:";
+          let cachedMaterial = this.cache.get(cacheKey);
+          if (!cachedMaterial) {
+            cachedMaterial = material.clone();
+            if (useVertexColors) cachedMaterial.vertexColors = true;
+            if (useFlatShading) cachedMaterial.flatShading = true;
+            if (useDerivativeTangents) {
+              if (cachedMaterial.normalScale) cachedMaterial.normalScale.y *= -1;
+              if (cachedMaterial.clearcoatNormalScale) cachedMaterial.clearcoatNormalScale.y *= -1;
+            }
+            this.cache.add(cacheKey, cachedMaterial);
+            this.associations.set(cachedMaterial, this.associations.get(material));
+          }
+          material = cachedMaterial;
+        }
+        mesh.material = material;
+      }
+      getMaterialType() {
+        return MeshStandardMaterial;
+      }
+      /**
+       * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#materials
+       *
+       * @private
+       * @param {number} materialIndex
+       * @return {Promise<Material>}
+       */
+      loadMaterial(materialIndex) {
+        const parser = this;
+        const json = this.json;
+        const extensions = this.extensions;
+        const materialDef = json.materials[materialIndex];
+        let materialType;
+        const materialParams = {};
+        const materialExtensions = materialDef.extensions || {};
+        const pending = [];
+        if (materialExtensions[EXTENSIONS.KHR_MATERIALS_UNLIT]) {
+          const kmuExtension = extensions[EXTENSIONS.KHR_MATERIALS_UNLIT];
+          materialType = kmuExtension.getMaterialType();
+          pending.push(kmuExtension.extendParams(materialParams, materialDef, parser));
+        } else {
+          const metallicRoughness = materialDef.pbrMetallicRoughness || {};
+          materialParams.color = new Color(1, 1, 1);
+          materialParams.opacity = 1;
+          if (Array.isArray(metallicRoughness.baseColorFactor)) {
+            const array = metallicRoughness.baseColorFactor;
+            materialParams.color.setRGB(array[0], array[1], array[2], LinearSRGBColorSpace);
+            materialParams.opacity = array[3];
+          }
+          if (metallicRoughness.baseColorTexture !== void 0) {
+            pending.push(parser.assignTexture(materialParams, "map", metallicRoughness.baseColorTexture, SRGBColorSpace));
+          }
+          materialParams.metalness = metallicRoughness.metallicFactor !== void 0 ? metallicRoughness.metallicFactor : 1;
+          materialParams.roughness = metallicRoughness.roughnessFactor !== void 0 ? metallicRoughness.roughnessFactor : 1;
+          if (metallicRoughness.metallicRoughnessTexture !== void 0) {
+            pending.push(parser.assignTexture(materialParams, "metalnessMap", metallicRoughness.metallicRoughnessTexture));
+            pending.push(parser.assignTexture(materialParams, "roughnessMap", metallicRoughness.metallicRoughnessTexture));
+          }
+          materialType = this._invokeOne(function(ext) {
+            return ext.getMaterialType && ext.getMaterialType(materialIndex);
+          });
+          pending.push(Promise.all(this._invokeAll(function(ext) {
+            return ext.extendMaterialParams && ext.extendMaterialParams(materialIndex, materialParams);
+          })));
+        }
+        if (materialDef.doubleSided === true) {
+          materialParams.side = DoubleSide;
+        }
+        const alphaMode = materialDef.alphaMode || ALPHA_MODES.OPAQUE;
+        if (alphaMode === ALPHA_MODES.BLEND) {
+          materialParams.transparent = true;
+          materialParams.depthWrite = false;
+        } else {
+          materialParams.transparent = false;
+          if (alphaMode === ALPHA_MODES.MASK) {
+            materialParams.alphaTest = materialDef.alphaCutoff !== void 0 ? materialDef.alphaCutoff : 0.5;
+          }
+        }
+        if (materialDef.normalTexture !== void 0 && materialType !== MeshBasicMaterial) {
+          pending.push(parser.assignTexture(materialParams, "normalMap", materialDef.normalTexture));
+          materialParams.normalScale = new Vector2(1, 1);
+          if (materialDef.normalTexture.scale !== void 0) {
+            const scale = materialDef.normalTexture.scale;
+            materialParams.normalScale.set(scale, scale);
+          }
+        }
+        if (materialDef.occlusionTexture !== void 0 && materialType !== MeshBasicMaterial) {
+          pending.push(parser.assignTexture(materialParams, "aoMap", materialDef.occlusionTexture));
+          if (materialDef.occlusionTexture.strength !== void 0) {
+            materialParams.aoMapIntensity = materialDef.occlusionTexture.strength;
+          }
+        }
+        if (materialDef.emissiveFactor !== void 0 && materialType !== MeshBasicMaterial) {
+          const emissiveFactor = materialDef.emissiveFactor;
+          materialParams.emissive = new Color().setRGB(emissiveFactor[0], emissiveFactor[1], emissiveFactor[2], LinearSRGBColorSpace);
+        }
+        if (materialDef.emissiveTexture !== void 0 && materialType !== MeshBasicMaterial) {
+          pending.push(parser.assignTexture(materialParams, "emissiveMap", materialDef.emissiveTexture, SRGBColorSpace));
+        }
+        return Promise.all(pending).then(function() {
+          const material = new materialType(materialParams);
+          if (materialDef.name) material.name = materialDef.name;
+          assignExtrasToUserData(material, materialDef);
+          parser.associations.set(material, { materials: materialIndex });
+          if (materialDef.extensions) addUnknownExtensionsToUserData(extensions, material, materialDef);
+          return material;
+        });
+      }
+      /**
+       * When Object3D instances are targeted by animation, they need unique names.
+       *
+       * @private
+       * @param {string} originalName
+       * @return {string}
+       */
+      createUniqueName(originalName) {
+        const sanitizedName = PropertyBinding.sanitizeNodeName(originalName || "");
+        if (sanitizedName in this.nodeNamesUsed) {
+          return sanitizedName + "_" + ++this.nodeNamesUsed[sanitizedName];
+        } else {
+          this.nodeNamesUsed[sanitizedName] = 0;
+          return sanitizedName;
+        }
+      }
+      /**
+       * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#geometry
+       *
+       * Creates BufferGeometries from primitives.
+       *
+       * @private
+       * @param {Array<GLTF.Primitive>} primitives
+       * @return {Promise<Array<BufferGeometry>>}
+       */
+      loadGeometries(primitives) {
+        const parser = this;
+        const extensions = this.extensions;
+        const cache = this.primitiveCache;
+        function createDracoPrimitive(primitive) {
+          return extensions[EXTENSIONS.KHR_DRACO_MESH_COMPRESSION].decodePrimitive(primitive, parser).then(function(geometry) {
+            return addPrimitiveAttributes(geometry, primitive, parser);
+          });
+        }
+        const pending = [];
+        for (let i4 = 0, il = primitives.length; i4 < il; i4++) {
+          const primitive = primitives[i4];
+          const cacheKey = createPrimitiveKey(primitive);
+          const cached = cache[cacheKey];
+          if (cached) {
+            pending.push(cached.promise);
+          } else {
+            let geometryPromise;
+            if (primitive.extensions && primitive.extensions[EXTENSIONS.KHR_DRACO_MESH_COMPRESSION]) {
+              geometryPromise = createDracoPrimitive(primitive);
+            } else {
+              geometryPromise = addPrimitiveAttributes(new BufferGeometry(), primitive, parser);
+            }
+            cache[cacheKey] = { primitive, promise: geometryPromise };
+            pending.push(geometryPromise);
+          }
+        }
+        return Promise.all(pending);
+      }
+      /**
+       * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#meshes
+       *
+       * @private
+       * @param {number} meshIndex
+       * @return {Promise<Group|Mesh|SkinnedMesh|Line|Points>}
+       */
+      loadMesh(meshIndex) {
+        const parser = this;
+        const json = this.json;
+        const extensions = this.extensions;
+        const meshDef = json.meshes[meshIndex];
+        const primitives = meshDef.primitives;
+        const pending = [];
+        for (let i4 = 0, il = primitives.length; i4 < il; i4++) {
+          const material = primitives[i4].material === void 0 ? createDefaultMaterial(this.cache) : this.getDependency("material", primitives[i4].material);
+          pending.push(material);
+        }
+        pending.push(parser.loadGeometries(primitives));
+        return Promise.all(pending).then(function(results) {
+          const materials = results.slice(0, results.length - 1);
+          const geometries = results[results.length - 1];
+          const meshes = [];
+          for (let i4 = 0, il = geometries.length; i4 < il; i4++) {
+            const geometry = geometries[i4];
+            const primitive = primitives[i4];
+            let mesh;
+            const material = materials[i4];
+            if (primitive.mode === WEBGL_CONSTANTS.TRIANGLES || primitive.mode === WEBGL_CONSTANTS.TRIANGLE_STRIP || primitive.mode === WEBGL_CONSTANTS.TRIANGLE_FAN || primitive.mode === void 0) {
+              mesh = meshDef.isSkinnedMesh === true ? new SkinnedMesh(geometry, material) : new Mesh(geometry, material);
+              if (mesh.isSkinnedMesh === true) {
+                mesh.normalizeSkinWeights();
+              }
+              if (primitive.mode === WEBGL_CONSTANTS.TRIANGLE_STRIP) {
+                mesh.geometry = toTrianglesDrawMode2(mesh.geometry, TriangleStripDrawMode);
+              } else if (primitive.mode === WEBGL_CONSTANTS.TRIANGLE_FAN) {
+                mesh.geometry = toTrianglesDrawMode2(mesh.geometry, TriangleFanDrawMode);
+              }
+            } else if (primitive.mode === WEBGL_CONSTANTS.LINES) {
+              mesh = new LineSegments(geometry, material);
+            } else if (primitive.mode === WEBGL_CONSTANTS.LINE_STRIP) {
+              mesh = new Line(geometry, material);
+            } else if (primitive.mode === WEBGL_CONSTANTS.LINE_LOOP) {
+              mesh = new LineLoop(geometry, material);
+            } else if (primitive.mode === WEBGL_CONSTANTS.POINTS) {
+              mesh = new Points(geometry, material);
+            } else {
+              throw new Error("THREE.GLTFLoader: Primitive mode unsupported: " + primitive.mode);
+            }
+            if (Object.keys(mesh.geometry.morphAttributes).length > 0) {
+              updateMorphTargets(mesh, meshDef);
+            }
+            mesh.name = parser.createUniqueName(meshDef.name || "mesh_" + meshIndex);
+            assignExtrasToUserData(mesh, meshDef);
+            if (primitive.extensions) addUnknownExtensionsToUserData(extensions, mesh, primitive);
+            parser.assignFinalMaterial(mesh);
+            meshes.push(mesh);
+          }
+          for (let i4 = 0, il = meshes.length; i4 < il; i4++) {
+            parser.associations.set(meshes[i4], {
+              meshes: meshIndex,
+              primitives: i4
+            });
+          }
+          if (meshes.length === 1) {
+            if (meshDef.extensions) addUnknownExtensionsToUserData(extensions, meshes[0], meshDef);
+            return meshes[0];
+          }
+          const group = new Group();
+          if (meshDef.extensions) addUnknownExtensionsToUserData(extensions, group, meshDef);
+          parser.associations.set(group, { meshes: meshIndex });
+          for (let i4 = 0, il = meshes.length; i4 < il; i4++) {
+            group.add(meshes[i4]);
+          }
+          return group;
+        });
+      }
+      /**
+       * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#cameras
+       *
+       * @private
+       * @param {number} cameraIndex
+       * @return {Promise<Camera>|undefined}
+       */
+      loadCamera(cameraIndex) {
+        let camera;
+        const cameraDef = this.json.cameras[cameraIndex];
+        const params2 = cameraDef[cameraDef.type];
+        if (!params2) {
+          console.warn("THREE.GLTFLoader: Missing camera parameters.");
+          return;
+        }
+        if (cameraDef.type === "perspective") {
+          camera = new PerspectiveCamera(MathUtils.radToDeg(params2.yfov), params2.aspectRatio || 1, params2.znear || 1, params2.zfar || 2e6);
+        } else if (cameraDef.type === "orthographic") {
+          camera = new OrthographicCamera(-params2.xmag, params2.xmag, params2.ymag, -params2.ymag, params2.znear, params2.zfar);
+        }
+        if (cameraDef.name) camera.name = this.createUniqueName(cameraDef.name);
+        assignExtrasToUserData(camera, cameraDef);
+        return Promise.resolve(camera);
+      }
+      /**
+       * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#skins
+       *
+       * @private
+       * @param {number} skinIndex
+       * @return {Promise<Skeleton>}
+       */
+      loadSkin(skinIndex) {
+        const skinDef = this.json.skins[skinIndex];
+        const pending = [];
+        for (let i4 = 0, il = skinDef.joints.length; i4 < il; i4++) {
+          pending.push(this._loadNodeShallow(skinDef.joints[i4]));
+        }
+        if (skinDef.inverseBindMatrices !== void 0) {
+          pending.push(this.getDependency("accessor", skinDef.inverseBindMatrices));
+        } else {
+          pending.push(null);
+        }
+        return Promise.all(pending).then(function(results) {
+          const inverseBindMatrices = results.pop();
+          const jointNodes = results;
+          const bones = [];
+          const boneInverses = [];
+          for (let i4 = 0, il = jointNodes.length; i4 < il; i4++) {
+            const jointNode = jointNodes[i4];
+            if (jointNode) {
+              bones.push(jointNode);
+              const mat = new Matrix4();
+              if (inverseBindMatrices !== null) {
+                mat.fromArray(inverseBindMatrices.array, i4 * 16);
+              }
+              boneInverses.push(mat);
+            } else {
+              console.warn('THREE.GLTFLoader: Joint "%s" could not be found.', skinDef.joints[i4]);
+            }
+          }
+          return new Skeleton(bones, boneInverses);
+        });
+      }
+      /**
+       * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#animations
+       *
+       * @private
+       * @param {number} animationIndex
+       * @return {Promise<AnimationClip>}
+       */
+      loadAnimation(animationIndex) {
+        const json = this.json;
+        const parser = this;
+        const animationDef = json.animations[animationIndex];
+        const animationName = animationDef.name ? animationDef.name : "animation_" + animationIndex;
+        const pendingNodes = [];
+        const pendingInputAccessors = [];
+        const pendingOutputAccessors = [];
+        const pendingSamplers = [];
+        const pendingTargets = [];
+        for (let i4 = 0, il = animationDef.channels.length; i4 < il; i4++) {
+          const channel = animationDef.channels[i4];
+          const sampler = animationDef.samplers[channel.sampler];
+          const target = channel.target;
+          const name = target.node;
+          const input = animationDef.parameters !== void 0 ? animationDef.parameters[sampler.input] : sampler.input;
+          const output = animationDef.parameters !== void 0 ? animationDef.parameters[sampler.output] : sampler.output;
+          if (target.node === void 0) continue;
+          pendingNodes.push(this.getDependency("node", name));
+          pendingInputAccessors.push(this.getDependency("accessor", input));
+          pendingOutputAccessors.push(this.getDependency("accessor", output));
+          pendingSamplers.push(sampler);
+          pendingTargets.push(target);
+        }
+        return Promise.all([
+          Promise.all(pendingNodes),
+          Promise.all(pendingInputAccessors),
+          Promise.all(pendingOutputAccessors),
+          Promise.all(pendingSamplers),
+          Promise.all(pendingTargets)
+        ]).then(function(dependencies) {
+          const nodes = dependencies[0];
+          const inputAccessors = dependencies[1];
+          const outputAccessors = dependencies[2];
+          const samplers = dependencies[3];
+          const targets = dependencies[4];
+          const tracks = [];
+          for (let i4 = 0, il = nodes.length; i4 < il; i4++) {
+            const node = nodes[i4];
+            const inputAccessor = inputAccessors[i4];
+            const outputAccessor = outputAccessors[i4];
+            const sampler = samplers[i4];
+            const target = targets[i4];
+            if (node === void 0) continue;
+            if (node.updateMatrix) {
+              node.updateMatrix();
+            }
+            const createdTracks = parser._createAnimationTracks(node, inputAccessor, outputAccessor, sampler, target);
+            if (createdTracks) {
+              for (let k3 = 0; k3 < createdTracks.length; k3++) {
+                tracks.push(createdTracks[k3]);
+              }
+            }
+          }
+          const animation = new AnimationClip(animationName, void 0, tracks);
+          assignExtrasToUserData(animation, animationDef);
+          return animation;
+        });
+      }
+      createNodeMesh(nodeIndex) {
+        const json = this.json;
+        const parser = this;
+        const nodeDef = json.nodes[nodeIndex];
+        if (nodeDef.mesh === void 0) return null;
+        return parser.getDependency("mesh", nodeDef.mesh).then(function(mesh) {
+          const node = parser._getNodeRef(parser.meshCache, nodeDef.mesh, mesh);
+          if (nodeDef.weights !== void 0) {
+            node.traverse(function(o4) {
+              if (!o4.isMesh) return;
+              for (let i4 = 0, il = nodeDef.weights.length; i4 < il; i4++) {
+                o4.morphTargetInfluences[i4] = nodeDef.weights[i4];
+              }
+            });
+          }
+          return node;
+        });
+      }
+      /**
+       * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#nodes-and-hierarchy
+       *
+       * @private
+       * @param {number} nodeIndex
+       * @return {Promise<Object3D>}
+       */
+      loadNode(nodeIndex) {
+        const json = this.json;
+        const parser = this;
+        const nodeDef = json.nodes[nodeIndex];
+        const nodePending = parser._loadNodeShallow(nodeIndex);
+        const childPending = [];
+        const childrenDef = nodeDef.children || [];
+        for (let i4 = 0, il = childrenDef.length; i4 < il; i4++) {
+          childPending.push(parser.getDependency("node", childrenDef[i4]));
+        }
+        const skeletonPending = nodeDef.skin === void 0 ? Promise.resolve(null) : parser.getDependency("skin", nodeDef.skin);
+        return Promise.all([
+          nodePending,
+          Promise.all(childPending),
+          skeletonPending
+        ]).then(function(results) {
+          const node = results[0];
+          const children = results[1];
+          const skeleton = results[2];
+          if (skeleton !== null) {
+            node.traverse(function(mesh) {
+              if (!mesh.isSkinnedMesh) return;
+              mesh.bind(skeleton, _identityMatrix2);
+            });
+          }
+          for (let i4 = 0, il = children.length; i4 < il; i4++) {
+            node.add(children[i4]);
+          }
+          if (node.userData.pivot !== void 0 && children.length > 0) {
+            const pivot = node.userData.pivot;
+            const pivotChild = children[0];
+            node.pivot = new Vector3().fromArray(pivot);
+            node.position.x -= pivot[0];
+            node.position.y -= pivot[1];
+            node.position.z -= pivot[2];
+            pivotChild.position.set(0, 0, 0);
+            delete node.userData.pivot;
+          }
+          return node;
+        });
+      }
+      // ._loadNodeShallow() parses a single node.
+      // skin and child nodes are created and added in .loadNode() (no '_' prefix).
+      _loadNodeShallow(nodeIndex) {
+        const json = this.json;
+        const extensions = this.extensions;
+        const parser = this;
+        if (this.nodeCache[nodeIndex] !== void 0) {
+          return this.nodeCache[nodeIndex];
+        }
+        const nodeDef = json.nodes[nodeIndex];
+        const nodeName = nodeDef.name ? parser.createUniqueName(nodeDef.name) : "";
+        const pending = [];
+        const meshPromise = parser._invokeOne(function(ext) {
+          return ext.createNodeMesh && ext.createNodeMesh(nodeIndex);
+        });
+        if (meshPromise) {
+          pending.push(meshPromise);
+        }
+        if (nodeDef.camera !== void 0) {
+          pending.push(parser.getDependency("camera", nodeDef.camera).then(function(camera) {
+            return parser._getNodeRef(parser.cameraCache, nodeDef.camera, camera);
+          }));
+        }
+        parser._invokeAll(function(ext) {
+          return ext.createNodeAttachment && ext.createNodeAttachment(nodeIndex);
+        }).forEach(function(promise) {
+          pending.push(promise);
+        });
+        this.nodeCache[nodeIndex] = Promise.all(pending).then(function(objects) {
+          let node;
+          if (nodeDef.isBone === true) {
+            node = new Bone();
+          } else if (objects.length > 1) {
+            node = new Group();
+          } else if (objects.length === 1) {
+            node = objects[0];
+          } else {
+            node = new Object3D();
+          }
+          if (node !== objects[0]) {
+            for (let i4 = 0, il = objects.length; i4 < il; i4++) {
+              node.add(objects[i4]);
+            }
+          }
+          if (nodeDef.name) {
+            node.userData.name = nodeDef.name;
+            node.name = nodeName;
+          }
+          assignExtrasToUserData(node, nodeDef);
+          if (nodeDef.extensions) addUnknownExtensionsToUserData(extensions, node, nodeDef);
+          if (nodeDef.matrix !== void 0) {
+            const matrix = new Matrix4();
+            matrix.fromArray(nodeDef.matrix);
+            node.applyMatrix4(matrix);
+          } else {
+            if (nodeDef.translation !== void 0) {
+              node.position.fromArray(nodeDef.translation);
+            }
+            if (nodeDef.rotation !== void 0) {
+              node.quaternion.fromArray(nodeDef.rotation);
+            }
+            if (nodeDef.scale !== void 0) {
+              node.scale.fromArray(nodeDef.scale);
+            }
+          }
+          if (!parser.associations.has(node)) {
+            parser.associations.set(node, {});
+          } else if (nodeDef.mesh !== void 0 && parser.meshCache.refs[nodeDef.mesh] > 1) {
+            const mapping = parser.associations.get(node);
+            parser.associations.set(node, { ...mapping });
+          }
+          parser.associations.get(node).nodes = nodeIndex;
+          return node;
+        });
+        return this.nodeCache[nodeIndex];
+      }
+      /**
+       * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#scenes
+       *
+       * @private
+       * @param {number} sceneIndex
+       * @return {Promise<Group>}
+       */
+      loadScene(sceneIndex) {
+        const extensions = this.extensions;
+        const sceneDef = this.json.scenes[sceneIndex];
+        const parser = this;
+        const scene = new Group();
+        if (sceneDef.name) scene.name = parser.createUniqueName(sceneDef.name);
+        assignExtrasToUserData(scene, sceneDef);
+        if (sceneDef.extensions) addUnknownExtensionsToUserData(extensions, scene, sceneDef);
+        const nodeIds = sceneDef.nodes || [];
+        const pending = [];
+        for (let i4 = 0, il = nodeIds.length; i4 < il; i4++) {
+          pending.push(parser.getDependency("node", nodeIds[i4]));
+        }
+        return Promise.all(pending).then(function(nodes) {
+          for (let i4 = 0, il = nodes.length; i4 < il; i4++) {
+            const node = nodes[i4];
+            if (node.parent !== null) {
+              scene.add(clone(node));
+            } else {
+              scene.add(node);
+            }
+          }
+          const reduceAssociations = (node) => {
+            const reducedAssociations = /* @__PURE__ */ new Map();
+            for (const [key, value] of parser.associations) {
+              if (key instanceof Material || key instanceof Texture) {
+                reducedAssociations.set(key, value);
+              }
+            }
+            node.traverse((node2) => {
+              const mappings = parser.associations.get(node2);
+              if (mappings != null) {
+                reducedAssociations.set(node2, mappings);
+              }
+            });
+            return reducedAssociations;
+          };
+          parser.associations = reduceAssociations(scene);
+          return scene;
+        });
+      }
+      _createAnimationTracks(node, inputAccessor, outputAccessor, sampler, target) {
+        const tracks = [];
+        const targetName = node.name ? node.name : node.uuid;
+        const targetNames = [];
+        if (PATH_PROPERTIES[target.path] === PATH_PROPERTIES.weights) {
+          node.traverse(function(object) {
+            if (object.morphTargetInfluences) {
+              targetNames.push(object.name ? object.name : object.uuid);
+            }
+          });
+        } else {
+          targetNames.push(targetName);
+        }
+        let TypedKeyframeTrack;
+        switch (PATH_PROPERTIES[target.path]) {
+          case PATH_PROPERTIES.weights:
+            TypedKeyframeTrack = NumberKeyframeTrack;
+            break;
+          case PATH_PROPERTIES.rotation:
+            TypedKeyframeTrack = QuaternionKeyframeTrack;
+            break;
+          case PATH_PROPERTIES.translation:
+          case PATH_PROPERTIES.scale:
+            TypedKeyframeTrack = VectorKeyframeTrack;
+            break;
+          default:
+            switch (outputAccessor.itemSize) {
+              case 1:
+                TypedKeyframeTrack = NumberKeyframeTrack;
+                break;
+              case 2:
+              case 3:
+              default:
+                TypedKeyframeTrack = VectorKeyframeTrack;
+                break;
+            }
+            break;
+        }
+        const interpolation = sampler.interpolation !== void 0 ? INTERPOLATION[sampler.interpolation] : InterpolateLinear;
+        const outputArray = this._getArrayFromAccessor(outputAccessor);
+        for (let j3 = 0, jl = targetNames.length; j3 < jl; j3++) {
+          const track = new TypedKeyframeTrack(
+            targetNames[j3] + "." + PATH_PROPERTIES[target.path],
+            inputAccessor.array,
+            outputArray,
+            interpolation
+          );
+          if (sampler.interpolation === "CUBICSPLINE") {
+            this._createCubicSplineTrackInterpolant(track);
+          }
+          tracks.push(track);
+        }
+        return tracks;
+      }
+      _getArrayFromAccessor(accessor) {
+        let outputArray = accessor.array;
+        if (accessor.normalized) {
+          const scale = getNormalizedComponentScale(outputArray.constructor);
+          const scaled = new Float32Array(outputArray.length);
+          for (let j3 = 0, jl = outputArray.length; j3 < jl; j3++) {
+            scaled[j3] = outputArray[j3] * scale;
+          }
+          outputArray = scaled;
+        }
+        return outputArray;
+      }
+      _createCubicSplineTrackInterpolant(track) {
+        track.createInterpolant = function InterpolantFactoryMethodGLTFCubicSpline(result) {
+          const interpolantType = this instanceof QuaternionKeyframeTrack ? GLTFCubicSplineQuaternionInterpolant : GLTFCubicSplineInterpolant;
+          return new interpolantType(this.times, this.values, this.getValueSize() / 3, result);
+        };
+        track.createInterpolant.isInterpolantFactoryMethodGLTFCubicSpline = true;
+      }
+    };
+  }
+});
+
+// src/tapes/Recorder3D.tsx
+function loadRecorderCached() {
+  if (recorderCache) return recorderCache;
+  recorderCache = new Promise((resolve2, reject) => {
+    const loader = new GLTFLoader();
+    loader.load(
+      RECORDER_URL,
+      (gltf) => {
+        console.log("[Recorder3D] GLB loaded");
+        resolve2(gltf.scene);
+      },
+      (evt) => {
+        if (evt.lengthComputable) {
+          console.log("[Recorder3D] loading", Math.round(evt.loaded / evt.total * 100) + "%");
+        }
+      },
+      (err2) => {
+        console.error("[Recorder3D] load error:", err2);
+        reject(err2);
+      }
+    );
+  });
+  return recorderCache;
+}
+function Recorder3D({
+  position = [0, 0, 0],
+  rotationX = 0,
+  rotationY = 0,
+  targetWidth = DEFAULT_TARGET_WIDTH
+}) {
+  const [loaded, setLoaded] = (0, import_react10.useState)(null);
+  (0, import_react10.useEffect)(() => {
+    let cancelled = false;
+    loadRecorderCached().then((scene) => {
+      if (cancelled) return;
+      const clone2 = scene.clone(true);
+      const rawBox = new Box3().setFromObject(clone2);
+      const rawSize = rawBox.getSize(new Vector3());
+      const rawCenter = rawBox.getCenter(new Vector3());
+      console.log(
+        "[Recorder3D] raw bbox size:",
+        rawSize.x.toFixed(2),
+        rawSize.y.toFixed(2),
+        rawSize.z.toFixed(2),
+        "center:",
+        rawCenter.x.toFixed(2),
+        rawCenter.y.toFixed(2),
+        rawCenter.z.toFixed(2)
+      );
+      clone2.traverse((child) => {
+        const m3 = child;
+        if (m3.isMesh) {
+          m3.castShadow = true;
+          m3.receiveShadow = true;
+        }
+      });
+      const horizontalMax = Math.max(rawSize.x, rawSize.z);
+      const scale = targetWidth / horizontalMax;
+      clone2.scale.setScalar(scale);
+      clone2.updateMatrixWorld(true);
+      const scaledBox = new Box3().setFromObject(clone2);
+      const scaledSize = scaledBox.getSize(new Vector3());
+      const scaledCenter = scaledBox.getCenter(new Vector3());
+      clone2.position.x -= scaledCenter.x;
+      clone2.position.z -= scaledCenter.z;
+      clone2.position.y += REST_LIFT - scaledBox.min.y;
+      console.log(
+        "[Recorder3D] scale:",
+        scale.toFixed(4),
+        "scaled size:",
+        scaledSize.x.toFixed(2),
+        scaledSize.y.toFixed(2),
+        scaledSize.z.toFixed(2),
+        "centred at:",
+        clone2.position.x.toFixed(2),
+        clone2.position.y.toFixed(2),
+        clone2.position.z.toFixed(2)
+      );
+      setLoaded({ group: clone2, size: scaledSize });
+    }).catch(() => {
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [targetWidth]);
+  if (!loaded) return null;
+  const { group, size } = loaded;
+  const colliderY = REST_LIFT + size.y / 2;
+  return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+    RigidBody,
+    {
+      type: "fixed",
+      position,
+      rotation: [rotationX, rotationY, 0],
+      colliders: false,
+      children: [
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+          CuboidCollider,
+          {
+            args: [size.x / 2, size.y / 2, size.z / 2],
+            position: [0, colliderY, 0]
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("primitive", { object: group })
+      ]
+    }
+  );
+}
+var import_react10, import_jsx_runtime8, DEFAULT_TARGET_WIDTH, REST_LIFT, RECORDER_URL, recorderCache;
+var init_Recorder3D = __esm({
+  "src/tapes/Recorder3D.tsx"() {
+    "use strict";
+    import_react10 = __toESM(require_react(), 1);
+    init_three_module();
+    init_GLTFLoader();
+    init_react_three_rapier_esm();
+    init_coords();
+    import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
+    DEFAULT_TARGET_WIDTH = TAPE_W * 2.5;
+    REST_LIFT = 0.05;
+    RECORDER_URL = "/assets/recorder/gltf/cassetterecorder.glb";
+    recorderCache = null;
+  }
+});
+
 // src/tapes/TapesTable3D.tsx
 var TapesTable3D_exports = {};
 __export(TapesTable3D_exports, {
@@ -75411,10 +78168,10 @@ function SceneContents({
   maxDragX
 }) {
   const { camera, gl, scene } = useThree();
-  const controlsRef = (0, import_react10.useRef)(null);
-  const drag = (0, import_react10.useMemo)(() => ({ tapeId: null, targetX: 0, targetZ: 0 }), []);
-  const bounceTapeId = (0, import_react10.useRef)(null);
-  const pointerState = (0, import_react10.useRef)({
+  const controlsRef = (0, import_react11.useRef)(null);
+  const drag = (0, import_react11.useMemo)(() => ({ tapeId: null, targetX: 0, targetZ: 0 }), []);
+  const bounceTapeId = (0, import_react11.useRef)(null);
+  const pointerState = (0, import_react11.useRef)({
     downTapeId: null,
     active: false,
     startX: 0,
@@ -75423,9 +78180,9 @@ function SceneContents({
     // offset from pointer to tape center
     offsetZ: 0
   });
-  const lastTapRef = (0, import_react10.useRef)({ time: 0, id: "" });
+  const lastTapRef = (0, import_react11.useRef)({ time: 0, id: "" });
   const tableTapes = tapes.filter((t3) => t3.id !== loadedTapeId);
-  const raycastToPlane = (0, import_react10.useCallback)((clientX, clientY, planeY) => {
+  const raycastToPlane = (0, import_react11.useCallback)((clientX, clientY, planeY) => {
     const rect = gl.domElement.getBoundingClientRect();
     const ndcX = (clientX - rect.left) / rect.width * 2 - 1;
     const ndcY = -((clientY - rect.top) / rect.height) * 2 + 1;
@@ -75435,7 +78192,7 @@ function SceneContents({
     const hit = new Vector3();
     return raycaster.ray.intersectPlane(plane, hit) ? hit : null;
   }, [camera, gl]);
-  const raycastTape = (0, import_react10.useCallback)((clientX, clientY) => {
+  const raycastTape = (0, import_react11.useCallback)((clientX, clientY) => {
     const hit = raycastToPlane(clientX, clientY, 0);
     if (!hit) return null;
     let bestId = null;
@@ -75458,7 +78215,7 @@ function SceneContents({
     });
     return bestId;
   }, [scene, raycastToPlane]);
-  const getTapeWorldPos = (0, import_react10.useCallback)((tapeId) => {
+  const getTapeWorldPos = (0, import_react11.useCallback)((tapeId) => {
     let result = null;
     scene.traverse((obj) => {
       if (obj.name === `tape-${tapeId}`) {
@@ -75469,7 +78226,7 @@ function SceneContents({
     });
     return result;
   }, [scene]);
-  const isDeckDrop = (0, import_react10.useCallback)((screenX, screenY) => {
+  const isDeckDrop = (0, import_react11.useCallback)((screenX, screenY) => {
     const deckEl = document.getElementById("tape-deck");
     if (!deckEl) return false;
     const r3 = deckEl.getBoundingClientRect();
@@ -75478,7 +78235,7 @@ function SceneContents({
     console.log("[TapeTable] deck drop check:", hit, "pointer:", screenX, screenY, "deck:", r3.left, r3.top, r3.right, r3.bottom);
     return hit;
   }, []);
-  (0, import_react10.useEffect)(() => {
+  (0, import_react11.useEffect)(() => {
     const el = gl.domElement;
     function onDown(ev) {
       const tapeId = raycastTape(ev.clientX, ev.clientY);
@@ -75560,7 +78317,7 @@ function SceneContents({
       window.removeEventListener("pointerup", onUp);
     };
   }, [gl, drag, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, maxDragX]);
-  const extDragActive = (0, import_react10.useRef)(false);
+  const extDragActive = (0, import_react11.useRef)(false);
   useFrame(() => {
     if (!externalDrag || extDragActive.current) return;
     if (!externalDrag.tapeId) return;
@@ -75605,7 +78362,7 @@ function SceneContents({
     window.addEventListener("pointermove", onExtMove);
     window.addEventListener("pointerup", onExtUp);
   });
-  const zoomRestored = (0, import_react10.useRef)(false);
+  const zoomRestored = (0, import_react11.useRef)(false);
   if (!zoomRestored.current) {
     const saved = localStorage.getItem("jeem_table_zoom");
     if (saved) {
@@ -75614,7 +78371,7 @@ function SceneContents({
     }
     zoomRestored.current = true;
   }
-  const lastSavedZoom = (0, import_react10.useRef)(camera.position.y);
+  const lastSavedZoom = (0, import_react11.useRef)(camera.position.y);
   useFrame(() => {
     const c3 = controlsRef.current;
     if (!c3) return;
@@ -75632,7 +78389,7 @@ function SceneContents({
       localStorage.setItem("jeem_table_zoom", String(cam.position.y));
     }
   });
-  (0, import_react10.useEffect)(() => {
+  (0, import_react11.useEffect)(() => {
     function handleCentre(e3) {
       const detail = e3.detail;
       const cx = detail?.x ?? 0;
@@ -75645,31 +78402,40 @@ function SceneContents({
     window.addEventListener("jeem-centre-camera", handleCentre);
     return () => window.removeEventListener("jeem-centre-camera", handleCentre);
   }, [camera]);
-  return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(import_jsx_runtime8.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("ambientLight", { intensity: 0.9, color: "#fffaf6" }),
-    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("ambientLight", { intensity: 0.55, color: "#fffaf6" }),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       "directionalLight",
       {
-        position: [8, 30, -6],
-        intensity: 1.8,
+        position: [-11, 28, 8],
+        intensity: 1,
         color: "#fff0e6",
         castShadow: true,
-        "shadow-mapSize-width": 1024,
-        "shadow-mapSize-height": 1024,
-        "shadow-bias": -1e-3,
-        "shadow-camera-left": -37,
-        "shadow-camera-right": 37,
-        "shadow-camera-top": 27,
-        "shadow-camera-bottom": -27,
+        "shadow-mapSize-width": 2048,
+        "shadow-mapSize-height": 2048,
+        "shadow-bias": -1e-4,
+        "shadow-camera-left": -50,
+        "shadow-camera-right": 50,
+        "shadow-camera-top": 40,
+        "shadow-camera-bottom": -40,
         "shadow-camera-near": 0.5,
-        "shadow-camera-far": 100,
+        "shadow-camera-far": 150,
         "shadow-radius": 2
       }
     ),
-    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("pointLight", { position: [-8, 6, -4], intensity: 0.4, color: "#ffe8d6" }),
-    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(import_react10.Suspense, { fallback: null, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(Physics, { gravity: [0, -400, 0], timeStep: 1 / 60, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(TableSurface, {}),
-      tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      "directionalLight",
+      {
+        position: [11, 20, -8],
+        intensity: 0.45,
+        color: "#dce7ff"
+      }
+    ),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("pointLight", { position: [-8, 6, -4], intensity: 0.25, color: "#ffe8d6" }),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: null, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(Physics, { gravity: [0, -400, 0], timeStep: 1 / 60, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableSurface, {}),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Recorder3D, { position: [-18, 0, 8], rotationY: Math.PI / 6 }),
+      tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
         TapeBody,
         {
           tape,
@@ -75682,7 +78448,7 @@ function SceneContents({
         tape.id
       ))
     ] }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       MapControls2,
       {
         ref: controlsRef,
@@ -75700,15 +78466,15 @@ function SceneContents({
   ] });
 }
 function TapesTable3D(props) {
-  return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: { flex: 1, position: "relative" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: {
+  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: { flex: 1, position: "relative" }, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
       position: "absolute",
       inset: 0,
       pointerEvents: "none",
       zIndex: 2,
       background: "radial-gradient(circle, transparent 50%, rgba(0,0,0,0.5) 120%)"
     } }),
-    /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
       Canvas,
       {
         shadows: true,
@@ -75726,24 +78492,25 @@ function TapesTable3D(props) {
             console.log("[TapeTable] WebGL context restored");
           });
         },
-        children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(SceneContents, { ...props })
+        children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(SceneContents, { ...props })
       }
     )
   ] });
 }
-var import_react10, import_jsx_runtime8;
+var import_react11, import_jsx_runtime9;
 var init_TapesTable3D = __esm({
   "src/tapes/TapesTable3D.tsx"() {
     "use strict";
-    import_react10 = __toESM(require_react(), 1);
+    import_react11 = __toESM(require_react(), 1);
     init_react_three_fiber_esm();
     init_drei();
     init_react_three_rapier_esm();
     init_three_module();
     init_TableSurface();
     init_TapeBody();
+    init_Recorder3D();
     init_coords();
-    import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
   }
 });
 
@@ -75751,7 +78518,7 @@ var init_TapesTable3D = __esm({
 var import_client = __toESM(require_client(), 1);
 
 // src/tapes/TapesTable.tsx
-var import_react11 = __toESM(require_react(), 1);
+var import_react12 = __toESM(require_react(), 1);
 var import_react_dom = __toESM(require_react_dom(), 1);
 
 // src/tapes/types.ts
@@ -76358,9 +79125,9 @@ function DeckTapeMesh({ tape, playing }) {
   const textures = useVariantTextures(variant);
   (0, import_react8.useEffect)(() => {
     loadFBXCached().then((fbx) => {
-      const clone = fbx.clone();
+      const clone2 = fbx.clone();
       let target = null;
-      clone.traverse((child) => {
+      clone2.traverse((child) => {
         if (child.isMesh) {
           const m3 = child;
           if (m3.name === meshName) {
@@ -76853,8 +79620,8 @@ var styles = {
 };
 
 // src/tapes/TapesTable.tsx
-var import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
-var TapesTable3D2 = (0, import_react11.lazy)(() => Promise.resolve().then(() => (init_TapesTable3D(), TapesTable3D_exports)).then((m3) => ({ default: m3.TapesTable3D })));
+var import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
+var TapesTable3D2 = (0, import_react12.lazy)(() => Promise.resolve().then(() => (init_TapesTable3D(), TapesTable3D_exports)).then((m3) => ({ default: m3.TapesTable3D })));
 var TEXTURE_VARIANTS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
 var nextVariantIndex = 0;
 function nextTextureVariant() {
@@ -76997,46 +79764,46 @@ function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
   });
 }
 function TapesTable({ mixtape }) {
-  const [tapes, setTapes] = (0, import_react11.useState)([]);
-  const [mounted, setMounted] = (0, import_react11.useState)(false);
-  const [menuId, setMenuId] = (0, import_react11.useState)(null);
-  const [dragId, setDragId] = (0, import_react11.useState)(null);
-  const [dragPos, setDragPos] = (0, import_react11.useState)(null);
-  const [dragScreenPos, setDragScreenPos] = (0, import_react11.useState)(null);
-  const [dragOver, setDragOver] = (0, import_react11.useState)(false);
-  const [zOrder2, setZOrder] = (0, import_react11.useState)([]);
-  const [rewindingId, setRewindingId] = (0, import_react11.useState)(null);
-  const [landingId, setLandingId] = (0, import_react11.useState)(null);
-  const [show3D, setShow3D] = (0, import_react11.useState)(true);
-  const externalDrag = (0, import_react11.useRef)({ tapeId: null, targetX: 0, targetZ: 0 });
-  const [isPanning, setIsPanning] = (0, import_react11.useState)(false);
-  const [loadedTape, setLoadedTape] = (0, import_react11.useState)(null);
-  const [deckEjecting, setDeckEjecting] = (0, import_react11.useState)(false);
-  const [isPlaying, setIsPlaying] = (0, import_react11.useState)(false);
-  const [infiniteLoading, setInfiniteLoading] = (0, import_react11.useState)(false);
-  const [currentVideoId, setCurrentVideoId] = (0, import_react11.useState)(null);
-  const tableRef = (0, import_react11.useRef)(null);
-  const playerZoneRef = (0, import_react11.useRef)(null);
+  const [tapes, setTapes] = (0, import_react12.useState)([]);
+  const [mounted, setMounted] = (0, import_react12.useState)(false);
+  const [menuId, setMenuId] = (0, import_react12.useState)(null);
+  const [dragId, setDragId] = (0, import_react12.useState)(null);
+  const [dragPos, setDragPos] = (0, import_react12.useState)(null);
+  const [dragScreenPos, setDragScreenPos] = (0, import_react12.useState)(null);
+  const [dragOver, setDragOver] = (0, import_react12.useState)(false);
+  const [zOrder2, setZOrder] = (0, import_react12.useState)([]);
+  const [rewindingId, setRewindingId] = (0, import_react12.useState)(null);
+  const [landingId, setLandingId] = (0, import_react12.useState)(null);
+  const [show3D, setShow3D] = (0, import_react12.useState)(true);
+  const externalDrag = (0, import_react12.useRef)({ tapeId: null, targetX: 0, targetZ: 0 });
+  const [isPanning, setIsPanning] = (0, import_react12.useState)(false);
+  const [loadedTape, setLoadedTape] = (0, import_react12.useState)(null);
+  const [deckEjecting, setDeckEjecting] = (0, import_react12.useState)(false);
+  const [isPlaying, setIsPlaying] = (0, import_react12.useState)(false);
+  const [infiniteLoading, setInfiniteLoading] = (0, import_react12.useState)(false);
+  const [currentVideoId, setCurrentVideoId] = (0, import_react12.useState)(null);
+  const tableRef = (0, import_react12.useRef)(null);
+  const playerZoneRef = (0, import_react12.useRef)(null);
   const deckPortal = typeof document !== "undefined" ? document.getElementById("tape-deck") : null;
   const MIXTAPE_ID = "__jeem_mixtape__";
-  const [mixtapeTapeId] = (0, import_react11.useState)(MIXTAPE_ID);
-  const mixtapeLoadedRef = (0, import_react11.useRef)(false);
-  const [showMixtapeCreator, setShowMixtapeCreator] = (0, import_react11.useState)(false);
-  const [mixtapeData, setMixtapeData] = (0, import_react11.useState)(mixtape ?? null);
-  const [playlistTracks, setPlaylistTracks] = (0, import_react11.useState)(null);
-  const [view, setView] = (0, import_react11.useState)("table");
-  const [playerTapeId, setPlayerTapeId] = (0, import_react11.useState)(null);
-  const tapesRef = (0, import_react11.useRef)(tapes);
+  const [mixtapeTapeId] = (0, import_react12.useState)(MIXTAPE_ID);
+  const mixtapeLoadedRef = (0, import_react12.useRef)(false);
+  const [showMixtapeCreator, setShowMixtapeCreator] = (0, import_react12.useState)(false);
+  const [mixtapeData, setMixtapeData] = (0, import_react12.useState)(mixtape ?? null);
+  const [playlistTracks, setPlaylistTracks] = (0, import_react12.useState)(null);
+  const [view, setView] = (0, import_react12.useState)("table");
+  const [playerTapeId, setPlayerTapeId] = (0, import_react12.useState)(null);
+  const tapesRef = (0, import_react12.useRef)(tapes);
   tapesRef.current = tapes;
-  const loadedRef = (0, import_react11.useRef)(loadedTape);
+  const loadedRef = (0, import_react12.useRef)(loadedTape);
   loadedRef.current = loadedTape;
-  const viewRef = (0, import_react11.useRef)(view);
+  const viewRef = (0, import_react12.useRef)(view);
   viewRef.current = view;
-  const autoEjectRef = (0, import_react11.useRef)(() => {
+  const autoEjectRef = (0, import_react12.useRef)(() => {
   });
-  const infinitePageRef = (0, import_react11.useRef)(1);
-  const infiniteFetchingRef = (0, import_react11.useRef)(false);
-  const wipeTransition = (0, import_react11.useCallback)((onCovered, onUncovered) => {
+  const infinitePageRef = (0, import_react12.useRef)(1);
+  const infiniteFetchingRef = (0, import_react12.useRef)(false);
+  const wipeTransition = (0, import_react12.useCallback)((onCovered, onUncovered) => {
     document.body.classList.add("view-flaring");
     setTimeout(() => {
       onCovered();
@@ -77046,7 +79813,7 @@ function TapesTable({ mixtape }) {
       if (onUncovered) onUncovered();
     }, 600);
   }, []);
-  const enterPlayerView = (0, import_react11.useCallback)((tapeId) => {
+  const enterPlayerView = (0, import_react12.useCallback)((tapeId) => {
     setMenuId(null);
     const tape = tapesRef.current.find((t3) => t3.id === tapeId);
     if (tape?.isPlaylist && tape.playlistId) {
@@ -77083,8 +79850,8 @@ function TapesTable({ mixtape }) {
       }
     );
   }, [wipeTransition]);
-  const [excludeTapeId, setExcludeTapeId] = (0, import_react11.useState)(null);
-  const exitPlayerView = (0, import_react11.useCallback)((droppingTapeId) => {
+  const [excludeTapeId, setExcludeTapeId] = (0, import_react12.useState)(null);
+  const exitPlayerView = (0, import_react12.useCallback)((droppingTapeId) => {
     wipeTransition(
       // Behind the wipe: swap to table view, exclude dropping tape so it unmounts
       () => {
@@ -77131,7 +79898,7 @@ function TapesTable({ mixtape }) {
       } : void 0
     );
   }, [wipeTransition]);
-  (0, import_react11.useEffect)(() => {
+  (0, import_react12.useEffect)(() => {
     function handleLogoClick(e3) {
       if (view !== "player") return;
       e3.preventDefault();
@@ -77148,19 +79915,19 @@ function TapesTable({ mixtape }) {
     logos.forEach((el) => el.addEventListener("click", handleLogoClick));
     return () => logos.forEach((el) => el.removeEventListener("click", handleLogoClick));
   }, [view, exitPlayerView, showMixtapeCreator]);
-  (0, import_react11.useLayoutEffect)(() => {
+  (0, import_react12.useLayoutEffect)(() => {
     const deckEl = document.getElementById("tape-deck");
     if (deckEl) deckEl.style.display = view === "table" ? "none" : "";
   }, [view]);
-  const lastTapRef = (0, import_react11.useRef)({ time: 0, id: "" });
-  const isDoubleTap = (0, import_react11.useCallback)((id) => {
+  const lastTapRef = (0, import_react12.useRef)({ time: 0, id: "" });
+  const isDoubleTap = (0, import_react12.useCallback)((id) => {
     const now = Date.now();
     const last = lastTapRef.current;
     const isDbl = last.id === id && now - last.time < 400;
     lastTapRef.current = { time: now, id };
     return isDbl;
   }, []);
-  (0, import_react11.useEffect)(() => {
+  (0, import_react12.useEffect)(() => {
     async function init() {
       let loaded = await loadTapes();
       if (loaded.length === 0) {
@@ -77221,12 +79988,12 @@ function TapesTable({ mixtape }) {
     }
     init().catch(console.error);
   }, []);
-  (0, import_react11.useEffect)(() => {
+  (0, import_react12.useEffect)(() => {
     if (mounted) {
       saveTapes(tapes).catch(console.error);
     }
   }, [tapes, mounted]);
-  (0, import_react11.useEffect)(() => {
+  (0, import_react12.useEffect)(() => {
     window.TapesBridge = {
       onTapePlay: () => {
       },
@@ -77395,7 +80162,7 @@ function TapesTable({ mixtape }) {
       delete window.TapesBridge;
     };
   }, []);
-  (0, import_react11.useEffect)(() => {
+  (0, import_react12.useEffect)(() => {
     if (!mixtape || mixtapeLoadedRef.current) return;
     mixtapeLoadedRef.current = true;
     const tracks = mixtape.tracks.map((t3) => ({
@@ -77432,16 +80199,16 @@ function TapesTable({ mixtape }) {
     const padinfo = document.getElementById("padinfo");
     if (padinfo) padinfo.style.display = "none";
   }, [mixtape]);
-  (0, import_react11.useEffect)(() => {
+  (0, import_react12.useEffect)(() => {
     if (!mixtape) return;
     if (!(loadedTape?.isInfinite && loadedTape?.author === "mixtape")) {
       const padinfo = document.getElementById("padinfo");
       if (padinfo) padinfo.style.display = "";
     }
   }, [loadedTape, mixtape]);
-  const [mixtapeKeywords, setMixtapeKeywords] = (0, import_react11.useState)("");
-  const [mixtapeGenerating, setMixtapeGenerating] = (0, import_react11.useState)(false);
-  (0, import_react11.useEffect)(() => {
+  const [mixtapeKeywords, setMixtapeKeywords] = (0, import_react12.useState)("");
+  const [mixtapeGenerating, setMixtapeGenerating] = (0, import_react12.useState)(false);
+  (0, import_react12.useEffect)(() => {
     function handleCreateMixtape(e3) {
       const keywords = e3.detail?.keywords || "";
       if (!keywords) return;
@@ -77464,7 +80231,7 @@ function TapesTable({ mixtape }) {
     window.addEventListener("jeem-create-mixtape", handleCreateMixtape);
     return () => window.removeEventListener("jeem-create-mixtape", handleCreateMixtape);
   }, [wipeTransition]);
-  const playVideoById = (0, import_react11.useCallback)((videoId, title, author, seekProgress = 0) => {
+  const playVideoById = (0, import_react12.useCallback)((videoId, title, author, seekProgress = 0) => {
     if (!window.myApp || !window.AppState) return;
     const AppState = window.AppState;
     AppState.starting = true;
@@ -77489,7 +80256,7 @@ function TapesTable({ mixtape }) {
     }
     if (window.Inactivity) window.Inactivity.reset();
   }, []);
-  const loadNextInfiniteTrack = (0, import_react11.useCallback)(async () => {
+  const loadNextInfiniteTrack = (0, import_react12.useCallback)(async () => {
     const tape = loadedRef.current;
     if (!tape?.isInfinite || !tape.infiniteConfig || infiniteFetchingRef.current) return;
     const history = tape.infiniteHistory || [];
@@ -77526,7 +80293,7 @@ function TapesTable({ mixtape }) {
     setTapes((prev) => prev.map((t3) => t3.id === tape.id ? { ...t3, infiniteHistory: updatedHistory, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : t3));
     playVideoById(track.videoId, track.title, track.author);
   }, [playVideoById]);
-  const loadPrevInfiniteTrack = (0, import_react11.useCallback)(() => {
+  const loadPrevInfiniteTrack = (0, import_react12.useCallback)(() => {
     const tape = loadedRef.current;
     if (!tape?.isInfinite) return;
     const history = tape.infiniteHistory || [];
@@ -77538,12 +80305,12 @@ function TapesTable({ mixtape }) {
     setTapes((prev) => prev.map((t3) => t3.id === tape.id ? { ...t3, infiniteIndex: prevIdx, videoId: track.videoId, progress: 0 } : t3));
     playVideoById(track.videoId, track.title, track.author);
   }, [playVideoById]);
-  const loadNextRef = (0, import_react11.useRef)(loadNextInfiniteTrack);
+  const loadNextRef = (0, import_react12.useRef)(loadNextInfiniteTrack);
   loadNextRef.current = loadNextInfiniteTrack;
-  const loadPrevRef = (0, import_react11.useRef)(loadPrevInfiniteTrack);
+  const loadPrevRef = (0, import_react12.useRef)(loadPrevInfiniteTrack);
   loadPrevRef.current = loadPrevInfiniteTrack;
-  const loadIntoPlayerRef = (0, import_react11.useRef)(null);
-  const loadIntoPlayer = (0, import_react11.useCallback)((tape) => {
+  const loadIntoPlayerRef = (0, import_react12.useRef)(null);
+  const loadIntoPlayer = (0, import_react12.useCallback)((tape) => {
     setLoadedTape(tape);
     playTapeInsert();
     setTimeout(playTapeWhirr, 200);
@@ -77601,7 +80368,7 @@ function TapesTable({ mixtape }) {
     }
   }, [playVideoById]);
   loadIntoPlayerRef.current = loadIntoPlayer;
-  const deleteTape = (0, import_react11.useCallback)((id) => {
+  const deleteTape = (0, import_react12.useCallback)((id) => {
     setTapes((prev) => prev.filter((t3) => t3.id !== id));
     setZOrder((prev) => prev.filter((i4) => i4 !== id));
     setLoadedTape((cur) => {
@@ -77610,13 +80377,13 @@ function TapesTable({ mixtape }) {
     });
     setMenuId(null);
   }, []);
-  const rewindTape = (0, import_react11.useCallback)((id) => {
+  const rewindTape = (0, import_react12.useCallback)((id) => {
     setTapes((prev) => prev.map((t3) => t3.id === id ? { ...t3, progress: 0 } : t3));
     setRewindingId(id);
     setTimeout(() => setRewindingId(null), 400);
     setMenuId(null);
   }, []);
-  const autoEject = (0, import_react11.useCallback)(() => {
+  const autoEject = (0, import_react12.useCallback)(() => {
     const tape = loadedRef.current;
     if (!tape) return;
     setTapes((prev) => prev.map((t3) => t3.id === tape.id ? { ...t3, progress: 0 } : t3));
@@ -77647,15 +80414,15 @@ function TapesTable({ mixtape }) {
     if (window.switchBgType) window.switchBgType(5);
   }, []);
   autoEjectRef.current = autoEject;
-  const cancelMenu = (0, import_react11.useCallback)(() => {
+  const cancelMenu = (0, import_react12.useCallback)(() => {
     setMenuId(null);
   }, []);
-  const [dragging3D, setDragging3D] = (0, import_react11.useState)(false);
-  const handle3DDragStart = (0, import_react11.useCallback)(() => {
+  const [dragging3D, setDragging3D] = (0, import_react12.useState)(false);
+  const handle3DDragStart = (0, import_react12.useCallback)(() => {
     cancelMenu();
     setDragging3D(true);
   }, [cancelMenu]);
-  const handle3DDragEnd = (0, import_react11.useCallback)((tapeId, x2d, y2d, droppedOnDeck) => {
+  const handle3DDragEnd = (0, import_react12.useCallback)((tapeId, x2d, y2d, droppedOnDeck) => {
     setDragging3D(false);
     if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
     if (droppedOnDeck && view === "player") {
@@ -77665,7 +80432,7 @@ function TapesTable({ mixtape }) {
       setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, x: x2d, y: y2d } : t3));
     }
   }, [loadIntoPlayer, showMixtapeCreator, view]);
-  const handle3DDoubleTap = (0, import_react11.useCallback)((tapeId) => {
+  const handle3DDoubleTap = (0, import_react12.useCallback)((tapeId) => {
     if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
     if (view === "table") {
       enterPlayerView(tapeId);
@@ -77673,10 +80440,10 @@ function TapesTable({ mixtape }) {
       exitPlayerView(tapeId);
     }
   }, [showMixtapeCreator, view, enterPlayerView, exitPlayerView]);
-  const handle3DMenuAction = (0, import_react11.useCallback)((_tapeId, _action) => {
+  const handle3DMenuAction = (0, import_react12.useCallback)((_tapeId, _action) => {
   }, []);
-  const [newTapeIds, setNewTapeIds] = (0, import_react11.useState)(() => /* @__PURE__ */ new Set());
-  const startDrag = (0, import_react11.useCallback)((e3, tape) => {
+  const [newTapeIds, setNewTapeIds] = (0, import_react12.useState)(() => /* @__PURE__ */ new Set());
+  const startDrag = (0, import_react12.useCallback)((e3, tape) => {
     e3.preventDefault();
     e3.stopPropagation();
     cancelMenu();
@@ -77735,7 +80502,7 @@ function TapesTable({ mixtape }) {
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
   }, [loadIntoPlayer, cancelMenu]);
-  const startDeckDrag = (0, import_react11.useCallback)((e3) => {
+  const startDeckDrag = (0, import_react12.useCallback)((e3) => {
     e3.preventDefault();
     const tape = loadedRef.current;
     const startX = e3.clientX;
@@ -77818,7 +80585,7 @@ function TapesTable({ mixtape }) {
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
   }, [loadIntoPlayer]);
-  const startPan = (0, import_react11.useCallback)((e3) => {
+  const startPan = (0, import_react12.useCallback)((e3) => {
     if (e3.target.closest("[data-tape]")) return;
     if (e3.target.closest("[data-deck]")) return;
     const tbl = tableRef.current;
@@ -77875,8 +80642,8 @@ function TapesTable({ mixtape }) {
     positionedTapes.slice(0, 2).map((t3) => ({ id: t3.id.slice(0, 8), x: t3.x, y: t3.y }))
   );
   const tableTapes = positionedTapes.filter((t3) => t3.id !== loadedTape?.id);
-  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("style", { children: `
+  return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("style", { children: `
         @keyframes tape-spin-slow { to { transform: rotate(-360deg) } }
         @keyframes tape-spin-fast { to { transform: rotate(-360deg) } }
         @keyframes tape-rewind { 0%,100% { transform: rotate(0deg) } 20% { transform: rotate(-4deg) } 40% { transform: rotate(4deg) } 60% { transform: rotate(-3deg) } 80% { transform: rotate(2deg) } }
@@ -77897,7 +80664,7 @@ function TapesTable({ mixtape }) {
         }
         body.view-flaring { animation: view-flare 0.6s ease-in-out; overflow: hidden; }
       ` }),
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(import_react12.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       TapesTable3D2,
       {
         tapes: view === "player" && playerTapeId ? positionedTapes.filter((t3) => t3.id === playerTapeId).map((t3) => ({ ...t3, x: CANVAS_W2 * 0.35, y: CANVAS_H2 / 2 })) : positionedTapes.filter((t3) => t3.id !== excludeTapeId),
@@ -77922,7 +80689,7 @@ function TapesTable({ mixtape }) {
       const hasPlaylistTracklist = tape.isPlaylist && playlistTracks && playlistTracks.tracks.length > 0;
       const tracklistItems = hasInfiniteTracklist ? tape.infiniteHistory.map((t3) => ({ title: t3.title, author: t3.author })) : hasPlaylistTracklist ? playlistTracks.tracks.map((t3) => ({ title: t3.title, author: t3.author })) : [];
       const hasTracklist = tracklistItems.length > 0;
-      return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "tape-info-panel", style: {
+      return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "tape-info-panel", style: {
         position: "fixed",
         top: "50%",
         left: "calc(50% - 70px)",
@@ -77942,7 +80709,7 @@ function TapesTable({ mixtape }) {
         borderRadius: 0,
         padding: "24px 24px 20px"
       }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: {
           fontFamily: "'04b03', monospace",
           fontSize: "1.3em",
           color: "rgba(250,249,246,0.7)",
@@ -77951,14 +80718,14 @@ function TapesTable({ mixtape }) {
           marginBottom: hasTracklist ? "12px" : "0",
           flexShrink: 0
         }, children: tape.title || "Untitled" }),
-        !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { color: "rgba(250,249,246,0.5)", marginTop: "6px", fontSize: "1em" }, children: tape.author }),
-        hasTracklist && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
+        !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { color: "rgba(250,249,246,0.5)", marginTop: "6px", fontSize: "1em" }, children: tape.author }),
+        hasTracklist && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: {
           flex: 1,
           overflowY: "auto",
           scrollbarWidth: "thin",
           scrollbarColor: "rgba(250,249,246,0.2) transparent",
           padding: "10px 14px"
-        }, children: tracklistItems.map((track, i4) => /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
+        }, children: tracklistItems.map((track, i4) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { style: {
           display: "flex",
           alignItems: "center",
           gap: "8px",
@@ -77968,14 +80735,14 @@ function TapesTable({ mixtape }) {
           padding: "6px 4px",
           borderBottom: "1px solid rgba(250,249,246,0.04)"
         }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { style: { color: "rgba(250,249,246,0.5)", width: "30px", flexShrink: 0, textAlign: "right" }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { style: { color: "rgba(250,249,246,0.5)", width: "30px", flexShrink: 0, textAlign: "right" }, children: [
             String(i4 + 1).padStart(2, "0"),
             "."
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, color: "rgba(250,249,246,0.9)" }, children: track.title }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { style: { color: "rgba(250,249,246,0.5)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: track.author })
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, color: "rgba(250,249,246,0.9)" }, children: track.title }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { style: { color: "rgba(250,249,246,0.5)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: track.author })
         ] }, i4)) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: {
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { style: {
           display: "flex",
           justifyContent: "flex-start",
           gap: "8px",
@@ -77983,7 +80750,7 @@ function TapesTable({ mixtape }) {
           paddingTop: "12px",
           flexShrink: 0
         }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "button",
             {
               className: "tape-ui-btn",
@@ -78003,7 +80770,7 @@ function TapesTable({ mixtape }) {
               children: "rewind"
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "button",
             {
               className: "tape-ui-btn",
@@ -78028,14 +80795,14 @@ function TapesTable({ mixtape }) {
       ] });
     })(),
     deckPortal && (0, import_react_dom.createPortal)(
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
         "div",
         {
           "data-deck": "true",
           ref: playerZoneRef,
           style: { position: "relative" },
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
               "div",
               {
                 className: "deck-slot",
@@ -78057,23 +80824,23 @@ function TapesTable({ mixtape }) {
                   transition: "opacity 0.2s, box-shadow 0.2s, border-color 0.2s"
                 },
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", bottom: 2, left: 117 - 75, width: 150, height: 28, background: "#111", border: "1px solid #1a1a1a", clipPath: "polygon(6px 0, 144px 0, 100% 100%, 0 100%)", boxShadow: "inset 0 2px 6px rgba(0,0,0,0.6)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: 20, top: 20, width: 8, height: 8, borderRadius: "50%", background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", right: 20, top: 20, width: 8, height: 8, borderRadius: "50%", background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", right: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: 117 - 4, top: 108, width: 8, height: 5, borderRadius: 1, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.6)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: 65 + 22, top: 55, width: 169 - 65 - 44, height: 26, borderRadius: 2, background: "linear-gradient(135deg, #6b4420 0%, #8a5a28 30%, #7a4a20 50%, #5a3a18 70%, #6b4420 100%)", opacity: 0.5, zIndex: 0 } }),
-                  [70, 164].map((cx2, i4) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: cx2 - 13, top: 65 - 13, width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(160deg, #2a2a2a 0%, #111 60%, #000 100%)", border: "1px solid #333", boxShadow: "0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08)", zIndex: 0 }, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: { position: "absolute", inset: 3, borderRadius: "50%", background: "linear-gradient(160deg, #222 0%, #141414 50%, #0a0a0a 100%)", boxShadow: "inset 0 -1px 2px rgba(255,255,255,0.06), inset 0 1px 2px rgba(0,0,0,0.6)", border: "0.5px solid #2a2a2a" }, children: [
-                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: "50%", top: 2, bottom: 2, width: 2, transform: "translateX(-50%)", background: "linear-gradient(180deg, #333 0%, #1a1a1a 100%)", borderRadius: 1, boxShadow: "0 0 1px rgba(0,0,0,0.5)" } }),
-                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", top: "50%", left: 2, right: 2, height: 2, transform: "translateY(-50%)", background: "linear-gradient(90deg, #333 0%, #1a1a1a 100%)", borderRadius: 1, boxShadow: "0 0 1px rgba(0,0,0,0.5)" } }),
-                    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "absolute", left: "50%", top: "50%", width: 7, height: 7, transform: "translate(-50%, -50%)", borderRadius: "50%", background: "linear-gradient(145deg, #2a2a2a 0%, #080808 100%)", border: "0.5px solid #333", boxShadow: "0 1px 2px rgba(0,0,0,0.7), inset 0 0.5px 0.5px rgba(255,255,255,0.1)" } })
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", bottom: 2, left: 117 - 75, width: 150, height: 28, background: "#111", border: "1px solid #1a1a1a", clipPath: "polygon(6px 0, 144px 0, 100% 100%, 0 100%)", boxShadow: "inset 0 2px 6px rgba(0,0,0,0.6)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: 20, top: 20, width: 8, height: 8, borderRadius: "50%", background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", right: 20, top: 20, width: 8, height: 8, borderRadius: "50%", background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", right: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: 117 - 4, top: 108, width: 8, height: 5, borderRadius: 1, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.6)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: 65 + 22, top: 55, width: 169 - 65 - 44, height: 26, borderRadius: 2, background: "linear-gradient(135deg, #6b4420 0%, #8a5a28 30%, #7a4a20 50%, #5a3a18 70%, #6b4420 100%)", opacity: 0.5, zIndex: 0 } }),
+                  [70, 164].map((cx2, i4) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: cx2 - 13, top: 65 - 13, width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(160deg, #2a2a2a 0%, #111 60%, #000 100%)", border: "1px solid #333", boxShadow: "0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08)", zIndex: 0 }, children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { style: { position: "absolute", inset: 3, borderRadius: "50%", background: "linear-gradient(160deg, #222 0%, #141414 50%, #0a0a0a 100%)", boxShadow: "inset 0 -1px 2px rgba(255,255,255,0.06), inset 0 1px 2px rgba(0,0,0,0.6)", border: "0.5px solid #2a2a2a" }, children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: "50%", top: 2, bottom: 2, width: 2, transform: "translateX(-50%)", background: "linear-gradient(180deg, #333 0%, #1a1a1a 100%)", borderRadius: 1, boxShadow: "0 0 1px rgba(0,0,0,0.5)" } }),
+                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", top: "50%", left: 2, right: 2, height: 2, transform: "translateY(-50%)", background: "linear-gradient(90deg, #333 0%, #1a1a1a 100%)", borderRadius: 1, boxShadow: "0 0 1px rgba(0,0,0,0.5)" } }),
+                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: "50%", top: "50%", width: 7, height: 7, transform: "translate(-50%, -50%)", borderRadius: "50%", background: "linear-gradient(145deg, #2a2a2a 0%, #080808 100%)", border: "0.5px solid #333", boxShadow: "0 1px 2px rgba(0,0,0,0.7), inset 0 0.5px 0.5px rgba(255,255,255,0.1)" } })
                   ] }) }, i4)),
-                  loadedTape ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { position: "relative", zIndex: 1 }, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(DeckTape3D, { tape: loadedTape, playing: isPlaying, loading: infiniteLoading }) }) : null
+                  loadedTape ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "relative", zIndex: 1 }, children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(DeckTape3D, { tape: loadedTape, playing: isPlaying, loading: infiniteLoading }) }) : null
                 ]
               }
             ),
-            dragging3D && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
+            dragging3D && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: {
               position: "absolute",
               inset: 0,
               borderRadius: 5,
@@ -78086,7 +80853,7 @@ function TapesTable({ mixtape }) {
       ),
       deckPortal
     ),
-    loadedTape?.isInfinite && loadedTape.author !== "mixtape" && (loadedTape.infiniteHistory?.length ?? 0) > 0 && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    loadedTape?.isInfinite && loadedTape.author !== "mixtape" && (loadedTape.infiniteHistory?.length ?? 0) > 0 && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       MixtapeOverlayEffect,
       {
         elementId: "infinite-tracklist",
@@ -78110,7 +80877,7 @@ function TapesTable({ mixtape }) {
         }
       }
     ),
-    mixtapeData && loadedTape?.isInfinite && loadedTape?.author === "mixtape" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    mixtapeData && loadedTape?.isInfinite && loadedTape?.author === "mixtape" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       MixtapeOverlayEffect,
       {
         mixtape: mixtapeData,
@@ -78123,7 +80890,7 @@ function TapesTable({ mixtape }) {
         }
       }
     ),
-    playlistTracks && loadedTape?.isPlaylist && loadedTape.playlistId && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    playlistTracks && loadedTape?.isPlaylist && loadedTape.playlistId && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       MixtapeOverlayEffect,
       {
         elementId: "playlist-tracklist",
@@ -78137,7 +80904,7 @@ function TapesTable({ mixtape }) {
         }
       }
     ),
-    showMixtapeCreator && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    showMixtapeCreator && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       MixtapeCreator,
       {
         initialKeywords: mixtapeKeywords,
@@ -78221,8 +80988,8 @@ function MixtapeOverlayEffect({
   onSelectTrack,
   elementId = "mixtape-tracklist"
 }) {
-  const elRef = import_react11.default.useRef(null);
-  (0, import_react11.useEffect)(() => {
+  const elRef = import_react12.default.useRef(null);
+  (0, import_react12.useEffect)(() => {
     let el = document.getElementById(elementId);
     if (!el) {
       el = document.createElement("div");
@@ -78235,7 +81002,7 @@ function MixtapeOverlayEffect({
       elRef.current = null;
     };
   }, [elementId]);
-  (0, import_react11.useEffect)(() => {
+  (0, import_react12.useEffect)(() => {
     const el = elRef.current;
     if (!el) return;
     const prevOpacity = el.style.opacity;
@@ -78246,7 +81013,7 @@ function MixtapeOverlayEffect({
 }
 
 // src/tapes/index.tsx
-var import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
 var MIXTAPE_STORAGE_KEY = "jeem_mixtape";
 function getMixtapeFromStorage() {
   try {
@@ -78265,7 +81032,7 @@ var initialMixtape = showMixtape ? getMixtapeFromStorage() : void 0;
 var container = document.getElementById("tapes-root");
 if (container) {
   const root = (0, import_client.createRoot)(container);
-  root.render(/* @__PURE__ */ (0, import_jsx_runtime10.jsx)(TapesTable, { mixtape: initialMixtape }));
+  root.render(/* @__PURE__ */ (0, import_jsx_runtime11.jsx)(TapesTable, { mixtape: initialMixtape }));
 }
 /*! Bundled license information:
 
