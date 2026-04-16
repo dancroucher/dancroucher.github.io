@@ -3,6 +3,10 @@
   "buildCommand": "npm run build",
   "routes": [
     {
+      "src": "/api/list-files",
+      "dest": "/api/list-files.js"
+    },
+    {
       "src": "/api/search",
       "dest": "/api/search.js"
     },
