@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
@@ -47,11 +48,16 @@ export interface Recorder3DProps {
   rotationY?: number;
   /** Target world-unit width. Default = 2.5 × TAPE_W. */
   targetWidth?: number;
+  /** Whether the cassette lid is flipped open. Defaults to true for now. */
+  lidOpen?: boolean;
+  /** Fully-open lid angle in radians. Negative = lifts toward the viewer. */
+  lidOpenAngle?: number;
 }
 
 interface LoadedRecorder {
   group: THREE.Group;
   size: THREE.Vector3; // scaled bbox size, used for the collider
+  lidPivot: THREE.Object3D | null;
 }
 
 export function Recorder3D({
@@ -59,8 +65,12 @@ export function Recorder3D({
   rotationX = 0,
   rotationY = 0,
   targetWidth = DEFAULT_TARGET_WIDTH,
+  lidOpen: lidOpenProp = false,
+  lidOpenAngle = -Math.PI / 4,
 }: Recorder3DProps) {
   const [loaded, setLoaded] = useState<LoadedRecorder | null>(null);
+  // Local state so a click on the recorder can toggle the lid for diagnosis.
+  const [lidOpen, setLidOpen] = useState(lidOpenProp);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,17 +112,58 @@ export function Recorder3D({
         clone.position.z -= scaledCenter.z;
         clone.position.y += REST_LIFT - scaledBox.min.y;
 
+        // Refresh world matrices after the reposition so child bboxes are correct.
+        clone.updateMatrixWorld(true);
+
+        // Wrap the cassette lid in a pivot group at its hinge edge so we can animate
+        // it opening. Hinge is along the -Z edge of the lid (opposite the +Z button
+        // face); making the pivot a direct child of `clone` keeps its local X axis
+        // aligned with world X, so rotation.x rotates around the hinge.
+        let lidPivot: THREE.Object3D | null = null;
+        const lidMesh = clone.getObjectByName('tapelid_low');
+        if (lidMesh) {
+          const lidBox = new THREE.Box3().setFromObject(lidMesh);
+          const hingeWorld = new THREE.Vector3(
+            (lidBox.min.x + lidBox.max.x) / 2,
+            lidBox.min.y,
+            lidBox.min.z,
+          );
+          const pivot = new THREE.Group();
+          pivot.name = '__lidPivot';
+          pivot.position.copy(clone.worldToLocal(hingeWorld.clone()));
+          clone.add(pivot);
+          pivot.attach(lidMesh); // preserves the lid's current world transform
+          lidPivot = pivot;
+          console.log(
+            '[Recorder3D] lid pivot wrapped — hinge world:',
+            hingeWorld.x.toFixed(2), hingeWorld.y.toFixed(2), hingeWorld.z.toFixed(2),
+            'local:', pivot.position.x.toFixed(2), pivot.position.y.toFixed(2), pivot.position.z.toFixed(2),
+          );
+        } else {
+          console.warn('[Recorder3D] tapelid_low not found — lid animation disabled');
+        }
+
         console.log(
           '[Recorder3D] scale:', scale.toFixed(4),
           'scaled size:', scaledSize.x.toFixed(2), scaledSize.y.toFixed(2), scaledSize.z.toFixed(2),
           'centred at:', clone.position.x.toFixed(2), clone.position.y.toFixed(2), clone.position.z.toFixed(2),
         );
 
-        setLoaded({ group: clone as unknown as THREE.Group, size: scaledSize });
+        setLoaded({ group: clone as unknown as THREE.Group, size: scaledSize, lidPivot });
       })
       .catch(() => {/* already logged */});
     return () => { cancelled = true; };
   }, [targetWidth]);
+
+  // Smoothly ease the lid toward its target angle each frame. Rate 1.5 gives a
+  // ~2s tween so the motion is easy to watch during tuning.
+  useFrame((_, dt) => {
+    const pivot = loaded?.lidPivot;
+    if (!pivot) return;
+    const target = lidOpen ? lidOpenAngle : 0;
+    const k = 1 - Math.exp(-dt * 1.5);
+    pivot.rotation.x += (target - pivot.rotation.x) * k;
+  });
 
   if (!loaded) return null;
 
@@ -131,7 +182,14 @@ export function Recorder3D({
         args={[size.x / 2, size.y / 2, size.z / 2]}
         position={[0, colliderY, 0]}
       />
-      <primitive object={group} />
+      <primitive
+        object={group}
+        onClick={(e: { stopPropagation: () => void }) => {
+          e.stopPropagation();
+          setLidOpen((v) => !v);
+          console.log('[Recorder3D] lid toggled →', !lidOpen);
+        }}
+      />
     </RigidBody>
   );
 }

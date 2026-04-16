@@ -78050,9 +78050,12 @@ function Recorder3D({
   position = [0, 0, 0],
   rotationX = 0,
   rotationY = 0,
-  targetWidth = DEFAULT_TARGET_WIDTH
+  targetWidth = DEFAULT_TARGET_WIDTH,
+  lidOpen: lidOpenProp = false,
+  lidOpenAngle = -Math.PI / 4
 }) {
   const [loaded, setLoaded] = (0, import_react10.useState)(null);
+  const [lidOpen, setLidOpen] = (0, import_react10.useState)(lidOpenProp);
   (0, import_react10.useEffect)(() => {
     let cancelled = false;
     loadRecorderCached().then((scene) => {
@@ -78088,6 +78091,35 @@ function Recorder3D({
       clone2.position.x -= scaledCenter.x;
       clone2.position.z -= scaledCenter.z;
       clone2.position.y += REST_LIFT - scaledBox.min.y;
+      clone2.updateMatrixWorld(true);
+      let lidPivot = null;
+      const lidMesh = clone2.getObjectByName("tapelid_low");
+      if (lidMesh) {
+        const lidBox = new Box3().setFromObject(lidMesh);
+        const hingeWorld = new Vector3(
+          (lidBox.min.x + lidBox.max.x) / 2,
+          lidBox.min.y,
+          lidBox.min.z
+        );
+        const pivot = new Group();
+        pivot.name = "__lidPivot";
+        pivot.position.copy(clone2.worldToLocal(hingeWorld.clone()));
+        clone2.add(pivot);
+        pivot.attach(lidMesh);
+        lidPivot = pivot;
+        console.log(
+          "[Recorder3D] lid pivot wrapped \u2014 hinge world:",
+          hingeWorld.x.toFixed(2),
+          hingeWorld.y.toFixed(2),
+          hingeWorld.z.toFixed(2),
+          "local:",
+          pivot.position.x.toFixed(2),
+          pivot.position.y.toFixed(2),
+          pivot.position.z.toFixed(2)
+        );
+      } else {
+        console.warn("[Recorder3D] tapelid_low not found \u2014 lid animation disabled");
+      }
       console.log(
         "[Recorder3D] scale:",
         scale.toFixed(4),
@@ -78100,13 +78132,20 @@ function Recorder3D({
         clone2.position.y.toFixed(2),
         clone2.position.z.toFixed(2)
       );
-      setLoaded({ group: clone2, size: scaledSize });
+      setLoaded({ group: clone2, size: scaledSize, lidPivot });
     }).catch(() => {
     });
     return () => {
       cancelled = true;
     };
   }, [targetWidth]);
+  useFrame((_2, dt) => {
+    const pivot = loaded?.lidPivot;
+    if (!pivot) return;
+    const target = lidOpen ? lidOpenAngle : 0;
+    const k3 = 1 - Math.exp(-dt * 1.5);
+    pivot.rotation.x += (target - pivot.rotation.x) * k3;
+  });
   if (!loaded) return null;
   const { group, size } = loaded;
   const colliderY = REST_LIFT + size.y / 2;
@@ -78125,7 +78164,17 @@ function Recorder3D({
             position: [0, colliderY, 0]
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("primitive", { object: group })
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+          "primitive",
+          {
+            object: group,
+            onClick: (e3) => {
+              e3.stopPropagation();
+              setLidOpen((v5) => !v5);
+              console.log("[Recorder3D] lid toggled \u2192", !lidOpen);
+            }
+          }
+        )
       ]
     }
   );
@@ -78135,6 +78184,7 @@ var init_Recorder3D = __esm({
   "src/tapes/Recorder3D.tsx"() {
     "use strict";
     import_react10 = __toESM(require_react(), 1);
+    init_react_three_fiber_esm();
     init_three_module();
     init_GLTFLoader();
     init_react_three_rapier_esm();
