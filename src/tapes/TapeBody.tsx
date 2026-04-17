@@ -12,6 +12,7 @@ interface DragState {
   tapeId: string | null;
   targetX: number;
   targetZ: number;
+  targetYaw?: number | null;
 }
 
 interface TapeBodyProps {
@@ -332,6 +333,8 @@ export function TapeBody({
   const smoothPos = useRef({ x: 0, z: 0 });
   const velocity = useRef({ x: 0, z: 0 });
   const savedYRot = useRef(0);
+  // Smoothed yaw used while dragging — tweens between savedYRot and drag.targetYaw.
+  const currentYaw = useRef(0);
 
   // Pick texture variant — use stored field if available, fall back to seed-based for legacy tapes
   const seed = tape.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
@@ -424,6 +427,7 @@ export function TapeBody({
         const r = body.rotation();
         const euler = new THREE.Euler().setFromQuaternion(new THREE.Quaternion(r.x, r.y, r.z, r.w), 'YXZ');
         savedYRot.current = euler.y;
+        currentYaw.current = euler.y;
       }
 
       body.setLinvel({ x: 0, y: 0, z: 0 }, true);
@@ -451,8 +455,17 @@ export function TapeBody({
         z: smoothPos.current.z,
       }, true);
 
+      // Tween yaw toward snap target (or to the saved drag yaw).
+      const yawTarget = drag.targetYaw ?? savedYRot.current;
+      let yawDiff = yawTarget - currentYaw.current;
+      // Take the short way around the circle.
+      while (yawDiff > Math.PI) yawDiff -= 2 * Math.PI;
+      while (yawDiff < -Math.PI) yawDiff += 2 * Math.PI;
+      const rotK = 1 - Math.exp(-delta * 6); // ~0.17s ease
+      currentYaw.current += yawDiff * rotK;
+
       const q = new THREE.Quaternion();
-      q.setFromEuler(new THREE.Euler(tiltX, savedYRot.current, tiltZ));
+      q.setFromEuler(new THREE.Euler(tiltX, currentYaw.current, tiltZ));
       body.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }, true);
     } else if (wasDragging.current) {
       // Release: start a gentle fall instead of snapping

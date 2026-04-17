@@ -59,4 +59,7 @@ export interface DragState {
   tapeId: string | null;
   targetX: number;
   targetZ: number;
+  // Optional snap-to yaw — set by hover detection (e.g. recorder footprint) so
+  // the dragged tape rotates to match the target's orientation.
+  targetYaw?: number | null;
 }

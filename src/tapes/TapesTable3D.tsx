@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useRef, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
+import React, { Suspense, useCallback, useRef, useEffect, useMemo, useState, forwardRef, useImperativeHandle } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { MapControls, Stats } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
@@ -14,7 +14,16 @@ interface DragState {
   tapeId: string | null;
   targetX: number;
   targetZ: number;
+  targetYaw?: number | null;
 }
+
+// Recorder placement — kept in sync with the <Recorder3D> props below.
+const RECORDER_POS: [number, number, number] = [-18, 0, 8];
+const RECORDER_ROT_Y = Math.PI / 6;
+// Half-extents of the recorder *hover trigger* zone in local axes. Larger than
+// the physical footprint so the lid pops open before the tape is right on top.
+const RECORDER_HALF_W = 13;
+const RECORDER_HALF_D = 8;
 
 export interface TapesTable3DHandle {
   startDrag: (tapeId: string) => void;
@@ -43,8 +52,29 @@ function SceneContents({
   const controlsRef = useRef<any>(null);
 
   // Mutable drag state — no React re-renders during drag
-  const drag = useMemo<DragState>(() => ({ tapeId: null, targetX: 0, targetZ: 0 }), []);
+  const drag = useMemo<DragState>(() => ({ tapeId: null, targetX: 0, targetZ: 0, targetYaw: null }), []);
   const bounceTapeId = useRef<string | null>(null);
+
+  // Open the recorder lid while a dragged tape hovers over its footprint.
+  const [tapeOverRecorder, setTapeOverRecorder] = useState(false);
+  useFrame(() => {
+    let isOver = false;
+    if (drag.tapeId) {
+      // Transform drag target into the recorder's local frame (inverse Y rotation),
+      // then axis-align against its half-extents.
+      const dx = drag.targetX - RECORDER_POS[0];
+      const dz = drag.targetZ - RECORDER_POS[2];
+      const cos = Math.cos(-RECORDER_ROT_Y);
+      const sin = Math.sin(-RECORDER_ROT_Y);
+      const lx = dx * cos - dz * sin;
+      const lz = dx * sin + dz * cos;
+      isOver = Math.abs(lx) < RECORDER_HALF_W && Math.abs(lz) < RECORDER_HALF_D;
+    }
+    // Publish snap-yaw so TapeBody's per-frame rotation matches the recorder.
+    // Add π so the opposite cassette edge faces the recorder slot (flip around Y).
+    drag.targetYaw = isOver ? RECORDER_ROT_Y + Math.PI : null;
+    if (isOver !== tapeOverRecorder) setTapeOverRecorder(isOver);
+  });
 
   const pointerState = useRef({
     downTapeId: null as string | null,
@@ -351,7 +381,7 @@ function SceneContents({
         <Physics gravity={[0, -400, 0]} timeStep={1 / 60}>
           <TableSurface />
           {/* Recorder — lower-left, partially running off the table edge */}
-          <Recorder3D position={[-18, 0, 8]} rotationY={Math.PI / 6} />
+          <Recorder3D position={RECORDER_POS} rotationY={RECORDER_ROT_Y} lidOpen={tapeOverRecorder} />
           {tableTapes.map(tape => (
             <TapeBody
               key={tape.id}

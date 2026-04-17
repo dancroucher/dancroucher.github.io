@@ -55950,12 +55950,12 @@ var require_use_sync_external_store_shim_production = __commonJS({
       return x3 === y2 && (0 !== x3 || 1 / x3 === 1 / y2) || x3 !== x3 && y2 !== y2;
     }
     var objectIs = "function" === typeof Object.is ? Object.is : is2;
-    var useState12 = React15.useState;
+    var useState13 = React15.useState;
     var useEffect13 = React15.useEffect;
     var useLayoutEffect5 = React15.useLayoutEffect;
     var useDebugValue = React15.useDebugValue;
     function useSyncExternalStore$2(subscribe, getSnapshot) {
-      var value = getSnapshot(), _useState = useState12({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
+      var value = getSnapshot(), _useState = useState13({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
       useLayoutEffect5(
         function() {
           inst.value = value;
@@ -75201,6 +75201,7 @@ function TapeBody({
   const smoothPos = (0, import_react7.useRef)({ x: 0, z: 0 });
   const velocity = (0, import_react7.useRef)({ x: 0, z: 0 });
   const savedYRot = (0, import_react7.useRef)(0);
+  const currentYaw = (0, import_react7.useRef)(0);
   const seed = tape.id.split("").reduce((a3, c3) => a3 + c3.charCodeAt(0), 0);
   const variant = tape.textureVariant || VARIANTS[seed % VARIANTS.length];
   const meshName = VARIANT_TO_MESH["a"];
@@ -75271,6 +75272,7 @@ function TapeBody({
         const r3 = body.rotation();
         const euler = new Euler().setFromQuaternion(new Quaternion(r3.x, r3.y, r3.z, r3.w), "YXZ");
         savedYRot.current = euler.y;
+        currentYaw.current = euler.y;
       }
       body.setLinvel({ x: 0, y: 0, z: 0 }, true);
       body.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -75292,8 +75294,14 @@ function TapeBody({
         y: DRAG_HEIGHT,
         z: smoothPos.current.z
       }, true);
+      const yawTarget = drag.targetYaw ?? savedYRot.current;
+      let yawDiff = yawTarget - currentYaw.current;
+      while (yawDiff > Math.PI) yawDiff -= 2 * Math.PI;
+      while (yawDiff < -Math.PI) yawDiff += 2 * Math.PI;
+      const rotK = 1 - Math.exp(-delta * 6);
+      currentYaw.current += yawDiff * rotK;
       const q2 = new Quaternion();
-      q2.setFromEuler(new Euler(tiltX, savedYRot.current, tiltZ));
+      q2.setFromEuler(new Euler(tiltX, currentYaw.current, tiltZ));
       body.setRotation({ x: q2.x, y: q2.y, z: q2.z, w: q2.w }, true);
     } else if (wasDragging.current) {
       wasDragging.current = false;
@@ -78057,6 +78065,9 @@ function Recorder3D({
   const [loaded, setLoaded] = (0, import_react10.useState)(null);
   const [lidOpen, setLidOpen] = (0, import_react10.useState)(lidOpenProp);
   (0, import_react10.useEffect)(() => {
+    setLidOpen(lidOpenProp);
+  }, [lidOpenProp]);
+  (0, import_react10.useEffect)(() => {
     let cancelled = false;
     loadRecorderCached().then((scene) => {
       if (cancelled) return;
@@ -78143,7 +78154,7 @@ function Recorder3D({
     const pivot = loaded?.lidPivot;
     if (!pivot) return;
     const target = lidOpen ? lidOpenAngle : 0;
-    const k3 = 1 - Math.exp(-dt * 1.5);
+    const k3 = 1 - Math.exp(-dt * 8);
     pivot.rotation.x += (target - pivot.rotation.x) * k3;
   });
   if (!loaded) return null;
@@ -78219,8 +78230,23 @@ function SceneContents({
 }) {
   const { camera, gl, scene } = useThree();
   const controlsRef = (0, import_react11.useRef)(null);
-  const drag = (0, import_react11.useMemo)(() => ({ tapeId: null, targetX: 0, targetZ: 0 }), []);
+  const drag = (0, import_react11.useMemo)(() => ({ tapeId: null, targetX: 0, targetZ: 0, targetYaw: null }), []);
   const bounceTapeId = (0, import_react11.useRef)(null);
+  const [tapeOverRecorder, setTapeOverRecorder] = (0, import_react11.useState)(false);
+  useFrame(() => {
+    let isOver = false;
+    if (drag.tapeId) {
+      const dx = drag.targetX - RECORDER_POS[0];
+      const dz = drag.targetZ - RECORDER_POS[2];
+      const cos = Math.cos(-RECORDER_ROT_Y);
+      const sin = Math.sin(-RECORDER_ROT_Y);
+      const lx = dx * cos - dz * sin;
+      const lz = dx * sin + dz * cos;
+      isOver = Math.abs(lx) < RECORDER_HALF_W && Math.abs(lz) < RECORDER_HALF_D;
+    }
+    drag.targetYaw = isOver ? RECORDER_ROT_Y + Math.PI : null;
+    if (isOver !== tapeOverRecorder) setTapeOverRecorder(isOver);
+  });
   const pointerState = (0, import_react11.useRef)({
     downTapeId: null,
     active: false,
@@ -78484,7 +78510,7 @@ function SceneContents({
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("pointLight", { position: [-8, 6, -4], intensity: 0.25, color: "#ffe8d6" }),
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: null, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(Physics, { gravity: [0, -400, 0], timeStep: 1 / 60, children: [
       /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableSurface, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Recorder3D, { position: [-18, 0, 8], rotationY: Math.PI / 6 }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Recorder3D, { position: RECORDER_POS, rotationY: RECORDER_ROT_Y, lidOpen: tapeOverRecorder }),
       tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
         TapeBody,
         {
@@ -78547,7 +78573,7 @@ function TapesTable3D(props) {
     )
   ] });
 }
-var import_react11, import_jsx_runtime9;
+var import_react11, import_jsx_runtime9, RECORDER_POS, RECORDER_ROT_Y, RECORDER_HALF_W, RECORDER_HALF_D;
 var init_TapesTable3D = __esm({
   "src/tapes/TapesTable3D.tsx"() {
     "use strict";
@@ -78561,6 +78587,10 @@ var init_TapesTable3D = __esm({
     init_Recorder3D();
     init_coords();
     import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
+    RECORDER_POS = [-18, 0, 8];
+    RECORDER_ROT_Y = Math.PI / 6;
+    RECORDER_HALF_W = 13;
+    RECORDER_HALF_D = 8;
   }
 });
 

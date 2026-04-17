@@ -72,6 +72,11 @@ export function Recorder3D({
   // Local state so a click on the recorder can toggle the lid for diagnosis.
   const [lidOpen, setLidOpen] = useState(lidOpenProp);
 
+  // Sync prop → state so parent can drive the lid (e.g. open while a tape hovers).
+  useEffect(() => {
+    setLidOpen(lidOpenProp);
+  }, [lidOpenProp]);
+
   useEffect(() => {
     let cancelled = false;
     loadRecorderCached()
@@ -155,13 +160,13 @@ export function Recorder3D({
     return () => { cancelled = true; };
   }, [targetWidth]);
 
-  // Smoothly ease the lid toward its target angle each frame. Rate 1.5 gives a
-  // ~2s tween so the motion is easy to watch during tuning.
+  // Smoothly ease the lid toward its target angle each frame. Rate 8 gives a
+  // ~0.4s tween — snaps open crisply while a tape is dragged over.
   useFrame((_, dt) => {
     const pivot = loaded?.lidPivot;
     if (!pivot) return;
     const target = lidOpen ? lidOpenAngle : 0;
-    const k = 1 - Math.exp(-dt * 1.5);
+    const k = 1 - Math.exp(-dt * 8);
     pivot.rotation.x += (target - pivot.rotation.x) * k;
   });
 
