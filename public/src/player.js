@@ -422,7 +422,6 @@ function doStart() {
     DOM.startContainer.style.display = "none";
     DOM.songContainer.style.display = "block";
     DOM.padinfo.style.display = "flex";
-    DOM.tapeDeck.style.display = "block";
     DOM.bgYoutube.style.display = "block";
 
     if (AppState.infiniteTape) {
@@ -502,6 +501,8 @@ const Inactivity = {
             if (tracklist) tracklist.style.opacity = "0";
             const plTracklist = document.getElementById('playlist-tracklist');
             if (plTracklist) plTracklist.style.opacity = "0";
+            const infoPanel = document.querySelector('.tape-info-panel');
+            if (infoPanel) infoPanel.style.opacity = "0";
             this._visible = false;
             document.body.style.cursor = "none";
         }
@@ -517,6 +518,8 @@ const Inactivity = {
             if (tracklist) tracklist.style.opacity = "1";
             const plTracklist = document.getElementById('playlist-tracklist');
             if (plTracklist) plTracklist.style.opacity = "1";
+            const infoPanel = document.querySelector('.tape-info-panel');
+            if (infoPanel) infoPanel.style.opacity = "1";
             this._visible = true;
             document.body.style.cursor = "default";
         }

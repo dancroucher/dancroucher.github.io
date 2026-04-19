@@ -138,14 +138,15 @@ a:hover {
 }
 
 .padinfo {
-  padding: 0px 32px 0px 270px;
+  padding: 0px 32px 0px 38px;
   position: fixed;
   bottom: 2.5%;
   left: 0;
   right: 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
+  gap: 16px;
   z-index: 10000;
   pointer-events: none;
   transition: opacity 1s ease;

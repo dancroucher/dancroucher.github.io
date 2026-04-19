@@ -13,11 +13,26 @@ interface DragState {
   targetX: number;
   targetZ: number;
   targetYaw?: number | null;
+  targetPitch?: number | null;
+  targetY?: number | null;
 }
+
+// Matches SnapState in coords.ts — inlined to avoid bundler issues
+interface SnapState {
+  tapeId: string | null;
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+}
+
+// Seconds to tween from release pose into the loaded-in-recorder pose.
+const SNAP_DURATION = 0.4;
 
 interface TapeBodyProps {
   tape: Tape;
   drag: DragState; // shared mutable object — read in useFrame, no re-renders
+  snap: SnapState; // shared mutable snap target — owned by one tape at a time
   menuOpen?: boolean;
   onMenuAction?: (tapeId: string, action: 'link' | 'rewind' | 'remove') => void;
   isNew?: boolean;
@@ -322,7 +337,7 @@ export function stampTitle(baseColor: THREE.Texture, title: string, variant: str
 }
 
 export function TapeBody({
-  tape, drag, menuOpen, onMenuAction, isNew, bounceTapeId,
+  tape, drag, snap, menuOpen, onMenuAction, isNew, bounceTapeId,
 }: TapeBodyProps) {
   const bodyRef = useRef<RapierRigidBody>(null);
   const groupRef = useRef<THREE.Group>(null);
@@ -335,6 +350,17 @@ export function TapeBody({
   const savedYRot = useRef(0);
   // Smoothed yaw used while dragging — tweens between savedYRot and drag.targetYaw.
   const currentYaw = useRef(0);
+  // Smoothed pitch around body X — tweens to drag.targetPitch (e.g. lid angle over recorder).
+  const currentPitch = useRef(0);
+  // Smoothed drag hover height — tweens to drag.targetY so the tape lifts over
+  // the open recorder lid instead of clipping through it.
+  const currentDragY = useRef(DRAG_HEIGHT);
+  // Snap-into-recorder state (post-drop tween + pinning).
+  const isSnapping = useRef(false);
+  const isLoaded = useRef(false);
+  const snapElapsed = useRef(0);
+  const snapStart = useRef({ x: 0, y: 0, z: 0, qx: 0, qy: 0, qz: 0, qw: 1 });
+  const snapTarget = useRef({ x: 0, y: 0, z: 0, yaw: 0 });
 
   // Pick texture variant — use stored field if available, fall back to seed-based for legacy tapes
   const seed = tape.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
@@ -406,6 +432,14 @@ export function TapeBody({
     if (isDragged) {
       if (!wasDragging.current) {
         wasDragging.current = true;
+        // Picking up a loaded/snapping tape releases the snap slot.
+        const wasInRecorder = isLoaded.current || isSnapping.current;
+        if (wasInRecorder) {
+          if (isLoaded.current) body.setBodyType(0, true);
+          isLoaded.current = false;
+          isSnapping.current = false;
+          if (snap.tapeId === tape.id) snap.tapeId = null;
+        }
         // If the body is far from the drag target (e.g. just ejected from deck),
         // teleport directly to the target instead of lerping from spawn position
         const t = body.translation();
@@ -423,11 +457,16 @@ export function TapeBody({
         }
         velocity.current.x = 0;
         velocity.current.z = 0;
+        currentDragY.current = DRAG_HEIGHT;
         // Capture current Y rotation to preserve during drag
         const r = body.rotation();
         const euler = new THREE.Euler().setFromQuaternion(new THREE.Quaternion(r.x, r.y, r.z, r.w), 'YXZ');
-        savedYRot.current = euler.y;
+        // If picked up from the recorder, target the tape's original yaw so
+        // leaving the trigger zone tweens back to its pre-load rotation.
+        // Otherwise preserve the tape's current table-rest yaw.
+        savedYRot.current = wasInRecorder ? angleRad : euler.y;
         currentYaw.current = euler.y;
+        currentPitch.current = 0;
       }
 
       body.setLinvel({ x: 0, y: 0, z: 0 }, true);
@@ -449,12 +488,6 @@ export function TapeBody({
       const tiltX = Math.max(-maxTilt, Math.min(maxTilt, velocity.current.z * 0.03));
       const tiltZ = Math.max(-maxTilt, Math.min(maxTilt, -velocity.current.x * 0.03));
 
-      body.setTranslation({
-        x: smoothPos.current.x,
-        y: DRAG_HEIGHT,
-        z: smoothPos.current.z,
-      }, true);
-
       // Tween yaw toward snap target (or to the saved drag yaw).
       const yawTarget = drag.targetYaw ?? savedYRot.current;
       let yawDiff = yawTarget - currentYaw.current;
@@ -464,23 +497,105 @@ export function TapeBody({
       const rotK = 1 - Math.exp(-delta * 6); // ~0.17s ease
       currentYaw.current += yawDiff * rotK;
 
-      const q = new THREE.Quaternion();
-      q.setFromEuler(new THREE.Euler(tiltX, currentYaw.current, tiltZ));
-      body.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }, true);
-    } else if (wasDragging.current) {
-      // Release: start a gentle fall instead of snapping
-      wasDragging.current = false;
-      falling.current = true;
+      // Tween pitch toward snap target (0 means flat).
+      const pitchTarget = drag.targetPitch ?? 0;
+      currentPitch.current += (pitchTarget - currentPitch.current) * rotK;
+
+      // Tween hover Y toward target (lifts over open lid).
+      const yTarget = drag.targetY ?? DRAG_HEIGHT;
+      currentDragY.current += (yTarget - currentDragY.current) * rotK;
+
       body.setTranslation({
         x: smoothPos.current.x,
-        y: DRAG_HEIGHT,
+        y: currentDragY.current,
         z: smoothPos.current.z,
       }, true);
-      body.setGravityScale(0.15, true);
-      const vx = velocity.current.x * 0.4;
-      const vz = velocity.current.z * 0.4;
-      body.setLinvel({ x: vx, y: -2, z: vz }, true);
-      body.setAngvel({ x: vz * 0.3, y: 0, z: -vx * 0.3 }, true);
+
+      const q = new THREE.Quaternion();
+      q.setFromEuler(new THREE.Euler(tiltX, currentYaw.current, tiltZ));
+      if (currentPitch.current !== 0) {
+        // Post-multiply: rotation applied in the body's pre-yaw local X frame,
+        // so after yaw+π, the tape's leading edge (facing the slot) tips down.
+        const pitchQ = new THREE.Quaternion().setFromAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          currentPitch.current,
+        );
+        q.multiply(pitchQ);
+      }
+      body.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }, true);
+    } else if (wasDragging.current) {
+      wasDragging.current = false;
+      if (snap.tapeId === tape.id) {
+        // Dropped over the recorder — tween into the loaded pose instead of falling.
+        isSnapping.current = true;
+        snapElapsed.current = 0;
+        const t = body.translation();
+        const r = body.rotation();
+        snapStart.current = { x: t.x, y: t.y, z: t.z, qx: r.x, qy: r.y, qz: r.z, qw: r.w };
+        snapTarget.current = { x: snap.x, y: snap.y, z: snap.z, yaw: snap.yaw };
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        body.setGravityScale(0, true);
+      } else {
+        // Release: start a gentle fall instead of snapping
+        falling.current = true;
+        body.setTranslation({
+          x: smoothPos.current.x,
+          y: currentDragY.current,
+          z: smoothPos.current.z,
+        }, true);
+        body.setGravityScale(0.15, true);
+        const vx = velocity.current.x * 0.4;
+        const vz = velocity.current.z * 0.4;
+        body.setLinvel({ x: vx, y: -2, z: vz }, true);
+        body.setAngvel({ x: vz * 0.3, y: 0, z: -vx * 0.3 }, true);
+      }
+    }
+
+    // Snap-into-recorder tween. Eases translation + rotation from release pose
+    // to the loaded pose, then pins via the isLoaded branch below.
+    if (isSnapping.current && !isDragged) {
+      snapElapsed.current += delta;
+      const t01 = Math.min(1, snapElapsed.current / SNAP_DURATION);
+      const e = 1 - Math.pow(1 - t01, 3); // ease-out cubic
+      const s = snapStart.current;
+      const g = snapTarget.current;
+      body.setTranslation({
+        x: s.x + (g.x - s.x) * e,
+        y: s.y + (g.y - s.y) * e,
+        z: s.z + (g.z - s.z) * e,
+      }, true);
+      const startQ = new THREE.Quaternion(s.qx, s.qy, s.qz, s.qw);
+      const endQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, g.yaw, 0));
+      const q = startQ.clone().slerp(endQ, e);
+      body.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }, true);
+      body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      if (t01 >= 1) {
+        isSnapping.current = false;
+        isLoaded.current = true;
+        // Switch to kinematic while loaded — no physics contacts, no jitter.
+        body.setBodyType(2, true);
+      }
+    }
+
+    // Loaded: pin to snap pose, or release if another tape has taken the slot.
+    if (isLoaded.current && !isDragged && !isSnapping.current) {
+      if (snap.tapeId !== tape.id) {
+        // Another tape took the recorder slot — fall.
+        isLoaded.current = false;
+        body.setBodyType(0, true);
+        falling.current = true;
+        body.setGravityScale(1, true);
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      } else {
+        body.setTranslation({ x: snap.x, y: snap.y, z: snap.z }, true);
+        const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, snap.yaw, 0));
+        body.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }, true);
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      }
     }
 
     // Gradually restore gravity as the tape falls

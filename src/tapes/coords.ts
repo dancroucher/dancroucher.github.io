@@ -62,4 +62,21 @@ export interface DragState {
   // Optional snap-to yaw — set by hover detection (e.g. recorder footprint) so
   // the dragged tape rotates to match the target's orientation.
   targetYaw?: number | null;
+  // Optional snap-to pitch around the tape's body X axis — tips the tape's
+  // leading edge down to match the open recorder lid angle.
+  targetPitch?: number | null;
+  // Optional override for the drag hover height. When null/undefined the tape
+  // rides at DRAG_HEIGHT; set to a higher value (e.g. over the open recorder
+  // lid) to lift the tape so its tipped leading edge clears obstacles.
+  targetY?: number | null;
+}
+
+// Post-drop snap target — when a tape is dropped into the recorder, TapeBody
+// tweens its body to this pose then pins it there ("loaded").
+export interface SnapState {
+  tapeId: string | null;
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
 }

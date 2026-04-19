@@ -75187,6 +75187,7 @@ function stampTitle(baseColor, title, variant, tape) {
 function TapeBody({
   tape,
   drag,
+  snap,
   menuOpen,
   onMenuAction,
   isNew,
@@ -75202,6 +75203,13 @@ function TapeBody({
   const velocity = (0, import_react7.useRef)({ x: 0, z: 0 });
   const savedYRot = (0, import_react7.useRef)(0);
   const currentYaw = (0, import_react7.useRef)(0);
+  const currentPitch = (0, import_react7.useRef)(0);
+  const currentDragY = (0, import_react7.useRef)(DRAG_HEIGHT);
+  const isSnapping = (0, import_react7.useRef)(false);
+  const isLoaded = (0, import_react7.useRef)(false);
+  const snapElapsed = (0, import_react7.useRef)(0);
+  const snapStart = (0, import_react7.useRef)({ x: 0, y: 0, z: 0, qx: 0, qy: 0, qz: 0, qw: 1 });
+  const snapTarget = (0, import_react7.useRef)({ x: 0, y: 0, z: 0, yaw: 0 });
   const seed = tape.id.split("").reduce((a3, c3) => a3 + c3.charCodeAt(0), 0);
   const variant = tape.textureVariant || VARIANTS[seed % VARIANTS.length];
   const meshName = VARIANT_TO_MESH["a"];
@@ -75255,6 +75263,13 @@ function TapeBody({
     if (isDragged) {
       if (!wasDragging.current) {
         wasDragging.current = true;
+        const wasInRecorder = isLoaded.current || isSnapping.current;
+        if (wasInRecorder) {
+          if (isLoaded.current) body.setBodyType(0, true);
+          isLoaded.current = false;
+          isSnapping.current = false;
+          if (snap.tapeId === tape.id) snap.tapeId = null;
+        }
         const t3 = body.translation();
         const dx = drag.targetX - t3.x;
         const dz = drag.targetZ - t3.z;
@@ -75269,10 +75284,12 @@ function TapeBody({
         }
         velocity.current.x = 0;
         velocity.current.z = 0;
+        currentDragY.current = DRAG_HEIGHT;
         const r3 = body.rotation();
         const euler = new Euler().setFromQuaternion(new Quaternion(r3.x, r3.y, r3.z, r3.w), "YXZ");
-        savedYRot.current = euler.y;
+        savedYRot.current = wasInRecorder ? angleRad : euler.y;
         currentYaw.current = euler.y;
+        currentPitch.current = 0;
       }
       body.setLinvel({ x: 0, y: 0, z: 0 }, true);
       body.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -75289,33 +75306,95 @@ function TapeBody({
       const maxTilt = 0.25;
       const tiltX = Math.max(-maxTilt, Math.min(maxTilt, velocity.current.z * 0.03));
       const tiltZ = Math.max(-maxTilt, Math.min(maxTilt, -velocity.current.x * 0.03));
-      body.setTranslation({
-        x: smoothPos.current.x,
-        y: DRAG_HEIGHT,
-        z: smoothPos.current.z
-      }, true);
       const yawTarget = drag.targetYaw ?? savedYRot.current;
       let yawDiff = yawTarget - currentYaw.current;
       while (yawDiff > Math.PI) yawDiff -= 2 * Math.PI;
       while (yawDiff < -Math.PI) yawDiff += 2 * Math.PI;
       const rotK = 1 - Math.exp(-delta * 6);
       currentYaw.current += yawDiff * rotK;
+      const pitchTarget = drag.targetPitch ?? 0;
+      currentPitch.current += (pitchTarget - currentPitch.current) * rotK;
+      const yTarget = drag.targetY ?? DRAG_HEIGHT;
+      currentDragY.current += (yTarget - currentDragY.current) * rotK;
+      body.setTranslation({
+        x: smoothPos.current.x,
+        y: currentDragY.current,
+        z: smoothPos.current.z
+      }, true);
       const q2 = new Quaternion();
       q2.setFromEuler(new Euler(tiltX, currentYaw.current, tiltZ));
+      if (currentPitch.current !== 0) {
+        const pitchQ = new Quaternion().setFromAxisAngle(
+          new Vector3(1, 0, 0),
+          currentPitch.current
+        );
+        q2.multiply(pitchQ);
+      }
       body.setRotation({ x: q2.x, y: q2.y, z: q2.z, w: q2.w }, true);
     } else if (wasDragging.current) {
       wasDragging.current = false;
-      falling.current = true;
+      if (snap.tapeId === tape.id) {
+        isSnapping.current = true;
+        snapElapsed.current = 0;
+        const t3 = body.translation();
+        const r3 = body.rotation();
+        snapStart.current = { x: t3.x, y: t3.y, z: t3.z, qx: r3.x, qy: r3.y, qz: r3.z, qw: r3.w };
+        snapTarget.current = { x: snap.x, y: snap.y, z: snap.z, yaw: snap.yaw };
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        body.setGravityScale(0, true);
+      } else {
+        falling.current = true;
+        body.setTranslation({
+          x: smoothPos.current.x,
+          y: currentDragY.current,
+          z: smoothPos.current.z
+        }, true);
+        body.setGravityScale(0.15, true);
+        const vx = velocity.current.x * 0.4;
+        const vz = velocity.current.z * 0.4;
+        body.setLinvel({ x: vx, y: -2, z: vz }, true);
+        body.setAngvel({ x: vz * 0.3, y: 0, z: -vx * 0.3 }, true);
+      }
+    }
+    if (isSnapping.current && !isDragged) {
+      snapElapsed.current += delta;
+      const t01 = Math.min(1, snapElapsed.current / SNAP_DURATION);
+      const e3 = 1 - Math.pow(1 - t01, 3);
+      const s2 = snapStart.current;
+      const g3 = snapTarget.current;
       body.setTranslation({
-        x: smoothPos.current.x,
-        y: DRAG_HEIGHT,
-        z: smoothPos.current.z
+        x: s2.x + (g3.x - s2.x) * e3,
+        y: s2.y + (g3.y - s2.y) * e3,
+        z: s2.z + (g3.z - s2.z) * e3
       }, true);
-      body.setGravityScale(0.15, true);
-      const vx = velocity.current.x * 0.4;
-      const vz = velocity.current.z * 0.4;
-      body.setLinvel({ x: vx, y: -2, z: vz }, true);
-      body.setAngvel({ x: vz * 0.3, y: 0, z: -vx * 0.3 }, true);
+      const startQ = new Quaternion(s2.qx, s2.qy, s2.qz, s2.qw);
+      const endQ = new Quaternion().setFromEuler(new Euler(0, g3.yaw, 0));
+      const q2 = startQ.clone().slerp(endQ, e3);
+      body.setRotation({ x: q2.x, y: q2.y, z: q2.z, w: q2.w }, true);
+      body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      if (t01 >= 1) {
+        isSnapping.current = false;
+        isLoaded.current = true;
+        body.setBodyType(2, true);
+      }
+    }
+    if (isLoaded.current && !isDragged && !isSnapping.current) {
+      if (snap.tapeId !== tape.id) {
+        isLoaded.current = false;
+        body.setBodyType(0, true);
+        falling.current = true;
+        body.setGravityScale(1, true);
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      } else {
+        body.setTranslation({ x: snap.x, y: snap.y, z: snap.z }, true);
+        const q2 = new Quaternion().setFromEuler(new Euler(0, snap.yaw, 0));
+        body.setRotation({ x: q2.x, y: q2.y, z: q2.z, w: q2.w }, true);
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      }
     }
     if (falling.current && !isDragged) {
       const t3 = body.translation();
@@ -75379,7 +75458,7 @@ function TapeBody({
     }
   );
 }
-var import_react7, import_jsx_runtime5, variantMeta, fbxDumped, stampCache, STAMP_DEBUG;
+var import_react7, import_jsx_runtime5, SNAP_DURATION, variantMeta, fbxDumped, stampCache, STAMP_DEBUG;
 var init_TapeBody = __esm({
   "src/tapes/TapeBody.tsx"() {
     "use strict";
@@ -75391,6 +75470,7 @@ var init_TapeBody = __esm({
     init_coords();
     init_Tape3D();
     import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
+    SNAP_DURATION = 0.4;
     variantMeta = /* @__PURE__ */ new Map();
     fbxDumped = false;
     stampCache = /* @__PURE__ */ new Map();
@@ -78225,28 +78305,63 @@ function SceneContents({
   newTapeIds,
   externalDrag,
   lockedTapeId,
+  pickupBlockedTapeId,
   lockCamera,
-  maxDragX
+  maxDragX,
+  onRecorderLoad,
+  onRecorderEject,
+  showRecorder
 }) {
   const { camera, gl, scene } = useThree();
   const controlsRef = (0, import_react11.useRef)(null);
-  const drag = (0, import_react11.useMemo)(() => ({ tapeId: null, targetX: 0, targetZ: 0, targetYaw: null }), []);
+  const drag = (0, import_react11.useMemo)(() => ({ tapeId: null, targetX: 0, targetZ: 0, targetYaw: null, targetPitch: null, targetY: null }), []);
+  const snap = (0, import_react11.useMemo)(() => ({ tapeId: null, x: 0, y: 0, z: 0, yaw: 0 }), []);
   const bounceTapeId = (0, import_react11.useRef)(null);
   const [tapeOverRecorder, setTapeOverRecorder] = (0, import_react11.useState)(false);
+  const [mouseOverRecorder, setMouseOverRecorder] = (0, import_react11.useState)(false);
+  const [recentlyLoaded, setRecentlyLoaded] = (0, import_react11.useState)(false);
+  const [tapeInRecorder, setTapeInRecorder] = (0, import_react11.useState)(false);
+  const lidCloseTimer = (0, import_react11.useRef)(null);
+  const prevSnapTapeId = (0, import_react11.useRef)(null);
+  const onRecorderEjectRef = (0, import_react11.useRef)(onRecorderEject);
+  (0, import_react11.useEffect)(() => {
+    onRecorderEjectRef.current = onRecorderEject;
+  }, [onRecorderEject]);
+  const isOverRecorder = (0, import_react11.useCallback)((x3, z2) => {
+    const dx = x3 - RECORDER_POS[0];
+    const dz = z2 - RECORDER_POS[2];
+    const cos = Math.cos(-RECORDER_ROT_Y);
+    const sin = Math.sin(-RECORDER_ROT_Y);
+    const lx = dx * cos - dz * sin;
+    const lz = dx * sin + dz * cos;
+    return Math.abs(lx) < RECORDER_HALF_W && Math.abs(lz) < RECORDER_HALF_D;
+  }, []);
+  const isInSnapZone = (0, import_react11.useCallback)((x3, z2) => {
+    const dx = x3 - RECORDER_POS[0];
+    const dz = z2 - RECORDER_POS[2];
+    const cos = Math.cos(-RECORDER_ROT_Y);
+    const sin = Math.sin(-RECORDER_ROT_Y);
+    const lx = dx * cos - dz * sin;
+    const lz = dx * sin + dz * cos;
+    return Math.abs(lx) < RECORDER_SNAP_HALF_W && Math.abs(lz) < RECORDER_SNAP_HALF_D;
+  }, []);
   useFrame(() => {
-    let isOver = false;
-    if (drag.tapeId) {
-      const dx = drag.targetX - RECORDER_POS[0];
-      const dz = drag.targetZ - RECORDER_POS[2];
-      const cos = Math.cos(-RECORDER_ROT_Y);
-      const sin = Math.sin(-RECORDER_ROT_Y);
-      const lx = dx * cos - dz * sin;
-      const lz = dx * sin + dz * cos;
-      isOver = Math.abs(lx) < RECORDER_HALF_W && Math.abs(lz) < RECORDER_HALF_D;
-    }
-    drag.targetYaw = isOver ? RECORDER_ROT_Y + Math.PI : null;
+    const dragging = !!showRecorder && !!drag.tapeId;
+    const isOver = dragging && isOverRecorder(drag.targetX, drag.targetZ);
+    const isInSnap = dragging && isInSnapZone(drag.targetX, drag.targetZ);
+    drag.targetYaw = isInSnap ? RECORDER_ROT_Y + Math.PI : null;
+    drag.targetPitch = isInSnap ? RECORDER_LID_OPEN_ANGLE : null;
+    drag.targetY = isInSnap ? DRAG_HEIGHT + RECORDER_HOVER_LIFT : null;
     if (isOver !== tapeOverRecorder) setTapeOverRecorder(isOver);
+    const cur = snap.tapeId;
+    if (prevSnapTapeId.current && !cur) {
+      onRecorderEjectRef.current?.();
+    }
+    prevSnapTapeId.current = cur;
+    const inRec = cur !== null;
+    if (inRec !== tapeInRecorder) setTapeInRecorder(inRec);
   });
+  const lidOpen = tapeOverRecorder || mouseOverRecorder && !tapeInRecorder || recentlyLoaded;
   const pointerState = (0, import_react11.useRef)({
     downTapeId: null,
     active: false,
@@ -78306,9 +78421,9 @@ function SceneContents({
     const deckEl = document.getElementById("tape-deck");
     if (!deckEl) return false;
     const r3 = deckEl.getBoundingClientRect();
+    if (r3.width === 0 && r3.height === 0) return false;
     const pad = 30;
     const hit = screenX >= r3.left - pad && screenX <= r3.right + pad && screenY >= r3.top - pad && screenY <= r3.bottom + pad;
-    console.log("[TapeTable] deck drop check:", hit, "pointer:", screenX, screenY, "deck:", r3.left, r3.top, r3.right, r3.bottom);
     return hit;
   }, []);
   (0, import_react11.useEffect)(() => {
@@ -78321,6 +78436,7 @@ function SceneContents({
         return;
       }
       if (lockedTapeId && tapeId === lockedTapeId) return;
+      if (pickupBlockedTapeId && tapeId === pickupBlockedTapeId) return;
       const ps = pointerState.current;
       ps.downTapeId = tapeId;
       ps.active = false;
@@ -78349,6 +78465,11 @@ function SceneContents({
         drag.tapeId = ps.downTapeId;
         if (controlsRef.current) controlsRef.current.enabled = false;
         onDragStart();
+        if (snap.tapeId === ps.downTapeId) {
+          snap.tapeId = null;
+          prevSnapTapeId.current = null;
+          onRecorderEjectRef.current?.();
+        }
       }
       const hit = raycastToPlane(ev.clientX, ev.clientY, DRAG_HEIGHT);
       if (hit) {
@@ -78366,6 +78487,21 @@ function SceneContents({
         const tz = drag.targetZ;
         drag.tapeId = null;
         if (controlsRef.current) controlsRef.current.enabled = true;
+        if (showRecorder && isOverRecorder(tx, tz)) {
+          const rc = Math.cos(RECORDER_ROT_Y);
+          const rs = Math.sin(RECORDER_ROT_Y);
+          const offX = RECORDER_LOAD_LOCAL_X * rc + RECORDER_LOAD_LOCAL_Z * rs;
+          const offZ = -RECORDER_LOAD_LOCAL_X * rs + RECORDER_LOAD_LOCAL_Z * rc;
+          snap.tapeId = tapeId;
+          snap.x = RECORDER_POS[0] + offX;
+          snap.y = RECORDER_LOAD_Y;
+          snap.z = RECORDER_POS[2] + offZ;
+          snap.yaw = RECORDER_ROT_Y + Math.PI;
+          if (lidCloseTimer.current) clearTimeout(lidCloseTimer.current);
+          setRecentlyLoaded(true);
+          lidCloseTimer.current = setTimeout(() => setRecentlyLoaded(false), LID_CLOSE_DELAY);
+          onRecorderLoad?.(tapeId);
+        }
         const [x2d, y2d] = to2D(tx, tz);
         const deckDrop = isDeckDrop(ev.clientX, ev.clientY);
         onDragEnd(tapeId, x2d, y2d, deckDrop);
@@ -78392,7 +78528,28 @@ function SceneContents({
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
     };
-  }, [gl, drag, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, maxDragX]);
+  }, [gl, drag, snap, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, isOverRecorder, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, pickupBlockedTapeId, maxDragX, onRecorderLoad, showRecorder]);
+  (0, import_react11.useEffect)(() => {
+    const el = gl.domElement;
+    function onHoverMove(ev) {
+      if (!showRecorder) {
+        setMouseOverRecorder(false);
+        return;
+      }
+      const hit = raycastToPlane(ev.clientX, ev.clientY, 0);
+      const over = !!hit && isOverRecorder(hit.x, hit.z);
+      setMouseOverRecorder(over);
+    }
+    function onLeave() {
+      setMouseOverRecorder(false);
+    }
+    el.addEventListener("pointermove", onHoverMove);
+    el.addEventListener("pointerleave", onLeave);
+    return () => {
+      el.removeEventListener("pointermove", onHoverMove);
+      el.removeEventListener("pointerleave", onLeave);
+    };
+  }, [gl, raycastToPlane, isOverRecorder, showRecorder]);
   const extDragActive = (0, import_react11.useRef)(false);
   useFrame(() => {
     if (!externalDrag || extDragActive.current) return;
@@ -78510,12 +78667,13 @@ function SceneContents({
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("pointLight", { position: [-8, 6, -4], intensity: 0.25, color: "#ffe8d6" }),
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: null, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(Physics, { gravity: [0, -400, 0], timeStep: 1 / 60, children: [
       /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableSurface, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Recorder3D, { position: RECORDER_POS, rotationY: RECORDER_ROT_Y, lidOpen: tapeOverRecorder }),
+      showRecorder && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Recorder3D, { position: RECORDER_POS, rotationY: RECORDER_ROT_Y, lidOpen }),
       tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
         TapeBody,
         {
           tape,
           drag,
+          snap,
           menuOpen: menuId === tape.id,
           onMenuAction,
           isNew: newTapeIds.has(tape.id),
@@ -78573,7 +78731,7 @@ function TapesTable3D(props) {
     )
   ] });
 }
-var import_react11, import_jsx_runtime9, RECORDER_POS, RECORDER_ROT_Y, RECORDER_HALF_W, RECORDER_HALF_D;
+var import_react11, import_jsx_runtime9, RECORDER_POS, RECORDER_ROT_Y, RECORDER_HALF_W, RECORDER_HALF_D, RECORDER_SNAP_HALF_W, RECORDER_SNAP_HALF_D, RECORDER_LID_OPEN_ANGLE, RECORDER_HOVER_LIFT, RECORDER_LOAD_Y, RECORDER_LOAD_LOCAL_X, RECORDER_LOAD_LOCAL_Z, LID_CLOSE_DELAY;
 var init_TapesTable3D = __esm({
   "src/tapes/TapesTable3D.tsx"() {
     "use strict";
@@ -78587,10 +78745,18 @@ var init_TapesTable3D = __esm({
     init_Recorder3D();
     init_coords();
     import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
-    RECORDER_POS = [-18, 0, 8];
+    RECORDER_POS = [-20, -0.5, 4];
     RECORDER_ROT_Y = Math.PI / 6;
-    RECORDER_HALF_W = 13;
-    RECORDER_HALF_D = 8;
+    RECORDER_HALF_W = 4;
+    RECORDER_HALF_D = 5;
+    RECORDER_SNAP_HALF_W = 7;
+    RECORDER_SNAP_HALF_D = 8;
+    RECORDER_LID_OPEN_ANGLE = Math.PI / 4;
+    RECORDER_HOVER_LIFT = 3;
+    RECORDER_LOAD_Y = 1.8;
+    RECORDER_LOAD_LOCAL_X = 0.4;
+    RECORDER_LOAD_LOCAL_Z = 2.15;
+    LID_CLOSE_DELAY = 800;
   }
 });
 
@@ -79787,62 +79953,6 @@ async function fetchInfiniteTracks(config, page = 1) {
     return [];
   }
 }
-function mountMixtapeOverlay(el, mixtape, currentIndex, onSelect) {
-  Object.assign(el.style, {
-    position: "fixed",
-    top: "50%",
-    left: "calc(50% - 70px)",
-    transform: "translateY(-50%)",
-    width: "50vw",
-    maxHeight: "70vh",
-    fontFamily: "'04b03', monospace",
-    fontSize: "1em",
-    color: "rgba(250,249,246,0.9)",
-    background: "transparent",
-    pointerEvents: "auto",
-    zIndex: "200",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-    border: "none",
-    borderRadius: "0",
-    transition: "opacity 1s ease",
-    padding: "24px 24px 20px"
-  });
-  el.innerHTML = `
-    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(250,249,246,0.7);letter-spacing:1.5px;white-space:nowrap;margin-bottom:4px;flex-shrink:0;">
-      ${mixtape.name}
-    </div>
-    <div style="font-family:'04b03',monospace;font-size:1em;color:rgba(250,249,246,0.5);margin-bottom:12px;flex-shrink:0;">
-      ${currentIndex + 1}&nbsp;/&nbsp;${mixtape.tracks.length}
-    </div>
-    <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(250,249,246,0.2) transparent;padding:10px 14px;">
-      ${mixtape.tracks.map((track, i4) => `
-        <div data-idx="${i4}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
-          style="display:flex;align-items:center;gap:8px;font-family:'04b03',monospace;font-size:1em;color:${i4 === currentIndex ? "rgba(250,249,246,0.95)" : "rgba(250,249,246,0.7)"};cursor:pointer;padding:6px 4px;border-bottom:1px solid rgba(250,249,246,0.04);background:${i4 === currentIndex ? "rgba(250,249,246,0.08)" : "transparent"};transition:color 0.15s;"
-          title="${track.title} \u2014 ${track.author}">
-          <span style="color:rgba(250,249,246,0.6);width:30px;flex-shrink:0;text-align:right;">${String(i4 + 1).padStart(2, "0")}.</span>
-          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${track.title}</span>
-          <span style="color:rgba(250,249,246,0.6);flex-shrink:0;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${track.author}</span>
-          <span style="color:rgba(250,249,246,0.5);flex-shrink:0;width:50px;text-align:right;">${track.durationText || ""}</span>
-        </div>
-      `).join("")}
-    </div>
-  `;
-  el.querySelectorAll("[data-idx]").forEach((child) => {
-    child.addEventListener("click", () => {
-      const idx = parseInt(child.getAttribute("data-idx") || "0");
-      const track = {
-        videoId: child.getAttribute("data-videoid") || "",
-        title: child.getAttribute("data-title") || "",
-        author: child.getAttribute("data-author") || "",
-        duration: 0,
-        durationText: ""
-      };
-      onSelect(idx, track);
-    });
-  });
-}
 function TapesTable({ mixtape }) {
   const [tapes, setTapes] = (0, import_react12.useState)([]);
   const [mounted, setMounted] = (0, import_react12.useState)(false);
@@ -79858,6 +79968,7 @@ function TapesTable({ mixtape }) {
   const externalDrag = (0, import_react12.useRef)({ tapeId: null, targetX: 0, targetZ: 0 });
   const [isPanning, setIsPanning] = (0, import_react12.useState)(false);
   const [loadedTape, setLoadedTape] = (0, import_react12.useState)(null);
+  const [recorderSourced, setRecorderSourced] = (0, import_react12.useState)(false);
   const [deckEjecting, setDeckEjecting] = (0, import_react12.useState)(false);
   const [isPlaying, setIsPlaying] = (0, import_react12.useState)(false);
   const [infiniteLoading, setInfiniteLoading] = (0, import_react12.useState)(false);
@@ -79883,6 +79994,8 @@ function TapesTable({ mixtape }) {
   });
   const infinitePageRef = (0, import_react12.useRef)(1);
   const infiniteFetchingRef = (0, import_react12.useRef)(false);
+  const [recorderLoadingId, setRecorderLoadingId] = (0, import_react12.useState)(null);
+  const recorderLoadingTimerRef = (0, import_react12.useRef)(null);
   const wipeTransition = (0, import_react12.useCallback)((onCovered, onUncovered) => {
     document.body.classList.add("view-flaring");
     setTimeout(() => {
@@ -79914,8 +80027,6 @@ function TapesTable({ mixtape }) {
         setView("player");
         const startForm = document.getElementById("start-form");
         if (startForm) startForm.style.display = "none";
-        const deckEl = document.getElementById("tape-deck");
-        if (deckEl) deckEl.style.display = "";
         requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { x: -4 } })));
       },
       // After uncover: spawn the tape dropping from height
@@ -79997,7 +80108,7 @@ function TapesTable({ mixtape }) {
   }, [view, exitPlayerView, showMixtapeCreator]);
   (0, import_react12.useLayoutEffect)(() => {
     const deckEl = document.getElementById("tape-deck");
-    if (deckEl) deckEl.style.display = view === "table" ? "none" : "";
+    if (deckEl) deckEl.style.display = "none";
   }, [view]);
   const lastTapRef = (0, import_react12.useRef)({ time: 0, id: "" });
   const isDoubleTap = (0, import_react12.useCallback)((id) => {
@@ -80115,6 +80226,13 @@ function TapesTable({ mixtape }) {
       },
       notifyPlayState: (playing) => {
         setIsPlaying(playing);
+        if (playing) {
+          if (recorderLoadingTimerRef.current) {
+            clearTimeout(recorderLoadingTimerRef.current);
+            recorderLoadingTimerRef.current = null;
+          }
+          setRecorderLoadingId(null);
+        }
       },
       onTrackEnded: () => {
         const tape = loadedRef.current;
@@ -80394,6 +80512,24 @@ function TapesTable({ mixtape }) {
     setLoadedTape(tape);
     playTapeInsert();
     setTimeout(playTapeWhirr, 200);
+    if (tape.author === "mixtape" && tape.infiniteHistory) {
+      const history = tape.infiniteHistory;
+      setMixtapeData((prev) => {
+        const matches = prev && prev.tracks.length === history.length && prev.tracks[0]?.videoId === history[0]?.videoId;
+        if (matches) return prev;
+        return {
+          name: tape.title,
+          description: "",
+          tracks: history.map((t3) => ({
+            videoId: t3.videoId,
+            title: t3.title,
+            author: t3.author,
+            duration: 0,
+            durationText: ""
+          }))
+        };
+      });
+    }
     if (!window.myApp) return;
     const AppState = window.AppState;
     if (!AppState) return;
@@ -80512,6 +80648,24 @@ function TapesTable({ mixtape }) {
       setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, x: x2d, y: y2d } : t3));
     }
   }, [loadIntoPlayer, showMixtapeCreator, view]);
+  const handleRecorderLoad = (0, import_react12.useCallback)((tapeId) => {
+    const t3 = tapesRef.current.find((t4) => t4.id === tapeId);
+    if (!t3) return;
+    setRecorderSourced(true);
+    setRecorderLoadingId(tapeId);
+    if (recorderLoadingTimerRef.current) clearTimeout(recorderLoadingTimerRef.current);
+    recorderLoadingTimerRef.current = setTimeout(() => setRecorderLoadingId(null), 8e3);
+    loadIntoPlayer(t3);
+  }, [loadIntoPlayer]);
+  const handleRecorderEject = (0, import_react12.useCallback)(() => {
+    setRecorderSourced(false);
+    if (recorderLoadingTimerRef.current) {
+      clearTimeout(recorderLoadingTimerRef.current);
+      recorderLoadingTimerRef.current = null;
+    }
+    setRecorderLoadingId(null);
+    autoEjectRef.current();
+  }, []);
   const handle3DDoubleTap = (0, import_react12.useCallback)((tapeId) => {
     if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
     if (view === "table") {
@@ -80747,8 +80901,8 @@ function TapesTable({ mixtape }) {
     /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(import_react12.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       TapesTable3D2,
       {
-        tapes: view === "player" && playerTapeId ? positionedTapes.filter((t3) => t3.id === playerTapeId).map((t3) => ({ ...t3, x: CANVAS_W2 * 0.35, y: CANVAS_H2 / 2 })) : positionedTapes.filter((t3) => t3.id !== excludeTapeId),
-        loadedTapeId: loadedTape?.id ?? null,
+        tapes: view === "player" && playerTapeId ? positionedTapes.filter((t3) => t3.id === playerTapeId).map((t3) => ({ ...t3, x: CANVAS_W2 * 0.35 + 150, y: CANVAS_H2 / 2 })) : positionedTapes.filter((t3) => t3.id !== excludeTapeId),
+        loadedTapeId: recorderSourced ? null : loadedTape?.id ?? null,
         onDragStart: handle3DDragStart,
         onDragEnd: handle3DDragEnd,
         onDoubleTap: handle3DDoubleTap,
@@ -80758,121 +80912,187 @@ function TapesTable({ mixtape }) {
         newTapeIds,
         externalDrag: externalDrag.current,
         lockedTapeId: showMixtapeCreator ? MIXTAPE_ID : null,
+        pickupBlockedTapeId: recorderLoadingId,
         maxDragX: view === "player" ? -6 : void 0,
-        lockCamera: view === "player" || showMixtapeCreator
+        lockCamera: view === "player" || showMixtapeCreator,
+        onRecorderLoad: handleRecorderLoad,
+        onRecorderEject: handleRecorderEject,
+        showRecorder: view === "player"
       }
     ) }),
-    view === "player" && playerTapeId && !dragging3D && !showMixtapeCreator && !loadedTape && (() => {
-      const tape = tapes.find((t3) => t3.id === playerTapeId);
+    view === "player" && playerTapeId && !showMixtapeCreator && (() => {
+      const tape = loadedTape ?? tapes.find((t3) => t3.id === playerTapeId);
       if (!tape) return null;
+      const interactive = isPlaying && !!loadedTape && loadedTape.id === tape.id;
       const hasInfiniteTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
       const hasPlaylistTracklist = tape.isPlaylist && playlistTracks && playlistTracks.tracks.length > 0;
-      const tracklistItems = hasInfiniteTracklist ? tape.infiniteHistory.map((t3) => ({ title: t3.title, author: t3.author })) : hasPlaylistTracklist ? playlistTracks.tracks.map((t3) => ({ title: t3.title, author: t3.author })) : [];
+      const tracklistItems = hasInfiniteTracklist ? tape.infiniteHistory.map((t3, i4) => ({
+        title: t3.title,
+        author: t3.author,
+        durationText: tape.author === "mixtape" && mixtapeData?.tracks[i4]?.durationText || "",
+        videoId: t3.videoId
+      })) : hasPlaylistTracklist ? playlistTracks.tracks.map((t3) => ({
+        title: t3.title,
+        author: t3.author,
+        durationText: t3.durationText || "",
+        videoId: t3.videoId
+      })) : [];
       const hasTracklist = tracklistItems.length > 0;
-      return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "tape-info-panel", style: {
-        position: "fixed",
-        top: "50%",
-        left: "calc(50% - 70px)",
-        transform: "translateY(-50%)",
-        width: "50vw",
-        maxHeight: "70vh",
-        fontFamily: "'04b03', monospace",
-        fontSize: "1em",
-        color: "rgba(250,249,246,0.9)",
-        background: "transparent",
-        pointerEvents: "auto",
-        zIndex: 200,
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        border: "none",
-        borderRadius: 0,
-        padding: "24px 24px 20px"
-      }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: {
-          fontFamily: "'04b03', monospace",
-          fontSize: "1.3em",
-          color: "rgba(250,249,246,0.7)",
-          letterSpacing: "1.5px",
-          whiteSpace: "nowrap",
-          marginBottom: hasTracklist ? "12px" : "0",
-          flexShrink: 0
-        }, children: tape.title || "Untitled" }),
-        !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { color: "rgba(250,249,246,0.5)", marginTop: "6px", fontSize: "1em" }, children: tape.author }),
-        hasTracklist && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: {
-          flex: 1,
-          overflowY: "auto",
-          scrollbarWidth: "thin",
-          scrollbarColor: "rgba(250,249,246,0.2) transparent",
-          padding: "10px 14px"
-        }, children: tracklistItems.map((track, i4) => /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { style: {
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
+      if (interactive && !hasTracklist) return null;
+      const currentIndex = hasInfiniteTracklist ? tape.infiniteIndex ?? 0 : hasPlaylistTracklist ? tape.playlistIndex ?? 0 : -1;
+      const handleSelect = (i4, item) => {
+        if (!interactive) return;
+        if (hasInfiniteTracklist) {
+          const tapeId = tape.id;
+          setLoadedTape((prev) => prev && prev.id === tapeId ? { ...prev, infiniteIndex: i4, videoId: item.videoId, progress: 0 } : prev);
+          setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, infiniteIndex: i4, videoId: item.videoId, progress: 0 } : t3));
+          playVideoById(item.videoId, item.title, item.author);
+        } else if (hasPlaylistTracklist) {
+          if (!window.myApp?.player) return;
+          window.myApp.player.goto_at(i4);
+          const tapeId = tape.id;
+          setLoadedTape((prev) => prev ? { ...prev, playlistIndex: i4, progress: 0 } : prev);
+          setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, playlistIndex: i4, progress: 0 } : t3));
+        }
+      };
+      return (0, import_react_dom.createPortal)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "tape-info-panel", style: {
+          position: "fixed",
+          top: "50%",
+          left: "calc(50% - 70px)",
+          transform: "translateY(-50%)",
+          width: "50vw",
+          maxHeight: "70vh",
           fontFamily: "'04b03', monospace",
           fontSize: "1em",
-          color: "rgba(250,249,246,0.5)",
-          padding: "6px 4px",
-          borderBottom: "1px solid rgba(250,249,246,0.04)"
-        }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { style: { color: "rgba(250,249,246,0.5)", width: "30px", flexShrink: 0, textAlign: "right" }, children: [
-            String(i4 + 1).padStart(2, "0"),
-            "."
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, color: "rgba(250,249,246,0.9)" }, children: track.title }),
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { style: { color: "rgba(250,249,246,0.5)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: track.author })
-        ] }, i4)) }),
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { style: {
+          color: "rgba(250,249,246,0.9)",
+          background: "transparent",
+          // Drag events need to pass through to the 3D canvas below; inactivity
+          // fade toggles opacity via `public/src/player.js` (Inactivity module).
+          pointerEvents: dragging3D ? "none" : "auto",
+          zIndex: 200,
           display: "flex",
-          justifyContent: "flex-start",
-          gap: "8px",
-          marginTop: "16px",
-          paddingTop: "12px",
-          flexShrink: 0
+          flexDirection: "column",
+          overflow: "hidden",
+          border: "none",
+          borderRadius: 0,
+          padding: "24px 24px 20px",
+          transition: "opacity 1s ease"
         }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-            "button",
-            {
-              className: "tape-ui-btn",
-              onClick: () => {
-                rewindTape(tape.id);
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: {
+            fontFamily: "'04b03', monospace",
+            fontSize: "1.3em",
+            color: "rgba(250,249,246,0.7)",
+            letterSpacing: "1.5px",
+            whiteSpace: "nowrap",
+            marginBottom: hasTracklist ? "12px" : "0",
+            flexShrink: 0,
+            pointerEvents: interactive ? "auto" : "none",
+            userSelect: interactive ? "auto" : "none"
+          }, children: tape.title || "Untitled" }),
+          !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: {
+            color: "rgba(250,249,246,0.5)",
+            marginTop: "6px",
+            fontSize: "1em",
+            pointerEvents: interactive ? "auto" : "none",
+            userSelect: interactive ? "auto" : "none"
+          }, children: tape.author }),
+          hasTracklist && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: {
+            flex: 1,
+            overflowY: "auto",
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(250,249,246,0.2) transparent",
+            padding: "10px 14px"
+          }, children: tracklistItems.map((track, i4) => {
+            const isCurrent = i4 === currentIndex;
+            return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
+              "div",
+              {
+                onClick: interactive ? () => handleSelect(i4, track) : void 0,
+                style: {
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontFamily: "'04b03', monospace",
+                  fontSize: "1em",
+                  color: isCurrent && interactive ? "rgba(250,249,246,0.95)" : "rgba(250,249,246,0.7)",
+                  background: isCurrent && interactive ? "rgba(250,249,246,0.08)" : "transparent",
+                  padding: "6px 4px",
+                  borderBottom: "1px solid rgba(250,249,246,0.04)",
+                  cursor: interactive ? "pointer" : "default",
+                  transition: "color 0.15s, background 0.15s",
+                  pointerEvents: interactive ? "auto" : "none",
+                  userSelect: interactive ? "auto" : "none"
+                },
+                title: interactive ? `${track.title} \u2014 ${track.author}` : void 0,
+                children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { style: { color: "rgba(250,249,246,0.5)", width: "30px", flexShrink: 0, textAlign: "right" }, children: [
+                    String(i4 + 1).padStart(2, "0"),
+                    "."
+                  ] }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, color: isCurrent && interactive ? "rgba(250,249,246,0.95)" : "rgba(250,249,246,0.9)" }, children: track.title }),
+                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { style: { color: "rgba(250,249,246,0.5)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: track.author }),
+                  track.durationText && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { style: { color: "rgba(250,249,246,0.5)", flexShrink: 0, width: "50px", textAlign: "right" }, children: track.durationText })
+                ]
               },
-              style: {
-                fontFamily: "'04b03', monospace",
-                fontSize: "1em",
-                lineHeight: "1em",
-                color: "rgba(250,249,246,0.9)",
-                background: "transparent",
-                borderRadius: 0,
-                padding: "6px 10px 3px",
-                cursor: "pointer"
-              },
-              children: "rewind"
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-            "button",
-            {
-              className: "tape-ui-btn",
-              onClick: () => {
-                deleteTape(tape.id);
-                exitPlayerView();
-              },
-              style: {
-                fontFamily: "'04b03', monospace",
-                fontSize: "1em",
-                lineHeight: "1em",
-                color: "rgba(250,249,246,0.9)",
-                background: "transparent",
-                borderRadius: 0,
-                padding: "6px 10px 3px",
-                cursor: "pointer"
-              },
-              children: "remove"
-            }
-          )
-        ] })
-      ] });
+              i4
+            );
+          }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { style: {
+            display: "flex",
+            justifyContent: "flex-start",
+            gap: "8px",
+            marginTop: "16px",
+            paddingTop: "12px",
+            flexShrink: 0,
+            visibility: interactive ? "hidden" : "visible",
+            pointerEvents: interactive ? "none" : "auto"
+          }, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+              "button",
+              {
+                className: "tape-ui-btn",
+                onClick: () => {
+                  rewindTape(tape.id);
+                },
+                style: {
+                  fontFamily: "'04b03', monospace",
+                  fontSize: "1em",
+                  lineHeight: "1em",
+                  color: "rgba(250,249,246,0.9)",
+                  background: "transparent",
+                  borderRadius: 0,
+                  padding: "6px 10px 3px",
+                  cursor: "pointer"
+                },
+                children: "rewind"
+              }
+            ),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+              "button",
+              {
+                className: "tape-ui-btn",
+                onClick: () => {
+                  deleteTape(tape.id);
+                  exitPlayerView();
+                },
+                style: {
+                  fontFamily: "'04b03', monospace",
+                  fontSize: "1em",
+                  lineHeight: "1em",
+                  color: "rgba(250,249,246,0.9)",
+                  background: "transparent",
+                  borderRadius: 0,
+                  padding: "6px 10px 3px",
+                  cursor: "pointer"
+                },
+                children: "remove"
+              }
+            )
+          ] })
+        ] }),
+        document.body
+      );
     })(),
     deckPortal && (0, import_react_dom.createPortal)(
       /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
@@ -80932,57 +81152,6 @@ function TapesTable({ mixtape }) {
         }
       ),
       deckPortal
-    ),
-    loadedTape?.isInfinite && loadedTape.author !== "mixtape" && (loadedTape.infiniteHistory?.length ?? 0) > 0 && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-      MixtapeOverlayEffect,
-      {
-        elementId: "infinite-tracklist",
-        mixtape: {
-          name: loadedTape.title,
-          description: "",
-          tracks: loadedTape.infiniteHistory.map((t3) => ({
-            videoId: t3.videoId,
-            title: t3.title,
-            author: t3.author,
-            duration: 0,
-            durationText: ""
-          }))
-        },
-        currentIndex: loadedTape.infiniteIndex ?? 0,
-        onSelectTrack: (i4, track) => {
-          const tapeId = loadedTape.id;
-          setLoadedTape((prev) => prev ? { ...prev, infiniteIndex: i4, videoId: track.videoId, progress: 0 } : prev);
-          setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, infiniteIndex: i4, videoId: track.videoId, progress: 0 } : t3));
-          playVideoById(track.videoId, track.title, track.author);
-        }
-      }
-    ),
-    mixtapeData && loadedTape?.isInfinite && loadedTape?.author === "mixtape" && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-      MixtapeOverlayEffect,
-      {
-        mixtape: mixtapeData,
-        currentIndex: loadedTape.infiniteIndex ?? 0,
-        onSelectTrack: (i4, track) => {
-          const tapeId = loadedTape.id;
-          setLoadedTape((prev) => prev ? { ...prev, infiniteIndex: i4, videoId: track.videoId, progress: 0 } : prev);
-          setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, infiniteIndex: i4, videoId: track.videoId, progress: 0 } : t3));
-          playVideoById(track.videoId, track.title, track.author);
-        }
-      }
-    ),
-    playlistTracks && loadedTape?.isPlaylist && loadedTape.playlistId && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-      MixtapeOverlayEffect,
-      {
-        elementId: "playlist-tracklist",
-        mixtape: playlistTracks,
-        currentIndex: loadedTape.playlistIndex ?? 0,
-        onSelectTrack: (i4, _track) => {
-          if (!window.myApp?.player) return;
-          window.myApp.player.goto_at(i4);
-          setLoadedTape((prev) => prev ? { ...prev, playlistIndex: i4, progress: 0 } : prev);
-          setTapes((prev) => prev.map((t3) => t3.id === loadedTape.id ? { ...t3, playlistIndex: i4, progress: 0 } : t3));
-        }
-      }
     ),
     showMixtapeCreator && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       MixtapeCreator,
@@ -81061,35 +81230,6 @@ function TapesTable({ mixtape }) {
       }
     )
   ] });
-}
-function MixtapeOverlayEffect({
-  mixtape,
-  currentIndex,
-  onSelectTrack,
-  elementId = "mixtape-tracklist"
-}) {
-  const elRef = import_react12.default.useRef(null);
-  (0, import_react12.useEffect)(() => {
-    let el = document.getElementById(elementId);
-    if (!el) {
-      el = document.createElement("div");
-      el.id = elementId;
-      document.body.appendChild(el);
-    }
-    elRef.current = el;
-    return () => {
-      el?.remove();
-      elRef.current = null;
-    };
-  }, [elementId]);
-  (0, import_react12.useEffect)(() => {
-    const el = elRef.current;
-    if (!el) return;
-    const prevOpacity = el.style.opacity;
-    mountMixtapeOverlay(el, mixtape, currentIndex, onSelectTrack);
-    if (prevOpacity) el.style.opacity = prevOpacity;
-  }, [mixtape, currentIndex, onSelectTrack]);
-  return null;
 }
 
 // src/tapes/index.tsx

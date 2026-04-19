@@ -156,9 +156,6 @@ function mountMixtapeOverlay(el: HTMLElement, mixtape: MixtapeData, currentIndex
     <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(250,249,246,0.7);letter-spacing:1.5px;white-space:nowrap;margin-bottom:4px;flex-shrink:0;">
       ${mixtape.name}
     </div>
-    <div style="font-family:'04b03',monospace;font-size:1em;color:rgba(250,249,246,0.5);margin-bottom:12px;flex-shrink:0;">
-      ${currentIndex + 1}&nbsp;/&nbsp;${mixtape.tracks.length}
-    </div>
     <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(250,249,246,0.2) transparent;padding:10px 14px;">
       ${mixtape.tracks.map((track, i) => `
         <div data-idx="${i}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
@@ -203,6 +200,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const externalDrag = useRef<{ tapeId: string | null; targetX: number; targetZ: number }>({ tapeId: null, targetX: 0, targetZ: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [loadedTape, setLoadedTape] = useState<Tape | null>(null);
+  // True when the current loadedTape is playing via the 3D recorder rather than
+  // the 2D deck — suppresses the deck-side filter so the 3D tape stays visible.
+  const [recorderSourced, setRecorderSourced] = useState(false);
   const [deckEjecting, setDeckEjecting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [infiniteLoading, setInfiniteLoading] = useState(false);
@@ -229,6 +229,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const autoEjectRef = useRef<() => void>(() => {});
   const infinitePageRef = useRef(1);
   const infiniteFetchingRef = useRef(false);
+  // Tape just dropped into the recorder — YouTube is still fetching/buffering.
+  // Locked from pickup until notifyPlayState(true) fires (or timeout). Prevents
+  // the race where a yanked tape leaves the pending play to start with no tape.
+  const [recorderLoadingId, setRecorderLoadingId] = useState<string | null>(null);
+  const recorderLoadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Wipe transition ──
   // Run a callback inside a glitch flare transition: swap happens at peak blowout.
@@ -271,8 +276,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         setView('player');
         const startForm = document.getElementById('start-form');
         if (startForm) startForm.style.display = 'none';
-        const deckEl = document.getElementById('tape-deck');
-        if (deckEl) deckEl.style.display = '';
         // Centre camera between tape (x=-12) and UI panel — offset to x=-4
         requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { x: -4 } })));
       },
@@ -350,10 +353,10 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     return () => logos.forEach(el => el.removeEventListener('click', handleLogoClick));
   }, [view, exitPlayerView, showMixtapeCreator]);
 
-  // Hide deck in table view — useLayoutEffect runs before paint, preventing any flash
+  // 2D deck UI is hidden entirely — 3D recorder replaces it in player view.
   useLayoutEffect(() => {
     const deckEl = document.getElementById('tape-deck');
-    if (deckEl) deckEl.style.display = view === 'table' ? 'none' : '';
+    if (deckEl) deckEl.style.display = 'none';
   }, [view]);
 
   // Double-tap detection
@@ -487,6 +490,13 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       },
       notifyPlayState: (playing: boolean) => {
         setIsPlaying(playing);
+        if (playing) {
+          if (recorderLoadingTimerRef.current) {
+            clearTimeout(recorderLoadingTimerRef.current);
+            recorderLoadingTimerRef.current = null;
+          }
+          setRecorderLoadingId(null);
+        }
       },
       onTrackEnded: () => {
         const tape = loadedRef.current;
@@ -804,6 +814,31 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     setLoadedTape(tape);
     playTapeInsert();
     setTimeout(playTapeWhirr, 200);
+
+    // Set mixtapeData early (before early returns) so the tracklist overlay
+    // renders even if window.myApp isn't ready yet.
+    if (tape.author === 'mixtape' && tape.infiniteHistory) {
+      const history = tape.infiniteHistory;
+      setMixtapeData(prev => {
+        const matches =
+          prev &&
+          prev.tracks.length === history.length &&
+          prev.tracks[0]?.videoId === history[0]?.videoId;
+        if (matches) return prev; // preserve durationText from creator
+        return {
+          name: tape.title,
+          description: '',
+          tracks: history.map(t => ({
+            videoId: t.videoId,
+            title: t.title,
+            author: t.author,
+            duration: 0,
+            durationText: '',
+          })),
+        };
+      });
+    }
+
     if (!window.myApp) return;
     const AppState = window.AppState;
     if (!AppState) return;
@@ -948,6 +983,31 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: x2d, y: y2d } : t));
     }
   }, [loadIntoPlayer, showMixtapeCreator, view]);
+
+  // Recorder snap/eject → playback. Tape stays visible in 3D scene (recorderSourced=true
+  // tells the 3D component not to filter the loaded tape out for the deck).
+  const handleRecorderLoad = useCallback((tapeId: string) => {
+    const t = tapesRef.current.find(t => t.id === tapeId);
+    if (!t) return;
+    setRecorderSourced(true);
+    // Lock this tape from being yanked back out until YouTube actually starts
+    // playing. Safety timeout clears the lock if PLAYING never fires (e.g. a
+    // broken video) so the user isn't permanently stuck.
+    setRecorderLoadingId(tapeId);
+    if (recorderLoadingTimerRef.current) clearTimeout(recorderLoadingTimerRef.current);
+    recorderLoadingTimerRef.current = setTimeout(() => setRecorderLoadingId(null), 8000);
+    loadIntoPlayer(t);
+  }, [loadIntoPlayer]);
+
+  const handleRecorderEject = useCallback(() => {
+    setRecorderSourced(false);
+    if (recorderLoadingTimerRef.current) {
+      clearTimeout(recorderLoadingTimerRef.current);
+      recorderLoadingTimerRef.current = null;
+    }
+    setRecorderLoadingId(null);
+    autoEjectRef.current();
+  }, []);
 
   const handle3DDoubleTap = useCallback((tapeId: string) => {
     if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
@@ -1213,9 +1273,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       <Suspense fallback={<div style={{ flex: 1, background: '#0a0805' }} />}>
         <TapesTable3D
           tapes={view === 'player' && playerTapeId
-            ? positionedTapes.filter(t => t.id === playerTapeId).map(t => ({ ...t, x: CANVAS_W * 0.35, y: CANVAS_H / 2 }))
+            ? positionedTapes.filter(t => t.id === playerTapeId).map(t => ({ ...t, x: CANVAS_W * 0.35 + 150, y: CANVAS_H / 2 }))
             : positionedTapes.filter(t => t.id !== excludeTapeId)}
-          loadedTapeId={loadedTape?.id ?? null}
+          loadedTapeId={recorderSourced ? null : (loadedTape?.id ?? null)}
           onDragStart={handle3DDragStart}
           onDragEnd={handle3DDragEnd}
           onDoubleTap={handle3DDoubleTap}
@@ -1225,43 +1285,101 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           newTapeIds={newTapeIds}
           externalDrag={externalDrag.current}
           lockedTapeId={showMixtapeCreator ? MIXTAPE_ID : null}
+          pickupBlockedTapeId={recorderLoadingId}
           maxDragX={view === 'player' ? -6 : undefined}
           lockCamera={view === 'player' || showMixtapeCreator}
+          onRecorderLoad={handleRecorderLoad}
+          onRecorderEject={handleRecorderEject}
+          showRecorder={view === 'player'}
         />
       </Suspense>
 
-{/* Tape info overlay in player view — centred below tape, visible when not dragging */}
-      {view === 'player' && playerTapeId && !dragging3D && !showMixtapeCreator && !loadedTape && (() => {
-        const tape = tapes.find(t => t.id === playerTapeId);
+{/* Unified tape info + tracklist panel — single layout for idle and playback */}
+      {view === 'player' && playerTapeId && !showMixtapeCreator && (() => {
+        // Prefer loaded tape (source of truth during playback), else the focused player tape
+        const tape = loadedTape ?? tapes.find(t => t.id === playerTapeId);
         if (!tape) return null;
+
+        const interactive = isPlaying && !!loadedTape && loadedTape.id === tape.id;
         const hasInfiniteTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
         const hasPlaylistTracklist = tape.isPlaylist && playlistTracks && playlistTracks.tracks.length > 0;
-        const tracklistItems = hasInfiniteTracklist
-          ? tape.infiniteHistory!.map(t => ({ title: t.title, author: t.author }))
+
+        // Build uniform items (title, author, durationText, videoId, index)
+        type Item = { title: string; author: string; durationText: string; videoId: string };
+        const tracklistItems: Item[] = hasInfiniteTracklist
+          ? tape.infiniteHistory!.map((t, i) => ({
+              title: t.title,
+              author: t.author,
+              durationText: (tape.author === 'mixtape' && mixtapeData?.tracks[i]?.durationText) || '',
+              videoId: t.videoId,
+            }))
           : hasPlaylistTracklist
-            ? playlistTracks!.tracks.map(t => ({ title: t.title, author: t.author }))
+            ? playlistTracks!.tracks.map(t => ({
+                title: t.title,
+                author: t.author,
+                durationText: t.durationText || '',
+                videoId: t.videoId,
+              }))
             : [];
         const hasTracklist = tracklistItems.length > 0;
-        return (
+        // Single-track tapes: hide the whole panel during playback (no info to show once playing).
+        if (interactive && !hasTracklist) return null;
+        const currentIndex = hasInfiniteTracklist
+          ? (tape.infiniteIndex ?? 0)
+          : hasPlaylistTracklist
+            ? (tape.playlistIndex ?? 0)
+            : -1;
+
+        const handleSelect = (i: number, item: Item) => {
+          if (!interactive) return;
+          if (hasInfiniteTracklist) {
+            const tapeId = tape.id;
+            setLoadedTape(prev => prev && prev.id === tapeId ? { ...prev, infiniteIndex: i, videoId: item.videoId, progress: 0 } : prev);
+            setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, infiniteIndex: i, videoId: item.videoId, progress: 0 } : t));
+            playVideoById(item.videoId, item.title, item.author);
+          } else if (hasPlaylistTracklist) {
+            if (!window.myApp?.player) return;
+            window.myApp.player.goto_at(i);
+            const tapeId = tape.id;
+            setLoadedTape(prev => prev ? { ...prev, playlistIndex: i, progress: 0 } : prev);
+            setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, playlistIndex: i, progress: 0 } : t));
+          }
+        };
+
+        // Portal to document.body so the panel survives `#tapes-root`
+        // being display:none'd by player.js during non-tapes bg modes.
+        // The old #mixtape-tracklist / #playlist-tracklist overlays mounted
+        // directly on <body> for the same reason.
+        return createPortal(
           <div className="tape-info-panel" style={{
             position: 'fixed', top: '50%', left: 'calc(50% - 70px)', transform: 'translateY(-50%)',
             width: '50vw', maxHeight: '70vh',
             fontFamily: "'04b03', monospace", fontSize: '1em', color: 'rgba(250,249,246,0.9)',
-            background: 'transparent', pointerEvents: 'auto', zIndex: 200,
+            background: 'transparent',
+            // Drag events need to pass through to the 3D canvas below; inactivity
+            // fade toggles opacity via `public/src/player.js` (Inactivity module).
+            pointerEvents: dragging3D ? 'none' : 'auto', zIndex: 200,
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
             border: 'none', borderRadius: 0,
             padding: '24px 24px 20px',
+            transition: 'opacity 1s ease',
           }}>
             <div style={{
               fontFamily: "'04b03', monospace", fontSize: '1.3em',
               color: 'rgba(250,249,246,0.7)', letterSpacing: '1.5px',
               whiteSpace: 'nowrap', marginBottom: hasTracklist ? '12px' : '0',
               flexShrink: 0,
+              pointerEvents: interactive ? 'auto' : 'none',
+              userSelect: interactive ? 'auto' : 'none',
             }}>
               {tape.title || 'Untitled'}
             </div>
             {!hasTracklist && tape.author && (
-              <div style={{ color: 'rgba(250,249,246,0.5)', marginTop: '6px', fontSize: '1em' }}>
+              <div style={{
+                color: 'rgba(250,249,246,0.5)', marginTop: '6px', fontSize: '1em',
+                pointerEvents: interactive ? 'auto' : 'none',
+                userSelect: interactive ? 'auto' : 'none',
+              }}>
                 {tape.author}
               </div>
             )}
@@ -1271,32 +1389,53 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 scrollbarWidth: 'thin', scrollbarColor: 'rgba(250,249,246,0.2) transparent',
                 padding: '10px 14px',
               }}>
-                {tracklistItems.map((track, i) => (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', gap: '8px',
-                    fontFamily: "'04b03', monospace", fontSize: '1em',
-                    color: 'rgba(250,249,246,0.5)',
-                    padding: '6px 4px',
-                    borderBottom: '1px solid rgba(250,249,246,0.04)',
-                  }}>
-                    <span style={{ color: 'rgba(250,249,246,0.5)', width: '30px', flexShrink: 0, textAlign: 'right' }}>
-                      {String(i + 1).padStart(2, '0')}.
-                    </span>
-                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, color: 'rgba(250,249,246,0.9)' }}>
-                      {track.title}
-                    </span>
-                    <span style={{ color: 'rgba(250,249,246,0.5)', flexShrink: 0, width: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {track.author}
-                    </span>
-                  </div>
-                ))}
+                {tracklistItems.map((track, i) => {
+                  const isCurrent = i === currentIndex;
+                  return (
+                    <div
+                      key={i}
+                      onClick={interactive ? () => handleSelect(i, track) : undefined}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        fontFamily: "'04b03', monospace", fontSize: '1em',
+                        color: isCurrent && interactive ? 'rgba(250,249,246,0.95)' : 'rgba(250,249,246,0.7)',
+                        background: isCurrent && interactive ? 'rgba(250,249,246,0.08)' : 'transparent',
+                        padding: '6px 4px',
+                        borderBottom: '1px solid rgba(250,249,246,0.04)',
+                        cursor: interactive ? 'pointer' : 'default',
+                        transition: 'color 0.15s, background 0.15s',
+                        pointerEvents: interactive ? 'auto' : 'none',
+                        userSelect: interactive ? 'auto' : 'none',
+                      }}
+                      title={interactive ? `${track.title} — ${track.author}` : undefined}
+                    >
+                      <span style={{ color: 'rgba(250,249,246,0.5)', width: '30px', flexShrink: 0, textAlign: 'right' }}>
+                        {String(i + 1).padStart(2, '0')}.
+                      </span>
+                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, color: isCurrent && interactive ? 'rgba(250,249,246,0.95)' : 'rgba(250,249,246,0.9)' }}>
+                        {track.title}
+                      </span>
+                      <span style={{ color: 'rgba(250,249,246,0.5)', flexShrink: 0, width: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {track.author}
+                      </span>
+                      {track.durationText && (
+                        <span style={{ color: 'rgba(250,249,246,0.5)', flexShrink: 0, width: '50px', textAlign: 'right' }}>
+                          {track.durationText}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
-            {/* Rewind + Remove buttons */}
+            {/* Rewind + Remove buttons — always mounted; hidden (but space reserved)
+                during playback so the tracklist doesn't jump when interactive toggles. */}
             <div style={{
               display: 'flex', justifyContent: 'flex-start', gap: '8px',
               marginTop: '16px', paddingTop: '12px',
               flexShrink: 0,
+              visibility: interactive ? 'hidden' : 'visible',
+              pointerEvents: interactive ? 'none' : 'auto',
             }}>
               <button
                 className="tape-ui-btn"
@@ -1317,7 +1456,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 }}
               >remove</button>
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
 
@@ -1389,59 +1529,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         deckPortal
       )}
 
-      {/* Infinite tape track list — lucky pick / decade / genre tapes */}
-      {loadedTape?.isInfinite && loadedTape.author !== 'mixtape' && (loadedTape.infiniteHistory?.length ?? 0) > 0 && (
-        <MixtapeOverlayEffect
-          elementId="infinite-tracklist"
-          mixtape={{
-            name: loadedTape.title,
-            description: '',
-            tracks: loadedTape.infiniteHistory!.map(t => ({
-              videoId: t.videoId,
-              title: t.title,
-              author: t.author,
-              duration: 0,
-              durationText: '',
-            })),
-          }}
-          currentIndex={loadedTape.infiniteIndex ?? 0}
-          onSelectTrack={(i, track) => {
-            const tapeId = loadedTape.id;
-            setLoadedTape(prev => prev ? { ...prev, infiniteIndex: i, videoId: track.videoId, progress: 0 } : prev);
-            setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, infiniteIndex: i, videoId: track.videoId, progress: 0 } : t));
-            playVideoById(track.videoId, track.title, track.author);
-          }}
-        />
-      )}
 
-      {/* Mixtape track list — direct DOM mount, no React portal */}
-      {mixtapeData && loadedTape?.isInfinite && loadedTape?.author === 'mixtape' && (
-        <MixtapeOverlayEffect
-          mixtape={mixtapeData}
-          currentIndex={loadedTape.infiniteIndex ?? 0}
-          onSelectTrack={(i, track) => {
-            const tapeId = loadedTape.id;
-            setLoadedTape(prev => prev ? { ...prev, infiniteIndex: i, videoId: track.videoId, progress: 0 } : prev);
-            setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, infiniteIndex: i, videoId: track.videoId, progress: 0 } : t));
-            playVideoById(track.videoId, track.title, track.author);
-          }}
-        />
-      )}
-
-      {/* Playlist track list — shown when playing a YouTube playlist tape */}
-      {playlistTracks && loadedTape?.isPlaylist && loadedTape.playlistId && (
-        <MixtapeOverlayEffect
-          elementId="playlist-tracklist"
-          mixtape={playlistTracks}
-          currentIndex={loadedTape.playlistIndex ?? 0}
-          onSelectTrack={(i, _track) => {
-            if (!window.myApp?.player) return;
-            window.myApp.player.goto_at(i);
-            setLoadedTape(prev => prev ? { ...prev, playlistIndex: i, progress: 0 } : prev);
-            setTapes(prev => prev.map(t => t.id === loadedTape.id ? { ...t, playlistIndex: i, progress: 0 } : t));
-          }}
-        />
-      )}
 
       {/* Mixtape creator overlay — shown inline when user clicks "+ mixtape" */}
       {showMixtapeCreator && (

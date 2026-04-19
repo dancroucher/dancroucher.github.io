@@ -15,15 +15,45 @@ interface DragState {
   targetX: number;
   targetZ: number;
   targetYaw?: number | null;
+  targetPitch?: number | null;
+  targetY?: number | null;
+}
+
+// Matches SnapState in coords.ts — inlined to avoid bundler issues
+interface SnapState {
+  tapeId: string | null;
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
 }
 
 // Recorder placement — kept in sync with the <Recorder3D> props below.
-const RECORDER_POS: [number, number, number] = [-18, 0, 8];
+const RECORDER_POS: [number, number, number] = [-20, -0.5, 4];
 const RECORDER_ROT_Y = Math.PI / 6;
 // Half-extents of the recorder *hover trigger* zone in local axes. Larger than
 // the physical footprint so the lid pops open before the tape is right on top.
-const RECORDER_HALF_W = 13;
-const RECORDER_HALF_D = 8;
+const RECORDER_HALF_W = 4;
+const RECORDER_HALF_D = 5;
+// Larger zone for the tape's yaw/pitch/lift snap — so the tape starts orienting
+// toward the recorder before it's right on top, even though the lid itself
+// waits for the tighter RECORDER_HALF_W/D zone.
+const RECORDER_SNAP_HALF_W = 7;
+const RECORDER_SNAP_HALF_D = 8;
+// Mirror Recorder3D's lidOpenAngle magnitude, but negated — the hovering tape
+// tips its leading edge down (opposite direction to the lid opening upward).
+const RECORDER_LID_OPEN_ANGLE = Math.PI / 4;
+// Extra lift added to DRAG_HEIGHT when hovering over the open recorder so the
+// tape's tipped-down leading edge clears the raised lid.
+const RECORDER_HOVER_LIFT = 3;
+// Loaded pose — height above table when a tape is snapped into the recorder.
+const RECORDER_LOAD_Y = 1.8;
+// Local-frame offset from RECORDER_POS to the loaded pose (along recorder's
+// rotated axes). Tune these to nudge the snap point over the tape well.
+const RECORDER_LOAD_LOCAL_X = 0.4;
+const RECORDER_LOAD_LOCAL_Z = 2.15;
+// Delay (ms) after drop before the lid closes again.
+const LID_CLOSE_DELAY = 800;
 
 export interface TapesTable3DHandle {
   startDrag: (tapeId: string) => void;
@@ -41,40 +71,94 @@ interface TapesTable3DProps {
   newTapeIds: Set<string>;
   externalDrag?: DragState; // shared mutable object for external drag initiation
   lockedTapeId?: string | null;
+  // Prevents pickup of a specific tape (e.g. while the recorder is still
+  // loading the YouTube track). Unlike lockedTapeId, this does NOT disable
+  // camera pan/zoom — it just rejects pointer-down on this one tape.
+  pickupBlockedTapeId?: string | null;
   lockCamera?: boolean;
   maxDragX?: number;
+  onRecorderLoad?: (tapeId: string) => void;
+  onRecorderEject?: () => void;
+  showRecorder?: boolean;
 }
 
 function SceneContents({
-  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, externalDrag, lockedTapeId, lockCamera, maxDragX,
+  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, maxDragX, onRecorderLoad, onRecorderEject, showRecorder,
 }: TapesTable3DProps) {
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
 
   // Mutable drag state — no React re-renders during drag
-  const drag = useMemo<DragState>(() => ({ tapeId: null, targetX: 0, targetZ: 0, targetYaw: null }), []);
+  const drag = useMemo<DragState>(() => ({ tapeId: null, targetX: 0, targetZ: 0, targetYaw: null, targetPitch: null, targetY: null }), []);
+  // Mutable snap target — read by TapeBody to tween into the recorder pose.
+  const snap = useMemo<SnapState>(() => ({ tapeId: null, x: 0, y: 0, z: 0, yaw: 0 }), []);
   const bounceTapeId = useRef<string | null>(null);
 
-  // Open the recorder lid while a dragged tape hovers over its footprint.
+  // Recorder lid open when: dragged tape over footprint, mouse over footprint, or
+  // just-dropped into the recorder (brief delay before closing).
   const [tapeOverRecorder, setTapeOverRecorder] = useState(false);
+  const [mouseOverRecorder, setMouseOverRecorder] = useState(false);
+  const [recentlyLoaded, setRecentlyLoaded] = useState(false);
+  // True while a tape is snapped in the recorder — suppresses mouseOverRecorder
+  // so the lid stays closed even if the mouse is still parked over the footprint.
+  const [tapeInRecorder, setTapeInRecorder] = useState(false);
+  const lidCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track snap.tapeId across frames so we can detect pickup (eject) transitions.
+  const prevSnapTapeId = useRef<string | null>(null);
+  // Refs so useFrame always calls the latest callbacks.
+  const onRecorderEjectRef = useRef(onRecorderEject);
+  useEffect(() => { onRecorderEjectRef.current = onRecorderEject; }, [onRecorderEject]);
+
+  // Local-frame footprint test shared by hover (tape) and hover (mouse) checks.
+  const isOverRecorder = useCallback((x: number, z: number) => {
+    const dx = x - RECORDER_POS[0];
+    const dz = z - RECORDER_POS[2];
+    const cos = Math.cos(-RECORDER_ROT_Y);
+    const sin = Math.sin(-RECORDER_ROT_Y);
+    const lx = dx * cos - dz * sin;
+    const lz = dx * sin + dz * cos;
+    return Math.abs(lx) < RECORDER_HALF_W && Math.abs(lz) < RECORDER_HALF_D;
+  }, []);
+
+  // Wider zone: starts tape yaw/pitch snap before the lid-open trigger fires.
+  const isInSnapZone = useCallback((x: number, z: number) => {
+    const dx = x - RECORDER_POS[0];
+    const dz = z - RECORDER_POS[2];
+    const cos = Math.cos(-RECORDER_ROT_Y);
+    const sin = Math.sin(-RECORDER_ROT_Y);
+    const lx = dx * cos - dz * sin;
+    const lz = dx * sin + dz * cos;
+    return Math.abs(lx) < RECORDER_SNAP_HALF_W && Math.abs(lz) < RECORDER_SNAP_HALF_D;
+  }, []);
+
   useFrame(() => {
-    let isOver = false;
-    if (drag.tapeId) {
-      // Transform drag target into the recorder's local frame (inverse Y rotation),
-      // then axis-align against its half-extents.
-      const dx = drag.targetX - RECORDER_POS[0];
-      const dz = drag.targetZ - RECORDER_POS[2];
-      const cos = Math.cos(-RECORDER_ROT_Y);
-      const sin = Math.sin(-RECORDER_ROT_Y);
-      const lx = dx * cos - dz * sin;
-      const lz = dx * sin + dz * cos;
-      isOver = Math.abs(lx) < RECORDER_HALF_W && Math.abs(lz) < RECORDER_HALF_D;
-    }
+    const dragging = !!showRecorder && !!drag.tapeId;
+    const isOver = dragging && isOverRecorder(drag.targetX, drag.targetZ);
+    // Wider zone: tape starts orienting toward the recorder before the lid fires.
+    const isInSnap = dragging && isInSnapZone(drag.targetX, drag.targetZ);
     // Publish snap-yaw so TapeBody's per-frame rotation matches the recorder.
     // Add π so the opposite cassette edge faces the recorder slot (flip around Y).
-    drag.targetYaw = isOver ? RECORDER_ROT_Y + Math.PI : null;
+    drag.targetYaw = isInSnap ? RECORDER_ROT_Y + Math.PI : null;
+    // Tip the tape's top edge down to match the open lid's angle.
+    drag.targetPitch = isInSnap ? RECORDER_LID_OPEN_ANGLE : null;
+    // Lift the tape higher so its tipped leading edge clears the open lid.
+    drag.targetY = isInSnap ? DRAG_HEIGHT + RECORDER_HOVER_LIFT : null;
     if (isOver !== tapeOverRecorder) setTapeOverRecorder(isOver);
+
+    // Track snap.tapeId transitions — eject = non-null → null (TapeBody clears
+    // it on pickup). Load is fired directly in onUp so no detection here.
+    const cur = snap.tapeId;
+    if (prevSnapTapeId.current && !cur) {
+      onRecorderEjectRef.current?.();
+    }
+    prevSnapTapeId.current = cur;
+    const inRec = cur !== null;
+    if (inRec !== tapeInRecorder) setTapeInRecorder(inRec);
   });
+
+  // Lid stays closed while a tape is loaded, even if the mouse still hovers —
+  // only the hover + drag + just-loaded cases open it.
+  const lidOpen = tapeOverRecorder || (mouseOverRecorder && !tapeInRecorder) || recentlyLoaded;
 
   const pointerState = useRef({
     downTapeId: null as string | null,
@@ -143,10 +227,10 @@ function SceneContents({
     const deckEl = document.getElementById('tape-deck');
     if (!deckEl) return false;
     const r = deckEl.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) return false;
     // Expand hit zone by 30px in each direction for easier drops
     const pad = 30;
     const hit = screenX >= r.left - pad && screenX <= r.right + pad && screenY >= r.top - pad && screenY <= r.bottom + pad;
-    console.log('[TapeTable] deck drop check:', hit, 'pointer:', screenX, screenY, 'deck:', r.left, r.top, r.right, r.bottom);
     return hit;
   }, []);
 
@@ -161,6 +245,7 @@ function SceneContents({
         return;
       }
       if (lockedTapeId && tapeId === lockedTapeId) return;
+      if (pickupBlockedTapeId && tapeId === pickupBlockedTapeId) return;
       const ps = pointerState.current;
       ps.downTapeId = tapeId;
       ps.active = false;
@@ -194,6 +279,18 @@ function SceneContents({
         drag.tapeId = ps.downTapeId;
         if (controlsRef.current) controlsRef.current.enabled = false;
         onDragStart();
+
+        // Race guard: if a fast drop-and-grab happens within one animation
+        // frame, no useFrame observes snap.tapeId = X before it's picked up
+        // again, so the eject-transition detector never fires and the track
+        // plays on with no tape in the recorder. Clear the slot and fire
+        // eject synchronously here; set prev to null so the useFrame won't
+        // re-fire on the next tick.
+        if (snap.tapeId === ps.downTapeId) {
+          snap.tapeId = null;
+          prevSnapTapeId.current = null;
+          onRecorderEjectRef.current?.();
+        }
       }
 
       // Update target — tape follows pointer with offset, clamped to bounds
@@ -216,6 +313,25 @@ function SceneContents({
         // Clear drag — TapeBody will see null on next useFrame and release
         drag.tapeId = null;
         if (controlsRef.current) controlsRef.current.enabled = true;
+
+        // If dropped over the recorder, set the snap target so TapeBody tweens
+        // into the loaded pose instead of falling. Also hold the lid open briefly.
+        if (showRecorder && isOverRecorder(tx, tz)) {
+          // Apply recorder yaw to the local offset to get a world-space nudge.
+          const rc = Math.cos(RECORDER_ROT_Y);
+          const rs = Math.sin(RECORDER_ROT_Y);
+          const offX = RECORDER_LOAD_LOCAL_X * rc + RECORDER_LOAD_LOCAL_Z * rs;
+          const offZ = -RECORDER_LOAD_LOCAL_X * rs + RECORDER_LOAD_LOCAL_Z * rc;
+          snap.tapeId = tapeId;
+          snap.x = RECORDER_POS[0] + offX;
+          snap.y = RECORDER_LOAD_Y;
+          snap.z = RECORDER_POS[2] + offZ;
+          snap.yaw = RECORDER_ROT_Y + Math.PI;
+          if (lidCloseTimer.current) clearTimeout(lidCloseTimer.current);
+          setRecentlyLoaded(true);
+          lidCloseTimer.current = setTimeout(() => setRecentlyLoaded(false), LID_CLOSE_DELAY);
+          onRecorderLoad?.(tapeId);
+        }
 
         const [x2d, y2d] = to2D(tx, tz);
         const deckDrop = isDeckDrop(ev.clientX, ev.clientY);
@@ -246,7 +362,25 @@ function SceneContents({
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
-  }, [gl, drag, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, maxDragX]);
+  }, [gl, drag, snap, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, isOverRecorder, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, pickupBlockedTapeId, maxDragX, onRecorderLoad, showRecorder]);
+
+  // Track mouse hover over the recorder footprint (for lid open on hover).
+  useEffect(() => {
+    const el = gl.domElement;
+    function onHoverMove(ev: PointerEvent) {
+      if (!showRecorder) { setMouseOverRecorder(false); return; }
+      const hit = raycastToPlane(ev.clientX, ev.clientY, 0);
+      const over = !!hit && isOverRecorder(hit.x, hit.z);
+      setMouseOverRecorder(over);
+    }
+    function onLeave() { setMouseOverRecorder(false); }
+    el.addEventListener('pointermove', onHoverMove);
+    el.addEventListener('pointerleave', onLeave);
+    return () => {
+      el.removeEventListener('pointermove', onHoverMove);
+      el.removeEventListener('pointerleave', onLeave);
+    };
+  }, [gl, raycastToPlane, isOverRecorder, showRecorder]);
 
   // Pick up external drag initiation (e.g. tape ejected from deck)
   const extDragActive = useRef(false);
@@ -381,12 +515,13 @@ function SceneContents({
         <Physics gravity={[0, -400, 0]} timeStep={1 / 60}>
           <TableSurface />
           {/* Recorder — lower-left, partially running off the table edge */}
-          <Recorder3D position={RECORDER_POS} rotationY={RECORDER_ROT_Y} lidOpen={tapeOverRecorder} />
+          {showRecorder && <Recorder3D position={RECORDER_POS} rotationY={RECORDER_ROT_Y} lidOpen={lidOpen} />}
           {tableTapes.map(tape => (
             <TapeBody
               key={tape.id}
               tape={tape}
               drag={drag}
+              snap={snap}
               menuOpen={menuId === tape.id}
               onMenuAction={onMenuAction}
               isNew={newTapeIds.has(tape.id)}
