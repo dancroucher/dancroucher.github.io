@@ -29,7 +29,7 @@ interface SnapState {
 }
 
 // Recorder placement — kept in sync with the <Recorder3D> props below.
-const RECORDER_POS: [number, number, number] = [-20, -0.5, 4];
+const RECORDER_POS: [number, number, number] = [-20, 0, 4];
 const RECORDER_ROT_Y = Math.PI / 6;
 // Half-extents of the recorder *hover trigger* zone in local axes. Larger than
 // the physical footprint so the lid pops open before the tape is right on top.
@@ -47,7 +47,7 @@ const RECORDER_LID_OPEN_ANGLE = Math.PI / 4;
 // tape's tipped-down leading edge clears the raised lid.
 const RECORDER_HOVER_LIFT = 3;
 // Loaded pose — height above table when a tape is snapped into the recorder.
-const RECORDER_LOAD_Y = 1.8;
+const RECORDER_LOAD_Y = 2.3;
 // Local-frame offset from RECORDER_POS to the loaded pose (along recorder's
 // rotated axes). Tune these to nudge the snap point over the tape well.
 const RECORDER_LOAD_LOCAL_X = 0.4;
@@ -99,6 +99,17 @@ function SceneContents({
   const [tapeOverRecorder, setTapeOverRecorder] = useState(false);
   const [mouseOverRecorder, setMouseOverRecorder] = useState(false);
   const [recentlyLoaded, setRecentlyLoaded] = useState(false);
+  // Fades the recorder + tapes alongside the rest of the UI when the inactivity
+  // module hides them (event dispatched from public/src/player.js).
+  const [uiHidden, setUiHidden] = useState(false);
+  useEffect(() => {
+    function handler(e: Event) {
+      const detail = (e as CustomEvent).detail as { hidden?: boolean } | undefined;
+      setUiHidden(!!detail?.hidden);
+    }
+    window.addEventListener('jeem-ui-fade', handler);
+    return () => window.removeEventListener('jeem-ui-fade', handler);
+  }, []);
   // True while a tape is snapped in the recorder — suppresses mouseOverRecorder
   // so the lid stays closed even if the mouse is still parked over the footprint.
   const [tapeInRecorder, setTapeInRecorder] = useState(false);
@@ -501,7 +512,7 @@ function SceneContents({
         shadow-camera-bottom={-40}
         shadow-camera-near={0.5}
         shadow-camera-far={150}
-        shadow-radius={2}
+        shadow-radius={8}
       />
       {/* Fill light from opposite side — no shadows, softens the shaded faces */}
       <directionalLight
@@ -515,7 +526,7 @@ function SceneContents({
         <Physics gravity={[0, -400, 0]} timeStep={1 / 60}>
           <TableSurface />
           {/* Recorder — lower-left, partially running off the table edge */}
-          {showRecorder && <Recorder3D position={RECORDER_POS} rotationY={RECORDER_ROT_Y} lidOpen={lidOpen} />}
+          {showRecorder && <Recorder3D position={RECORDER_POS} rotationY={RECORDER_ROT_Y} lidOpen={lidOpen} hidden={uiHidden} />}
           {tableTapes.map(tape => (
             <TapeBody
               key={tape.id}
@@ -526,6 +537,7 @@ function SceneContents({
               onMenuAction={onMenuAction}
               isNew={newTapeIds.has(tape.id)}
               bounceTapeId={bounceTapeId}
+              hidden={uiHidden}
             />
           ))}
         </Physics>
@@ -550,11 +562,6 @@ function SceneContents({
 export function TapesTable3D(props: TapesTable3DProps) {
   return (
     <div style={{ flex: 1, position: 'relative' }}>
-      {/* Vignette — below search UI (z-index 2) */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2,
-        background: 'radial-gradient(circle, transparent 50%, rgba(0,0,0,0.5) 120%)',
-      }} />
       <Canvas
         shadows
         camera={{ position: [0, 30, 3], fov: 45, near: 0.1, far: 200 }}

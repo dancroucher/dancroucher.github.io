@@ -738,6 +738,12 @@ input:focus, select:focus, textarea:focus, button:focus {
   animation: bg-glitch 0.6s ease-in-out;
 }
 
+/* With tapes-active the real video plays on the 3D plane inside #tapes-root,
+   so apply the same blowout animation there to match _crossfade transitions. */
+#tapes-root.glitching {
+  animation: bg-glitch 0.6s ease-in-out;
+}
+
 html.glitching, html.glitching body {
   overflow: hidden;
 }
@@ -806,8 +812,21 @@ html.glitching, html.glitching body {
   pointer-events: none;
 }
 
-/* Hide CRT vignette when tapes view is active */
+/* Hide DOM CRT + vignette when tapes view is active — the 3D scene draws its
+   own in-table CRT, so we don't want a second layer on top of the canvas. */
+.crt.tapes-active::before,
 .crt.tapes-active::after {
+  opacity: 0;
+}
+.tapes-active .vignette::before {
+  display: none;
+}
+/* Hide DOM MP4 video while the 3D table is showing — the video element still
+   plays and feeds the in-scene VideoTexture, so use opacity (not visibility or
+   display) to keep frame decoding alive. */
+.tapes-active #bg-mp4,
+.tapes-active #bg-none,
+.tapes-active #bg-youtube {
   opacity: 0;
 }
 

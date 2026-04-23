@@ -28694,6 +28694,8 @@ var import_react3 = __toESM(require_react(), 1);
 // src/tapes/TableSurface.tsx
 var import_react2 = __toESM(require_react(), 1);
 var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
+var VIDEO_H = 30;
+var VIDEO_W = VIDEO_H * (4e3 / 2400);
 var SURFACE_W = VISUAL_W * 3;
 var SURFACE_H = VISUAL_H * 2;
 

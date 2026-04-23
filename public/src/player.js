@@ -116,6 +116,11 @@ const Backgrounds = {
             // Start glitch animation on the container
             document.documentElement.classList.add("glitching");
             DOM.bgMp4.classList.add("glitching");
+            // Also glitch the 3D canvas — the real video plays there while
+            // tapes-active, which hides #bg-mp4 so its CSS keyframes are
+            // invisible on their own. CSS for #tapes-root.glitching reuses
+            // the same bg-glitch keyframes.
+            DOM.tapesRoot.classList.add("glitching");
 
             // Swap videos at peak blowout (~270ms into 600ms animation)
             setTimeout(() => {
@@ -128,6 +133,7 @@ const Backgrounds = {
             setTimeout(() => {
                 document.documentElement.classList.remove("glitching");
                 DOM.bgMp4.classList.remove("glitching");
+                DOM.tapesRoot.classList.remove("glitching");
                 outgoing.pause();
                 outgoing.removeAttribute("src");
                 outgoing.load();
@@ -166,6 +172,14 @@ const Backgrounds = {
         const typeName = BG_TYPES[index];
         DOM.backgroundType.innerHTML = `<i class='fas fa-file-image'></i>&nbsp;${typeName}`;
 
+        // Notify React 3D table so it can render video surface
+        window.dispatchEvent(new CustomEvent('jeem-bg-change', {
+            detail: {
+                bgTypeIndex: index,
+                videoEl: this._isMediaType() ? this._activeEl : null,
+            }
+        }));
+
         if (this._isMediaType()) {
             const folder = this._folder();
             const list = this[folder];
@@ -176,7 +190,7 @@ const Backgrounds = {
             DOM.bgMp4.style.display = "block";
             DOM.bgNone.style.background = "#000000";
             DOM.bgYoutube.style.display = "block";
-            if (AppState.playing) DOM.tapesRoot.style.display = "none";
+            DOM.tapesRoot.style.display = "flex";
         } else if (index === 3) {
             this._clearVideos();
             DOM.bgMp4.style.display = "none";
@@ -216,6 +230,10 @@ const Backgrounds = {
         this._activeEl.load();
         this._inactiveEl.removeAttribute("src");
         this._inactiveEl.load();
+        // Notify React 3D table that videos are cleared
+        window.dispatchEvent(new CustomEvent('jeem-bg-change', {
+            detail: { bgTypeIndex: this.bgTypeIndex, videoEl: null }
+        }));
     },
 
     cycleType() {
@@ -505,6 +523,7 @@ const Inactivity = {
             if (infoPanel) infoPanel.style.opacity = "0";
             this._visible = false;
             document.body.style.cursor = "none";
+            window.dispatchEvent(new CustomEvent('jeem-ui-fade', { detail: { hidden: true } }));
         }
     },
 
@@ -522,6 +541,7 @@ const Inactivity = {
             if (infoPanel) infoPanel.style.opacity = "1";
             this._visible = true;
             document.body.style.cursor = "default";
+            window.dispatchEvent(new CustomEvent('jeem-ui-fade', { detail: { hidden: false } }));
         }
     },
 };
@@ -588,6 +608,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Expose inactivity for track-change re-fade
 window.Inactivity = Inactivity;
+
+// Expose Backgrounds for React to read current state on mount
+window.Backgrounds = Backgrounds;
 
 // Expose bg switch for React bridge
 // Called from React eject — switches display without persisting to localStorage

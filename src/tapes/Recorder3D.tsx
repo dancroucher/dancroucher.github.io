@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -52,12 +52,15 @@ export interface Recorder3DProps {
   lidOpen?: boolean;
   /** Fully-open lid angle in radians. Negative = lifts toward the viewer. */
   lidOpenAngle?: number;
+  /** When true, fade recorder + shadows out — matches TapeBody's UI-hide fade. */
+  hidden?: boolean;
 }
 
 interface LoadedRecorder {
   group: THREE.Group;
   size: THREE.Vector3; // scaled bbox size, used for the collider
   lidPivot: THREE.Object3D | null;
+  materials: THREE.Material[];
 }
 
 export function Recorder3D({
@@ -67,8 +70,11 @@ export function Recorder3D({
   targetWidth = DEFAULT_TARGET_WIDTH,
   lidOpen: lidOpenProp = false,
   lidOpenAngle = -Math.PI / 4,
+  hidden = false,
 }: Recorder3DProps) {
   const [loaded, setLoaded] = useState<LoadedRecorder | null>(null);
+  const opacityRef = useRef(1);
+  const groupRef = useRef<THREE.Group | null>(null);
   // Local state so a click on the recorder can toggle the lid for diagnosis.
   const [lidOpen, setLidOpen] = useState(lidOpenProp);
 
@@ -94,11 +100,23 @@ export function Recorder3D({
           'center:', rawCenter.x.toFixed(2), rawCenter.y.toFixed(2), rawCenter.z.toFixed(2),
         );
 
+        const materials: THREE.Material[] = [];
         clone.traverse((child) => {
           const m = child as THREE.Mesh;
           if (m.isMesh) {
             m.castShadow = true;
             m.receiveShadow = true;
+            // Clone materials so per-instance opacity tweens don't leak across
+            // other uses of the cached GLTF scene.
+            const mats = Array.isArray(m.material) ? m.material : [m.material];
+            const cloned = mats.map((mat) => {
+              const c = mat.clone();
+              c.transparent = true;
+              c.opacity = 1;
+              return c;
+            });
+            m.material = cloned.length === 1 ? cloned[0] : cloned;
+            materials.push(...cloned);
           }
         });
 
@@ -154,7 +172,7 @@ export function Recorder3D({
           'centred at:', clone.position.x.toFixed(2), clone.position.y.toFixed(2), clone.position.z.toFixed(2),
         );
 
-        setLoaded({ group: clone as unknown as THREE.Group, size: scaledSize, lidPivot });
+        setLoaded({ group: clone as unknown as THREE.Group, size: scaledSize, lidPivot, materials });
       })
       .catch(() => {/* already logged */});
     return () => { cancelled = true; };
@@ -164,10 +182,30 @@ export function Recorder3D({
   // ~0.4s tween — snaps open crisply while a tape is dragged over.
   useFrame((_, dt) => {
     const pivot = loaded?.lidPivot;
-    if (!pivot) return;
-    const target = lidOpen ? lidOpenAngle : 0;
-    const k = 1 - Math.exp(-dt * 8);
-    pivot.rotation.x += (target - pivot.rotation.x) * k;
+    if (pivot) {
+      const target = lidOpen ? lidOpenAngle : 0;
+      const k = 1 - Math.exp(-dt * 8);
+      pivot.rotation.x += (target - pivot.rotation.x) * k;
+    }
+
+    // UI fade — tween opacity, drop shadow-casting early so shadows lead the
+    // body transition, hide the group entirely once effectively clear.
+    const mats = loaded?.materials;
+    if (mats && mats.length) {
+      const target = hidden ? 0 : 1;
+      const k = 1 - Math.exp(-dt * 2.5);
+      opacityRef.current += (target - opacityRef.current) * k;
+      for (const m of mats) m.opacity = opacityRef.current;
+      // Keep cast-shadow on almost until the mesh is gone so the shadow tracks
+      // the body's fade; threshold is only to kill the orphan shadow at the end.
+      const castOn = opacityRef.current > 0.05;
+      loaded?.group.traverse((child) => {
+        const mesh = child as THREE.Mesh;
+        if (mesh.isMesh) mesh.castShadow = castOn;
+      });
+      const g = groupRef.current;
+      if (g) g.visible = opacityRef.current > 0.02;
+    }
   });
 
   if (!loaded) return null;
@@ -187,14 +225,16 @@ export function Recorder3D({
         args={[size.x / 2, size.y / 2, size.z / 2]}
         position={[0, colliderY, 0]}
       />
-      <primitive
-        object={group}
-        onClick={(e: { stopPropagation: () => void }) => {
-          e.stopPropagation();
-          setLidOpen((v) => !v);
-          console.log('[Recorder3D] lid toggled →', !lidOpen);
-        }}
-      />
+      <group ref={groupRef}>
+        <primitive
+          object={group}
+          onClick={(e: { stopPropagation: () => void }) => {
+            e.stopPropagation();
+            setLidOpen((v) => !v);
+            console.log('[Recorder3D] lid toggled →', !lidOpen);
+          }}
+        />
+      </group>
     </RigidBody>
   );
 }

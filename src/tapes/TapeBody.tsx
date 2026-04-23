@@ -37,6 +37,7 @@ interface TapeBodyProps {
   onMenuAction?: (tapeId: string, action: 'link' | 'rewind' | 'remove') => void;
   isNew?: boolean;
   bounceTapeId?: React.MutableRefObject<string | null>;
+  hidden?: boolean;
 }
 
 // Per-variant cached: isolated mesh centered at origin + measured half-extents
@@ -337,7 +338,7 @@ export function stampTitle(baseColor: THREE.Texture, title: string, variant: str
 }
 
 export function TapeBody({
-  tape, drag, snap, menuOpen, onMenuAction, isNew, bounceTapeId,
+  tape, drag, snap, menuOpen, onMenuAction, isNew, bounceTapeId, hidden = false,
 }: TapeBodyProps) {
   const bodyRef = useRef<RapierRigidBody>(null);
   const groupRef = useRef<THREE.Group>(null);
@@ -361,6 +362,9 @@ export function TapeBody({
   const snapElapsed = useRef(0);
   const snapStart = useRef({ x: 0, y: 0, z: 0, qx: 0, qy: 0, qz: 0, qw: 1 });
   const snapTarget = useRef({ x: 0, y: 0, z: 0, yaw: 0 });
+  // Inactivity fade — eased toward 1 (visible) or 0 (hidden) each frame.
+  const opacityRef = useRef(1);
+  const materialsRef = useRef<THREE.Material[]>([]);
 
   // Pick texture variant — use stored field if available, fall back to seed-based for legacy tapes
   const seed = tape.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
@@ -380,20 +384,26 @@ export function TapeBody({
   useEffect(() => {
     if (!sceneData || !textures) return;
     const colorMap = tape.title ? stampTitle(textures.baseColor, tape.title, variant, tape) : textures.baseColor;
+    const mats: THREE.Material[] = [];
     sceneData.group.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
-        mesh.material = new THREE.MeshStandardMaterial({
+        const mat = new THREE.MeshStandardMaterial({
           map: colorMap,
           metalness: 0.0,
           roughness: 0.75,
           normalMap: textures.normal,
           normalScale: new THREE.Vector2(0.5, 0.5),
           envMapIntensity: 0.3,
+          transparent: true,
+          opacity: opacityRef.current,
         });
+        mesh.material = mat;
         mesh.castShadow = true;
+        mats.push(mat);
       }
     });
+    materialsRef.current = mats;
   }, [sceneData, textures, tape.title]);
 
   // Initial position from 2D coords — only used on first mount, not on prop updates
@@ -609,6 +619,22 @@ export function TapeBody({
       } else if (gs < 1) {
         body.setGravityScale(Math.min(1, gs + delta * 0.8), true);
       }
+    }
+
+    // Inactivity fade. Shadow drops at opacity > 0.85 so it leads rather than
+    // lags the body transition; group is hidden entirely once effectively clear.
+    if (materialsRef.current.length) {
+      const opTarget = hidden ? 0 : 1;
+      const k = 1 - Math.exp(-delta * 2.5);
+      opacityRef.current += (opTarget - opacityRef.current) * k;
+      const castOn = opacityRef.current > 0.85;
+      sceneData?.group.traverse((child) => {
+        const m = child as THREE.Mesh;
+        if (m.isMesh) m.castShadow = castOn;
+      });
+      for (const mat of materialsRef.current) mat.opacity = opacityRef.current;
+      const g = groupRef.current;
+      if (g) g.visible = opacityRef.current > 0.02;
     }
   });
 

@@ -55950,12 +55950,12 @@ var require_use_sync_external_store_shim_production = __commonJS({
       return x3 === y2 && (0 !== x3 || 1 / x3 === 1 / y2) || x3 !== x3 && y2 !== y2;
     }
     var objectIs = "function" === typeof Object.is ? Object.is : is2;
-    var useState13 = React15.useState;
-    var useEffect13 = React15.useEffect;
+    var useState14 = React15.useState;
+    var useEffect14 = React15.useEffect;
     var useLayoutEffect5 = React15.useLayoutEffect;
     var useDebugValue = React15.useDebugValue;
     function useSyncExternalStore$2(subscribe, getSnapshot) {
-      var value = getSnapshot(), _useState = useState13({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
+      var value = getSnapshot(), _useState = useState14({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
       useLayoutEffect5(
         function() {
           inst.value = value;
@@ -55964,7 +55964,7 @@ var require_use_sync_external_store_shim_production = __commonJS({
         },
         [subscribe, value, getSnapshot]
       );
-      useEffect13(
+      useEffect14(
         function() {
           checkIfSnapshotChanged(inst) && forceUpdate({ inst });
           return subscribe(function() {
@@ -56017,12 +56017,12 @@ var require_with_selector_production = __commonJS({
     }
     var objectIs = "function" === typeof Object.is ? Object.is : is2;
     var useSyncExternalStore = shim.useSyncExternalStore;
-    var useRef12 = React15.useRef;
-    var useEffect13 = React15.useEffect;
+    var useRef14 = React15.useRef;
+    var useEffect14 = React15.useEffect;
     var useMemo12 = React15.useMemo;
     var useDebugValue = React15.useDebugValue;
     exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-      var instRef = useRef12(null);
+      var instRef = useRef14(null);
       if (null === instRef.current) {
         var inst = { hasValue: false, value: null };
         instRef.current = inst;
@@ -56062,7 +56062,7 @@ var require_with_selector_production = __commonJS({
         [getSnapshot, getServerSnapshot, selector, isEqual]
       );
       var value = useSyncExternalStore(subscribe, instRef[0], instRef[1]);
-      useEffect13(
+      useEffect14(
         function() {
           inst.hasValue = true;
           inst.value = value;
@@ -74845,7 +74845,111 @@ var init_coords = __esm({
 // src/tapes/TableSurface.tsx
 function TableSurface() {
   const woodTexture = useLoader(TextureLoader, "/wood-table-alt.jpg");
-  const material = (0, import_react5.useMemo)(() => {
+  const [bgInfo, setBgInfo] = (0, import_react5.useState)(() => {
+    const bg2 = window.Backgrounds;
+    if (!bg2) return { bgTypeIndex: -1, videoEl: null };
+    const isMedia = typeof bg2._isMediaType === "function" ? bg2._isMediaType() : bg2.bgTypeIndex >= 0 && bg2.bgTypeIndex <= 2;
+    return {
+      bgTypeIndex: bg2.bgTypeIndex ?? -1,
+      videoEl: isMedia ? bg2._activeEl ?? null : null
+    };
+  });
+  (0, import_react5.useEffect)(() => {
+    function handler(e3) {
+      const detail = e3.detail;
+      setBgInfo({
+        bgTypeIndex: detail?.bgTypeIndex ?? -1,
+        videoEl: detail?.videoEl ?? null
+      });
+    }
+    window.addEventListener("jeem-bg-change", handler);
+    return () => window.removeEventListener("jeem-bg-change", handler);
+  }, []);
+  const isMediaMode = bgInfo.bgTypeIndex >= 0 && bgInfo.bgTypeIndex <= 2;
+  const [hasLoadedVideo, setHasLoadedVideo] = (0, import_react5.useState)(false);
+  (0, import_react5.useEffect)(() => {
+    const v5 = bgInfo.videoEl;
+    if (!isMediaMode || !v5) {
+      setHasLoadedVideo(false);
+      return;
+    }
+    const check = () => setHasLoadedVideo(!!v5.currentSrc && v5.readyState >= 2);
+    check();
+    v5.addEventListener("loadeddata", check);
+    v5.addEventListener("canplay", check);
+    v5.addEventListener("emptied", check);
+    return () => {
+      v5.removeEventListener("loadeddata", check);
+      v5.removeEventListener("canplay", check);
+      v5.removeEventListener("emptied", check);
+    };
+  }, [isMediaMode, bgInfo.videoEl]);
+  const showVideo = isMediaMode && hasLoadedVideo;
+  const [uiHidden, setUiHidden] = (0, import_react5.useState)(false);
+  (0, import_react5.useEffect)(() => {
+    function handler(e3) {
+      const detail = e3.detail;
+      setUiHidden(!!detail?.hidden);
+    }
+    window.addEventListener("jeem-ui-fade", handler);
+    return () => window.removeEventListener("jeem-ui-fade", handler);
+  }, []);
+  const SHADOW_OPACITY = 0.22;
+  const shadowMatRef = (0, import_react5.useRef)(null);
+  const shadowOpacityRef = (0, import_react5.useRef)(SHADOW_OPACITY);
+  useFrame((_2, dt) => {
+    const m3 = shadowMatRef.current;
+    if (!m3) return;
+    const target = uiHidden ? 0 : SHADOW_OPACITY;
+    const k3 = 1 - Math.exp(-dt * 2.5);
+    shadowOpacityRef.current += (target - shadowOpacityRef.current) * k3;
+    m3.opacity = shadowOpacityRef.current;
+  });
+  const videoTexture = (0, import_react5.useMemo)(() => {
+    if (!isMediaMode || !bgInfo.videoEl) return null;
+    const tex = new VideoTexture(bgInfo.videoEl);
+    tex.colorSpace = SRGBColorSpace;
+    tex.minFilter = LinearFilter;
+    tex.magFilter = LinearFilter;
+    tex.format = RGBAFormat;
+    return tex;
+  }, [isMediaMode, bgInfo.videoEl]);
+  (0, import_react5.useEffect)(() => {
+    return () => {
+      videoTexture?.dispose();
+    };
+  }, [videoTexture]);
+  const texRef = (0, import_react5.useRef)(null);
+  texRef.current = videoTexture;
+  useFrame(() => {
+    const tex = texRef.current;
+    const v5 = tex?.image;
+    if (tex && v5 && v5.readyState >= 2) tex.needsUpdate = true;
+  });
+  (0, import_react5.useEffect)(() => {
+    const v5 = bgInfo.videoEl;
+    if (!isMediaMode || !v5) return;
+    v5.muted = true;
+    v5.playsInline = true;
+    const kick = () => {
+      v5.play().catch(() => {
+      });
+    };
+    kick();
+    v5.addEventListener("pause", kick);
+    v5.addEventListener("loadeddata", kick);
+    v5.addEventListener("canplay", kick);
+    const poll = setInterval(() => {
+      if (v5.paused) kick();
+    }, 500);
+    return () => {
+      v5.removeEventListener("pause", kick);
+      v5.removeEventListener("loadeddata", kick);
+      v5.removeEventListener("canplay", kick);
+      clearInterval(poll);
+    };
+  }, [isMediaMode, bgInfo.videoEl]);
+  const woodMaterial = (0, import_react5.useMemo)(() => {
     woodTexture.wrapS = woodTexture.wrapT = RepeatWrapping;
     woodTexture.repeat.set(SURFACE_W / TILE_W, SURFACE_H / TILE_H);
     woodTexture.colorSpace = SRGBColorSpace;
@@ -74856,12 +74960,43 @@ function TableSurface() {
       color: "#ffffff"
     });
   }, [woodTexture]);
+  const videoMaterial = (0, import_react5.useMemo)(() => {
+    if (!videoTexture) return null;
+    return new MeshBasicMaterial({ map: videoTexture, toneMapped: false });
+  }, [videoTexture]);
+  const crtMaterial = (0, import_react5.useMemo)(() => {
+    const cw = 2e3;
+    const ch = 1200;
+    const canvas = document.createElement("canvas");
+    canvas.width = cw;
+    canvas.height = ch;
+    const ctx = canvas.getContext("2d");
+    for (let x3 = 0; x3 < cw; x3 += 3) {
+      ctx.fillStyle = "rgba(255,0,0,0.07)";
+      ctx.fillRect(x3, 0, 1, ch);
+      ctx.fillStyle = "rgba(0,255,0,0.03)";
+      ctx.fillRect(x3 + 1, 0, 1, ch);
+      ctx.fillStyle = "rgba(0,0,255,0.07)";
+      ctx.fillRect(x3 + 2, 0, 1, ch);
+    }
+    const grad = ctx.createRadialGradient(cw / 2, ch / 2, Math.min(cw, ch) * 0.25, cw / 2, ch / 2, Math.max(cw, ch) * 0.7);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(1, "rgba(0,0,0,0.45)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, cw, ch);
+    const tex = new CanvasTexture(canvas);
+    tex.colorSpace = SRGBColorSpace;
+    tex.minFilter = NearestFilter;
+    tex.magFilter = NearestFilter;
+    tex.generateMipmaps = false;
+    return new MeshBasicMaterial({ map: tex, transparent: true });
+  }, []);
   return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("group", { children: [
     /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(RigidBody, { type: "fixed", colliders: false, children: [
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(CuboidCollider, { args: [SURFACE_W / 2, 0.5, SURFACE_H / 2], position: [0, -0.5, 0] }),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 0, 0], receiveShadow: true, children: [
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("planeGeometry", { args: [SURFACE_W, SURFACE_H] }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("primitive", { object: material, attach: "material" })
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("primitive", { object: woodMaterial, attach: "material" })
       ] })
     ] }),
     /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(RigidBody, { type: "fixed", colliders: false, children: [
@@ -74870,13 +75005,27 @@ function TableSurface() {
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(CuboidCollider, { args: [WALL_THICKNESS / 2, WALL_HEIGHT / 2, ACTIVE_H / 2 + TILE_H], position: [-(ACTIVE_W / 2 + TILE_W / 2), WALL_HEIGHT / 2, 0] }),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(CuboidCollider, { args: [WALL_THICKNESS / 2, WALL_HEIGHT / 2, ACTIVE_H / 2 + TILE_H], position: [ACTIVE_W / 2 + TILE_W / 2, WALL_HEIGHT / 2, 0] })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 0.02, 0], receiveShadow: true, children: [
+    !showVideo && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 0.02, 0], receiveShadow: true, children: [
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("planeGeometry", { args: [SURFACE_W, SURFACE_H] }),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("meshStandardMaterial", { color: "#000000", transparent: true, opacity: 0.45, roughness: 1, metalness: 0 })
+    ] }),
+    showVideo && videoMaterial && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 0.1, 0], children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("planeGeometry", { args: [VIDEO_W, VIDEO_H] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("primitive", { object: videoMaterial, attach: "material" })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 0.105, 0], receiveShadow: true, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("planeGeometry", { args: [VIDEO_W, VIDEO_H] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("shadowMaterial", { ref: shadowMatRef, transparent: true, opacity: SHADOW_OPACITY })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 0.11, 0], children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("planeGeometry", { args: [VIDEO_W, VIDEO_H] }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("primitive", { object: crtMaterial, attach: "material" })
+      ] })
     ] })
   ] });
 }
-var import_react5, import_jsx_runtime3, WALL_HEIGHT, WALL_THICKNESS, SURFACE_W, SURFACE_H;
+var import_react5, import_jsx_runtime3, VIDEO_H, VIDEO_W, WALL_HEIGHT, WALL_THICKNESS, SURFACE_W, SURFACE_H;
 var init_TableSurface = __esm({
   "src/tapes/TableSurface.tsx"() {
     "use strict";
@@ -74886,6 +75035,8 @@ var init_TableSurface = __esm({
     init_react_three_fiber_esm();
     init_coords();
     import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
+    VIDEO_H = 30;
+    VIDEO_W = VIDEO_H * (4e3 / 2400);
     WALL_HEIGHT = 4;
     WALL_THICKNESS = 0.5;
     SURFACE_W = VISUAL_W * 3;
@@ -75191,7 +75342,8 @@ function TapeBody({
   menuOpen,
   onMenuAction,
   isNew,
-  bounceTapeId
+  bounceTapeId,
+  hidden = false
 }) {
   const bodyRef = (0, import_react7.useRef)(null);
   const groupRef = (0, import_react7.useRef)(null);
@@ -75210,6 +75362,8 @@ function TapeBody({
   const snapElapsed = (0, import_react7.useRef)(0);
   const snapStart = (0, import_react7.useRef)({ x: 0, y: 0, z: 0, qx: 0, qy: 0, qz: 0, qw: 1 });
   const snapTarget = (0, import_react7.useRef)({ x: 0, y: 0, z: 0, yaw: 0 });
+  const opacityRef = (0, import_react7.useRef)(1);
+  const materialsRef = (0, import_react7.useRef)([]);
   const seed = tape.id.split("").reduce((a3, c3) => a3 + c3.charCodeAt(0), 0);
   const variant = tape.textureVariant || VARIANTS[seed % VARIANTS.length];
   const meshName = VARIANT_TO_MESH["a"];
@@ -75223,20 +75377,26 @@ function TapeBody({
   (0, import_react7.useEffect)(() => {
     if (!sceneData || !textures) return;
     const colorMap = tape.title ? stampTitle(textures.baseColor, tape.title, variant, tape) : textures.baseColor;
+    const mats = [];
     sceneData.group.traverse((child) => {
       if (child.isMesh) {
         const mesh = child;
-        mesh.material = new MeshStandardMaterial({
+        const mat = new MeshStandardMaterial({
           map: colorMap,
           metalness: 0,
           roughness: 0.75,
           normalMap: textures.normal,
           normalScale: new Vector2(0.5, 0.5),
-          envMapIntensity: 0.3
+          envMapIntensity: 0.3,
+          transparent: true,
+          opacity: opacityRef.current
         });
+        mesh.material = mat;
         mesh.castShadow = true;
+        mats.push(mat);
       }
     });
+    materialsRef.current = mats;
   }, [sceneData, textures, tape.title]);
   const initialPos = (0, import_react7.useRef)(null);
   const halfY = sceneData?.geo.halfY ?? 0.8;
@@ -75405,6 +75565,19 @@ function TapeBody({
       } else if (gs < 1) {
         body.setGravityScale(Math.min(1, gs + delta * 0.8), true);
       }
+    }
+    if (materialsRef.current.length) {
+      const opTarget = hidden ? 0 : 1;
+      const k3 = 1 - Math.exp(-delta * 2.5);
+      opacityRef.current += (opTarget - opacityRef.current) * k3;
+      const castOn = opacityRef.current > 0.85;
+      sceneData?.group.traverse((child) => {
+        const m3 = child;
+        if (m3.isMesh) m3.castShadow = castOn;
+      });
+      for (const mat of materialsRef.current) mat.opacity = opacityRef.current;
+      const g3 = groupRef.current;
+      if (g3) g3.visible = opacityRef.current > 0.02;
     }
   });
   if (!sceneData || !textures) return null;
@@ -78140,9 +78313,12 @@ function Recorder3D({
   rotationY = 0,
   targetWidth = DEFAULT_TARGET_WIDTH,
   lidOpen: lidOpenProp = false,
-  lidOpenAngle = -Math.PI / 4
+  lidOpenAngle = -Math.PI / 4,
+  hidden = false
 }) {
   const [loaded, setLoaded] = (0, import_react10.useState)(null);
+  const opacityRef = (0, import_react10.useRef)(1);
+  const groupRef = (0, import_react10.useRef)(null);
   const [lidOpen, setLidOpen] = (0, import_react10.useState)(lidOpenProp);
   (0, import_react10.useEffect)(() => {
     setLidOpen(lidOpenProp);
@@ -78165,11 +78341,21 @@ function Recorder3D({
         rawCenter.y.toFixed(2),
         rawCenter.z.toFixed(2)
       );
+      const materials = [];
       clone2.traverse((child) => {
         const m3 = child;
         if (m3.isMesh) {
           m3.castShadow = true;
           m3.receiveShadow = true;
+          const mats = Array.isArray(m3.material) ? m3.material : [m3.material];
+          const cloned = mats.map((mat) => {
+            const c3 = mat.clone();
+            c3.transparent = true;
+            c3.opacity = 1;
+            return c3;
+          });
+          m3.material = cloned.length === 1 ? cloned[0] : cloned;
+          materials.push(...cloned);
         }
       });
       const horizontalMax = Math.max(rawSize.x, rawSize.z);
@@ -78223,7 +78409,7 @@ function Recorder3D({
         clone2.position.y.toFixed(2),
         clone2.position.z.toFixed(2)
       );
-      setLoaded({ group: clone2, size: scaledSize, lidPivot });
+      setLoaded({ group: clone2, size: scaledSize, lidPivot, materials });
     }).catch(() => {
     });
     return () => {
@@ -78232,10 +78418,25 @@ function Recorder3D({
   }, [targetWidth]);
   useFrame((_2, dt) => {
     const pivot = loaded?.lidPivot;
-    if (!pivot) return;
-    const target = lidOpen ? lidOpenAngle : 0;
-    const k3 = 1 - Math.exp(-dt * 8);
-    pivot.rotation.x += (target - pivot.rotation.x) * k3;
+    if (pivot) {
+      const target = lidOpen ? lidOpenAngle : 0;
+      const k3 = 1 - Math.exp(-dt * 8);
+      pivot.rotation.x += (target - pivot.rotation.x) * k3;
+    }
+    const mats = loaded?.materials;
+    if (mats && mats.length) {
+      const target = hidden ? 0 : 1;
+      const k3 = 1 - Math.exp(-dt * 2.5);
+      opacityRef.current += (target - opacityRef.current) * k3;
+      for (const m3 of mats) m3.opacity = opacityRef.current;
+      const castOn = opacityRef.current > 0.05;
+      loaded?.group.traverse((child) => {
+        const mesh = child;
+        if (mesh.isMesh) mesh.castShadow = castOn;
+      });
+      const g3 = groupRef.current;
+      if (g3) g3.visible = opacityRef.current > 0.02;
+    }
   });
   if (!loaded) return null;
   const { group, size } = loaded;
@@ -78255,7 +78456,7 @@ function Recorder3D({
             position: [0, colliderY, 0]
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("group", { ref: groupRef, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
           "primitive",
           {
             object: group,
@@ -78265,7 +78466,7 @@ function Recorder3D({
               console.log("[Recorder3D] lid toggled \u2192", !lidOpen);
             }
           }
-        )
+        ) })
       ]
     }
   );
@@ -78320,6 +78521,15 @@ function SceneContents({
   const [tapeOverRecorder, setTapeOverRecorder] = (0, import_react11.useState)(false);
   const [mouseOverRecorder, setMouseOverRecorder] = (0, import_react11.useState)(false);
   const [recentlyLoaded, setRecentlyLoaded] = (0, import_react11.useState)(false);
+  const [uiHidden, setUiHidden] = (0, import_react11.useState)(false);
+  (0, import_react11.useEffect)(() => {
+    function handler(e3) {
+      const detail = e3.detail;
+      setUiHidden(!!detail?.hidden);
+    }
+    window.addEventListener("jeem-ui-fade", handler);
+    return () => window.removeEventListener("jeem-ui-fade", handler);
+  }, []);
   const [tapeInRecorder, setTapeInRecorder] = (0, import_react11.useState)(false);
   const lidCloseTimer = (0, import_react11.useRef)(null);
   const prevSnapTapeId = (0, import_react11.useRef)(null);
@@ -78653,7 +78863,7 @@ function SceneContents({
         "shadow-camera-bottom": -40,
         "shadow-camera-near": 0.5,
         "shadow-camera-far": 150,
-        "shadow-radius": 2
+        "shadow-radius": 8
       }
     ),
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
@@ -78667,7 +78877,7 @@ function SceneContents({
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("pointLight", { position: [-8, 6, -4], intensity: 0.25, color: "#ffe8d6" }),
     /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: null, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(Physics, { gravity: [0, -400, 0], timeStep: 1 / 60, children: [
       /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableSurface, {}),
-      showRecorder && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Recorder3D, { position: RECORDER_POS, rotationY: RECORDER_ROT_Y, lidOpen }),
+      showRecorder && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Recorder3D, { position: RECORDER_POS, rotationY: RECORDER_ROT_Y, lidOpen, hidden: uiHidden }),
       tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
         TapeBody,
         {
@@ -78677,7 +78887,8 @@ function SceneContents({
           menuOpen: menuId === tape.id,
           onMenuAction,
           isNew: newTapeIds.has(tape.id),
-          bounceTapeId
+          bounceTapeId,
+          hidden: uiHidden
         },
         tape.id
       ))
@@ -78700,36 +78911,27 @@ function SceneContents({
   ] });
 }
 function TapesTable3D(props) {
-  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { style: { flex: 1, position: "relative" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: {
-      position: "absolute",
-      inset: 0,
-      pointerEvents: "none",
-      zIndex: 2,
-      background: "radial-gradient(circle, transparent 50%, rgba(0,0,0,0.5) 120%)"
-    } }),
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-      Canvas,
-      {
-        shadows: true,
-        camera: { position: [0, 30, 3], fov: 45, near: 0.1, far: 200 },
-        gl: { antialias: false, powerPreference: "high-performance" },
-        dpr: [1, 1.5],
-        style: { background: "#0a0805" },
-        onCreated: ({ gl }) => {
-          const canvas = gl.domElement;
-          canvas.addEventListener("webglcontextlost", (e3) => {
-            e3.preventDefault();
-            console.warn("[TapeTable] WebGL context lost \u2014 will restore");
-          });
-          canvas.addEventListener("webglcontextrestored", () => {
-            console.log("[TapeTable] WebGL context restored");
-          });
-        },
-        children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(SceneContents, { ...props })
-      }
-    )
-  ] });
+  return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { flex: 1, position: "relative" }, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    Canvas,
+    {
+      shadows: true,
+      camera: { position: [0, 30, 3], fov: 45, near: 0.1, far: 200 },
+      gl: { antialias: false, powerPreference: "high-performance" },
+      dpr: [1, 1.5],
+      style: { background: "#0a0805" },
+      onCreated: ({ gl }) => {
+        const canvas = gl.domElement;
+        canvas.addEventListener("webglcontextlost", (e3) => {
+          e3.preventDefault();
+          console.warn("[TapeTable] WebGL context lost \u2014 will restore");
+        });
+        canvas.addEventListener("webglcontextrestored", () => {
+          console.log("[TapeTable] WebGL context restored");
+        });
+      },
+      children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(SceneContents, { ...props })
+    }
+  ) });
 }
 var import_react11, import_jsx_runtime9, RECORDER_POS, RECORDER_ROT_Y, RECORDER_HALF_W, RECORDER_HALF_D, RECORDER_SNAP_HALF_W, RECORDER_SNAP_HALF_D, RECORDER_LID_OPEN_ANGLE, RECORDER_HOVER_LIFT, RECORDER_LOAD_Y, RECORDER_LOAD_LOCAL_X, RECORDER_LOAD_LOCAL_Z, LID_CLOSE_DELAY;
 var init_TapesTable3D = __esm({
@@ -78745,7 +78947,7 @@ var init_TapesTable3D = __esm({
     init_Recorder3D();
     init_coords();
     import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
-    RECORDER_POS = [-20, -0.5, 4];
+    RECORDER_POS = [-20, 0, 4];
     RECORDER_ROT_Y = Math.PI / 6;
     RECORDER_HALF_W = 4;
     RECORDER_HALF_D = 5;
@@ -78753,7 +78955,7 @@ var init_TapesTable3D = __esm({
     RECORDER_SNAP_HALF_D = 8;
     RECORDER_LID_OPEN_ANGLE = Math.PI / 4;
     RECORDER_HOVER_LIFT = 3;
-    RECORDER_LOAD_Y = 1.8;
+    RECORDER_LOAD_Y = 2.3;
     RECORDER_LOAD_LOCAL_X = 0.4;
     RECORDER_LOAD_LOCAL_Z = 2.15;
     LID_CLOSE_DELAY = 800;
