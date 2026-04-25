@@ -80867,6 +80867,7 @@ function TapesTable({ mixtape }) {
     setDragging3D(true);
     recorderLoadedDuringDragRef.current = false;
     if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
+    if (loadedRef.current && loadedRef.current.id !== tapeId) return;
     enterPlayerView(tapeId);
   }, [cancelMenu, enterPlayerView, showMixtapeCreator]);
   const handle3DDragEnd = (0, import_react13.useCallback)((tapeId, x2d, y2d, droppedOnDeck) => {
@@ -80878,7 +80879,7 @@ function TapesTable({ mixtape }) {
       return;
     }
     setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, x: x2d, y: y2d } : t3));
-    if (!recorderLoadedDuringDragRef.current) {
+    if (!recorderLoadedDuringDragRef.current && (!loadedRef.current || loadedRef.current.id === tapeId)) {
       exitPlayerView({ skipCameraReset: true });
     }
   }, [loadIntoPlayer, showMixtapeCreator, exitPlayerView]);
@@ -81137,7 +81138,7 @@ function TapesTable({ mixtape }) {
         externalDrag: externalDrag.current,
         lockedTapeId: showMixtapeCreator ? MIXTAPE_ID : null,
         pickupBlockedTapeId: recorderLoadingId,
-        lockCamera: showMixtapeCreator || view === "player",
+        lockCamera: showMixtapeCreator,
         freePan: view === "player" || dragging3D,
         onRecorderLoad: handleRecorderLoad,
         onRecorderEject: handleRecorderEject,

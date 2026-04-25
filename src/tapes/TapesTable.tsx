@@ -916,6 +916,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     setDragging3D(true);
     recorderLoadedDuringDragRef.current = false;
     if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
+    // Don't swap the player-view UI to a newly picked tape while another
+    // tape is loaded/playing — the playing tape's tracklist stays put.
+    if (loadedRef.current && loadedRef.current.id !== tapeId) return;
     enterPlayerView(tapeId);
   }, [cancelMenu, enterPlayerView, showMixtapeCreator]);
 
@@ -929,7 +932,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       return;
     }
     setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: x2d, y: y2d } : t));
-    if (!recorderLoadedDuringDragRef.current) {
+    if (!recorderLoadedDuringDragRef.current && (!loadedRef.current || loadedRef.current.id === tapeId)) {
       // Drag-end camera handling lives in TapesTable3D (zoom-only restore).
       // Skip the centre-camera reset here so xz stays where it is.
       exitPlayerView({ skipCameraReset: true });
@@ -1224,7 +1227,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           externalDrag={externalDrag.current}
           lockedTapeId={showMixtapeCreator ? MIXTAPE_ID : null}
           pickupBlockedTapeId={recorderLoadingId}
-          lockCamera={showMixtapeCreator || view === 'player'}
+          lockCamera={showMixtapeCreator}
           freePan={view === 'player' || dragging3D}
           onRecorderLoad={handleRecorderLoad}
           onRecorderEject={handleRecorderEject}
