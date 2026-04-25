@@ -396,3 +396,69 @@ wipeTransition(onCovered, onUncovered)
   shadow plane on the video.
 - `#tapes-root.glitching` (player.js class toggle, 0.6s CSS animation):
   Blowout filter applied to the entire 3D canvas during `_crossfade`.
+- `jeem-centre-camera` (TapesTable.tsx → TapesTable3D.tsx): tweens the
+  perspective camera + MapControls target. Detail accepts either legacy
+  `{ x, camY }` or `{ tx, tz, animate, camY }`. The `tx/tz` form lands the
+  target at `(tx+8, 0, tz)` so the right-side tracklist UI doesn't overlap
+  the focused subject.
+
+## Recent Changes (2026-04, late)
+
+### 3D table UX polish
+
+- **Pickup zoom = 40**: picking up a tape tweens the camera to `y=40`
+  (matches `maxDistance`), so users always pick up at the most zoomed-in
+  pose regardless of their prior zoom.
+- **Edge-pan while dragging** (`TapesTable3D.tsx` useFrame after the
+  cam-tween useFrame): when a tape is held and the pointer enters a
+  margin near the canvas edge, the camera + controls target drift in that
+  direction. Top margin is wider (0.28) than the others (0.15) so dragged
+  tapes can't slip behind the search/start UI overlay. Edge-pan bounds
+  match the active-area clamp's effective bound (`CAM_BOUND - halfView`)
+  so releasing the tape doesn't trigger a pull-back.
+- **Pointer border clamp during drag**: pointer coords are clamped to a
+  24px border inside the canvas before raycast / edge-pan, so the held
+  tape can't be flung off-screen past the pan zone.
+- **Extended drag bounds** (`TapesTable3D.tsx` constants `DRAG_X_EXT`,
+  `DRAG_Z_TOP`, `DRAG_Z_BOT`): left/right/bottom drag clamps extended by
+  +6 units beyond `DRAG_BOUND_X/Z`. Top stays at `DRAG_BOUND_Z` so tapes
+  can't reach the search UI.
+- **Held-over-recorder pose flatter**: `RECORDER_LID_OPEN_ANGLE = π/8`
+  (was π/4) and `RECORDER_HOVER_LIFT = 1` (was 3) — held tape tilts less
+  and hovers lower over the open lid.
+- **Lid open trigger tightened**: the recorder lid opens on
+  `tapeOverRecorder || recentlyLoaded` only — mouse hover and click no
+  longer toggle it (the debug `onClick` in `Recorder3D.tsx` was removed).
+- **Camera locked in player view**: `lockCamera` is now
+  `showMixtapeCreator || view === 'player'`, fully disabling MapControls
+  pan/zoom while a tape is playing.
+- **No camera tween on drop**: removed both the on-drop pose-restore
+  tween (`savedCamPoseRef` no longer drives `camTweenRef`) and the
+  recorder-load `jeem-centre-camera` dispatch — the camera now stays
+  wherever the user edge-panned it.
+
+### Tape visuals
+
+- **2D spool overlays** (`SpoolDisc` from `DeckTape3D.tsx`, used in
+  `TapeBody.tsx`): tuned to sit flush over the 3D hubs.
+  - radius `0.765 * geo.scale` (10% smaller than the 0.85 iteration)
+  - left x `-1.9 * geo.scale - 0.325`, right x `1.9 * geo.scale`
+  - new `yOffset` prop (default `0.01`); `TapeBody` passes `-0.1` to
+    drop the discs flush with / just inside the tape's top surface.
+- **Player-view rewind/remove buttons removed**: deleted the buttons
+  block in `TapesTable.tsx` and the in-scene `Html` context-menu in
+  `TapeBody.tsx`. `handle3DMenuAction`, `rewindTape`, and the
+  `onMenuAction` plumbing are still wired but currently unused.
+
+### Background mode list
+
+- `BG_TYPES` in `public/src/player.js` trimmed to
+  `["vintage", "anime", "video", "original"]` — removed `"none"` and
+  `"tapes"`. The "open the tape table" button is the sole way to enter
+  table view now.
+- `setType` no longer touches `DOM.tapesRoot.style.display` — that's
+  owned exclusively by `toggleTableView`. Previously both branches
+  forced `display = "flex"`, which meant cycling backgrounds with `X`
+  yanked the user back to the table.
+- `loadSavedType` clamps the saved index against the new
+  `BG_TYPES.length` so old localStorage values don't crash.

@@ -54,6 +54,8 @@ export interface Recorder3DProps {
   lidOpenAngle?: number;
   /** When true, fade recorder + shadows out — matches TapeBody's UI-hide fade. */
   hidden?: boolean;
+  /** Fires once the GLB has loaded and the recorder is mounted in the scene. */
+  onReady?: () => void;
 }
 
 interface LoadedRecorder {
@@ -71,6 +73,7 @@ export function Recorder3D({
   lidOpen: lidOpenProp = false,
   lidOpenAngle = -Math.PI / 4,
   hidden = false,
+  onReady,
 }: Recorder3DProps) {
   const [loaded, setLoaded] = useState<LoadedRecorder | null>(null);
   const opacityRef = useRef(1);
@@ -173,6 +176,7 @@ export function Recorder3D({
         );
 
         setLoaded({ group: clone as unknown as THREE.Group, size: scaledSize, lidPivot, materials });
+        onReady?.();
       })
       .catch(() => {/* already logged */});
     return () => { cancelled = true; };
@@ -226,14 +230,7 @@ export function Recorder3D({
         position={[0, colliderY, 0]}
       />
       <group ref={groupRef}>
-        <primitive
-          object={group}
-          onClick={(e: { stopPropagation: () => void }) => {
-            e.stopPropagation();
-            setLidOpen((v) => !v);
-            console.log('[Recorder3D] lid toggled →', !lidOpen);
-          }}
-        />
+        <primitive object={group} />
       </group>
     </RigidBody>
   );

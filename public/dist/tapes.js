@@ -773,7 +773,7 @@ var require_react = __commonJS({
 var require_react_dom_production = __commonJS({
   "node_modules/react-dom/cjs/react-dom.production.js"(exports) {
     "use strict";
-    var React15 = require_react();
+    var React14 = require_react();
     function formatProdErrorMessage(code) {
       var url = "https://react.dev/errors/" + code;
       if (1 < arguments.length) {
@@ -813,7 +813,7 @@ var require_react_dom_production = __commonJS({
         implementation
       };
     }
-    var ReactSharedInternals = React15.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+    var ReactSharedInternals = React14.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     function getCrossOriginStringAs(as, input) {
       if ("font" === as) return "";
       if ("string" === typeof input)
@@ -949,8 +949,8 @@ var require_react_dom_client_production = __commonJS({
   "node_modules/react-dom/cjs/react-dom-client.production.js"(exports) {
     "use strict";
     var Scheduler = require_scheduler();
-    var React15 = require_react();
-    var ReactDOM2 = require_react_dom();
+    var React14 = require_react();
+    var ReactDOM = require_react_dom();
     function formatProdErrorMessage(code) {
       var url = "https://react.dev/errors/" + code;
       if (1 < arguments.length) {
@@ -1140,8 +1140,8 @@ var require_react_dom_client_production = __commonJS({
       return null;
     }
     var isArrayImpl = Array.isArray;
-    var ReactSharedInternals = React15.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
-    var ReactDOMSharedInternals = ReactDOM2.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+    var ReactSharedInternals = React14.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+    var ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
     var sharedNotPendingObject = {
       pending: false,
       data: null,
@@ -12586,7 +12586,7 @@ var require_react_dom_client_production = __commonJS({
         0 === i4 && attemptExplicitHydrationTarget(target);
       }
     };
-    var isomorphicReactPackageVersion$jscomp$inline_1840 = React15.version;
+    var isomorphicReactPackageVersion$jscomp$inline_1840 = React14.version;
     if ("19.2.4" !== isomorphicReactPackageVersion$jscomp$inline_1840)
       throw Error(
         formatProdErrorMessage(
@@ -13101,13 +13101,13 @@ function hue2rgb(p4, q2, t3) {
   if (t3 < 2 / 3) return p4 + (q2 - p4) * 6 * (2 / 3 - t3);
   return p4;
 }
-function satForAxes(axes, v0, v12, v22, extents) {
+function satForAxes(axes, v0, v1, v2, extents) {
   for (let i4 = 0, j3 = axes.length - 3; i4 <= j3; i4 += 3) {
     _testAxis.fromArray(axes, i4);
     const r3 = extents.x * Math.abs(_testAxis.x) + extents.y * Math.abs(_testAxis.y) + extents.z * Math.abs(_testAxis.z);
     const p0 = v0.dot(_testAxis);
-    const p1 = v12.dot(_testAxis);
-    const p22 = v22.dot(_testAxis);
+    const p1 = v1.dot(_testAxis);
+    const p22 = v2.dot(_testAxis);
     if (Math.max(-Math.max(p0, p1, p22), Math.min(p0, p1, p22)) > r3) {
       return false;
     }
@@ -13370,10 +13370,10 @@ function CubicPoly() {
 }
 function CatmullRom(t3, p0, p1, p22, p32) {
   const v0 = (p22 - p0) * 0.5;
-  const v12 = (p32 - p1) * 0.5;
+  const v1 = (p32 - p1) * 0.5;
   const t22 = t3 * t3;
   const t32 = t3 * t22;
-  return (2 * p1 - 2 * p22 + v0 + v12) * t32 + (-3 * p1 + 3 * p22 - 2 * v0 - v12) * t22 + v0 * t3 + p1;
+  return (2 * p1 - 2 * p22 + v0 + v1) * t32 + (-3 * p1 + 3 * p22 - 2 * v0 - v1) * t22 + v0 * t3 + p1;
 }
 function QuadraticBezierP0(t3, p4) {
   const k3 = 1 - t3;
@@ -15019,9 +15019,9 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector to copy.
        * @return {Vector2} A reference to this vector.
        */
-      copy(v5) {
-        this.x = v5.x;
-        this.y = v5.y;
+      copy(v2) {
+        this.x = v2.x;
+        this.y = v2.y;
         return this;
       }
       /**
@@ -15030,9 +15030,9 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector to add.
        * @return {Vector2} A reference to this vector.
        */
-      add(v5) {
-        this.x += v5.x;
-        this.y += v5.y;
+      add(v2) {
+        this.x += v2.x;
+        this.y += v2.y;
         return this;
       }
       /**
@@ -15065,9 +15065,9 @@ var init_three_core = __esm({
        * @param {number} s - The factor that scales `v`.
        * @return {Vector2} A reference to this vector.
        */
-      addScaledVector(v5, s2) {
-        this.x += v5.x * s2;
-        this.y += v5.y * s2;
+      addScaledVector(v2, s2) {
+        this.x += v2.x * s2;
+        this.y += v2.y * s2;
         return this;
       }
       /**
@@ -15076,9 +15076,9 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector to subtract.
        * @return {Vector2} A reference to this vector.
        */
-      sub(v5) {
-        this.x -= v5.x;
-        this.y -= v5.y;
+      sub(v2) {
+        this.x -= v2.x;
+        this.y -= v2.y;
         return this;
       }
       /**
@@ -15110,9 +15110,9 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector to multiply.
        * @return {Vector2} A reference to this vector.
        */
-      multiply(v5) {
-        this.x *= v5.x;
-        this.y *= v5.y;
+      multiply(v2) {
+        this.x *= v2.x;
+        this.y *= v2.y;
         return this;
       }
       /**
@@ -15132,9 +15132,9 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector to divide.
        * @return {Vector2} A reference to this vector.
        */
-      divide(v5) {
-        this.x /= v5.x;
-        this.y /= v5.y;
+      divide(v2) {
+        this.x /= v2.x;
+        this.y /= v2.y;
         return this;
       }
       /**
@@ -15167,9 +15167,9 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector.
        * @return {Vector2} A reference to this vector.
        */
-      min(v5) {
-        this.x = Math.min(this.x, v5.x);
-        this.y = Math.min(this.y, v5.y);
+      min(v2) {
+        this.x = Math.min(this.x, v2.x);
+        this.y = Math.min(this.y, v2.y);
         return this;
       }
       /**
@@ -15179,9 +15179,9 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector.
        * @return {Vector2} A reference to this vector.
        */
-      max(v5) {
-        this.x = Math.max(this.x, v5.x);
-        this.y = Math.max(this.y, v5.y);
+      max(v2) {
+        this.x = Math.max(this.x, v2.x);
+        this.y = Math.max(this.y, v2.y);
         return this;
       }
       /**
@@ -15285,8 +15285,8 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector to compute the dot product with.
        * @return {number} The result of the dot product.
        */
-      dot(v5) {
-        return this.x * v5.x + this.y * v5.y;
+      dot(v2) {
+        return this.x * v2.x + this.y * v2.y;
       }
       /**
        * Calculates the cross product of the given vector with this instance.
@@ -15294,8 +15294,8 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector to compute the cross product with.
        * @return {number} The result of the cross product.
        */
-      cross(v5) {
-        return this.x * v5.y - this.y * v5.x;
+      cross(v2) {
+        return this.x * v2.y - this.y * v2.x;
       }
       /**
        * Computes the square of the Euclidean length (straight-line length) from
@@ -15347,10 +15347,10 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector to compute the angle with.
        * @return {number} The angle in radians.
        */
-      angleTo(v5) {
-        const denominator = Math.sqrt(this.lengthSq() * v5.lengthSq());
+      angleTo(v2) {
+        const denominator = Math.sqrt(this.lengthSq() * v2.lengthSq());
         if (denominator === 0) return Math.PI / 2;
-        const theta = this.dot(v5) / denominator;
+        const theta = this.dot(v2) / denominator;
         return Math.acos(clamp(theta, -1, 1));
       }
       /**
@@ -15359,8 +15359,8 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector to compute the distance to.
        * @return {number} The distance.
        */
-      distanceTo(v5) {
-        return Math.sqrt(this.distanceToSquared(v5));
+      distanceTo(v2) {
+        return Math.sqrt(this.distanceToSquared(v2));
       }
       /**
        * Computes the squared distance from the given vector to this instance.
@@ -15370,8 +15370,8 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector to compute the squared distance to.
        * @return {number} The squared distance.
        */
-      distanceToSquared(v5) {
-        const dx = this.x - v5.x, dy = this.y - v5.y;
+      distanceToSquared(v2) {
+        const dx = this.x - v2.x, dy = this.y - v2.y;
         return dx * dx + dy * dy;
       }
       /**
@@ -15380,8 +15380,8 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector to compute the Manhattan distance to.
        * @return {number} The Manhattan distance.
        */
-      manhattanDistanceTo(v5) {
-        return Math.abs(this.x - v5.x) + Math.abs(this.y - v5.y);
+      manhattanDistanceTo(v2) {
+        return Math.abs(this.x - v2.x) + Math.abs(this.y - v2.y);
       }
       /**
        * Sets this vector to a vector with the same direction as this one, but
@@ -15402,9 +15402,9 @@ var init_three_core = __esm({
        * @param {number} alpha - The interpolation factor, typically in the closed interval `[0, 1]`.
        * @return {Vector2} A reference to this vector.
        */
-      lerp(v5, alpha) {
-        this.x += (v5.x - this.x) * alpha;
-        this.y += (v5.y - this.y) * alpha;
+      lerp(v2, alpha) {
+        this.x += (v2.x - this.x) * alpha;
+        this.y += (v2.y - this.y) * alpha;
         return this;
       }
       /**
@@ -15417,9 +15417,9 @@ var init_three_core = __esm({
        * @param {number} alpha - The interpolation factor, typically in the closed interval `[0, 1]`.
        * @return {Vector2} A reference to this vector.
        */
-      lerpVectors(v12, v22, alpha) {
-        this.x = v12.x + (v22.x - v12.x) * alpha;
-        this.y = v12.y + (v22.y - v12.y) * alpha;
+      lerpVectors(v1, v2, alpha) {
+        this.x = v1.x + (v2.x - v1.x) * alpha;
+        this.y = v1.y + (v2.y - v1.y) * alpha;
         return this;
       }
       /**
@@ -15428,8 +15428,8 @@ var init_three_core = __esm({
        * @param {Vector2} v - The vector to test for equality.
        * @return {boolean} Whether this vector is equal with the given one.
        */
-      equals(v5) {
-        return v5.x === this.x && v5.y === this.y;
+      equals(v2) {
+        return v2.x === this.x && v2.y === this.y;
       }
       /**
        * Sets this vector's x value to be `array[ offset ]` and y
@@ -15893,8 +15893,8 @@ var init_three_core = __esm({
        * @param {Quaternion} v - The quaternion to compute the dot product with.
        * @return {number} The result of the dot product.
        */
-      dot(v5) {
-        return this._x * v5._x + this._y * v5._y + this._z * v5._z + this._w * v5._w;
+      dot(v2) {
+        return this._x * v2._x + this._y * v2._y + this._z * v2._z + this._w * v2._w;
       }
       /**
        * Computes the squared Euclidean length (straight-line length) of this quaternion,
@@ -16243,10 +16243,10 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to copy.
        * @return {Vector3} A reference to this vector.
        */
-      copy(v5) {
-        this.x = v5.x;
-        this.y = v5.y;
-        this.z = v5.z;
+      copy(v2) {
+        this.x = v2.x;
+        this.y = v2.y;
+        this.z = v2.z;
         return this;
       }
       /**
@@ -16255,10 +16255,10 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to add.
        * @return {Vector3} A reference to this vector.
        */
-      add(v5) {
-        this.x += v5.x;
-        this.y += v5.y;
-        this.z += v5.z;
+      add(v2) {
+        this.x += v2.x;
+        this.y += v2.y;
+        this.z += v2.z;
         return this;
       }
       /**
@@ -16293,10 +16293,10 @@ var init_three_core = __esm({
        * @param {number} s - The factor that scales `v`.
        * @return {Vector3} A reference to this vector.
        */
-      addScaledVector(v5, s2) {
-        this.x += v5.x * s2;
-        this.y += v5.y * s2;
-        this.z += v5.z * s2;
+      addScaledVector(v2, s2) {
+        this.x += v2.x * s2;
+        this.y += v2.y * s2;
+        this.z += v2.z * s2;
         return this;
       }
       /**
@@ -16305,10 +16305,10 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to subtract.
        * @return {Vector3} A reference to this vector.
        */
-      sub(v5) {
-        this.x -= v5.x;
-        this.y -= v5.y;
-        this.z -= v5.z;
+      sub(v2) {
+        this.x -= v2.x;
+        this.y -= v2.y;
+        this.z -= v2.z;
         return this;
       }
       /**
@@ -16342,10 +16342,10 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to multiply.
        * @return {Vector3} A reference to this vector.
        */
-      multiply(v5) {
-        this.x *= v5.x;
-        this.y *= v5.y;
-        this.z *= v5.z;
+      multiply(v2) {
+        this.x *= v2.x;
+        this.y *= v2.y;
+        this.z *= v2.z;
         return this;
       }
       /**
@@ -16490,10 +16490,10 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to divide.
        * @return {Vector3} A reference to this vector.
        */
-      divide(v5) {
-        this.x /= v5.x;
-        this.y /= v5.y;
-        this.z /= v5.z;
+      divide(v2) {
+        this.x /= v2.x;
+        this.y /= v2.y;
+        this.z /= v2.z;
         return this;
       }
       /**
@@ -16512,10 +16512,10 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector.
        * @return {Vector3} A reference to this vector.
        */
-      min(v5) {
-        this.x = Math.min(this.x, v5.x);
-        this.y = Math.min(this.y, v5.y);
-        this.z = Math.min(this.z, v5.z);
+      min(v2) {
+        this.x = Math.min(this.x, v2.x);
+        this.y = Math.min(this.y, v2.y);
+        this.z = Math.min(this.z, v2.z);
         return this;
       }
       /**
@@ -16525,10 +16525,10 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector.
        * @return {Vector3} A reference to this vector.
        */
-      max(v5) {
-        this.x = Math.max(this.x, v5.x);
-        this.y = Math.max(this.y, v5.y);
-        this.z = Math.max(this.z, v5.z);
+      max(v2) {
+        this.x = Math.max(this.x, v2.x);
+        this.y = Math.max(this.y, v2.y);
+        this.z = Math.max(this.z, v2.z);
         return this;
       }
       /**
@@ -16639,8 +16639,8 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to compute the dot product with.
        * @return {number} The result of the dot product.
        */
-      dot(v5) {
-        return this.x * v5.x + this.y * v5.y + this.z * v5.z;
+      dot(v2) {
+        return this.x * v2.x + this.y * v2.y + this.z * v2.z;
       }
       /**
        * Computes the square of the Euclidean length (straight-line length) from
@@ -16696,10 +16696,10 @@ var init_three_core = __esm({
        * @param {number} alpha - The interpolation factor, typically in the closed interval `[0, 1]`.
        * @return {Vector3} A reference to this vector.
        */
-      lerp(v5, alpha) {
-        this.x += (v5.x - this.x) * alpha;
-        this.y += (v5.y - this.y) * alpha;
-        this.z += (v5.z - this.z) * alpha;
+      lerp(v2, alpha) {
+        this.x += (v2.x - this.x) * alpha;
+        this.y += (v2.y - this.y) * alpha;
+        this.z += (v2.z - this.z) * alpha;
         return this;
       }
       /**
@@ -16712,10 +16712,10 @@ var init_three_core = __esm({
        * @param {number} alpha - The interpolation factor, typically in the closed interval `[0, 1]`.
        * @return {Vector3} A reference to this vector.
        */
-      lerpVectors(v12, v22, alpha) {
-        this.x = v12.x + (v22.x - v12.x) * alpha;
-        this.y = v12.y + (v22.y - v12.y) * alpha;
-        this.z = v12.z + (v22.z - v12.z) * alpha;
+      lerpVectors(v1, v2, alpha) {
+        this.x = v1.x + (v2.x - v1.x) * alpha;
+        this.y = v1.y + (v2.y - v1.y) * alpha;
+        this.z = v1.z + (v2.z - v1.z) * alpha;
         return this;
       }
       /**
@@ -16724,8 +16724,8 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to compute the cross product with.
        * @return {Vector3} The result of the cross product.
        */
-      cross(v5) {
-        return this.crossVectors(this, v5);
+      cross(v2) {
+        return this.crossVectors(this, v2);
       }
       /**
        * Calculates the cross product of the given vectors and stores the result
@@ -16749,11 +16749,11 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to project to.
        * @return {Vector3} A reference to this vector.
        */
-      projectOnVector(v5) {
-        const denominator = v5.lengthSq();
+      projectOnVector(v2) {
+        const denominator = v2.lengthSq();
         if (denominator === 0) return this.set(0, 0, 0);
-        const scalar = v5.dot(this) / denominator;
-        return this.copy(v5).multiplyScalar(scalar);
+        const scalar = v2.dot(this) / denominator;
+        return this.copy(v2).multiplyScalar(scalar);
       }
       /**
        * Projects this vector onto a plane by subtracting this
@@ -16781,10 +16781,10 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to compute the angle with.
        * @return {number} The angle in radians.
        */
-      angleTo(v5) {
-        const denominator = Math.sqrt(this.lengthSq() * v5.lengthSq());
+      angleTo(v2) {
+        const denominator = Math.sqrt(this.lengthSq() * v2.lengthSq());
         if (denominator === 0) return Math.PI / 2;
-        const theta = this.dot(v5) / denominator;
+        const theta = this.dot(v2) / denominator;
         return Math.acos(clamp(theta, -1, 1));
       }
       /**
@@ -16793,8 +16793,8 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to compute the distance to.
        * @return {number} The distance.
        */
-      distanceTo(v5) {
-        return Math.sqrt(this.distanceToSquared(v5));
+      distanceTo(v2) {
+        return Math.sqrt(this.distanceToSquared(v2));
       }
       /**
        * Computes the squared distance from the given vector to this instance.
@@ -16804,8 +16804,8 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to compute the squared distance to.
        * @return {number} The squared distance.
        */
-      distanceToSquared(v5) {
-        const dx = this.x - v5.x, dy = this.y - v5.y, dz = this.z - v5.z;
+      distanceToSquared(v2) {
+        const dx = this.x - v2.x, dy = this.y - v2.y, dz = this.z - v2.z;
         return dx * dx + dy * dy + dz * dz;
       }
       /**
@@ -16814,8 +16814,8 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to compute the Manhattan distance to.
        * @return {number} The Manhattan distance.
        */
-      manhattanDistanceTo(v5) {
-        return Math.abs(this.x - v5.x) + Math.abs(this.y - v5.y) + Math.abs(this.z - v5.z);
+      manhattanDistanceTo(v2) {
+        return Math.abs(this.x - v2.x) + Math.abs(this.y - v2.y) + Math.abs(this.z - v2.z);
       }
       /**
        * Sets the vector components from the given spherical coordinates.
@@ -16945,8 +16945,8 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to test for equality.
        * @return {boolean} Whether this vector is equal with the given one.
        */
-      equals(v5) {
-        return v5.x === this.x && v5.y === this.y && v5.z === this.z;
+      equals(v2) {
+        return v2.x === this.x && v2.y === this.y && v2.z === this.z;
       }
       /**
        * Sets this vector's x value to be `array[ offset ]`, y value to be `array[ offset + 1 ]`
@@ -18164,11 +18164,11 @@ var init_three_core = __esm({
        * @param {Vector3|Vector4} v - The vector to copy.
        * @return {Vector4} A reference to this vector.
        */
-      copy(v5) {
-        this.x = v5.x;
-        this.y = v5.y;
-        this.z = v5.z;
-        this.w = v5.w !== void 0 ? v5.w : 1;
+      copy(v2) {
+        this.x = v2.x;
+        this.y = v2.y;
+        this.z = v2.z;
+        this.w = v2.w !== void 0 ? v2.w : 1;
         return this;
       }
       /**
@@ -18177,11 +18177,11 @@ var init_three_core = __esm({
        * @param {Vector4} v - The vector to add.
        * @return {Vector4} A reference to this vector.
        */
-      add(v5) {
-        this.x += v5.x;
-        this.y += v5.y;
-        this.z += v5.z;
-        this.w += v5.w;
+      add(v2) {
+        this.x += v2.x;
+        this.y += v2.y;
+        this.z += v2.z;
+        this.w += v2.w;
         return this;
       }
       /**
@@ -18218,11 +18218,11 @@ var init_three_core = __esm({
        * @param {number} s - The factor that scales `v`.
        * @return {Vector4} A reference to this vector.
        */
-      addScaledVector(v5, s2) {
-        this.x += v5.x * s2;
-        this.y += v5.y * s2;
-        this.z += v5.z * s2;
-        this.w += v5.w * s2;
+      addScaledVector(v2, s2) {
+        this.x += v2.x * s2;
+        this.y += v2.y * s2;
+        this.z += v2.z * s2;
+        this.w += v2.w * s2;
         return this;
       }
       /**
@@ -18231,11 +18231,11 @@ var init_three_core = __esm({
        * @param {Vector4} v - The vector to subtract.
        * @return {Vector4} A reference to this vector.
        */
-      sub(v5) {
-        this.x -= v5.x;
-        this.y -= v5.y;
-        this.z -= v5.z;
-        this.w -= v5.w;
+      sub(v2) {
+        this.x -= v2.x;
+        this.y -= v2.y;
+        this.z -= v2.z;
+        this.w -= v2.w;
         return this;
       }
       /**
@@ -18271,11 +18271,11 @@ var init_three_core = __esm({
        * @param {Vector4} v - The vector to multiply.
        * @return {Vector4} A reference to this vector.
        */
-      multiply(v5) {
-        this.x *= v5.x;
-        this.y *= v5.y;
-        this.z *= v5.z;
-        this.w *= v5.w;
+      multiply(v2) {
+        this.x *= v2.x;
+        this.y *= v2.y;
+        this.z *= v2.z;
+        this.w *= v2.w;
         return this;
       }
       /**
@@ -18312,11 +18312,11 @@ var init_three_core = __esm({
        * @param {Vector4} v - The vector to divide.
        * @return {Vector4} A reference to this vector.
        */
-      divide(v5) {
-        this.x /= v5.x;
-        this.y /= v5.y;
-        this.z /= v5.z;
-        this.w /= v5.w;
+      divide(v2) {
+        this.x /= v2.x;
+        this.y /= v2.y;
+        this.z /= v2.z;
+        this.w /= v2.w;
         return this;
       }
       /**
@@ -18358,9 +18358,9 @@ var init_three_core = __esm({
        */
       setAxisAngleFromRotationMatrix(m3) {
         let angle, x3, y2, z2;
-        const epsilon2 = 0.01, epsilon22 = 0.1, te = m3.elements, m11 = te[0], m12 = te[4], m13 = te[8], m21 = te[1], m22 = te[5], m23 = te[9], m31 = te[2], m32 = te[6], m33 = te[10];
-        if (Math.abs(m12 - m21) < epsilon2 && Math.abs(m13 - m31) < epsilon2 && Math.abs(m23 - m32) < epsilon2) {
-          if (Math.abs(m12 + m21) < epsilon22 && Math.abs(m13 + m31) < epsilon22 && Math.abs(m23 + m32) < epsilon22 && Math.abs(m11 + m22 + m33 - 3) < epsilon22) {
+        const epsilon = 0.01, epsilon2 = 0.1, te = m3.elements, m11 = te[0], m12 = te[4], m13 = te[8], m21 = te[1], m22 = te[5], m23 = te[9], m31 = te[2], m32 = te[6], m33 = te[10];
+        if (Math.abs(m12 - m21) < epsilon && Math.abs(m13 - m31) < epsilon && Math.abs(m23 - m32) < epsilon) {
+          if (Math.abs(m12 + m21) < epsilon2 && Math.abs(m13 + m31) < epsilon2 && Math.abs(m23 + m32) < epsilon2 && Math.abs(m11 + m22 + m33 - 3) < epsilon2) {
             this.set(1, 0, 0, 0);
             return this;
           }
@@ -18372,7 +18372,7 @@ var init_three_core = __esm({
           const xz = (m13 + m31) / 4;
           const yz = (m23 + m32) / 4;
           if (xx > yy && xx > zz) {
-            if (xx < epsilon2) {
+            if (xx < epsilon) {
               x3 = 0;
               y2 = 0.707106781;
               z2 = 0.707106781;
@@ -18382,7 +18382,7 @@ var init_three_core = __esm({
               z2 = xz / x3;
             }
           } else if (yy > zz) {
-            if (yy < epsilon2) {
+            if (yy < epsilon) {
               x3 = 0.707106781;
               y2 = 0;
               z2 = 0.707106781;
@@ -18392,7 +18392,7 @@ var init_three_core = __esm({
               z2 = yz / y2;
             }
           } else {
-            if (zz < epsilon2) {
+            if (zz < epsilon) {
               x3 = 0.707106781;
               y2 = 0.707106781;
               z2 = 0;
@@ -18435,11 +18435,11 @@ var init_three_core = __esm({
        * @param {Vector4} v - The vector.
        * @return {Vector4} A reference to this vector.
        */
-      min(v5) {
-        this.x = Math.min(this.x, v5.x);
-        this.y = Math.min(this.y, v5.y);
-        this.z = Math.min(this.z, v5.z);
-        this.w = Math.min(this.w, v5.w);
+      min(v2) {
+        this.x = Math.min(this.x, v2.x);
+        this.y = Math.min(this.y, v2.y);
+        this.z = Math.min(this.z, v2.z);
+        this.w = Math.min(this.w, v2.w);
         return this;
       }
       /**
@@ -18449,11 +18449,11 @@ var init_three_core = __esm({
        * @param {Vector4} v - The vector.
        * @return {Vector4} A reference to this vector.
        */
-      max(v5) {
-        this.x = Math.max(this.x, v5.x);
-        this.y = Math.max(this.y, v5.y);
-        this.z = Math.max(this.z, v5.z);
-        this.w = Math.max(this.w, v5.w);
+      max(v2) {
+        this.x = Math.max(this.x, v2.x);
+        this.y = Math.max(this.y, v2.y);
+        this.z = Math.max(this.z, v2.z);
+        this.w = Math.max(this.w, v2.w);
         return this;
       }
       /**
@@ -18571,8 +18571,8 @@ var init_three_core = __esm({
        * @param {Vector4} v - The vector to compute the dot product with.
        * @return {number} The result of the dot product.
        */
-      dot(v5) {
-        return this.x * v5.x + this.y * v5.y + this.z * v5.z + this.w * v5.w;
+      dot(v2) {
+        return this.x * v2.x + this.y * v2.y + this.z * v2.z + this.w * v2.w;
       }
       /**
        * Computes the square of the Euclidean length (straight-line length) from
@@ -18628,11 +18628,11 @@ var init_three_core = __esm({
        * @param {number} alpha - The interpolation factor, typically in the closed interval `[0, 1]`.
        * @return {Vector4} A reference to this vector.
        */
-      lerp(v5, alpha) {
-        this.x += (v5.x - this.x) * alpha;
-        this.y += (v5.y - this.y) * alpha;
-        this.z += (v5.z - this.z) * alpha;
-        this.w += (v5.w - this.w) * alpha;
+      lerp(v2, alpha) {
+        this.x += (v2.x - this.x) * alpha;
+        this.y += (v2.y - this.y) * alpha;
+        this.z += (v2.z - this.z) * alpha;
+        this.w += (v2.w - this.w) * alpha;
         return this;
       }
       /**
@@ -18645,11 +18645,11 @@ var init_three_core = __esm({
        * @param {number} alpha - The interpolation factor, typically in the closed interval `[0, 1]`.
        * @return {Vector4} A reference to this vector.
        */
-      lerpVectors(v12, v22, alpha) {
-        this.x = v12.x + (v22.x - v12.x) * alpha;
-        this.y = v12.y + (v22.y - v12.y) * alpha;
-        this.z = v12.z + (v22.z - v12.z) * alpha;
-        this.w = v12.w + (v22.w - v12.w) * alpha;
+      lerpVectors(v1, v2, alpha) {
+        this.x = v1.x + (v2.x - v1.x) * alpha;
+        this.y = v1.y + (v2.y - v1.y) * alpha;
+        this.z = v1.z + (v2.z - v1.z) * alpha;
+        this.w = v1.w + (v2.w - v1.w) * alpha;
         return this;
       }
       /**
@@ -18658,8 +18658,8 @@ var init_three_core = __esm({
        * @param {Vector4} v - The vector to test for equality.
        * @return {boolean} Whether this vector is equal with the given one.
        */
-      equals(v5) {
-        return v5.x === this.x && v5.y === this.y && v5.z === this.z && v5.w === this.w;
+      equals(v2) {
+        return v2.x === this.x && v2.y === this.y && v2.z === this.z && v2.w === this.w;
       }
       /**
        * Sets this vector's x value to be `array[ offset ]`, y value to be `array[ offset + 1 ]`,
@@ -19643,9 +19643,9 @@ var init_three_core = __esm({
        * @param {Vector3} v - The scale vector.
        * @return {Matrix4} A reference to this matrix.
        */
-      scale(v5) {
+      scale(v2) {
         const te = this.elements;
-        const x3 = v5.x, y2 = v5.y, z2 = v5.z;
+        const x3 = v2.x, y2 = v2.y, z2 = v2.z;
         te[0] *= x3;
         te[4] *= y2;
         te[8] *= z2;
@@ -20367,8 +20367,8 @@ var init_three_core = __esm({
        * @param {string} [order] - A string representing the order that the rotations are applied.
        * @return {Euler} A reference to this Euler instance.
        */
-      setFromVector3(v5, order = this._order) {
-        return this.set(v5.x, v5.y, v5.z, order);
+      setFromVector3(v2, order = this._order) {
+        return this.set(v2.x, v2.y, v2.z, order);
       }
       /**
        * Resets the euler angle with a new order by creating a quaternion from this
@@ -22359,10 +22359,10 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to set.
        * @return {Color} A reference to this color.
        */
-      setFromVector3(v5) {
-        this.r = v5.x;
-        this.g = v5.y;
-        this.b = v5.z;
+      setFromVector3(v2) {
+        this.r = v2.x;
+        this.g = v2.y;
+        this.b = v2.z;
         return this;
       }
       /**
@@ -22638,8 +22638,8 @@ var init_three_core = __esm({
         }
         const invDenom = 1 / denom;
         const u3 = (dot11 * dot02 - dot01 * dot12) * invDenom;
-        const v5 = (dot00 * dot12 - dot01 * dot02) * invDenom;
-        return target.set(1 - u3 - v5, v5, u3);
+        const v2 = (dot00 * dot12 - dot01 * dot02) * invDenom;
+        return target.set(1 - u3 - v2, v2, u3);
       }
       /**
        * Returns `true` if the given point, when projected onto the plane of the
@@ -22672,7 +22672,7 @@ var init_three_core = __esm({
        * @param {Vector3} target - The target vector that is used to store the method's result.
        * @return {?Vector3} The interpolated value.
        */
-      static getInterpolation(point, p1, p22, p32, v12, v22, v32, target) {
+      static getInterpolation(point, p1, p22, p32, v1, v2, v3, target) {
         if (this.getBarycoord(point, p1, p22, p32, _v3$2) === null) {
           target.x = 0;
           target.y = 0;
@@ -22681,9 +22681,9 @@ var init_three_core = __esm({
           return null;
         }
         target.setScalar(0);
-        target.addScaledVector(v12, _v3$2.x);
-        target.addScaledVector(v22, _v3$2.y);
-        target.addScaledVector(v32, _v3$2.z);
+        target.addScaledVector(v1, _v3$2.x);
+        target.addScaledVector(v2, _v3$2.y);
+        target.addScaledVector(v3, _v3$2.z);
         return target;
       }
       /**
@@ -22847,8 +22847,8 @@ var init_three_core = __esm({
        * @param {Vector3} target - The target vector that is used to store the method's result.
        * @return {?Vector3} The interpolated value.
        */
-      getInterpolation(point, v12, v22, v32, target) {
-        return _Triangle.getInterpolation(point, this.a, this.b, this.c, v12, v22, v32, target);
+      getInterpolation(point, v1, v2, v3, target) {
+        return _Triangle.getInterpolation(point, this.a, this.b, this.c, v1, v2, v3, target);
       }
       /**
        * Returns `true` if the given point, when projected onto the plane of the
@@ -22888,7 +22888,7 @@ var init_three_core = __esm({
        */
       closestPointToPoint(p4, target) {
         const a3 = this.a, b3 = this.b, c3 = this.c;
-        let v5, w2;
+        let v2, w2;
         _vab.subVectors(b3, a3);
         _vac.subVectors(c3, a3);
         _vap.subVectors(p4, a3);
@@ -22905,8 +22905,8 @@ var init_three_core = __esm({
         }
         const vc = d1 * d4 - d3 * d2;
         if (vc <= 0 && d1 >= 0 && d3 <= 0) {
-          v5 = d1 / (d1 - d3);
-          return target.copy(a3).addScaledVector(_vab, v5);
+          v2 = d1 / (d1 - d3);
+          return target.copy(a3).addScaledVector(_vab, v2);
         }
         _vcp.subVectors(p4, c3);
         const d5 = _vab.dot(_vcp);
@@ -22926,9 +22926,9 @@ var init_three_core = __esm({
           return target.copy(b3).addScaledVector(_vbc, w2);
         }
         const denom = 1 / (va + vb + vc);
-        v5 = vb * denom;
+        v2 = vb * denom;
         w2 = vc * denom;
-        return target.copy(a3).addScaledVector(_vab, v5).addScaledVector(_vac, w2);
+        return target.copy(a3).addScaledVector(_vab, v2).addScaledVector(_vac, w2);
       }
       /**
        * Returns `true` if this triangle is equal with the given one.
@@ -24841,16 +24841,16 @@ var init_three_core = __esm({
         }
         const tmp2 = new Vector3(), tmp22 = new Vector3();
         const n2 = new Vector3(), n22 = new Vector3();
-        function handleVertex(v5) {
-          n2.fromBufferAttribute(normalAttribute, v5);
+        function handleVertex(v2) {
+          n2.fromBufferAttribute(normalAttribute, v2);
           n22.copy(n2);
-          const t3 = tan1[v5];
+          const t3 = tan1[v2];
           tmp2.copy(t3);
           tmp2.sub(n2.multiplyScalar(n2.dot(t3))).normalize();
           tmp22.crossVectors(n22, t3);
-          const test = tmp22.dot(tan2[v5]);
+          const test = tmp22.dot(tan2[v2]);
           const w2 = test < 0 ? -1 : 1;
-          tangentAttribute.setXYZW(v5, tmp2.x, tmp2.y, tmp2.z, w2);
+          tangentAttribute.setXYZW(v2, tmp2.x, tmp2.y, tmp2.z, w2);
         }
         for (let i4 = 0, il = groups.length; i4 < il; ++i4) {
           const group = groups[i4];
@@ -26418,8 +26418,8 @@ var init_three_core = __esm({
        * @param {Vector3} v - The target position.
        * @return {Ray} A reference to this ray.
        */
-      lookAt(v5) {
-        this.direction.copy(v5).sub(this.origin).normalize();
+      lookAt(v2) {
+        this.direction.copy(v2).sub(this.origin).normalize();
         return this;
       }
       /**
@@ -26479,11 +26479,11 @@ var init_three_core = __esm({
        * @param {Vector3} [optionalPointOnSegment] - When provided, it receives the point on the line segment that is closest to this ray.
        * @return {number} The squared distance.
        */
-      distanceSqToSegment(v0, v12, optionalPointOnRay, optionalPointOnSegment) {
-        _segCenter.copy(v0).add(v12).multiplyScalar(0.5);
-        _segDir.copy(v12).sub(v0).normalize();
+      distanceSqToSegment(v0, v1, optionalPointOnRay, optionalPointOnSegment) {
+        _segCenter.copy(v0).add(v1).multiplyScalar(0.5);
+        _segDir.copy(v1).sub(v0).normalize();
         _diff.copy(this.origin).sub(_segCenter);
-        const segExtent = v0.distanceTo(v12) * 0.5;
+        const segExtent = v0.distanceTo(v1) * 0.5;
         const a01 = -this.direction.dot(_segDir);
         const b0 = _diff.dot(this.direction);
         const b1 = -_diff.dot(_segDir);
@@ -29866,7 +29866,7 @@ var init_three_core = __esm({
         this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
         this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
         this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
-        function buildPlane(u3, v5, w2, udir, vdir, width2, height2, depth2, gridX, gridY, materialIndex) {
+        function buildPlane(u3, v2, w2, udir, vdir, width2, height2, depth2, gridX, gridY, materialIndex) {
           const segmentWidth = width2 / gridX;
           const segmentHeight = height2 / gridY;
           const widthHalf = width2 / 2;
@@ -29882,11 +29882,11 @@ var init_three_core = __esm({
             for (let ix = 0; ix < gridX1; ix++) {
               const x3 = ix * segmentWidth - widthHalf;
               vector[u3] = x3 * udir;
-              vector[v5] = y2 * vdir;
+              vector[v2] = y2 * vdir;
               vector[w2] = depthHalf;
               vertices.push(vector.x, vector.y, vector.z);
               vector[u3] = 0;
-              vector[v5] = 0;
+              vector[v2] = 0;
               vector[w2] = depth2 > 0 ? 1 : -1;
               normals.push(vector.x, vector.y, vector.z);
               uvs.push(ix / gridX);
@@ -29988,7 +29988,7 @@ var init_three_core = __esm({
             normalYComponent = radius * Math.sin(angle);
             currentArcLength = capArcLength + cylinderPartLength + segmentProgress * capArcLength;
           }
-          const v5 = Math.max(0, Math.min(1, currentArcLength / totalArcLength));
+          const v2 = Math.max(0, Math.min(1, currentArcLength / totalArcLength));
           let uOffset = 0;
           if (iy === 0) {
             uOffset = 0.5 / radialSegments;
@@ -30011,7 +30011,7 @@ var init_three_core = __esm({
             );
             normal.normalize();
             normals.push(normal.x, normal.y, normal.z);
-            uvs.push(u3 + uOffset, v5);
+            uvs.push(u3 + uOffset, v2);
           }
           if (iy > 0) {
             const prevIndexRow = (iy - 1) * verticesPerRow;
@@ -30163,20 +30163,20 @@ var init_three_core = __esm({
           const slope = (radiusBottom - radiusTop) / height;
           for (let y2 = 0; y2 <= heightSegments; y2++) {
             const indexRow = [];
-            const v5 = y2 / heightSegments;
-            const radius = v5 * (radiusBottom - radiusTop) + radiusTop;
+            const v2 = y2 / heightSegments;
+            const radius = v2 * (radiusBottom - radiusTop) + radiusTop;
             for (let x3 = 0; x3 <= radialSegments; x3++) {
               const u3 = x3 / radialSegments;
               const theta = u3 * thetaLength + thetaStart;
               const sinTheta = Math.sin(theta);
               const cosTheta = Math.cos(theta);
               vertex2.x = radius * sinTheta;
-              vertex2.y = -v5 * height + halfHeight;
+              vertex2.y = -v2 * height + halfHeight;
               vertex2.z = radius * cosTheta;
               vertices.push(vertex2.x, vertex2.y, vertex2.z);
               normal.set(sinTheta, slope, cosTheta).normalize();
               normals.push(normal.x, normal.y, normal.z);
-              uvs.push(u3, 1 - v5);
+              uvs.push(u3, 1 - v2);
               indexRow.push(index++);
             }
             indexArray.push(indexRow);
@@ -30340,17 +30340,17 @@ var init_three_core = __esm({
         }
         function subdivideFace(a3, b3, c3, detail2) {
           const cols = detail2 + 1;
-          const v5 = [];
+          const v2 = [];
           for (let i4 = 0; i4 <= cols; i4++) {
-            v5[i4] = [];
+            v2[i4] = [];
             const aj = a3.clone().lerp(c3, i4 / cols);
             const bj = b3.clone().lerp(c3, i4 / cols);
             const rows = cols - i4;
             for (let j3 = 0; j3 <= rows; j3++) {
               if (j3 === 0 && i4 === cols) {
-                v5[i4][j3] = aj;
+                v2[i4][j3] = aj;
               } else {
-                v5[i4][j3] = aj.clone().lerp(bj, j3 / rows);
+                v2[i4][j3] = aj.clone().lerp(bj, j3 / rows);
               }
             }
           }
@@ -30358,13 +30358,13 @@ var init_three_core = __esm({
             for (let j3 = 0; j3 < 2 * (cols - i4) - 1; j3++) {
               const k3 = Math.floor(j3 / 2);
               if (j3 % 2 === 0) {
-                pushVertex(v5[i4][k3 + 1]);
-                pushVertex(v5[i4 + 1][k3]);
-                pushVertex(v5[i4][k3]);
+                pushVertex(v2[i4][k3 + 1]);
+                pushVertex(v2[i4 + 1][k3]);
+                pushVertex(v2[i4][k3]);
               } else {
-                pushVertex(v5[i4][k3 + 1]);
-                pushVertex(v5[i4 + 1][k3 + 1]);
-                pushVertex(v5[i4 + 1][k3]);
+                pushVertex(v2[i4][k3 + 1]);
+                pushVertex(v2[i4 + 1][k3 + 1]);
+                pushVertex(v2[i4 + 1][k3]);
               }
             }
           }
@@ -30388,8 +30388,8 @@ var init_three_core = __esm({
             vertex2.y = vertexBuffer[i4 + 1];
             vertex2.z = vertexBuffer[i4 + 2];
             const u3 = azimuth(vertex2) / 2 / Math.PI + 0.5;
-            const v5 = inclination(vertex2) / Math.PI + 0.5;
-            uvBuffer.push(u3, 1 - v5);
+            const v2 = inclination(vertex2) / Math.PI + 0.5;
+            uvBuffer.push(u3, 1 - v2);
           }
           correctUVs();
           correctSeam();
@@ -30731,13 +30731,13 @@ var init_three_core = __esm({
               const vecHash0 = hashes[j3];
               const vecHash1 = hashes[jNext];
               const v0 = _triangle[vertKeys[j3]];
-              const v12 = _triangle[vertKeys[jNext]];
+              const v1 = _triangle[vertKeys[jNext]];
               const hash = `${vecHash0}_${vecHash1}`;
               const reverseHash = `${vecHash1}_${vecHash0}`;
               if (reverseHash in edgeData && edgeData[reverseHash]) {
                 if (_normal.dot(edgeData[reverseHash].normal) <= thresholdDot) {
                   vertices.push(v0.x, v0.y, v0.z);
-                  vertices.push(v12.x, v12.y, v12.z);
+                  vertices.push(v1.x, v1.y, v1.z);
                 }
                 edgeData[reverseHash] = null;
               } else if (!(hash in edgeData)) {
@@ -31313,14 +31313,14 @@ var init_three_core = __esm({
        * @param {Vector2} [v2] - The second control point.
        * @param {Vector2} [v3] - The end point.
        */
-      constructor(v0 = new Vector2(), v12 = new Vector2(), v22 = new Vector2(), v32 = new Vector2()) {
+      constructor(v0 = new Vector2(), v1 = new Vector2(), v2 = new Vector2(), v3 = new Vector2()) {
         super();
         this.isCubicBezierCurve = true;
         this.type = "CubicBezierCurve";
         this.v0 = v0;
-        this.v1 = v12;
-        this.v2 = v22;
-        this.v3 = v32;
+        this.v1 = v1;
+        this.v2 = v2;
+        this.v3 = v3;
       }
       /**
        * Returns a point on the curve.
@@ -31331,10 +31331,10 @@ var init_three_core = __esm({
        */
       getPoint(t3, optionalTarget = new Vector2()) {
         const point = optionalTarget;
-        const v0 = this.v0, v12 = this.v1, v22 = this.v2, v32 = this.v3;
+        const v0 = this.v0, v1 = this.v1, v2 = this.v2, v3 = this.v3;
         point.set(
-          CubicBezier(t3, v0.x, v12.x, v22.x, v32.x),
-          CubicBezier(t3, v0.y, v12.y, v22.y, v32.y)
+          CubicBezier(t3, v0.x, v1.x, v2.x, v3.x),
+          CubicBezier(t3, v0.y, v1.y, v2.y, v3.y)
         );
         return point;
       }
@@ -31372,14 +31372,14 @@ var init_three_core = __esm({
        * @param {Vector3} [v2] - The second control point.
        * @param {Vector3} [v3] - The end point.
        */
-      constructor(v0 = new Vector3(), v12 = new Vector3(), v22 = new Vector3(), v32 = new Vector3()) {
+      constructor(v0 = new Vector3(), v1 = new Vector3(), v2 = new Vector3(), v3 = new Vector3()) {
         super();
         this.isCubicBezierCurve3 = true;
         this.type = "CubicBezierCurve3";
         this.v0 = v0;
-        this.v1 = v12;
-        this.v2 = v22;
-        this.v3 = v32;
+        this.v1 = v1;
+        this.v2 = v2;
+        this.v3 = v3;
       }
       /**
        * Returns a point on the curve.
@@ -31390,11 +31390,11 @@ var init_three_core = __esm({
        */
       getPoint(t3, optionalTarget = new Vector3()) {
         const point = optionalTarget;
-        const v0 = this.v0, v12 = this.v1, v22 = this.v2, v32 = this.v3;
+        const v0 = this.v0, v1 = this.v1, v2 = this.v2, v3 = this.v3;
         point.set(
-          CubicBezier(t3, v0.x, v12.x, v22.x, v32.x),
-          CubicBezier(t3, v0.y, v12.y, v22.y, v32.y),
-          CubicBezier(t3, v0.z, v12.z, v22.z, v32.z)
+          CubicBezier(t3, v0.x, v1.x, v2.x, v3.x),
+          CubicBezier(t3, v0.y, v1.y, v2.y, v3.y),
+          CubicBezier(t3, v0.z, v1.z, v2.z, v3.z)
         );
         return point;
       }
@@ -31430,12 +31430,12 @@ var init_three_core = __esm({
        * @param {Vector2} [v1] - The start point.
        * @param {Vector2} [v2] - The end point.
        */
-      constructor(v12 = new Vector2(), v22 = new Vector2()) {
+      constructor(v1 = new Vector2(), v2 = new Vector2()) {
         super();
         this.isLineCurve = true;
         this.type = "LineCurve";
-        this.v1 = v12;
-        this.v2 = v22;
+        this.v1 = v1;
+        this.v2 = v2;
       }
       /**
        * Returns a point on the line.
@@ -31490,12 +31490,12 @@ var init_three_core = __esm({
        * @param {Vector3} [v1] - The start point.
        * @param {Vector3} [v2] - The end point.
        */
-      constructor(v12 = new Vector3(), v22 = new Vector3()) {
+      constructor(v1 = new Vector3(), v2 = new Vector3()) {
         super();
         this.isLineCurve3 = true;
         this.type = "LineCurve3";
-        this.v1 = v12;
-        this.v2 = v22;
+        this.v1 = v1;
+        this.v2 = v2;
       }
       /**
        * Returns a point on the line.
@@ -31551,13 +31551,13 @@ var init_three_core = __esm({
        * @param {Vector2} [v1] - The control point.
        * @param {Vector2} [v2] - The end point.
        */
-      constructor(v0 = new Vector2(), v12 = new Vector2(), v22 = new Vector2()) {
+      constructor(v0 = new Vector2(), v1 = new Vector2(), v2 = new Vector2()) {
         super();
         this.isQuadraticBezierCurve = true;
         this.type = "QuadraticBezierCurve";
         this.v0 = v0;
-        this.v1 = v12;
-        this.v2 = v22;
+        this.v1 = v1;
+        this.v2 = v2;
       }
       /**
        * Returns a point on the curve.
@@ -31568,10 +31568,10 @@ var init_three_core = __esm({
        */
       getPoint(t3, optionalTarget = new Vector2()) {
         const point = optionalTarget;
-        const v0 = this.v0, v12 = this.v1, v22 = this.v2;
+        const v0 = this.v0, v1 = this.v1, v2 = this.v2;
         point.set(
-          QuadraticBezier(t3, v0.x, v12.x, v22.x),
-          QuadraticBezier(t3, v0.y, v12.y, v22.y)
+          QuadraticBezier(t3, v0.x, v1.x, v2.x),
+          QuadraticBezier(t3, v0.y, v1.y, v2.y)
         );
         return point;
       }
@@ -31605,13 +31605,13 @@ var init_three_core = __esm({
        * @param {Vector3} [v1] - The control point.
        * @param {Vector3} [v2] - The end point.
        */
-      constructor(v0 = new Vector3(), v12 = new Vector3(), v22 = new Vector3()) {
+      constructor(v0 = new Vector3(), v1 = new Vector3(), v2 = new Vector3()) {
         super();
         this.isQuadraticBezierCurve3 = true;
         this.type = "QuadraticBezierCurve3";
         this.v0 = v0;
-        this.v1 = v12;
-        this.v2 = v22;
+        this.v1 = v1;
+        this.v2 = v2;
       }
       /**
        * Returns a point on the curve.
@@ -31622,11 +31622,11 @@ var init_three_core = __esm({
        */
       getPoint(t3, optionalTarget = new Vector3()) {
         const point = optionalTarget;
-        const v0 = this.v0, v12 = this.v1, v22 = this.v2;
+        const v0 = this.v0, v1 = this.v1, v2 = this.v2;
         point.set(
-          QuadraticBezier(t3, v0.x, v12.x, v22.x),
-          QuadraticBezier(t3, v0.y, v12.y, v22.y),
-          QuadraticBezier(t3, v0.z, v12.z, v22.z)
+          QuadraticBezier(t3, v0.x, v1.x, v2.x),
+          QuadraticBezier(t3, v0.y, v1.y, v2.y),
+          QuadraticBezier(t3, v0.z, v1.z, v2.z)
         );
         return point;
       }
@@ -32406,7 +32406,7 @@ var init_three_core = __esm({
               const bs2 = bevelSize * Math.sin(t3 * Math.PI / 2) + bevelOffset;
               for (let i4 = 0, il = contour.length; i4 < il; i4++) {
                 const vert = scalePt2(contour[i4], contourMovements[i4], bs2);
-                v5(vert.x, vert.y, -z2);
+                v2(vert.x, vert.y, -z2);
                 if (t3 === 0) contractedContourVertices.push(vert);
               }
               for (let h3 = 0, hl = numHoles; h3 < hl; h3++) {
@@ -32415,7 +32415,7 @@ var init_three_core = __esm({
                 const oneHoleVertices = [];
                 for (let i4 = 0, il = ahole.length; i4 < il; i4++) {
                   const vert = scalePt2(ahole[i4], oneHoleMovements[i4], bs2);
-                  v5(vert.x, vert.y, -z2);
+                  v2(vert.x, vert.y, -z2);
                   if (t3 === 0) oneHoleVertices.push(vert);
                 }
                 if (t3 === 0) expandedHoleVertices.push(oneHoleVertices);
@@ -32428,24 +32428,24 @@ var init_three_core = __esm({
           for (let i4 = 0; i4 < vlen; i4++) {
             const vert = bevelEnabled ? scalePt2(vertices[i4], verticesMovements[i4], bs) : vertices[i4];
             if (!extrudeByPath) {
-              v5(vert.x, vert.y, 0);
+              v2(vert.x, vert.y, 0);
             } else {
               normal.copy(splineTube.normals[0]).multiplyScalar(vert.x);
               binormal.copy(splineTube.binormals[0]).multiplyScalar(vert.y);
               position2.copy(extrudePts[0]).add(normal).add(binormal);
-              v5(position2.x, position2.y, position2.z);
+              v2(position2.x, position2.y, position2.z);
             }
           }
           for (let s2 = 1; s2 <= steps; s2++) {
             for (let i4 = 0; i4 < vlen; i4++) {
               const vert = bevelEnabled ? scalePt2(vertices[i4], verticesMovements[i4], bs) : vertices[i4];
               if (!extrudeByPath) {
-                v5(vert.x, vert.y, depth / steps * s2);
+                v2(vert.x, vert.y, depth / steps * s2);
               } else {
                 normal.copy(splineTube.normals[s2]).multiplyScalar(vert.x);
                 binormal.copy(splineTube.binormals[s2]).multiplyScalar(vert.y);
                 position2.copy(extrudePts[s2]).add(normal).add(binormal);
-                v5(position2.x, position2.y, position2.z);
+                v2(position2.x, position2.y, position2.z);
               }
             }
           }
@@ -32455,7 +32455,7 @@ var init_three_core = __esm({
             const bs2 = bevelSize * Math.sin(t3 * Math.PI / 2) + bevelOffset;
             for (let i4 = 0, il = contour.length; i4 < il; i4++) {
               const vert = scalePt2(contour[i4], contourMovements[i4], bs2);
-              v5(vert.x, vert.y, depth + z2);
+              v2(vert.x, vert.y, depth + z2);
             }
             for (let h3 = 0, hl = holes.length; h3 < hl; h3++) {
               const ahole = holes[h3];
@@ -32463,9 +32463,9 @@ var init_three_core = __esm({
               for (let i4 = 0, il = ahole.length; i4 < il; i4++) {
                 const vert = scalePt2(ahole[i4], oneHoleMovements[i4], bs2);
                 if (!extrudeByPath) {
-                  v5(vert.x, vert.y, depth + z2);
+                  v2(vert.x, vert.y, depth + z2);
                 } else {
-                  v5(vert.x, vert.y + extrudePts[steps - 1].y, extrudePts[steps - 1].x + z2);
+                  v2(vert.x, vert.y + extrudePts[steps - 1].y, extrudePts[steps - 1].x + z2);
                 }
               }
             }
@@ -32525,7 +32525,7 @@ var init_three_core = __esm({
               }
             }
           }
-          function v5(x3, y2, z2) {
+          function v2(x3, y2, z2) {
             placeholder.push(x3);
             placeholder.push(y2);
             placeholder.push(z2);
@@ -33239,7 +33239,7 @@ var init_three_core = __esm({
         const uvs = [];
         for (let iy = 0; iy <= heightSegments; iy++) {
           const verticesRow = [];
-          const v5 = iy / heightSegments;
+          const v2 = iy / heightSegments;
           let uOffset = 0;
           if (iy === 0 && thetaStart === 0) {
             uOffset = 0.5 / widthSegments;
@@ -33248,13 +33248,13 @@ var init_three_core = __esm({
           }
           for (let ix = 0; ix <= widthSegments; ix++) {
             const u3 = ix / widthSegments;
-            vertex2.x = -radius * Math.cos(phiStart + u3 * phiLength) * Math.sin(thetaStart + v5 * thetaLength);
-            vertex2.y = radius * Math.cos(thetaStart + v5 * thetaLength);
-            vertex2.z = radius * Math.sin(phiStart + u3 * phiLength) * Math.sin(thetaStart + v5 * thetaLength);
+            vertex2.x = -radius * Math.cos(phiStart + u3 * phiLength) * Math.sin(thetaStart + v2 * thetaLength);
+            vertex2.y = radius * Math.cos(thetaStart + v2 * thetaLength);
+            vertex2.z = radius * Math.sin(phiStart + u3 * phiLength) * Math.sin(thetaStart + v2 * thetaLength);
             vertices.push(vertex2.x, vertex2.y, vertex2.z);
             normal.copy(vertex2).normalize();
             normals.push(normal.x, normal.y, normal.z);
-            uvs.push(u3 + uOffset, 1 - v5);
+            uvs.push(u3 + uOffset, 1 - v2);
             verticesRow.push(index++);
           }
           grid.push(verticesRow);
@@ -33378,12 +33378,12 @@ var init_three_core = __esm({
         const vertex2 = new Vector3();
         const normal = new Vector3();
         for (let j3 = 0; j3 <= radialSegments; j3++) {
-          const v5 = thetaStart + j3 / radialSegments * thetaLength;
+          const v2 = thetaStart + j3 / radialSegments * thetaLength;
           for (let i4 = 0; i4 <= tubularSegments; i4++) {
             const u3 = i4 / tubularSegments * arc;
-            vertex2.x = (radius + tube * Math.cos(v5)) * Math.cos(u3);
-            vertex2.y = (radius + tube * Math.cos(v5)) * Math.sin(u3);
-            vertex2.z = tube * Math.sin(v5);
+            vertex2.x = (radius + tube * Math.cos(v2)) * Math.cos(u3);
+            vertex2.y = (radius + tube * Math.cos(v2)) * Math.sin(u3);
+            vertex2.z = tube * Math.sin(v2);
             vertices.push(vertex2.x, vertex2.y, vertex2.z);
             center.x = radius * Math.cos(u3);
             center.y = radius * Math.sin(u3);
@@ -33470,9 +33470,9 @@ var init_three_core = __esm({
           B2.normalize();
           N2.normalize();
           for (let j3 = 0; j3 <= radialSegments; ++j3) {
-            const v5 = j3 / radialSegments * Math.PI * 2;
-            const cx = -tube * Math.cos(v5);
-            const cy = tube * Math.sin(v5);
+            const v2 = j3 / radialSegments * Math.PI * 2;
+            const cx = -tube * Math.cos(v2);
+            const cy = tube * Math.sin(v2);
             vertex2.x = P1.x + (cx * N2.x + cy * B2.x);
             vertex2.y = P1.y + (cx * N2.y + cy * B2.y);
             vertex2.z = P1.z + (cx * N2.z + cy * B2.z);
@@ -33573,9 +33573,9 @@ var init_three_core = __esm({
           const N2 = frames.normals[i4];
           const B2 = frames.binormals[i4];
           for (let j3 = 0; j3 <= radialSegments; j3++) {
-            const v5 = j3 / radialSegments * Math.PI * 2;
-            const sin = Math.sin(v5);
-            const cos = -Math.cos(v5);
+            const v2 = j3 / radialSegments * Math.PI * 2;
+            const sin = Math.sin(v2);
+            const cos = -Math.cos(v2);
             normal.x = cos * N2.x + sin * B2.x;
             normal.y = cos * N2.y + sin * B2.y;
             normal.z = cos * N2.z + sin * B2.z;
@@ -34967,7 +34967,7 @@ var init_three_core = __esm({
         const i0 = i1 - 1;
         for (let i4 = 0; i4 !== stride; ++i4) {
           const v0 = values[offset0 + i4];
-          const v12 = values[offset1 + i4];
+          const v1 = values[offset1 + i4];
           const outTangentOffset = i0 * tangentStride + i4 * 2;
           const c0x = outTangents[outTangentOffset];
           const c0y = outTangents[outTangentOffset + 1];
@@ -34990,7 +34990,7 @@ var init_three_core = __esm({
             s2 = s2 - error2 / dbx;
             s2 = Math.max(0, Math.min(1, s2));
           }
-          result[i4] = oneMinusS3 * v0 + 3 * oneMinusS2 * s2 * c0y + 3 * oneMinusS * s22 * c1y + s3 * v12;
+          result[i4] = oneMinusS3 * v0 + 3 * oneMinusS2 * s2 * c0y + 3 * oneMinusS * s22 * c1y + s3 * v1;
         }
         return result;
       }
@@ -42261,8 +42261,8 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to set.
        * @return {Spherical} A reference to this spherical.
        */
-      setFromVector3(v5) {
-        return this.setFromCartesianCoords(v5.x, v5.y, v5.z);
+      setFromVector3(v2) {
+        return this.setFromCartesianCoords(v2.x, v2.y, v2.z);
       }
       /**
        * Sets the spherical components from the given Cartesian coordinates.
@@ -42338,8 +42338,8 @@ var init_three_core = __esm({
        * @param {Vector3} v - The vector to set.
        * @return {Cylindrical} A reference to this cylindrical.
        */
-      setFromVector3(v5) {
-        return this.setFromCartesianCoords(v5.x, v5.y, v5.z);
+      setFromVector3(v2) {
+        return this.setFromCartesianCoords(v2.x, v2.y, v2.z);
       }
       /**
        * Sets the cylindrical components from the given Cartesian coordinates.
@@ -43241,9 +43241,9 @@ var init_three_core = __esm({
         const colors = [];
         if (sectors > 1) {
           for (let i4 = 0; i4 < sectors; i4++) {
-            const v5 = i4 / sectors * (Math.PI * 2);
-            const x3 = Math.sin(v5) * radius;
-            const z2 = Math.cos(v5) * radius;
+            const v2 = i4 / sectors * (Math.PI * 2);
+            const x3 = Math.sin(v2) * radius;
+            const z2 = Math.cos(v2) * radius;
             vertices.push(0, 0, 0);
             vertices.push(x3, 0, z2);
             const color = i4 & 1 ? color1 : color2;
@@ -43255,14 +43255,14 @@ var init_three_core = __esm({
           const color = i4 & 1 ? color1 : color2;
           const r3 = radius - radius / rings * i4;
           for (let j3 = 0; j3 < divisions; j3++) {
-            let v5 = j3 / divisions * (Math.PI * 2);
-            let x3 = Math.sin(v5) * r3;
-            let z2 = Math.cos(v5) * r3;
+            let v2 = j3 / divisions * (Math.PI * 2);
+            let x3 = Math.sin(v2) * r3;
+            let z2 = Math.cos(v2) * r3;
             vertices.push(x3, 0, z2);
             colors.push(color.r, color.g, color.b);
-            v5 = (j3 + 1) / divisions * (Math.PI * 2);
-            x3 = Math.sin(v5) * r3;
-            z2 = Math.cos(v5) * r3;
+            v2 = (j3 + 1) / divisions * (Math.PI * 2);
+            x3 = Math.sin(v2) * r3;
+            z2 = Math.cos(v2) * r3;
             vertices.push(x3, 0, z2);
             colors.push(color.r, color.g, color.b);
           }
@@ -46646,71 +46646,71 @@ function allocTexUnits(textures, n2) {
   }
   return r3;
 }
-function setValueV1f(gl, v5) {
+function setValueV1f(gl, v2) {
   const cache = this.cache;
-  if (cache[0] === v5) return;
-  gl.uniform1f(this.addr, v5);
-  cache[0] = v5;
+  if (cache[0] === v2) return;
+  gl.uniform1f(this.addr, v2);
+  cache[0] = v2;
 }
-function setValueV2f(gl, v5) {
+function setValueV2f(gl, v2) {
   const cache = this.cache;
-  if (v5.x !== void 0) {
-    if (cache[0] !== v5.x || cache[1] !== v5.y) {
-      gl.uniform2f(this.addr, v5.x, v5.y);
-      cache[0] = v5.x;
-      cache[1] = v5.y;
+  if (v2.x !== void 0) {
+    if (cache[0] !== v2.x || cache[1] !== v2.y) {
+      gl.uniform2f(this.addr, v2.x, v2.y);
+      cache[0] = v2.x;
+      cache[1] = v2.y;
     }
   } else {
-    if (arraysEqual(cache, v5)) return;
-    gl.uniform2fv(this.addr, v5);
-    copyArray(cache, v5);
+    if (arraysEqual(cache, v2)) return;
+    gl.uniform2fv(this.addr, v2);
+    copyArray(cache, v2);
   }
 }
-function setValueV3f(gl, v5) {
+function setValueV3f(gl, v2) {
   const cache = this.cache;
-  if (v5.x !== void 0) {
-    if (cache[0] !== v5.x || cache[1] !== v5.y || cache[2] !== v5.z) {
-      gl.uniform3f(this.addr, v5.x, v5.y, v5.z);
-      cache[0] = v5.x;
-      cache[1] = v5.y;
-      cache[2] = v5.z;
+  if (v2.x !== void 0) {
+    if (cache[0] !== v2.x || cache[1] !== v2.y || cache[2] !== v2.z) {
+      gl.uniform3f(this.addr, v2.x, v2.y, v2.z);
+      cache[0] = v2.x;
+      cache[1] = v2.y;
+      cache[2] = v2.z;
     }
-  } else if (v5.r !== void 0) {
-    if (cache[0] !== v5.r || cache[1] !== v5.g || cache[2] !== v5.b) {
-      gl.uniform3f(this.addr, v5.r, v5.g, v5.b);
-      cache[0] = v5.r;
-      cache[1] = v5.g;
-      cache[2] = v5.b;
-    }
-  } else {
-    if (arraysEqual(cache, v5)) return;
-    gl.uniform3fv(this.addr, v5);
-    copyArray(cache, v5);
-  }
-}
-function setValueV4f(gl, v5) {
-  const cache = this.cache;
-  if (v5.x !== void 0) {
-    if (cache[0] !== v5.x || cache[1] !== v5.y || cache[2] !== v5.z || cache[3] !== v5.w) {
-      gl.uniform4f(this.addr, v5.x, v5.y, v5.z, v5.w);
-      cache[0] = v5.x;
-      cache[1] = v5.y;
-      cache[2] = v5.z;
-      cache[3] = v5.w;
+  } else if (v2.r !== void 0) {
+    if (cache[0] !== v2.r || cache[1] !== v2.g || cache[2] !== v2.b) {
+      gl.uniform3f(this.addr, v2.r, v2.g, v2.b);
+      cache[0] = v2.r;
+      cache[1] = v2.g;
+      cache[2] = v2.b;
     }
   } else {
-    if (arraysEqual(cache, v5)) return;
-    gl.uniform4fv(this.addr, v5);
-    copyArray(cache, v5);
+    if (arraysEqual(cache, v2)) return;
+    gl.uniform3fv(this.addr, v2);
+    copyArray(cache, v2);
   }
 }
-function setValueM2(gl, v5) {
+function setValueV4f(gl, v2) {
   const cache = this.cache;
-  const elements = v5.elements;
+  if (v2.x !== void 0) {
+    if (cache[0] !== v2.x || cache[1] !== v2.y || cache[2] !== v2.z || cache[3] !== v2.w) {
+      gl.uniform4f(this.addr, v2.x, v2.y, v2.z, v2.w);
+      cache[0] = v2.x;
+      cache[1] = v2.y;
+      cache[2] = v2.z;
+      cache[3] = v2.w;
+    }
+  } else {
+    if (arraysEqual(cache, v2)) return;
+    gl.uniform4fv(this.addr, v2);
+    copyArray(cache, v2);
+  }
+}
+function setValueM2(gl, v2) {
+  const cache = this.cache;
+  const elements = v2.elements;
   if (elements === void 0) {
-    if (arraysEqual(cache, v5)) return;
-    gl.uniformMatrix2fv(this.addr, false, v5);
-    copyArray(cache, v5);
+    if (arraysEqual(cache, v2)) return;
+    gl.uniformMatrix2fv(this.addr, false, v2);
+    copyArray(cache, v2);
   } else {
     if (arraysEqual(cache, elements)) return;
     mat2array.set(elements);
@@ -46718,13 +46718,13 @@ function setValueM2(gl, v5) {
     copyArray(cache, elements);
   }
 }
-function setValueM3(gl, v5) {
+function setValueM3(gl, v2) {
   const cache = this.cache;
-  const elements = v5.elements;
+  const elements = v2.elements;
   if (elements === void 0) {
-    if (arraysEqual(cache, v5)) return;
-    gl.uniformMatrix3fv(this.addr, false, v5);
-    copyArray(cache, v5);
+    if (arraysEqual(cache, v2)) return;
+    gl.uniformMatrix3fv(this.addr, false, v2);
+    copyArray(cache, v2);
   } else {
     if (arraysEqual(cache, elements)) return;
     mat3array.set(elements);
@@ -46732,13 +46732,13 @@ function setValueM3(gl, v5) {
     copyArray(cache, elements);
   }
 }
-function setValueM4(gl, v5) {
+function setValueM4(gl, v2) {
   const cache = this.cache;
-  const elements = v5.elements;
+  const elements = v2.elements;
   if (elements === void 0) {
-    if (arraysEqual(cache, v5)) return;
-    gl.uniformMatrix4fv(this.addr, false, v5);
-    copyArray(cache, v5);
+    if (arraysEqual(cache, v2)) return;
+    gl.uniformMatrix4fv(this.addr, false, v2);
+    copyArray(cache, v2);
   } else {
     if (arraysEqual(cache, elements)) return;
     mat4array.set(elements);
@@ -46746,109 +46746,109 @@ function setValueM4(gl, v5) {
     copyArray(cache, elements);
   }
 }
-function setValueV1i(gl, v5) {
+function setValueV1i(gl, v2) {
   const cache = this.cache;
-  if (cache[0] === v5) return;
-  gl.uniform1i(this.addr, v5);
-  cache[0] = v5;
+  if (cache[0] === v2) return;
+  gl.uniform1i(this.addr, v2);
+  cache[0] = v2;
 }
-function setValueV2i(gl, v5) {
+function setValueV2i(gl, v2) {
   const cache = this.cache;
-  if (v5.x !== void 0) {
-    if (cache[0] !== v5.x || cache[1] !== v5.y) {
-      gl.uniform2i(this.addr, v5.x, v5.y);
-      cache[0] = v5.x;
-      cache[1] = v5.y;
+  if (v2.x !== void 0) {
+    if (cache[0] !== v2.x || cache[1] !== v2.y) {
+      gl.uniform2i(this.addr, v2.x, v2.y);
+      cache[0] = v2.x;
+      cache[1] = v2.y;
     }
   } else {
-    if (arraysEqual(cache, v5)) return;
-    gl.uniform2iv(this.addr, v5);
-    copyArray(cache, v5);
+    if (arraysEqual(cache, v2)) return;
+    gl.uniform2iv(this.addr, v2);
+    copyArray(cache, v2);
   }
 }
-function setValueV3i(gl, v5) {
+function setValueV3i(gl, v2) {
   const cache = this.cache;
-  if (v5.x !== void 0) {
-    if (cache[0] !== v5.x || cache[1] !== v5.y || cache[2] !== v5.z) {
-      gl.uniform3i(this.addr, v5.x, v5.y, v5.z);
-      cache[0] = v5.x;
-      cache[1] = v5.y;
-      cache[2] = v5.z;
+  if (v2.x !== void 0) {
+    if (cache[0] !== v2.x || cache[1] !== v2.y || cache[2] !== v2.z) {
+      gl.uniform3i(this.addr, v2.x, v2.y, v2.z);
+      cache[0] = v2.x;
+      cache[1] = v2.y;
+      cache[2] = v2.z;
     }
   } else {
-    if (arraysEqual(cache, v5)) return;
-    gl.uniform3iv(this.addr, v5);
-    copyArray(cache, v5);
+    if (arraysEqual(cache, v2)) return;
+    gl.uniform3iv(this.addr, v2);
+    copyArray(cache, v2);
   }
 }
-function setValueV4i(gl, v5) {
+function setValueV4i(gl, v2) {
   const cache = this.cache;
-  if (v5.x !== void 0) {
-    if (cache[0] !== v5.x || cache[1] !== v5.y || cache[2] !== v5.z || cache[3] !== v5.w) {
-      gl.uniform4i(this.addr, v5.x, v5.y, v5.z, v5.w);
-      cache[0] = v5.x;
-      cache[1] = v5.y;
-      cache[2] = v5.z;
-      cache[3] = v5.w;
+  if (v2.x !== void 0) {
+    if (cache[0] !== v2.x || cache[1] !== v2.y || cache[2] !== v2.z || cache[3] !== v2.w) {
+      gl.uniform4i(this.addr, v2.x, v2.y, v2.z, v2.w);
+      cache[0] = v2.x;
+      cache[1] = v2.y;
+      cache[2] = v2.z;
+      cache[3] = v2.w;
     }
   } else {
-    if (arraysEqual(cache, v5)) return;
-    gl.uniform4iv(this.addr, v5);
-    copyArray(cache, v5);
+    if (arraysEqual(cache, v2)) return;
+    gl.uniform4iv(this.addr, v2);
+    copyArray(cache, v2);
   }
 }
-function setValueV1ui(gl, v5) {
+function setValueV1ui(gl, v2) {
   const cache = this.cache;
-  if (cache[0] === v5) return;
-  gl.uniform1ui(this.addr, v5);
-  cache[0] = v5;
+  if (cache[0] === v2) return;
+  gl.uniform1ui(this.addr, v2);
+  cache[0] = v2;
 }
-function setValueV2ui(gl, v5) {
+function setValueV2ui(gl, v2) {
   const cache = this.cache;
-  if (v5.x !== void 0) {
-    if (cache[0] !== v5.x || cache[1] !== v5.y) {
-      gl.uniform2ui(this.addr, v5.x, v5.y);
-      cache[0] = v5.x;
-      cache[1] = v5.y;
+  if (v2.x !== void 0) {
+    if (cache[0] !== v2.x || cache[1] !== v2.y) {
+      gl.uniform2ui(this.addr, v2.x, v2.y);
+      cache[0] = v2.x;
+      cache[1] = v2.y;
     }
   } else {
-    if (arraysEqual(cache, v5)) return;
-    gl.uniform2uiv(this.addr, v5);
-    copyArray(cache, v5);
+    if (arraysEqual(cache, v2)) return;
+    gl.uniform2uiv(this.addr, v2);
+    copyArray(cache, v2);
   }
 }
-function setValueV3ui(gl, v5) {
+function setValueV3ui(gl, v2) {
   const cache = this.cache;
-  if (v5.x !== void 0) {
-    if (cache[0] !== v5.x || cache[1] !== v5.y || cache[2] !== v5.z) {
-      gl.uniform3ui(this.addr, v5.x, v5.y, v5.z);
-      cache[0] = v5.x;
-      cache[1] = v5.y;
-      cache[2] = v5.z;
+  if (v2.x !== void 0) {
+    if (cache[0] !== v2.x || cache[1] !== v2.y || cache[2] !== v2.z) {
+      gl.uniform3ui(this.addr, v2.x, v2.y, v2.z);
+      cache[0] = v2.x;
+      cache[1] = v2.y;
+      cache[2] = v2.z;
     }
   } else {
-    if (arraysEqual(cache, v5)) return;
-    gl.uniform3uiv(this.addr, v5);
-    copyArray(cache, v5);
+    if (arraysEqual(cache, v2)) return;
+    gl.uniform3uiv(this.addr, v2);
+    copyArray(cache, v2);
   }
 }
-function setValueV4ui(gl, v5) {
+function setValueV4ui(gl, v2) {
   const cache = this.cache;
-  if (v5.x !== void 0) {
-    if (cache[0] !== v5.x || cache[1] !== v5.y || cache[2] !== v5.z || cache[3] !== v5.w) {
-      gl.uniform4ui(this.addr, v5.x, v5.y, v5.z, v5.w);
-      cache[0] = v5.x;
-      cache[1] = v5.y;
-      cache[2] = v5.z;
-      cache[3] = v5.w;
+  if (v2.x !== void 0) {
+    if (cache[0] !== v2.x || cache[1] !== v2.y || cache[2] !== v2.z || cache[3] !== v2.w) {
+      gl.uniform4ui(this.addr, v2.x, v2.y, v2.z, v2.w);
+      cache[0] = v2.x;
+      cache[1] = v2.y;
+      cache[2] = v2.z;
+      cache[3] = v2.w;
     }
   } else {
-    if (arraysEqual(cache, v5)) return;
-    gl.uniform4uiv(this.addr, v5);
-    copyArray(cache, v5);
+    if (arraysEqual(cache, v2)) return;
+    gl.uniform4uiv(this.addr, v2);
+    copyArray(cache, v2);
   }
 }
-function setValueT1(gl, v5, textures) {
+function setValueT1(gl, v2, textures) {
   const cache = this.cache;
   const unit = textures.allocateTextureUnit();
   if (cache[0] !== unit) {
@@ -46862,34 +46862,34 @@ function setValueT1(gl, v5, textures) {
   } else {
     emptyTexture2D = emptyTexture;
   }
-  textures.setTexture2D(v5 || emptyTexture2D, unit);
+  textures.setTexture2D(v2 || emptyTexture2D, unit);
 }
-function setValueT3D1(gl, v5, textures) {
+function setValueT3D1(gl, v2, textures) {
   const cache = this.cache;
   const unit = textures.allocateTextureUnit();
   if (cache[0] !== unit) {
     gl.uniform1i(this.addr, unit);
     cache[0] = unit;
   }
-  textures.setTexture3D(v5 || empty3dTexture, unit);
+  textures.setTexture3D(v2 || empty3dTexture, unit);
 }
-function setValueT6(gl, v5, textures) {
+function setValueT6(gl, v2, textures) {
   const cache = this.cache;
   const unit = textures.allocateTextureUnit();
   if (cache[0] !== unit) {
     gl.uniform1i(this.addr, unit);
     cache[0] = unit;
   }
-  textures.setTextureCube(v5 || emptyCubeTexture, unit);
+  textures.setTextureCube(v2 || emptyCubeTexture, unit);
 }
-function setValueT2DArray1(gl, v5, textures) {
+function setValueT2DArray1(gl, v2, textures) {
   const cache = this.cache;
   const unit = textures.allocateTextureUnit();
   if (cache[0] !== unit) {
     gl.uniform1i(this.addr, unit);
     cache[0] = unit;
   }
-  textures.setTexture2DArray(v5 || emptyArrayTexture, unit);
+  textures.setTexture2DArray(v2 || emptyArrayTexture, unit);
 }
 function getSingularSetter(type) {
   switch (type) {
@@ -46976,60 +46976,60 @@ function getSingularSetter(type) {
       return setValueT2DArray1;
   }
 }
-function setValueV1fArray(gl, v5) {
-  gl.uniform1fv(this.addr, v5);
+function setValueV1fArray(gl, v2) {
+  gl.uniform1fv(this.addr, v2);
 }
-function setValueV2fArray(gl, v5) {
-  const data = flatten(v5, this.size, 2);
+function setValueV2fArray(gl, v2) {
+  const data = flatten(v2, this.size, 2);
   gl.uniform2fv(this.addr, data);
 }
-function setValueV3fArray(gl, v5) {
-  const data = flatten(v5, this.size, 3);
+function setValueV3fArray(gl, v2) {
+  const data = flatten(v2, this.size, 3);
   gl.uniform3fv(this.addr, data);
 }
-function setValueV4fArray(gl, v5) {
-  const data = flatten(v5, this.size, 4);
+function setValueV4fArray(gl, v2) {
+  const data = flatten(v2, this.size, 4);
   gl.uniform4fv(this.addr, data);
 }
-function setValueM2Array(gl, v5) {
-  const data = flatten(v5, this.size, 4);
+function setValueM2Array(gl, v2) {
+  const data = flatten(v2, this.size, 4);
   gl.uniformMatrix2fv(this.addr, false, data);
 }
-function setValueM3Array(gl, v5) {
-  const data = flatten(v5, this.size, 9);
+function setValueM3Array(gl, v2) {
+  const data = flatten(v2, this.size, 9);
   gl.uniformMatrix3fv(this.addr, false, data);
 }
-function setValueM4Array(gl, v5) {
-  const data = flatten(v5, this.size, 16);
+function setValueM4Array(gl, v2) {
+  const data = flatten(v2, this.size, 16);
   gl.uniformMatrix4fv(this.addr, false, data);
 }
-function setValueV1iArray(gl, v5) {
-  gl.uniform1iv(this.addr, v5);
+function setValueV1iArray(gl, v2) {
+  gl.uniform1iv(this.addr, v2);
 }
-function setValueV2iArray(gl, v5) {
-  gl.uniform2iv(this.addr, v5);
+function setValueV2iArray(gl, v2) {
+  gl.uniform2iv(this.addr, v2);
 }
-function setValueV3iArray(gl, v5) {
-  gl.uniform3iv(this.addr, v5);
+function setValueV3iArray(gl, v2) {
+  gl.uniform3iv(this.addr, v2);
 }
-function setValueV4iArray(gl, v5) {
-  gl.uniform4iv(this.addr, v5);
+function setValueV4iArray(gl, v2) {
+  gl.uniform4iv(this.addr, v2);
 }
-function setValueV1uiArray(gl, v5) {
-  gl.uniform1uiv(this.addr, v5);
+function setValueV1uiArray(gl, v2) {
+  gl.uniform1uiv(this.addr, v2);
 }
-function setValueV2uiArray(gl, v5) {
-  gl.uniform2uiv(this.addr, v5);
+function setValueV2uiArray(gl, v2) {
+  gl.uniform2uiv(this.addr, v2);
 }
-function setValueV3uiArray(gl, v5) {
-  gl.uniform3uiv(this.addr, v5);
+function setValueV3uiArray(gl, v2) {
+  gl.uniform3uiv(this.addr, v2);
 }
-function setValueV4uiArray(gl, v5) {
-  gl.uniform4uiv(this.addr, v5);
+function setValueV4uiArray(gl, v2) {
+  gl.uniform4uiv(this.addr, v2);
 }
-function setValueT1Array(gl, v5, textures) {
+function setValueT1Array(gl, v2, textures) {
   const cache = this.cache;
-  const n2 = v5.length;
+  const n2 = v2.length;
   const units = allocTexUnits(textures, n2);
   if (!arraysEqual(cache, units)) {
     gl.uniform1iv(this.addr, units);
@@ -47042,43 +47042,43 @@ function setValueT1Array(gl, v5, textures) {
     emptyTexture2D = emptyTexture;
   }
   for (let i4 = 0; i4 !== n2; ++i4) {
-    textures.setTexture2D(v5[i4] || emptyTexture2D, units[i4]);
+    textures.setTexture2D(v2[i4] || emptyTexture2D, units[i4]);
   }
 }
-function setValueT3DArray(gl, v5, textures) {
+function setValueT3DArray(gl, v2, textures) {
   const cache = this.cache;
-  const n2 = v5.length;
+  const n2 = v2.length;
   const units = allocTexUnits(textures, n2);
   if (!arraysEqual(cache, units)) {
     gl.uniform1iv(this.addr, units);
     copyArray(cache, units);
   }
   for (let i4 = 0; i4 !== n2; ++i4) {
-    textures.setTexture3D(v5[i4] || empty3dTexture, units[i4]);
+    textures.setTexture3D(v2[i4] || empty3dTexture, units[i4]);
   }
 }
-function setValueT6Array(gl, v5, textures) {
+function setValueT6Array(gl, v2, textures) {
   const cache = this.cache;
-  const n2 = v5.length;
+  const n2 = v2.length;
   const units = allocTexUnits(textures, n2);
   if (!arraysEqual(cache, units)) {
     gl.uniform1iv(this.addr, units);
     copyArray(cache, units);
   }
   for (let i4 = 0; i4 !== n2; ++i4) {
-    textures.setTextureCube(v5[i4] || emptyCubeTexture, units[i4]);
+    textures.setTextureCube(v2[i4] || emptyCubeTexture, units[i4]);
   }
 }
-function setValueT2DArrayArray(gl, v5, textures) {
+function setValueT2DArrayArray(gl, v2, textures) {
   const cache = this.cache;
-  const n2 = v5.length;
+  const n2 = v2.length;
   const units = allocTexUnits(textures, n2);
   if (!arraysEqual(cache, units)) {
     gl.uniform1iv(this.addr, units);
     copyArray(cache, units);
   }
   for (let i4 = 0; i4 !== n2; ++i4) {
-    textures.setTexture2DArray(v5[i4] || emptyArrayTexture, units[i4]);
+    textures.setTexture2DArray(v2[i4] || emptyArrayTexture, units[i4]);
   }
 }
 function getPureArraySetter(type) {
@@ -47211,7 +47211,7 @@ function handleSource(string, errorLine) {
 }
 function getEncodingComponents(colorSpace) {
   ColorManagement._getMatrix(_m0, ColorManagement.workingColorSpace, colorSpace);
-  const encodingMatrix = `mat3( ${_m0.elements.map((v5) => v5.toFixed(4))} )`;
+  const encodingMatrix = `mat3( ${_m0.elements.map((v2) => v2.toFixed(4))} )`;
   switch (ColorManagement.getTransfer(colorSpace)) {
     case LinearTransfer:
       return [encodingMatrix, "LinearTransferOETF"];
@@ -53126,14 +53126,14 @@ var init_three_module = __esm({
         if (u3 !== void 0) u3.setValue(gl, value, textures);
       }
       setOptional(gl, object, name) {
-        const v5 = object[name];
-        if (v5 !== void 0) this.setValue(gl, name, v5);
+        const v2 = object[name];
+        if (v2 !== void 0) this.setValue(gl, name, v2);
       }
       static upload(gl, seq, values, textures) {
         for (let i4 = 0, n2 = seq.length; i4 !== n2; ++i4) {
-          const u3 = seq[i4], v5 = values[u3.id];
-          if (v5.needsUpdate !== false) {
-            u3.setValue(gl, v5.value, textures);
+          const u3 = seq[i4], v2 = values[u3.id];
+          if (v2.needsUpdate !== false) {
+            u3.setValue(gl, v2.value, textures);
           }
         }
       }
@@ -55945,18 +55945,18 @@ void main() {
 var require_use_sync_external_store_shim_production = __commonJS({
   "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.production.js"(exports) {
     "use strict";
-    var React15 = require_react();
+    var React14 = require_react();
     function is2(x3, y2) {
       return x3 === y2 && (0 !== x3 || 1 / x3 === 1 / y2) || x3 !== x3 && y2 !== y2;
     }
     var objectIs = "function" === typeof Object.is ? Object.is : is2;
-    var useState14 = React15.useState;
-    var useEffect14 = React15.useEffect;
-    var useLayoutEffect5 = React15.useLayoutEffect;
-    var useDebugValue = React15.useDebugValue;
+    var useState14 = React14.useState;
+    var useEffect15 = React14.useEffect;
+    var useLayoutEffect4 = React14.useLayoutEffect;
+    var useDebugValue = React14.useDebugValue;
     function useSyncExternalStore$2(subscribe, getSnapshot) {
       var value = getSnapshot(), _useState = useState14({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
-      useLayoutEffect5(
+      useLayoutEffect4(
         function() {
           inst.value = value;
           inst.getSnapshot = getSnapshot;
@@ -55964,7 +55964,7 @@ var require_use_sync_external_store_shim_production = __commonJS({
         },
         [subscribe, value, getSnapshot]
       );
-      useEffect14(
+      useEffect15(
         function() {
           checkIfSnapshotChanged(inst) && forceUpdate({ inst });
           return subscribe(function() {
@@ -55990,7 +55990,7 @@ var require_use_sync_external_store_shim_production = __commonJS({
       return getSnapshot();
     }
     var shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
-    exports.useSyncExternalStore = void 0 !== React15.useSyncExternalStore ? React15.useSyncExternalStore : shim;
+    exports.useSyncExternalStore = void 0 !== React14.useSyncExternalStore ? React14.useSyncExternalStore : shim;
   }
 });
 
@@ -56010,24 +56010,24 @@ var require_shim = __commonJS({
 var require_with_selector_production = __commonJS({
   "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim/with-selector.production.js"(exports) {
     "use strict";
-    var React15 = require_react();
+    var React14 = require_react();
     var shim = require_shim();
     function is2(x3, y2) {
       return x3 === y2 && (0 !== x3 || 1 / x3 === 1 / y2) || x3 !== x3 && y2 !== y2;
     }
     var objectIs = "function" === typeof Object.is ? Object.is : is2;
     var useSyncExternalStore = shim.useSyncExternalStore;
-    var useRef14 = React15.useRef;
-    var useEffect14 = React15.useEffect;
-    var useMemo12 = React15.useMemo;
-    var useDebugValue = React15.useDebugValue;
+    var useRef14 = React14.useRef;
+    var useEffect15 = React14.useEffect;
+    var useMemo11 = React14.useMemo;
+    var useDebugValue = React14.useDebugValue;
     exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
       var instRef = useRef14(null);
       if (null === instRef.current) {
         var inst = { hasValue: false, value: null };
         instRef.current = inst;
       } else inst = instRef.current;
-      instRef = useMemo12(
+      instRef = useMemo11(
         function() {
           function memoizedSelector(nextSnapshot) {
             if (!hasMemo) {
@@ -56062,7 +56062,7 @@ var require_with_selector_production = __commonJS({
         [getSnapshot, getServerSnapshot, selector, isEqual]
       );
       var value = useSyncExternalStore(subscribe, instRef[0], instRef[1]);
-      useEffect14(
+      useEffect15(
         function() {
           inst.hasValue = true;
           inst.value = value;
@@ -63375,7 +63375,7 @@ function j({ debounce: n2, scroll: t3, polyfill: o4, offsetSize: i4 } = { deboun
     };
     return [r3, f2 ? g(r3, f2) : r3, d2 ? g(r3, d2) : r3];
   }, [h3, i4, d2, f2]);
-  function v5() {
+  function v2() {
     e3.current.scrollContainers && (e3.current.scrollContainers.forEach((r3) => r3.removeEventListener("scroll", s2, true)), e3.current.scrollContainers = null), e3.current.resizeObserver && (e3.current.resizeObserver.disconnect(), e3.current.resizeObserver = null), e3.current.orientationHandler && ("orientation" in screen && "removeEventListener" in screen.orientation ? screen.orientation.removeEventListener("change", e3.current.orientationHandler) : "onorientationchange" in window && window.removeEventListener("orientationchange", e3.current.orientationHandler));
   }
   function b3() {
@@ -63384,11 +63384,11 @@ function j({ debounce: n2, scroll: t3, polyfill: o4, offsetSize: i4 } = { deboun
     }, "orientation" in screen && "addEventListener" in screen.orientation ? screen.orientation.addEventListener("change", e3.current.orientationHandler) : "onorientationchange" in window && window.addEventListener("orientationchange", e3.current.orientationHandler));
   }
   const L2 = (r3) => {
-    !r3 || r3 === e3.current.element || (v5(), e3.current.element = r3, e3.current.scrollContainers = E(r3), b3());
+    !r3 || r3 === e3.current.element || (v2(), e3.current.element = r3, e3.current.scrollContainers = E(r3), b3());
   };
   return X(s2, !!t3), W(m3), (0, import_react3.useEffect)(() => {
-    v5(), b3();
-  }, [t3, s2, m3]), (0, import_react3.useEffect)(() => v5, []), [L2, c3, z2];
+    v2(), b3();
+  }, [t3, s2, m3]), (0, import_react3.useEffect)(() => v2, []), [L2, c3, z2];
 }
 function W(n2) {
   (0, import_react3.useEffect)(() => {
@@ -63581,391 +63581,6 @@ function _extends() {
 }
 var init_extends = __esm({
   "node_modules/@babel/runtime/helpers/esm/extends.js"() {
-  }
-});
-
-// node_modules/@react-three/drei/web/Html.js
-function defaultCalculatePosition(el, camera, size) {
-  const objectPos = v1.setFromMatrixPosition(el.matrixWorld);
-  objectPos.project(camera);
-  const widthHalf = size.width / 2;
-  const heightHalf = size.height / 2;
-  return [objectPos.x * widthHalf + widthHalf, -(objectPos.y * heightHalf) + heightHalf];
-}
-function isObjectBehindCamera(el, camera) {
-  const objectPos = v1.setFromMatrixPosition(el.matrixWorld);
-  const cameraPos = v2.setFromMatrixPosition(camera.matrixWorld);
-  const deltaCamObj = objectPos.sub(cameraPos);
-  const camDir = camera.getWorldDirection(v3);
-  return deltaCamObj.angleTo(camDir) > Math.PI / 2;
-}
-function isObjectVisible(el, camera, raycaster, occlude) {
-  const elPos = v1.setFromMatrixPosition(el.matrixWorld);
-  const screenPos = elPos.clone();
-  screenPos.project(camera);
-  v4.set(screenPos.x, screenPos.y);
-  raycaster.setFromCamera(v4, camera);
-  const intersects2 = raycaster.intersectObjects(occlude, true);
-  if (intersects2.length) {
-    const intersectionDistance = intersects2[0].distance;
-    const pointDistance = elPos.distanceTo(raycaster.ray.origin);
-    return pointDistance < intersectionDistance;
-  }
-  return true;
-}
-function objectScale(el, camera) {
-  if (camera instanceof OrthographicCamera) {
-    return camera.zoom;
-  } else if (camera instanceof PerspectiveCamera) {
-    const objectPos = v1.setFromMatrixPosition(el.matrixWorld);
-    const cameraPos = v2.setFromMatrixPosition(camera.matrixWorld);
-    const vFOV = camera.fov * Math.PI / 180;
-    const dist = objectPos.distanceTo(cameraPos);
-    const scaleFOV = 2 * Math.tan(vFOV / 2) * dist;
-    return 1 / scaleFOV;
-  } else {
-    return 1;
-  }
-}
-function objectZIndex(el, camera, zIndexRange) {
-  if (camera instanceof PerspectiveCamera || camera instanceof OrthographicCamera) {
-    const objectPos = v1.setFromMatrixPosition(el.matrixWorld);
-    const cameraPos = v2.setFromMatrixPosition(camera.matrixWorld);
-    const dist = objectPos.distanceTo(cameraPos);
-    const A2 = (zIndexRange[1] - zIndexRange[0]) / (camera.far - camera.near);
-    const B2 = zIndexRange[1] - A2 * camera.far;
-    return Math.round(A2 * dist + B2);
-  }
-  return void 0;
-}
-function getCSSMatrix(matrix, multipliers, prepend = "") {
-  let matrix3d = "matrix3d(";
-  for (let i4 = 0; i4 !== 16; i4++) {
-    matrix3d += epsilon(multipliers[i4] * matrix.elements[i4]) + (i4 !== 15 ? "," : ")");
-  }
-  return prepend + matrix3d;
-}
-function isRefObject(ref) {
-  return ref && typeof ref === "object" && "current" in ref;
-}
-var React4, ReactDOM, v1, v2, v3, v4, epsilon, getCameraCSSMatrix, getObjectCSSMatrix, Html;
-var init_Html = __esm({
-  "node_modules/@react-three/drei/web/Html.js"() {
-    init_extends();
-    React4 = __toESM(require_react());
-    ReactDOM = __toESM(require_client());
-    init_three_module();
-    init_react_three_fiber_esm();
-    v1 = /* @__PURE__ */ new Vector3();
-    v2 = /* @__PURE__ */ new Vector3();
-    v3 = /* @__PURE__ */ new Vector3();
-    v4 = /* @__PURE__ */ new Vector2();
-    epsilon = (value) => Math.abs(value) < 1e-10 ? 0 : value;
-    getCameraCSSMatrix = /* @__PURE__ */ ((multipliers) => {
-      return (matrix) => getCSSMatrix(matrix, multipliers);
-    })([1, -1, 1, 1, 1, -1, 1, 1, 1, -1, 1, 1, 1, -1, 1, 1]);
-    getObjectCSSMatrix = /* @__PURE__ */ ((scaleMultipliers) => {
-      return (matrix, factor) => getCSSMatrix(matrix, scaleMultipliers(factor), "translate(-50%,-50%)");
-    })((f2) => [1 / f2, 1 / f2, 1 / f2, 1, -1 / f2, -1 / f2, -1 / f2, -1, 1 / f2, 1 / f2, 1 / f2, 1, 1, 1, 1, 1]);
-    Html = /* @__PURE__ */ React4.forwardRef(({
-      children,
-      eps = 1e-3,
-      style,
-      className,
-      prepend,
-      center,
-      fullscreen,
-      portal,
-      distanceFactor,
-      sprite = false,
-      transform = false,
-      occlude,
-      onOcclude,
-      castShadow,
-      receiveShadow,
-      material,
-      geometry,
-      zIndexRange = [16777271, 0],
-      calculatePosition = defaultCalculatePosition,
-      as = "div",
-      wrapperClass,
-      pointerEvents = "auto",
-      ...props
-    }, ref) => {
-      const {
-        gl,
-        camera,
-        scene,
-        size,
-        raycaster,
-        events,
-        viewport
-      } = useThree();
-      const [el] = React4.useState(() => document.createElement(as));
-      const root = React4.useRef(null);
-      const group = React4.useRef(null);
-      const oldZoom = React4.useRef(0);
-      const oldPosition = React4.useRef([0, 0]);
-      const transformOuterRef = React4.useRef(null);
-      const transformInnerRef = React4.useRef(null);
-      const target = (portal == null ? void 0 : portal.current) || events.connected || gl.domElement.parentNode;
-      const occlusionMeshRef = React4.useRef(null);
-      const isMeshSizeSet = React4.useRef(false);
-      const isRayCastOcclusion = React4.useMemo(() => {
-        return occlude && occlude !== "blending" || Array.isArray(occlude) && occlude.length && isRefObject(occlude[0]);
-      }, [occlude]);
-      React4.useLayoutEffect(() => {
-        const el2 = gl.domElement;
-        if (occlude && occlude === "blending") {
-          el2.style.zIndex = `${Math.floor(zIndexRange[0] / 2)}`;
-          el2.style.position = "absolute";
-          el2.style.pointerEvents = "none";
-        } else {
-          el2.style.zIndex = null;
-          el2.style.position = null;
-          el2.style.pointerEvents = null;
-        }
-      }, [occlude]);
-      React4.useLayoutEffect(() => {
-        if (group.current) {
-          const currentRoot = root.current = ReactDOM.createRoot(el);
-          scene.updateMatrixWorld();
-          if (transform) {
-            el.style.cssText = `position:absolute;top:0;left:0;pointer-events:none;overflow:hidden;`;
-          } else {
-            const vec = calculatePosition(group.current, camera, size);
-            el.style.cssText = `position:absolute;top:0;left:0;transform:translate3d(${vec[0]}px,${vec[1]}px,0);transform-origin:0 0;`;
-          }
-          if (target) {
-            if (prepend) target.prepend(el);
-            else target.appendChild(el);
-          }
-          return () => {
-            if (target) target.removeChild(el);
-            currentRoot.unmount();
-          };
-        }
-      }, [target, transform]);
-      React4.useLayoutEffect(() => {
-        if (wrapperClass) el.className = wrapperClass;
-      }, [wrapperClass]);
-      const styles2 = React4.useMemo(() => {
-        if (transform) {
-          return {
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: size.width,
-            height: size.height,
-            transformStyle: "preserve-3d",
-            pointerEvents: "none"
-          };
-        } else {
-          return {
-            position: "absolute",
-            transform: center ? "translate3d(-50%,-50%,0)" : "none",
-            ...fullscreen && {
-              top: -size.height / 2,
-              left: -size.width / 2,
-              width: size.width,
-              height: size.height
-            },
-            ...style
-          };
-        }
-      }, [style, center, fullscreen, size, transform]);
-      const transformInnerStyles = React4.useMemo(() => ({
-        position: "absolute",
-        pointerEvents
-      }), [pointerEvents]);
-      React4.useLayoutEffect(() => {
-        isMeshSizeSet.current = false;
-        if (transform) {
-          var _root$current;
-          (_root$current = root.current) == null || _root$current.render(/* @__PURE__ */ React4.createElement("div", {
-            ref: transformOuterRef,
-            style: styles2
-          }, /* @__PURE__ */ React4.createElement("div", {
-            ref: transformInnerRef,
-            style: transformInnerStyles
-          }, /* @__PURE__ */ React4.createElement("div", {
-            ref,
-            className,
-            style,
-            children
-          }))));
-        } else {
-          var _root$current2;
-          (_root$current2 = root.current) == null || _root$current2.render(/* @__PURE__ */ React4.createElement("div", {
-            ref,
-            style: styles2,
-            className,
-            children
-          }));
-        }
-      });
-      const visible = React4.useRef(true);
-      useFrame((gl2) => {
-        if (group.current) {
-          camera.updateMatrixWorld();
-          group.current.updateWorldMatrix(true, false);
-          const vec = transform ? oldPosition.current : calculatePosition(group.current, camera, size);
-          if (transform || Math.abs(oldZoom.current - camera.zoom) > eps || Math.abs(oldPosition.current[0] - vec[0]) > eps || Math.abs(oldPosition.current[1] - vec[1]) > eps) {
-            const isBehindCamera = isObjectBehindCamera(group.current, camera);
-            let raytraceTarget = false;
-            if (isRayCastOcclusion) {
-              if (Array.isArray(occlude)) {
-                raytraceTarget = occlude.map((item) => item.current);
-              } else if (occlude !== "blending") {
-                raytraceTarget = [scene];
-              }
-            }
-            const previouslyVisible = visible.current;
-            if (raytraceTarget) {
-              const isvisible = isObjectVisible(group.current, camera, raycaster, raytraceTarget);
-              visible.current = isvisible && !isBehindCamera;
-            } else {
-              visible.current = !isBehindCamera;
-            }
-            if (previouslyVisible !== visible.current) {
-              if (onOcclude) onOcclude(!visible.current);
-              else el.style.display = visible.current ? "block" : "none";
-            }
-            const halfRange = Math.floor(zIndexRange[0] / 2);
-            const zRange = occlude ? isRayCastOcclusion ? [zIndexRange[0], halfRange] : [halfRange - 1, 0] : zIndexRange;
-            el.style.zIndex = `${objectZIndex(group.current, camera, zRange)}`;
-            if (transform) {
-              const [widthHalf, heightHalf] = [size.width / 2, size.height / 2];
-              const fov2 = camera.projectionMatrix.elements[5] * heightHalf;
-              const {
-                isOrthographicCamera: isOrthographicCamera2,
-                top,
-                left,
-                bottom,
-                right
-              } = camera;
-              const cameraMatrix = getCameraCSSMatrix(camera.matrixWorldInverse);
-              const cameraTransform = isOrthographicCamera2 ? `scale(${fov2})translate(${epsilon(-(right + left) / 2)}px,${epsilon((top + bottom) / 2)}px)` : `translateZ(${fov2}px)`;
-              let matrix = group.current.matrixWorld;
-              if (sprite) {
-                matrix = camera.matrixWorldInverse.clone().transpose().copyPosition(matrix).scale(group.current.scale);
-                matrix.elements[3] = matrix.elements[7] = matrix.elements[11] = 0;
-                matrix.elements[15] = 1;
-              }
-              el.style.width = size.width + "px";
-              el.style.height = size.height + "px";
-              el.style.perspective = isOrthographicCamera2 ? "" : `${fov2}px`;
-              if (transformOuterRef.current && transformInnerRef.current) {
-                transformOuterRef.current.style.transform = `${cameraTransform}${cameraMatrix}translate(${widthHalf}px,${heightHalf}px)`;
-                transformInnerRef.current.style.transform = getObjectCSSMatrix(matrix, 1 / ((distanceFactor || 10) / 400));
-              }
-            } else {
-              const scale = distanceFactor === void 0 ? 1 : objectScale(group.current, camera) * distanceFactor;
-              el.style.transform = `translate3d(${vec[0]}px,${vec[1]}px,0) scale(${scale})`;
-            }
-            oldPosition.current = vec;
-            oldZoom.current = camera.zoom;
-          }
-        }
-        if (!isRayCastOcclusion && occlusionMeshRef.current && !isMeshSizeSet.current) {
-          if (transform) {
-            if (transformOuterRef.current) {
-              const el2 = transformOuterRef.current.children[0];
-              if (el2 != null && el2.clientWidth && el2 != null && el2.clientHeight) {
-                const {
-                  isOrthographicCamera: isOrthographicCamera2
-                } = camera;
-                if (isOrthographicCamera2 || geometry) {
-                  if (props.scale) {
-                    if (!Array.isArray(props.scale)) {
-                      occlusionMeshRef.current.scale.setScalar(1 / props.scale);
-                    } else if (props.scale instanceof Vector3) {
-                      occlusionMeshRef.current.scale.copy(props.scale.clone().divideScalar(1));
-                    } else {
-                      occlusionMeshRef.current.scale.set(1 / props.scale[0], 1 / props.scale[1], 1 / props.scale[2]);
-                    }
-                  }
-                } else {
-                  const ratio = (distanceFactor || 10) / 400;
-                  const w2 = el2.clientWidth * ratio;
-                  const h3 = el2.clientHeight * ratio;
-                  occlusionMeshRef.current.scale.set(w2, h3, 1);
-                }
-                isMeshSizeSet.current = true;
-              }
-            }
-          } else {
-            const ele = el.children[0];
-            if (ele != null && ele.clientWidth && ele != null && ele.clientHeight) {
-              const ratio = 1 / viewport.factor;
-              const w2 = ele.clientWidth * ratio;
-              const h3 = ele.clientHeight * ratio;
-              occlusionMeshRef.current.scale.set(w2, h3, 1);
-              isMeshSizeSet.current = true;
-            }
-            occlusionMeshRef.current.lookAt(gl2.camera.position);
-          }
-        }
-      });
-      const shaders = React4.useMemo(() => ({
-        vertexShader: !transform ? (
-          /* glsl */
-          `
-          /*
-            This shader is from the THREE's SpriteMaterial.
-            We need to turn the backing plane into a Sprite
-            (make it always face the camera) if "transfrom"
-            is false.
-          */
-          #include <common>
-
-          void main() {
-            vec2 center = vec2(0., 1.);
-            float rotation = 0.0;
-
-            // This is somewhat arbitrary, but it seems to work well
-            // Need to figure out how to derive this dynamically if it even matters
-            float size = 0.03;
-
-            vec4 mvPosition = modelViewMatrix * vec4( 0.0, 0.0, 0.0, 1.0 );
-            vec2 scale;
-            scale.x = length( vec3( modelMatrix[ 0 ].x, modelMatrix[ 0 ].y, modelMatrix[ 0 ].z ) );
-            scale.y = length( vec3( modelMatrix[ 1 ].x, modelMatrix[ 1 ].y, modelMatrix[ 1 ].z ) );
-
-            bool isPerspective = isPerspectiveMatrix( projectionMatrix );
-            if ( isPerspective ) scale *= - mvPosition.z;
-
-            vec2 alignedPosition = ( position.xy - ( center - vec2( 0.5 ) ) ) * scale * size;
-            vec2 rotatedPosition;
-            rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;
-            rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;
-            mvPosition.xy += rotatedPosition;
-
-            gl_Position = projectionMatrix * mvPosition;
-          }
-      `
-        ) : void 0,
-        fragmentShader: (
-          /* glsl */
-          `
-        void main() {
-          gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-        }
-      `
-        )
-      }), [transform]);
-      return /* @__PURE__ */ React4.createElement("group", _extends({}, props, {
-        ref: group
-      }), occlude && !isRayCastOcclusion && /* @__PURE__ */ React4.createElement("mesh", {
-        castShadow,
-        receiveShadow,
-        ref: occlusionMeshRef
-      }, geometry || /* @__PURE__ */ React4.createElement("planeGeometry", null), material || /* @__PURE__ */ React4.createElement("shaderMaterial", {
-        side: DoubleSide,
-        vertexShader: shaders.vertexShader,
-        fragmentShader: shaders.fragmentShader
-      })));
-    });
   }
 });
 
@@ -64477,24 +64092,24 @@ var init_OrbitControls = __esm({
           }
         }
         const panLeft = (() => {
-          const v5 = new Vector3();
+          const v2 = new Vector3();
           return function panLeft2(distance, objectMatrix) {
-            v5.setFromMatrixColumn(objectMatrix, 0);
-            v5.multiplyScalar(-distance);
-            panOffset.add(v5);
+            v2.setFromMatrixColumn(objectMatrix, 0);
+            v2.multiplyScalar(-distance);
+            panOffset.add(v2);
           };
         })();
         const panUp = (() => {
-          const v5 = new Vector3();
+          const v2 = new Vector3();
           return function panUp2(distance, objectMatrix) {
             if (scope.screenSpacePanning === true) {
-              v5.setFromMatrixColumn(objectMatrix, 1);
+              v2.setFromMatrixColumn(objectMatrix, 1);
             } else {
-              v5.setFromMatrixColumn(objectMatrix, 0);
-              v5.crossVectors(scope.object.up, v5);
+              v2.setFromMatrixColumn(objectMatrix, 0);
+              v2.crossVectors(scope.object.up, v2);
             }
-            v5.multiplyScalar(distance);
-            panOffset.add(v5);
+            v2.multiplyScalar(distance);
+            panOffset.add(v2);
           };
         })();
         const pan = (() => {
@@ -64991,14 +64606,14 @@ var init_three_stdlib = __esm({
 });
 
 // node_modules/@react-three/drei/core/MapControls.js
-var React5, MapControls2;
+var React4, MapControls2;
 var init_MapControls = __esm({
   "node_modules/@react-three/drei/core/MapControls.js"() {
     init_extends();
     init_react_three_fiber_esm();
-    React5 = __toESM(require_react());
+    React4 = __toESM(require_react());
     init_three_stdlib();
-    MapControls2 = /* @__PURE__ */ React5.forwardRef((props = {
+    MapControls2 = /* @__PURE__ */ React4.forwardRef((props = {
       enableDamping: true
     }, ref) => {
       const {
@@ -65018,8 +64633,8 @@ var init_MapControls = __esm({
       const get = useThree((state2) => state2.get);
       const explDomElement = domElement || events.connected || gl.domElement;
       const explCamera = camera || defaultCamera;
-      const controls = React5.useMemo(() => new MapControls(explCamera), [explCamera]);
-      React5.useEffect(() => {
+      const controls = React4.useMemo(() => new MapControls(explCamera), [explCamera]);
+      React4.useEffect(() => {
         controls.connect(explDomElement);
         const callback = (e3) => {
           invalidate2();
@@ -65035,7 +64650,7 @@ var init_MapControls = __esm({
           if (onEnd) controls.removeEventListener("end", onEnd);
         };
       }, [onChange, onStart, onEnd, controls, invalidate2, explDomElement]);
-      React5.useEffect(() => {
+      React4.useEffect(() => {
         if (makeDefault) {
           const old = get().controls;
           set({
@@ -65047,7 +64662,7 @@ var init_MapControls = __esm({
         }
       }, [makeDefault, controls]);
       useFrame(() => controls.update(), -1);
-      return /* @__PURE__ */ React5.createElement("primitive", _extends({
+      return /* @__PURE__ */ React4.createElement("primitive", _extends({
         ref,
         object: controls,
         enableDamping: true
@@ -65094,7 +64709,6 @@ var init_camera_controls_module = __esm({
 // node_modules/@react-three/drei/index.js
 var init_drei = __esm({
   "node_modules/@react-three/drei/index.js"() {
-    init_Html();
     init_MapControls();
     init_camera_controls_module();
   }
@@ -65229,9 +64843,9 @@ var init_fflate_module = __esm({
           if (cd[i4]) {
             var sv = i4 << 4 | cd[i4];
             var r_1 = mb - cd[i4];
-            var v5 = le[cd[i4] - 1]++ << r_1;
-            for (var m3 = v5 | (1 << r_1) - 1; v5 <= m3; ++v5) {
-              co[rev[v5] >> rvb] = sv;
+            var v2 = le[cd[i4] - 1]++ << r_1;
+            for (var m3 = v2 | (1 << r_1) - 1; v2 <= m3; ++v2) {
+              co[rev[v2] >> rvb] = sv;
             }
           }
         }
@@ -65278,12 +64892,12 @@ var init_fflate_module = __esm({
     shft = function(p4) {
       return (p4 + 7) / 8 | 0;
     };
-    slc = function(v5, s2, e3) {
+    slc = function(v2, s2, e3) {
       if (s2 == null || s2 < 0)
         s2 = 0;
-      if (e3 == null || e3 > v5.length)
-        e3 = v5.length;
-      return new u8(v5.subarray(s2, e3));
+      if (e3 == null || e3 > v2.length)
+        e3 = v2.length;
+      return new u8(v2.subarray(s2, e3));
     };
     ec = [
       "unexpected EOF",
@@ -65649,11 +65263,11 @@ function calcRationalCurveDerivatives(Pders) {
   }
   const CK = [];
   for (let k3 = 0; k3 < nd; ++k3) {
-    const v5 = Aders[k3].clone();
+    const v2 = Aders[k3].clone();
     for (let i4 = 1; i4 <= k3; ++i4) {
-      v5.sub(CK[k3 - i4].clone().multiplyScalar(calcKoverI(k3, i4) * wders[i4]));
+      v2.sub(CK[k3 - i4].clone().multiplyScalar(calcKoverI(k3, i4) * wders[i4]));
     }
-    CK[k3] = v5.divideScalar(wders[0]);
+    CK[k3] = v2.divideScalar(wders[0]);
   }
   return CK;
 }
@@ -73554,13 +73168,13 @@ var init_react_three_rapier_esm = __esm({
       z: z2,
       w: w2
     }) => _quaternion2.set(x3, y2, z2, w2);
-    vector3ToRapierVector = (v5) => {
-      if (Array.isArray(v5)) {
-        return new fA(v5[0], v5[1], v5[2]);
-      } else if (typeof v5 === "number") {
-        return new fA(v5, v5, v5);
+    vector3ToRapierVector = (v2) => {
+      if (Array.isArray(v2)) {
+        return new fA(v2[0], v2[1], v2[2]);
+      } else if (typeof v2 === "number") {
+        return new fA(v2, v2, v2);
       } else {
-        const threeVector3 = v5;
+        const threeVector3 = v2;
         return new fA(threeVector3.x, threeVector3.y, threeVector3.z);
       }
     };
@@ -73580,18 +73194,18 @@ var init_react_three_rapier_esm = __esm({
       }
       return scaledVerts;
     };
-    vectorToTuple = (v5) => {
-      if (!v5) return [0];
-      if (v5 instanceof Quaternion) {
-        return [v5.x, v5.y, v5.z, v5.w];
+    vectorToTuple = (v2) => {
+      if (!v2) return [0];
+      if (v2 instanceof Quaternion) {
+        return [v2.x, v2.y, v2.z, v2.w];
       }
-      if (v5 instanceof Vector3 || v5 instanceof Euler) {
-        return [v5.x, v5.y, v5.z];
+      if (v2 instanceof Vector3 || v2 instanceof Euler) {
+        return [v2.x, v2.y, v2.z];
       }
-      if (Array.isArray(v5)) {
-        return v5;
+      if (Array.isArray(v2)) {
+        return v2;
       }
-      return [v5];
+      return [v2];
     };
     useRaf = (callback) => {
       const cb = (0, import_react4.useRef)(callback);
@@ -74845,46 +74459,61 @@ var init_coords = __esm({
 // src/tapes/TableSurface.tsx
 function TableSurface() {
   const woodTexture = useLoader(TextureLoader, "/wood-table-alt.jpg");
+  const videoElA = (0, import_react5.useMemo)(() => document.getElementById("mp4-background-a"), []);
+  const videoElB = (0, import_react5.useMemo)(() => document.getElementById("mp4-background-b"), []);
   const [bgInfo, setBgInfo] = (0, import_react5.useState)(() => {
     const bg2 = window.Backgrounds;
-    if (!bg2) return { bgTypeIndex: -1, videoEl: null };
-    const isMedia = typeof bg2._isMediaType === "function" ? bg2._isMediaType() : bg2.bgTypeIndex >= 0 && bg2.bgTypeIndex <= 2;
-    return {
-      bgTypeIndex: bg2.bgTypeIndex ?? -1,
-      videoEl: isMedia ? bg2._activeEl ?? null : null
-    };
+    if (!bg2) return { bgTypeIndex: -1, activeKey: "a" };
+    const activeKey = bg2._activeEl && bg2._activeEl.id === "mp4-background-b" ? "b" : "a";
+    return { bgTypeIndex: bg2.bgTypeIndex ?? -1, activeKey };
   });
   (0, import_react5.useEffect)(() => {
-    function handler(e3) {
+    function onChange(e3) {
       const detail = e3.detail;
-      setBgInfo({
+      setBgInfo((prev) => ({
         bgTypeIndex: detail?.bgTypeIndex ?? -1,
-        videoEl: detail?.videoEl ?? null
-      });
+        activeKey: detail?.activeKey ?? prev.activeKey
+      }));
     }
-    window.addEventListener("jeem-bg-change", handler);
-    return () => window.removeEventListener("jeem-bg-change", handler);
-  }, []);
-  const isMediaMode = bgInfo.bgTypeIndex >= 0 && bgInfo.bgTypeIndex <= 2;
-  const [hasLoadedVideo, setHasLoadedVideo] = (0, import_react5.useState)(false);
-  (0, import_react5.useEffect)(() => {
-    const v5 = bgInfo.videoEl;
-    if (!isMediaMode || !v5) {
-      setHasLoadedVideo(false);
-      return;
+    function onSwap(e3) {
+      const detail = e3.detail;
+      if (!detail?.activeKey) return;
+      setBgInfo((prev) => ({ ...prev, activeKey: detail.activeKey }));
     }
-    const check = () => setHasLoadedVideo(!!v5.currentSrc && v5.readyState >= 2);
-    check();
-    v5.addEventListener("loadeddata", check);
-    v5.addEventListener("canplay", check);
-    v5.addEventListener("emptied", check);
+    window.addEventListener("jeem-bg-change", onChange);
+    window.addEventListener("jeem-bg-swap", onSwap);
     return () => {
-      v5.removeEventListener("loadeddata", check);
-      v5.removeEventListener("canplay", check);
-      v5.removeEventListener("emptied", check);
+      window.removeEventListener("jeem-bg-change", onChange);
+      window.removeEventListener("jeem-bg-swap", onSwap);
     };
-  }, [isMediaMode, bgInfo.videoEl]);
-  const showVideo = isMediaMode && hasLoadedVideo;
+  }, []);
+  const isMediaMode = false;
+  const [loadedA, setLoadedA] = (0, import_react5.useState)(false);
+  const [loadedB, setLoadedB] = (0, import_react5.useState)(false);
+  (0, import_react5.useEffect)(() => {
+    function bind(v2, setLoaded) {
+      if (!v2) return () => {
+      };
+      const check = () => setLoaded(!!v2.currentSrc && v2.readyState >= 2);
+      check();
+      v2.addEventListener("loadeddata", check);
+      v2.addEventListener("canplay", check);
+      v2.addEventListener("emptied", check);
+      return () => {
+        v2.removeEventListener("loadeddata", check);
+        v2.removeEventListener("canplay", check);
+        v2.removeEventListener("emptied", check);
+      };
+    }
+    const offA = bind(videoElA, setLoadedA);
+    const offB = bind(videoElB, setLoadedB);
+    return () => {
+      offA();
+      offB();
+    };
+  }, [videoElA, videoElB]);
+  const activeLoaded = bgInfo.activeKey === "a" ? loadedA : loadedB;
+  const showVideo = isMediaMode && activeLoaded;
   const [uiHidden, setUiHidden] = (0, import_react5.useState)(false);
   (0, import_react5.useEffect)(() => {
     function handler(e3) {
@@ -74905,50 +74534,66 @@ function TableSurface() {
     shadowOpacityRef.current += (target - shadowOpacityRef.current) * k3;
     m3.opacity = shadowOpacityRef.current;
   });
-  const videoTexture = (0, import_react5.useMemo)(() => {
-    if (!isMediaMode || !bgInfo.videoEl) return null;
-    const tex = new VideoTexture(bgInfo.videoEl);
+  function makeVideoTexture(el) {
+    if (!el) return null;
+    const tex = new VideoTexture(el);
     tex.colorSpace = SRGBColorSpace;
     tex.minFilter = LinearFilter;
     tex.magFilter = LinearFilter;
     tex.format = RGBAFormat;
     return tex;
-  }, [isMediaMode, bgInfo.videoEl]);
-  (0, import_react5.useEffect)(() => {
-    return () => {
-      videoTexture?.dispose();
-    };
-  }, [videoTexture]);
-  const texRef = (0, import_react5.useRef)(null);
-  texRef.current = videoTexture;
+  }
+  const textureA = (0, import_react5.useMemo)(() => makeVideoTexture(videoElA), [videoElA]);
+  const textureB = (0, import_react5.useMemo)(() => makeVideoTexture(videoElB), [videoElB]);
+  (0, import_react5.useEffect)(() => () => {
+    textureA?.dispose();
+  }, [textureA]);
+  (0, import_react5.useEffect)(() => () => {
+    textureB?.dispose();
+  }, [textureB]);
   useFrame(() => {
-    const tex = texRef.current;
-    const v5 = tex?.image;
-    if (tex && v5 && v5.readyState >= 2) tex.needsUpdate = true;
+    if (textureA) {
+      const v2 = textureA.image;
+      if (v2 && v2.readyState >= 2) textureA.needsUpdate = true;
+    }
+    if (textureB) {
+      const v2 = textureB.image;
+      if (v2 && v2.readyState >= 2) textureB.needsUpdate = true;
+    }
   });
   (0, import_react5.useEffect)(() => {
-    const v5 = bgInfo.videoEl;
-    if (!isMediaMode || !v5) return;
-    v5.muted = true;
-    v5.playsInline = true;
-    const kick = () => {
-      v5.play().catch(() => {
+    if (!isMediaMode) return;
+    const offs = [];
+    function wire(v2, isActive) {
+      if (!v2) return;
+      v2.muted = true;
+      v2.playsInline = true;
+      const shouldPlay = () => isActive() && !!window.AppState?.playing;
+      const kick = () => {
+        if (shouldPlay()) v2.play().catch(() => {
+        });
+      };
+      kick();
+      v2.addEventListener("pause", kick);
+      v2.addEventListener("loadeddata", kick);
+      v2.addEventListener("canplay", kick);
+      const poll = setInterval(() => {
+        if (v2.paused && shouldPlay()) v2.play().catch(() => {
+        });
+      }, 500);
+      offs.push(() => {
+        v2.removeEventListener("pause", kick);
+        v2.removeEventListener("loadeddata", kick);
+        v2.removeEventListener("canplay", kick);
+        clearInterval(poll);
       });
-    };
-    kick();
-    v5.addEventListener("pause", kick);
-    v5.addEventListener("loadeddata", kick);
-    v5.addEventListener("canplay", kick);
-    const poll = setInterval(() => {
-      if (v5.paused) kick();
-    }, 500);
+    }
+    wire(videoElA, () => bgInfo.activeKey === "a");
+    wire(videoElB, () => bgInfo.activeKey === "b");
     return () => {
-      v5.removeEventListener("pause", kick);
-      v5.removeEventListener("loadeddata", kick);
-      v5.removeEventListener("canplay", kick);
-      clearInterval(poll);
+      offs.forEach((f2) => f2());
     };
-  }, [isMediaMode, bgInfo.videoEl]);
+  }, [isMediaMode, videoElA, videoElB, bgInfo.activeKey]);
   const woodMaterial = (0, import_react5.useMemo)(() => {
     woodTexture.wrapS = woodTexture.wrapT = RepeatWrapping;
     woodTexture.repeat.set(SURFACE_W / TILE_W, SURFACE_H / TILE_H);
@@ -74960,10 +74605,25 @@ function TableSurface() {
       color: "#ffffff"
     });
   }, [woodTexture]);
-  const videoMaterial = (0, import_react5.useMemo)(() => {
-    if (!videoTexture) return null;
-    return new MeshBasicMaterial({ map: videoTexture, toneMapped: false });
-  }, [videoTexture]);
+  const videoMaterialA = (0, import_react5.useMemo)(() => {
+    if (!textureA) return null;
+    return new MeshBasicMaterial({ map: textureA, toneMapped: false, transparent: true });
+  }, [textureA]);
+  const videoMaterialB = (0, import_react5.useMemo)(() => {
+    if (!textureB) return null;
+    return new MeshBasicMaterial({ map: textureB, toneMapped: false, transparent: true });
+  }, [textureB]);
+  const opacityARef = (0, import_react5.useRef)(bgInfo.activeKey === "a" ? 1 : 0);
+  const opacityBRef = (0, import_react5.useRef)(bgInfo.activeKey === "b" ? 1 : 0);
+  useFrame((_2, dt) => {
+    const targetA = bgInfo.activeKey === "a" && loadedA && isMediaMode ? 1 : 0;
+    const targetB = bgInfo.activeKey === "b" && loadedB && isMediaMode ? 1 : 0;
+    const k3 = 1 - Math.exp(-dt * 10);
+    opacityARef.current += (targetA - opacityARef.current) * k3;
+    opacityBRef.current += (targetB - opacityBRef.current) * k3;
+    if (videoMaterialA) videoMaterialA.opacity = opacityARef.current;
+    if (videoMaterialB) videoMaterialB.opacity = opacityBRef.current;
+  });
   const crtMaterial = (0, import_react5.useMemo)(() => {
     const cw = 2e3;
     const ch = 1200;
@@ -75009,11 +74669,15 @@ function TableSurface() {
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("planeGeometry", { args: [SURFACE_W, SURFACE_H] }),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("meshStandardMaterial", { color: "#000000", transparent: true, opacity: 0.45, roughness: 1, metalness: 0 })
     ] }),
-    showVideo && videoMaterial && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 0.1, 0], children: [
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("planeGeometry", { args: [VIDEO_W, VIDEO_H] }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("primitive", { object: videoMaterial, attach: "material" })
-      ] }),
+    isMediaMode && videoMaterialA && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 0.1, 0], children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("planeGeometry", { args: [VIDEO_W, VIDEO_H] }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("primitive", { object: videoMaterialA, attach: "material" })
+    ] }),
+    isMediaMode && videoMaterialB && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 0.101, 0], children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("planeGeometry", { args: [VIDEO_W, VIDEO_H] }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("primitive", { object: videoMaterialB, attach: "material" })
+    ] }),
+    showVideo && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(import_jsx_runtime3.Fragment, { children: [
       /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("mesh", { rotation: [-Math.PI / 2, 0, 0], position: [0, 0.105, 0], receiveShadow: true, children: [
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("planeGeometry", { args: [VIDEO_W, VIDEO_H] }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("shadowMaterial", { ref: shadowMatRef, transparent: true, opacity: SHADOW_OPACITY })
@@ -75140,7 +74804,7 @@ function extractVariant(fbx, meshName) {
   const group = new Group();
   if (!targetMesh) {
     console.warn("[TapeBody] mesh not found:", meshName);
-    return { group, geo: { halfX: 7, halfY: 0.8, halfZ: 3.6 } };
+    return { group, geo: { halfX: 7, halfY: 0.8, halfZ: 3.6, scale: 1 } };
   }
   const m3 = targetMesh;
   m3.updateWorldMatrix(true, false);
@@ -75161,7 +74825,8 @@ function extractVariant(fbx, meshName) {
   const result = {
     halfX: size.x * scale / 2 * shrink,
     halfY: size.y * scale / 2 * shrink,
-    halfZ: size.z * scale / 2 * shrink
+    halfZ: size.z * scale / 2 * shrink,
+    scale
   };
   variantMeta.set(meshName, result);
   console.log(`[TapeBody] ${meshName}: raw ${size.x.toFixed(1)}x${size.y.toFixed(1)}x${size.z.toFixed(1)} \u2192 collider ${(result.halfX * 2).toFixed(1)}x${(result.halfY * 2).toFixed(1)}x${(result.halfZ * 2).toFixed(1)}`);
@@ -75359,6 +75024,8 @@ function TapeBody({
   const currentDragY = (0, import_react7.useRef)(DRAG_HEIGHT);
   const isSnapping = (0, import_react7.useRef)(false);
   const isLoaded = (0, import_react7.useRef)(false);
+  const [loaded, setLoaded] = (0, import_react7.useState)(false);
+  const spinRef = (0, import_react7.useRef)(false);
   const snapElapsed = (0, import_react7.useRef)(0);
   const snapStart = (0, import_react7.useRef)({ x: 0, y: 0, z: 0, qx: 0, qy: 0, qz: 0, qw: 1 });
   const snapTarget = (0, import_react7.useRef)({ x: 0, y: 0, z: 0, yaw: 0 });
@@ -75427,6 +75094,7 @@ function TapeBody({
         if (wasInRecorder) {
           if (isLoaded.current) body.setBodyType(0, true);
           isLoaded.current = false;
+          setLoaded(false);
           isSnapping.current = false;
           if (snap.tapeId === tape.id) snap.tapeId = null;
         }
@@ -75537,12 +75205,14 @@ function TapeBody({
       if (t01 >= 1) {
         isSnapping.current = false;
         isLoaded.current = true;
+        setLoaded(true);
         body.setBodyType(2, true);
       }
     }
     if (isLoaded.current && !isDragged && !isSnapping.current) {
       if (snap.tapeId !== tape.id) {
         isLoaded.current = false;
+        setLoaded(false);
         body.setBodyType(0, true);
         falling.current = true;
         body.setGravityScale(1, true);
@@ -75566,6 +75236,7 @@ function TapeBody({
         body.setGravityScale(Math.min(1, gs + delta * 0.8), true);
       }
     }
+    spinRef.current = isLoaded.current && !!window.AppState?.playing;
     if (materialsRef.current.length) {
       const opTarget = hidden ? 0 : 1;
       const k3 = 1 - Math.exp(-delta * 2.5);
@@ -75598,35 +75269,37 @@ function TapeBody({
       ccd: true,
       children: [
         /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(CuboidCollider, { args: [geo.halfX, geo.halfY, geo.halfZ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("group", { name: `tape-${tape.id}`, ref: groupRef, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("primitive", { object: sceneData.group }) }),
-        menuOpen && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Html, { center: true, position: [0, 0.5, 0], style: { pointerEvents: "auto" }, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: {
-          display: "flex",
-          gap: 6,
-          whiteSpace: "nowrap"
-        }, onPointerDown: (e3) => e3.stopPropagation(), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
-            "button",
-            {
-              onClick: (e3) => {
-                e3.stopPropagation();
-                onMenuAction?.(tape.id, "rewind");
-              },
-              style: { padding: "4px 10px", borderRadius: 6, border: "none", background: "#333", color: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "'Courier New', monospace" },
-              children: "Rewind"
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
-            "button",
-            {
-              onClick: (e3) => {
-                e3.stopPropagation();
-                onMenuAction?.(tape.id, "remove");
-              },
-              style: { padding: "4px 10px", borderRadius: 6, border: "none", background: "#ef4444", color: "#fff", fontSize: 12, cursor: "pointer", fontFamily: "'Courier New', monospace" },
-              children: "Remove"
-            }
-          )
-        ] }) })
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("group", { name: `tape-${tape.id}`, ref: groupRef, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("primitive", { object: sceneData.group }),
+          loaded && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(import_jsx_runtime5.Fragment, { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+              SpoolDisc,
+              {
+                x: -1.9 * geo.scale - 0.325,
+                z: 0.3 * geo.scale,
+                halfY: geo.halfY,
+                spinningRef: spinRef,
+                opacityRef,
+                rpm: 15,
+                radius: 0.765 * geo.scale,
+                yOffset: -0.1
+              }
+            ),
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+              SpoolDisc,
+              {
+                x: 1.9 * geo.scale,
+                z: 0.3 * geo.scale,
+                halfY: geo.halfY,
+                spinningRef: spinRef,
+                opacityRef,
+                rpm: 30,
+                radius: 0.765 * geo.scale,
+                yOffset: -0.1
+              }
+            )
+          ] })
+        ] })
       ]
     }
   );
@@ -75637,17 +75310,221 @@ var init_TapeBody = __esm({
     "use strict";
     import_react7 = __toESM(require_react(), 1);
     init_react_three_fiber_esm();
-    init_drei();
     init_react_three_rapier_esm();
     init_three_module();
     init_coords();
     init_Tape3D();
+    init_DeckTape3D();
     import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
     SNAP_DURATION = 0.4;
     variantMeta = /* @__PURE__ */ new Map();
     fbxDumped = false;
     stampCache = /* @__PURE__ */ new Map();
     STAMP_DEBUG = false;
+  }
+});
+
+// src/tapes/DeckTape3D.tsx
+function getSpoolTexture(color = "#e8dcc4") {
+  if (spoolTexture) return spoolTexture;
+  const size = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  const s2 = size / 32;
+  const cx = 16 * s2;
+  const cy = 16 * s2;
+  const ringR = 12 * s2;
+  const strokeW = 2.8 * s2;
+  const innerR = (12 - 2.8 / 2) * s2;
+  const toothW = 2.7 * s2;
+  const toothL = 3.24 * s2;
+  ctx.clearRect(0, 0, size, size);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = strokeW;
+  ctx.beginPath();
+  ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = color;
+  for (const angle of [0, 60, 120, 180, 240, 300]) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle * Math.PI / 180);
+    const rx = -toothW / 2;
+    const ry = -innerR;
+    ctx.fillRect(rx, ry, toothW, toothL);
+    ctx.restore();
+  }
+  const tex = new CanvasTexture(canvas);
+  tex.colorSpace = SRGBColorSpace;
+  tex.needsUpdate = true;
+  spoolTexture = tex;
+  return tex;
+}
+function SpoolDisc({ x: x3, z: z2, halfY, spinning, spinningRef, rpm, color, radius = 0.605, opacityRef, yOffset = 0.01 }) {
+  const meshRef = (0, import_react8.useRef)(null);
+  const angleRef = (0, import_react8.useRef)(0);
+  const thickness = 0.08;
+  const tex = getSpoolTexture(color);
+  useFrame((_2, delta) => {
+    const spin = spinningRef ? spinningRef.current : spinning;
+    if (meshRef.current && spin) {
+      angleRef.current += (rpm || 10) * Math.PI * 2 * delta / 60;
+      meshRef.current.rotation.z = angleRef.current;
+    }
+    if (opacityRef && meshRef.current) {
+      const mat = meshRef.current.material;
+      mat.opacity = opacityRef.current;
+      meshRef.current.visible = opacityRef.current > 0.02;
+    }
+  });
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("group", { position: [x3, halfY + thickness / 2 + yOffset, z2], rotation: [-Math.PI / 2, 0, 0], children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("mesh", { ref: meshRef, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("circleGeometry", { args: [radius, 32] }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+      "meshStandardMaterial",
+      {
+        map: tex,
+        transparent: true,
+        alphaTest: 0.1,
+        metalness: 0.1,
+        roughness: 0.5,
+        side: DoubleSide
+      }
+    )
+  ] }) });
+}
+function DeckTapeMesh({ tape, playing }) {
+  const groupRef = (0, import_react8.useRef)(null);
+  const [scene, setScene] = (0, import_react8.useState)(null);
+  const [halfY, setHalfY] = (0, import_react8.useState)(0.8);
+  const seed = tape.id.split("").reduce((a3, c3) => a3 + c3.charCodeAt(0), 0);
+  const variant = tape.textureVariant || VARIANTS[seed % VARIANTS.length];
+  const meshName = VARIANT_TO_MESH["a"];
+  const textures = useVariantTextures(variant);
+  (0, import_react8.useEffect)(() => {
+    loadFBXCached().then((fbx) => {
+      const clone2 = fbx.clone();
+      let target = null;
+      clone2.traverse((child) => {
+        if (child.isMesh) {
+          const m3 = child;
+          if (m3.name === meshName) {
+            m3.visible = true;
+            target = m3;
+          } else {
+            m3.visible = false;
+          }
+        }
+      });
+      if (target) {
+        const m3 = target;
+        m3.updateWorldMatrix(true, false);
+        const geo = m3.geometry.clone();
+        geo.applyMatrix4(m3.matrixWorld);
+        const box = new Box3().setFromBufferAttribute(geo.attributes.position);
+        const center = box.getCenter(new Vector3());
+        geo.translate(-center.x, -center.y, -center.z);
+        const size = box.getSize(new Vector3());
+        const newMesh = new Mesh(geo, m3.material);
+        newMesh.name = meshName;
+        const group = new Group();
+        group.add(newMesh);
+        setHalfY(size.y / 2);
+        setScene(group);
+      }
+    });
+  }, [meshName]);
+  (0, import_react8.useEffect)(() => {
+    if (!scene || !textures) return;
+    const colorMap = tape.title ? stampTitle(textures.baseColor, tape.title, variant, tape) : textures.baseColor;
+    scene.traverse((child) => {
+      if (child.isMesh) {
+        child.material = new MeshStandardMaterial({
+          map: colorMap,
+          metalness: 0,
+          roughness: 0.75,
+          normalMap: textures.normal,
+          normalScale: new Vector2(0.5, 0.5),
+          envMapIntensity: 0.3
+        });
+      }
+    });
+  }, [scene, textures, tape.title]);
+  if (!scene || !textures) return null;
+  const s2 = 1;
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("group", { ref: groupRef, rotation: [0, Math.PI, 0], scale: [s2, s2, s2], children: [
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("primitive", { object: scene }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(SpoolDisc, { x: -2.1, z: 0.3, halfY, spinning: playing, rpm: 15 }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(SpoolDisc, { x: 2.1, z: 0.3, halfY, spinning: playing, rpm: 30 })
+  ] });
+}
+function DeckTape3D({ tape, playing, loading: loading2 }) {
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: { width: 234, height: 143, position: "relative" }, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
+      Canvas,
+      {
+        orthographic: true,
+        camera: {
+          position: [0, 50, 0],
+          near: 0.1,
+          far: 200,
+          up: [0, 0, -1],
+          zoom: 1
+        },
+        gl: { antialias: true, alpha: true, powerPreference: "high-performance" },
+        dpr: [1, 2],
+        style: { background: "transparent" },
+        onCreated: ({ camera }) => {
+          const cam = camera;
+          const aspect2 = 234 / 143;
+          const halfW = 5.25;
+          const halfH = halfW / aspect2;
+          cam.left = -halfW;
+          cam.right = halfW;
+          cam.top = halfH;
+          cam.bottom = -halfH;
+          cam.updateProjectionMatrix();
+          cam.lookAt(0, 0, 0);
+        },
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("ambientLight", { intensity: 0.9, color: "#fffaf6" }),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("directionalLight", { position: [4, 20, -3], intensity: 1.5, color: "#fff0e6" }),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("pointLight", { position: [-4, 5, -2], intensity: 0.3, color: "#ffe8d6" }),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(DeckTapeMesh, { tape, playing })
+        ]
+      }
+    ),
+    loading2 && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { style: {
+      position: "absolute",
+      inset: 0,
+      borderRadius: 4,
+      background: "rgba(0,0,0,0.5)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 10
+    }, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { style: {
+      width: 24,
+      height: 24,
+      border: "3px solid rgba(255,255,255,0.2)",
+      borderTopColor: "#e8c840",
+      borderRadius: "50%",
+      animation: "tape-loading-spin 0.8s linear infinite"
+    } }) })
+  ] });
+}
+var import_react8, import_jsx_runtime6, spoolTexture;
+var init_DeckTape3D = __esm({
+  "src/tapes/DeckTape3D.tsx"() {
+    "use strict";
+    import_react8 = __toESM(require_react(), 1);
+    init_react_three_fiber_esm();
+    init_three_module();
+    init_Tape3D();
+    init_TapeBody();
+    import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
+    spoolTexture = null;
   }
 });
 
@@ -78314,7 +78191,8 @@ function Recorder3D({
   targetWidth = DEFAULT_TARGET_WIDTH,
   lidOpen: lidOpenProp = false,
   lidOpenAngle = -Math.PI / 4,
-  hidden = false
+  hidden = false,
+  onReady
 }) {
   const [loaded, setLoaded] = (0, import_react10.useState)(null);
   const opacityRef = (0, import_react10.useRef)(1);
@@ -78410,6 +78288,7 @@ function Recorder3D({
         clone2.position.z.toFixed(2)
       );
       setLoaded({ group: clone2, size: scaledSize, lidPivot, materials });
+      onReady?.();
     }).catch(() => {
     });
     return () => {
@@ -78456,17 +78335,7 @@ function Recorder3D({
             position: [0, colliderY, 0]
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("group", { ref: groupRef, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
-          "primitive",
-          {
-            object: group,
-            onClick: (e3) => {
-              e3.stopPropagation();
-              setLidOpen((v5) => !v5);
-              console.log("[Recorder3D] lid toggled \u2192", !lidOpen);
-            }
-          }
-        ) })
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("group", { ref: groupRef, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("primitive", { object: group }) })
       ]
     }
   );
@@ -78489,6 +78358,315 @@ var init_Recorder3D = __esm({
   }
 });
 
+// node_modules/three/examples/jsm/renderers/CSS3DRenderer.js
+var _position3, _quaternion4, _scale3, CSS3DObject, _matrix2, _matrix22, CSS3DRenderer;
+var init_CSS3DRenderer = __esm({
+  "node_modules/three/examples/jsm/renderers/CSS3DRenderer.js"() {
+    init_three_module();
+    _position3 = new Vector3();
+    _quaternion4 = new Quaternion();
+    _scale3 = new Vector3();
+    CSS3DObject = class extends Object3D {
+      /**
+       * Constructs a new CSS3D object.
+       *
+       * @param {HTMLElement} [element] - The DOM element.
+       */
+      constructor(element = document.createElement("div")) {
+        super();
+        this.isCSS3DObject = true;
+        this.element = element;
+        this.element.style.position = "absolute";
+        this.element.style.pointerEvents = "auto";
+        this.element.style.userSelect = "none";
+        this.element.setAttribute("draggable", false);
+        this.addEventListener("removed", function() {
+          this.traverse(function(object) {
+            if (object.element && object.element instanceof object.element.ownerDocument.defaultView.Element && object.element.parentNode !== null) {
+              object.element.remove();
+            }
+          });
+        });
+      }
+      copy(source, recursive) {
+        super.copy(source, recursive);
+        this.element = source.element.cloneNode(true);
+        return this;
+      }
+    };
+    _matrix2 = new Matrix4();
+    _matrix22 = new Matrix4();
+    CSS3DRenderer = class {
+      /**
+       * Constructs a new CSS3D renderer.
+       *
+       * @param {CSS3DRenderer~Parameters} [parameters] - The parameters.
+       */
+      constructor(parameters = {}) {
+        const _this = this;
+        let _width, _height;
+        let _widthHalf, _heightHalf;
+        const cache = {
+          camera: { style: "" },
+          objects: /* @__PURE__ */ new WeakMap()
+        };
+        const domElement = parameters.element !== void 0 ? parameters.element : document.createElement("div");
+        domElement.style.overflow = "hidden";
+        this.domElement = domElement;
+        const viewElement = document.createElement("div");
+        viewElement.style.transformOrigin = "0 0";
+        viewElement.style.pointerEvents = "none";
+        domElement.appendChild(viewElement);
+        const cameraElement = document.createElement("div");
+        cameraElement.style.transformStyle = "preserve-3d";
+        viewElement.appendChild(cameraElement);
+        this.getSize = function() {
+          return {
+            width: _width,
+            height: _height
+          };
+        };
+        this.render = function(scene, camera) {
+          const fov2 = camera.projectionMatrix.elements[5] * _heightHalf;
+          if (camera.view && camera.view.enabled) {
+            viewElement.style.transform = `translate( ${-camera.view.offsetX * (_width / camera.view.width)}px, ${-camera.view.offsetY * (_height / camera.view.height)}px )`;
+            viewElement.style.transform += `scale( ${camera.view.fullWidth / camera.view.width}, ${camera.view.fullHeight / camera.view.height} )`;
+          } else {
+            viewElement.style.transform = "";
+          }
+          if (scene.matrixWorldAutoUpdate === true) scene.updateMatrixWorld();
+          if (camera.parent === null && camera.matrixWorldAutoUpdate === true) camera.updateMatrixWorld();
+          let tx, ty;
+          if (camera.isOrthographicCamera) {
+            tx = -(camera.right + camera.left) / 2;
+            ty = (camera.top + camera.bottom) / 2;
+          }
+          const scaleByViewOffset = camera.view && camera.view.enabled ? camera.view.height / camera.view.fullHeight : 1;
+          const cameraCSSMatrix = camera.isOrthographicCamera ? `scale( ${scaleByViewOffset} )scale(` + fov2 + ")translate(" + epsilon(tx) + "px," + epsilon(ty) + "px)" + getCameraCSSMatrix(camera.matrixWorldInverse) : `scale( ${scaleByViewOffset} )translateZ(` + fov2 + "px)" + getCameraCSSMatrix(camera.matrixWorldInverse);
+          const perspective = camera.isPerspectiveCamera ? "perspective(" + fov2 + "px) " : "";
+          const style = perspective + cameraCSSMatrix + "translate(" + _widthHalf + "px," + _heightHalf + "px)";
+          if (cache.camera.style !== style) {
+            cameraElement.style.transform = style;
+            cache.camera.style = style;
+          }
+          renderObject(scene, scene, camera, cameraCSSMatrix);
+        };
+        this.setSize = function(width, height) {
+          _width = width;
+          _height = height;
+          _widthHalf = _width / 2;
+          _heightHalf = _height / 2;
+          domElement.style.width = width + "px";
+          domElement.style.height = height + "px";
+          viewElement.style.width = width + "px";
+          viewElement.style.height = height + "px";
+          cameraElement.style.width = width + "px";
+          cameraElement.style.height = height + "px";
+        };
+        function epsilon(value) {
+          return Math.abs(value) < 1e-10 ? 0 : value;
+        }
+        function getCameraCSSMatrix(matrix) {
+          const elements = matrix.elements;
+          return "matrix3d(" + epsilon(elements[0]) + "," + epsilon(-elements[1]) + "," + epsilon(elements[2]) + "," + epsilon(elements[3]) + "," + epsilon(elements[4]) + "," + epsilon(-elements[5]) + "," + epsilon(elements[6]) + "," + epsilon(elements[7]) + "," + epsilon(elements[8]) + "," + epsilon(-elements[9]) + "," + epsilon(elements[10]) + "," + epsilon(elements[11]) + "," + epsilon(elements[12]) + "," + epsilon(-elements[13]) + "," + epsilon(elements[14]) + "," + epsilon(elements[15]) + ")";
+        }
+        function getObjectCSSMatrix(matrix) {
+          const elements = matrix.elements;
+          const matrix3d = "matrix3d(" + epsilon(elements[0]) + "," + epsilon(elements[1]) + "," + epsilon(elements[2]) + "," + epsilon(elements[3]) + "," + epsilon(-elements[4]) + "," + epsilon(-elements[5]) + "," + epsilon(-elements[6]) + "," + epsilon(-elements[7]) + "," + epsilon(elements[8]) + "," + epsilon(elements[9]) + "," + epsilon(elements[10]) + "," + epsilon(elements[11]) + "," + epsilon(elements[12]) + "," + epsilon(elements[13]) + "," + epsilon(elements[14]) + "," + epsilon(elements[15]) + ")";
+          return "translate(-50%,-50%)" + matrix3d;
+        }
+        function hideObject(object) {
+          if (object.isCSS3DObject) object.element.style.display = "none";
+          for (let i4 = 0, l3 = object.children.length; i4 < l3; i4++) {
+            hideObject(object.children[i4]);
+          }
+        }
+        function renderObject(object, scene, camera, cameraCSSMatrix) {
+          if (object.visible === false) {
+            hideObject(object);
+            return;
+          }
+          if (object.isCSS3DObject) {
+            const visible = object.layers.test(camera.layers) === true;
+            const element = object.element;
+            element.style.display = visible === true ? "" : "none";
+            if (visible === true) {
+              object.onBeforeRender(_this, scene, camera);
+              let style;
+              if (object.isCSS3DSprite) {
+                _matrix2.copy(camera.matrixWorldInverse);
+                _matrix2.transpose();
+                if (object.rotation2D !== 0) _matrix2.multiply(_matrix22.makeRotationZ(object.rotation2D));
+                object.matrixWorld.decompose(_position3, _quaternion4, _scale3);
+                _matrix2.setPosition(_position3);
+                _matrix2.scale(_scale3);
+                _matrix2.elements[3] = 0;
+                _matrix2.elements[7] = 0;
+                _matrix2.elements[11] = 0;
+                _matrix2.elements[15] = 1;
+                style = getObjectCSSMatrix(_matrix2);
+              } else {
+                style = getObjectCSSMatrix(object.matrixWorld);
+              }
+              const cachedObject = cache.objects.get(object);
+              if (cachedObject === void 0 || cachedObject.style !== style) {
+                element.style.transform = style;
+                const objectData = { style };
+                cache.objects.set(object, objectData);
+              }
+              if (element.parentNode !== cameraElement) {
+                cameraElement.appendChild(element);
+              }
+              object.onAfterRender(_this, scene, camera);
+            }
+          }
+          for (let i4 = 0, l3 = object.children.length; i4 < l3; i4++) {
+            renderObject(object.children[i4], scene, camera, cameraCSSMatrix);
+          }
+        }
+      }
+    };
+  }
+});
+
+// src/tapes/YouTubeSurface.tsx
+function YouTubeSurface() {
+  return null;
+  const { camera, gl } = useThree();
+  const [active, setActive] = (0, import_react11.useState)(() => {
+    const bg2 = window.Backgrounds;
+    return bg2 ? bg2.bgTypeIndex === 3 : false;
+  });
+  const cssRendererRef = (0, import_react11.useRef)(null);
+  const cssSceneRef = (0, import_react11.useRef)(null);
+  const rendererElRef = (0, import_react11.useRef)(null);
+  (0, import_react11.useEffect)(() => {
+    function onChange(e3) {
+      const detail = e3.detail;
+      setActive(detail?.bgTypeIndex === 3);
+    }
+    window.addEventListener("jeem-bg-change", onChange);
+    return () => window.removeEventListener("jeem-bg-change", onChange);
+  }, []);
+  (0, import_react11.useEffect)(() => {
+    const canvas = gl.domElement;
+    const parent = canvas.parentElement;
+    if (!parent) return;
+    let cleanup = null;
+    let cancelled = false;
+    const init = (iframe) => {
+      const originalParent = iframe.parentElement;
+      const savedStyles = {
+        position: iframe.style.position,
+        top: iframe.style.top,
+        left: iframe.style.left,
+        width: iframe.style.width,
+        height: iframe.style.height,
+        zIndex: iframe.style.zIndex,
+        pointerEvents: iframe.style.pointerEvents,
+        objectFit: iframe.style.objectFit
+      };
+      iframe.style.position = "static";
+      iframe.style.top = "auto";
+      iframe.style.left = "auto";
+      iframe.style.width = IFRAME_PX_W + "px";
+      iframe.style.height = IFRAME_PX_H + "px";
+      iframe.style.zIndex = "auto";
+      iframe.style.pointerEvents = "none";
+      iframe.style.objectFit = "unset";
+      const cssRenderer = new CSS3DRenderer();
+      cssRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
+      const el = cssRenderer.domElement;
+      el.style.position = "absolute";
+      el.style.top = "0";
+      el.style.left = "0";
+      el.style.width = "100%";
+      el.style.height = "100%";
+      el.style.pointerEvents = "none";
+      el.style.zIndex = "-1";
+      el.style.display = "none";
+      parent.insertBefore(el, canvas);
+      const css3d = new CSS3DObject(iframe);
+      const scale = VIDEO_W2 / IFRAME_PX_W;
+      css3d.scale.set(scale, scale, scale);
+      css3d.position.set(0, 0.1, 0);
+      css3d.rotation.set(-Math.PI / 2, 0, 0);
+      const cssScene = new Scene();
+      cssScene.add(css3d);
+      cssRendererRef.current = cssRenderer;
+      cssSceneRef.current = cssScene;
+      rendererElRef.current = el;
+      const onResize = () => cssRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
+      window.addEventListener("resize", onResize);
+      return () => {
+        window.removeEventListener("resize", onResize);
+        cssRendererRef.current = null;
+        cssSceneRef.current = null;
+        rendererElRef.current = null;
+        if (el.parentElement) el.parentElement.removeChild(el);
+        if (originalParent && iframe.parentElement !== originalParent) {
+          originalParent.appendChild(iframe);
+        }
+        Object.assign(iframe.style, savedStyles);
+      };
+    };
+    const tryInit = () => {
+      if (cancelled) return;
+      const iframe = document.getElementById("demo_iframe");
+      if (!iframe) {
+        setTimeout(tryInit, 250);
+        return;
+      }
+      cleanup = init(iframe);
+    };
+    tryInit();
+    return () => {
+      cancelled = true;
+      if (cleanup) cleanup();
+    };
+  }, [gl]);
+  (0, import_react11.useEffect)(() => {
+    const el = rendererElRef.current;
+    if (el) el.style.display = active ? "block" : "none";
+    const canvas = gl.domElement;
+    canvas.style.background = active ? "transparent" : "";
+  }, [active, gl]);
+  useFrame(() => {
+    const r3 = cssRendererRef.current;
+    const s2 = cssSceneRef.current;
+    if (r3 && s2 && active) r3.render(s2, camera);
+  });
+  if (!active) return null;
+  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("mesh", { position: [0, 0.03, 0], rotation: [-Math.PI / 2, 0, 0], renderOrder: 999, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("planeGeometry", { args: [VIDEO_W2, VIDEO_H2] }),
+    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      "meshBasicMaterial",
+      {
+        color: 0,
+        transparent: true,
+        opacity: 0,
+        blending: NoBlending,
+        depthWrite: false
+      }
+    )
+  ] });
+}
+var import_react11, import_jsx_runtime9, VIDEO_H2, VIDEO_W2, IFRAME_PX_W, IFRAME_PX_H;
+var init_YouTubeSurface = __esm({
+  "src/tapes/YouTubeSurface.tsx"() {
+    "use strict";
+    import_react11 = __toESM(require_react(), 1);
+    init_react_three_fiber_esm();
+    init_three_module();
+    init_CSS3DRenderer();
+    import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
+    VIDEO_H2 = 30;
+    VIDEO_W2 = VIDEO_H2 * (4e3 / 2400);
+    IFRAME_PX_W = 1600;
+    IFRAME_PX_H = Math.round(IFRAME_PX_W * (VIDEO_H2 / VIDEO_W2));
+  }
+});
+
 // src/tapes/TapesTable3D.tsx
 var TapesTable3D_exports = {};
 __export(TapesTable3D_exports, {
@@ -78508,21 +78686,22 @@ function SceneContents({
   lockedTapeId,
   pickupBlockedTapeId,
   lockCamera,
+  freePan,
   maxDragX,
   onRecorderLoad,
   onRecorderEject,
   showRecorder
 }) {
   const { camera, gl, scene } = useThree();
-  const controlsRef = (0, import_react11.useRef)(null);
-  const drag = (0, import_react11.useMemo)(() => ({ tapeId: null, targetX: 0, targetZ: 0, targetYaw: null, targetPitch: null, targetY: null }), []);
-  const snap = (0, import_react11.useMemo)(() => ({ tapeId: null, x: 0, y: 0, z: 0, yaw: 0 }), []);
-  const bounceTapeId = (0, import_react11.useRef)(null);
-  const [tapeOverRecorder, setTapeOverRecorder] = (0, import_react11.useState)(false);
-  const [mouseOverRecorder, setMouseOverRecorder] = (0, import_react11.useState)(false);
-  const [recentlyLoaded, setRecentlyLoaded] = (0, import_react11.useState)(false);
-  const [uiHidden, setUiHidden] = (0, import_react11.useState)(false);
-  (0, import_react11.useEffect)(() => {
+  const controlsRef = (0, import_react12.useRef)(null);
+  const drag = (0, import_react12.useMemo)(() => ({ tapeId: null, targetX: 0, targetZ: 0, targetYaw: null, targetPitch: null, targetY: null }), []);
+  const snap = (0, import_react12.useMemo)(() => ({ tapeId: null, x: 0, y: 0, z: 0, yaw: 0 }), []);
+  const bounceTapeId = (0, import_react12.useRef)(null);
+  const [tapeOverRecorder, setTapeOverRecorder] = (0, import_react12.useState)(false);
+  const [mouseOverRecorder, setMouseOverRecorder] = (0, import_react12.useState)(false);
+  const [recentlyLoaded, setRecentlyLoaded] = (0, import_react12.useState)(false);
+  const [uiHidden, setUiHidden] = (0, import_react12.useState)(false);
+  (0, import_react12.useEffect)(() => {
     function handler(e3) {
       const detail = e3.detail;
       setUiHidden(!!detail?.hidden);
@@ -78530,14 +78709,15 @@ function SceneContents({
     window.addEventListener("jeem-ui-fade", handler);
     return () => window.removeEventListener("jeem-ui-fade", handler);
   }, []);
-  const [tapeInRecorder, setTapeInRecorder] = (0, import_react11.useState)(false);
-  const lidCloseTimer = (0, import_react11.useRef)(null);
-  const prevSnapTapeId = (0, import_react11.useRef)(null);
-  const onRecorderEjectRef = (0, import_react11.useRef)(onRecorderEject);
-  (0, import_react11.useEffect)(() => {
+  const [tapeInRecorder, setTapeInRecorder] = (0, import_react12.useState)(false);
+  const [recorderReady, setRecorderReady] = (0, import_react12.useState)(false);
+  const lidCloseTimer = (0, import_react12.useRef)(null);
+  const prevSnapTapeId = (0, import_react12.useRef)(null);
+  const onRecorderEjectRef = (0, import_react12.useRef)(onRecorderEject);
+  (0, import_react12.useEffect)(() => {
     onRecorderEjectRef.current = onRecorderEject;
   }, [onRecorderEject]);
-  const isOverRecorder = (0, import_react11.useCallback)((x3, z2) => {
+  const isOverRecorder = (0, import_react12.useCallback)((x3, z2) => {
     const dx = x3 - RECORDER_POS[0];
     const dz = z2 - RECORDER_POS[2];
     const cos = Math.cos(-RECORDER_ROT_Y);
@@ -78546,7 +78726,7 @@ function SceneContents({
     const lz = dx * sin + dz * cos;
     return Math.abs(lx) < RECORDER_HALF_W && Math.abs(lz) < RECORDER_HALF_D;
   }, []);
-  const isInSnapZone = (0, import_react11.useCallback)((x3, z2) => {
+  const isInSnapZone = (0, import_react12.useCallback)((x3, z2) => {
     const dx = x3 - RECORDER_POS[0];
     const dz = z2 - RECORDER_POS[2];
     const cos = Math.cos(-RECORDER_ROT_Y);
@@ -78571,8 +78751,8 @@ function SceneContents({
     const inRec = cur !== null;
     if (inRec !== tapeInRecorder) setTapeInRecorder(inRec);
   });
-  const lidOpen = tapeOverRecorder || mouseOverRecorder && !tapeInRecorder || recentlyLoaded;
-  const pointerState = (0, import_react11.useRef)({
+  const lidOpen = tapeOverRecorder || recentlyLoaded;
+  const pointerState = (0, import_react12.useRef)({
     downTapeId: null,
     active: false,
     startX: 0,
@@ -78581,9 +78761,11 @@ function SceneContents({
     // offset from pointer to tape center
     offsetZ: 0
   });
-  const lastTapRef = (0, import_react11.useRef)({ time: 0, id: "" });
+  const lastTapRef = (0, import_react12.useRef)({ time: 0, id: "" });
+  const savedCamPoseRef = (0, import_react12.useRef)(null);
+  const lastPointerRef = (0, import_react12.useRef)(null);
   const tableTapes = tapes.filter((t3) => t3.id !== loadedTapeId);
-  const raycastToPlane = (0, import_react11.useCallback)((clientX, clientY, planeY) => {
+  const raycastToPlane = (0, import_react12.useCallback)((clientX, clientY, planeY) => {
     const rect = gl.domElement.getBoundingClientRect();
     const ndcX = (clientX - rect.left) / rect.width * 2 - 1;
     const ndcY = -((clientY - rect.top) / rect.height) * 2 + 1;
@@ -78593,7 +78775,7 @@ function SceneContents({
     const hit = new Vector3();
     return raycaster.ray.intersectPlane(plane, hit) ? hit : null;
   }, [camera, gl]);
-  const raycastTape = (0, import_react11.useCallback)((clientX, clientY) => {
+  const raycastTape = (0, import_react12.useCallback)((clientX, clientY) => {
     const hit = raycastToPlane(clientX, clientY, 0);
     if (!hit) return null;
     let bestId = null;
@@ -78616,7 +78798,7 @@ function SceneContents({
     });
     return bestId;
   }, [scene, raycastToPlane]);
-  const getTapeWorldPos = (0, import_react11.useCallback)((tapeId) => {
+  const getTapeWorldPos = (0, import_react12.useCallback)((tapeId) => {
     let result = null;
     scene.traverse((obj) => {
       if (obj.name === `tape-${tapeId}`) {
@@ -78627,7 +78809,7 @@ function SceneContents({
     });
     return result;
   }, [scene]);
-  const isDeckDrop = (0, import_react11.useCallback)((screenX, screenY) => {
+  const isDeckDrop = (0, import_react12.useCallback)((screenX, screenY) => {
     const deckEl = document.getElementById("tape-deck");
     if (!deckEl) return false;
     const r3 = deckEl.getBoundingClientRect();
@@ -78636,7 +78818,7 @@ function SceneContents({
     const hit = screenX >= r3.left - pad && screenX <= r3.right + pad && screenY >= r3.top - pad && screenY <= r3.bottom + pad;
     return hit;
   }, []);
-  (0, import_react11.useEffect)(() => {
+  (0, import_react12.useEffect)(() => {
     const el = gl.domElement;
     function onDown(ev) {
       const tapeId = raycastTape(ev.clientX, ev.clientY);
@@ -78661,31 +78843,38 @@ function SceneContents({
     function onMove(ev) {
       const ps = pointerState.current;
       if (!ps.downTapeId) return;
+      const rect = gl.domElement.getBoundingClientRect();
+      const border = 24;
+      const px2 = Math.max(rect.left + border, Math.min(rect.right - border, ev.clientX));
+      const py2 = Math.max(rect.top + border, Math.min(rect.bottom - border, ev.clientY));
+      lastPointerRef.current = { x: px2, y: py2 };
       if (!ps.active) {
         const dx = ev.clientX - ps.startX;
         const dy = ev.clientY - ps.startY;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 5) return;
         ps.active = true;
-        const hit2 = raycastToPlane(ev.clientX, ev.clientY, DRAG_HEIGHT);
-        if (hit2) {
-          ps.offsetX = drag.targetX - hit2.x;
-          ps.offsetZ = drag.targetZ - hit2.z;
-        }
+        ps.offsetX = 0;
+        ps.offsetZ = 0;
+        const c0 = controlsRef.current;
+        savedCamPoseRef.current = {
+          pos: camera.position.clone(),
+          tgt: c0 ? c0.target.clone() : new Vector3(0, 0, 0)
+        };
         drag.tapeId = ps.downTapeId;
         if (controlsRef.current) controlsRef.current.enabled = false;
-        onDragStart();
+        onDragStart(ps.downTapeId);
         if (snap.tapeId === ps.downTapeId) {
           snap.tapeId = null;
           prevSnapTapeId.current = null;
           onRecorderEjectRef.current?.();
         }
       }
-      const hit = raycastToPlane(ev.clientX, ev.clientY, DRAG_HEIGHT);
+      const hit = raycastToPlane(px2, py2, DRAG_HEIGHT);
       if (hit) {
-        const boundX = maxDragX != null ? maxDragX : DRAG_BOUND_X;
-        drag.targetX = Math.max(-DRAG_BOUND_X, Math.min(boundX, hit.x + ps.offsetX));
-        drag.targetZ = Math.max(-DRAG_BOUND_Z, Math.min(DRAG_BOUND_Z, hit.z + ps.offsetZ));
+        const boundX = maxDragX != null ? maxDragX : DRAG_X_EXT;
+        drag.targetX = Math.max(-DRAG_X_EXT, Math.min(boundX, hit.x + ps.offsetX));
+        drag.targetZ = Math.max(-DRAG_Z_TOP, Math.min(DRAG_Z_BOT, hit.z + ps.offsetZ));
       }
     }
     function onUp(ev) {
@@ -78715,6 +78904,7 @@ function SceneContents({
         const [x2d, y2d] = to2D(tx, tz);
         const deckDrop = isDeckDrop(ev.clientX, ev.clientY);
         onDragEnd(tapeId, x2d, y2d, deckDrop);
+        savedCamPoseRef.current = null;
       } else if (tapeId && !wasDragging) {
         const now = Date.now();
         const last = lastTapRef.current;
@@ -78729,6 +78919,7 @@ function SceneContents({
       }
       ps.downTapeId = null;
       ps.active = false;
+      lastPointerRef.current = null;
     }
     el.addEventListener("pointerdown", onDown);
     window.addEventListener("pointermove", onMove);
@@ -78739,7 +78930,7 @@ function SceneContents({
       window.removeEventListener("pointerup", onUp);
     };
   }, [gl, drag, snap, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, isOverRecorder, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, pickupBlockedTapeId, maxDragX, onRecorderLoad, showRecorder]);
-  (0, import_react11.useEffect)(() => {
+  (0, import_react12.useEffect)(() => {
     const el = gl.domElement;
     function onHoverMove(ev) {
       if (!showRecorder) {
@@ -78760,7 +78951,7 @@ function SceneContents({
       el.removeEventListener("pointerleave", onLeave);
     };
   }, [gl, raycastToPlane, isOverRecorder, showRecorder]);
-  const extDragActive = (0, import_react11.useRef)(false);
+  const extDragActive = (0, import_react12.useRef)(false);
   useFrame(() => {
     if (!externalDrag || extDragActive.current) return;
     if (!externalDrag.tapeId) return;
@@ -78778,12 +78969,12 @@ function SceneContents({
     drag.targetX = externalDrag.targetX;
     drag.targetZ = externalDrag.targetZ;
     if (controlsRef.current) controlsRef.current.enabled = false;
-    onDragStart();
+    onDragStart(externalDrag.tapeId);
     function onExtMove(ev) {
       const hit = raycastToPlane(ev.clientX, ev.clientY, DRAG_HEIGHT);
       if (hit) {
-        drag.targetX = Math.max(-DRAG_BOUND_X, Math.min(DRAG_BOUND_X, hit.x));
-        drag.targetZ = Math.max(-DRAG_BOUND_Z, Math.min(DRAG_BOUND_Z, hit.z));
+        drag.targetX = Math.max(-DRAG_X_EXT, Math.min(DRAG_X_EXT, hit.x));
+        drag.targetZ = Math.max(-DRAG_Z_TOP, Math.min(DRAG_Z_BOT, hit.z));
       }
     }
     function onExtUp(ev) {
@@ -78805,7 +78996,7 @@ function SceneContents({
     window.addEventListener("pointermove", onExtMove);
     window.addEventListener("pointerup", onExtUp);
   });
-  const zoomRestored = (0, import_react11.useRef)(false);
+  const zoomRestored = (0, import_react12.useRef)(false);
   if (!zoomRestored.current) {
     const saved = localStorage.getItem("jeem_table_zoom");
     if (saved) {
@@ -78814,10 +79005,12 @@ function SceneContents({
     }
     zoomRestored.current = true;
   }
-  const lastSavedZoom = (0, import_react11.useRef)(camera.position.y);
+  const lastSavedZoom = (0, import_react12.useRef)(camera.position.y);
+  const camTweenRef = (0, import_react12.useRef)(null);
   useFrame(() => {
     const c3 = controlsRef.current;
     if (!c3) return;
+    if (camTweenRef.current || freePan) return;
     const cam = camera;
     const halfH = cam.position.y * Math.tan(cam.fov * Math.PI / 360);
     const halfW = halfH * cam.aspect;
@@ -78832,22 +79025,104 @@ function SceneContents({
       localStorage.setItem("jeem_table_zoom", String(cam.position.y));
     }
   });
-  (0, import_react11.useEffect)(() => {
+  (0, import_react12.useEffect)(() => {
     function handleCentre(e3) {
-      const detail = e3.detail;
-      const cx = detail?.x ?? 0;
-      camera.position.set(cx, 35, 3);
-      if (controlsRef.current) {
-        controlsRef.current.target.set(cx, 0, 0);
-        controlsRef.current.update();
+      const detail = e3.detail || {};
+      const camY = detail.camY ?? 40;
+      let camX, camZ, tgtX, tgtZ;
+      if (detail.tx !== void 0 || detail.tz !== void 0) {
+        const tx = detail.tx ?? 0;
+        const tz = detail.tz ?? 0;
+        camX = tx + 8;
+        camZ = tz + 3;
+        tgtX = tx + 8;
+        tgtZ = tz;
+      } else {
+        camX = detail.x ?? 0;
+        camZ = 3;
+        tgtX = camX;
+        tgtZ = 0;
+      }
+      const c3 = controlsRef.current;
+      if (detail.animate && c3) {
+        camTweenRef.current = {
+          fromPos: camera.position.clone(),
+          toPos: new Vector3(camX, camY, camZ),
+          fromTgt: c3.target.clone(),
+          toTgt: new Vector3(tgtX, 0, tgtZ),
+          start: performance.now(),
+          dur: 600
+        };
+      } else {
+        camera.position.set(camX, camY, camZ);
+        if (c3) {
+          c3.target.set(tgtX, 0, tgtZ);
+          c3.update();
+        }
       }
     }
     window.addEventListener("jeem-centre-camera", handleCentre);
     return () => window.removeEventListener("jeem-centre-camera", handleCentre);
   }, [camera]);
-  return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("ambientLight", { intensity: 0.55, color: "#fffaf6" }),
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+  useFrame(() => {
+    const t3 = camTweenRef.current;
+    if (!t3) return;
+    const c3 = controlsRef.current;
+    const k3 = Math.min(1, (performance.now() - t3.start) / t3.dur);
+    const e3 = 1 - Math.pow(1 - k3, 3);
+    camera.position.lerpVectors(t3.fromPos, t3.toPos, e3);
+    if (c3) {
+      c3.target.lerpVectors(t3.fromTgt, t3.toTgt, e3);
+      c3.update();
+    }
+    if (k3 >= 1) camTweenRef.current = null;
+  });
+  useFrame((_2, dt) => {
+    if (!drag.tapeId) return;
+    if (camTweenRef.current) return;
+    const p4 = lastPointerRef.current;
+    if (!p4) return;
+    const c3 = controlsRef.current;
+    if (!c3) return;
+    const rect = gl.domElement.getBoundingClientRect();
+    const nx = (p4.x - rect.left) / rect.width;
+    const ny = (p4.y - rect.top) / rect.height;
+    const margin = 0.15;
+    const topMargin = 0.28;
+    let vx = 0, vz = 0;
+    if (nx < margin) vx = -(margin - nx) / margin;
+    else if (nx > 1 - margin) vx = (nx - (1 - margin)) / margin;
+    if (ny < topMargin) vz = -(topMargin - ny) / topMargin;
+    else if (ny > 1 - margin) vz = (ny - (1 - margin)) / margin;
+    if (vx === 0 && vz === 0) return;
+    const speed = 40;
+    const dx = vx * speed * dt;
+    const dz = vz * speed * dt;
+    const cam = camera;
+    const halfH = cam.position.y * Math.tan(cam.fov * Math.PI / 360);
+    const halfW = halfH * cam.aspect;
+    const maxX = Math.max(0, CAM_BOUND_X - halfW);
+    const maxZ = Math.max(0, CAM_BOUND_Z - halfH);
+    const nxPos = Math.max(-maxX, Math.min(maxX, camera.position.x + dx));
+    const nzPos = Math.max(-maxZ, Math.min(maxZ, camera.position.z + dz));
+    const adx = nxPos - camera.position.x;
+    const adz = nzPos - camera.position.z;
+    camera.position.x = nxPos;
+    camera.position.z = nzPos;
+    c3.target.x += adx;
+    c3.target.z += adz;
+    c3.update();
+    const hit = raycastToPlane(p4.x, p4.y, DRAG_HEIGHT);
+    if (hit) {
+      const boundX = maxDragX != null ? maxDragX : DRAG_X_EXT;
+      const ps = pointerState.current;
+      drag.targetX = Math.max(-DRAG_X_EXT, Math.min(boundX, hit.x + ps.offsetX));
+      drag.targetZ = Math.max(-DRAG_Z_TOP, Math.min(DRAG_Z_BOT, hit.z + ps.offsetZ));
+    }
+  });
+  return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("ambientLight", { intensity: 0.55, color: "#fffaf6" }),
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       "directionalLight",
       {
         position: [-11, 28, 8],
@@ -78866,7 +79141,7 @@ function SceneContents({
         "shadow-radius": 8
       }
     ),
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       "directionalLight",
       {
         position: [11, 20, -8],
@@ -78874,11 +79149,12 @@ function SceneContents({
         color: "#dce7ff"
       }
     ),
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("pointLight", { position: [-8, 6, -4], intensity: 0.25, color: "#ffe8d6" }),
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(import_react11.Suspense, { fallback: null, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(Physics, { gravity: [0, -400, 0], timeStep: 1 / 60, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(TableSurface, {}),
-      showRecorder && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Recorder3D, { position: RECORDER_POS, rotationY: RECORDER_ROT_Y, lidOpen, hidden: uiHidden }),
-      tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("pointLight", { position: [-8, 6, -4], intensity: 0.25, color: "#ffe8d6" }),
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(import_react12.Suspense, { fallback: null, children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(Physics, { gravity: [0, -400, 0], timeStep: 1 / 60, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(TableSurface, {}),
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(YouTubeSurface, {}),
+      showRecorder && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Recorder3D, { position: RECORDER_POS, rotationY: RECORDER_ROT_Y, lidOpen, hidden: uiHidden, onReady: () => setRecorderReady(true) }),
+      (!showRecorder || recorderReady) && tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
         TapeBody,
         {
           tape,
@@ -78893,7 +79169,7 @@ function SceneContents({
         tape.id
       ))
     ] }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       MapControls2,
       {
         ref: controlsRef,
@@ -78911,14 +79187,14 @@ function SceneContents({
   ] });
 }
 function TapesTable3D(props) {
-  return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { style: { flex: 1, position: "relative" }, children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { flex: 1, position: "relative", background: "#0a0805", isolation: "isolate" }, children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
     Canvas,
     {
       shadows: true,
       camera: { position: [0, 30, 3], fov: 45, near: 0.1, far: 200 },
-      gl: { antialias: false, powerPreference: "high-performance" },
+      gl: { antialias: false, powerPreference: "high-performance", alpha: true },
       dpr: [1, 1.5],
-      style: { background: "#0a0805" },
+      style: { background: "transparent" },
       onCreated: ({ gl }) => {
         const canvas = gl.domElement;
         canvas.addEventListener("webglcontextlost", (e3) => {
@@ -78929,15 +79205,15 @@ function TapesTable3D(props) {
           console.log("[TapeTable] WebGL context restored");
         });
       },
-      children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(SceneContents, { ...props })
+      children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(SceneContents, { ...props })
     }
   ) });
 }
-var import_react11, import_jsx_runtime9, RECORDER_POS, RECORDER_ROT_Y, RECORDER_HALF_W, RECORDER_HALF_D, RECORDER_SNAP_HALF_W, RECORDER_SNAP_HALF_D, RECORDER_LID_OPEN_ANGLE, RECORDER_HOVER_LIFT, RECORDER_LOAD_Y, RECORDER_LOAD_LOCAL_X, RECORDER_LOAD_LOCAL_Z, LID_CLOSE_DELAY;
+var import_react12, import_jsx_runtime10, RECORDER_POS, RECORDER_ROT_Y, RECORDER_HALF_W, RECORDER_HALF_D, RECORDER_SNAP_HALF_W, RECORDER_SNAP_HALF_D, RECORDER_LID_OPEN_ANGLE, DRAG_X_EXT, DRAG_Z_TOP, DRAG_Z_BOT, RECORDER_HOVER_LIFT, RECORDER_LOAD_Y, RECORDER_LOAD_LOCAL_X, RECORDER_LOAD_LOCAL_Z, LID_CLOSE_DELAY;
 var init_TapesTable3D = __esm({
   "src/tapes/TapesTable3D.tsx"() {
     "use strict";
-    import_react11 = __toESM(require_react(), 1);
+    import_react12 = __toESM(require_react(), 1);
     init_react_three_fiber_esm();
     init_drei();
     init_react_three_rapier_esm();
@@ -78945,16 +79221,20 @@ var init_TapesTable3D = __esm({
     init_TableSurface();
     init_TapeBody();
     init_Recorder3D();
+    init_YouTubeSurface();
     init_coords();
-    import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
+    import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
     RECORDER_POS = [-20, 0, 4];
     RECORDER_ROT_Y = Math.PI / 6;
     RECORDER_HALF_W = 4;
     RECORDER_HALF_D = 5;
     RECORDER_SNAP_HALF_W = 7;
     RECORDER_SNAP_HALF_D = 8;
-    RECORDER_LID_OPEN_ANGLE = Math.PI / 4;
-    RECORDER_HOVER_LIFT = 3;
+    RECORDER_LID_OPEN_ANGLE = Math.PI / 8;
+    DRAG_X_EXT = DRAG_BOUND_X + 6;
+    DRAG_Z_TOP = DRAG_BOUND_Z;
+    DRAG_Z_BOT = DRAG_BOUND_Z + 6;
+    RECORDER_HOVER_LIFT = 1;
     RECORDER_LOAD_Y = 2.3;
     RECORDER_LOAD_LOCAL_X = 0.4;
     RECORDER_LOAD_LOCAL_Z = 2.15;
@@ -78966,7 +79246,7 @@ var init_TapesTable3D = __esm({
 var import_client = __toESM(require_client(), 1);
 
 // src/tapes/TapesTable.tsx
-var import_react12 = __toESM(require_react(), 1);
+var import_react13 = __toESM(require_react(), 1);
 var import_react_dom = __toESM(require_react_dom(), 1);
 
 // src/tapes/types.ts
@@ -79493,196 +79773,8 @@ async function saveTapes(tapes) {
   await tx.done;
 }
 
-// src/tapes/DeckTape3D.tsx
-var import_react8 = __toESM(require_react(), 1);
-init_react_three_fiber_esm();
-init_three_module();
-init_Tape3D();
-init_TapeBody();
-var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
-var spoolTexture = null;
-function getSpoolTexture(color = "#e8dcc4") {
-  if (spoolTexture) return spoolTexture;
-  const size = 128;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  const s2 = size / 32;
-  const cx = 16 * s2;
-  const cy = 16 * s2;
-  const ringR = 12 * s2;
-  const strokeW = 2.8 * s2;
-  const innerR = (12 - 2.8 / 2) * s2;
-  const toothW = 2.7 * s2;
-  const toothL = 3.24 * s2;
-  ctx.clearRect(0, 0, size, size);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = strokeW;
-  ctx.beginPath();
-  ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.fillStyle = color;
-  for (const angle of [0, 60, 120, 180, 240, 300]) {
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(angle * Math.PI / 180);
-    const rx = -toothW / 2;
-    const ry = -innerR;
-    ctx.fillRect(rx, ry, toothW, toothL);
-    ctx.restore();
-  }
-  const tex = new CanvasTexture(canvas);
-  tex.colorSpace = SRGBColorSpace;
-  tex.needsUpdate = true;
-  spoolTexture = tex;
-  return tex;
-}
-function SpoolDisc({ x: x3, z: z2, halfY, spinning, rpm, color }) {
-  const ref = (0, import_react8.useRef)(null);
-  const radius = 0.605;
-  const thickness = 0.08;
-  const tex = getSpoolTexture(color);
-  useFrame((_2, delta) => {
-    if (ref.current && spinning) {
-      ref.current.rotation.z += (rpm || 10) * Math.PI * 2 * delta / 60;
-    }
-  });
-  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("mesh", { ref, position: [x3, halfY + thickness / 2 + 0.01, z2], rotation: [-Math.PI / 2, 0, 0], children: [
-    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("circleGeometry", { args: [radius, 32] }),
-    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
-      "meshStandardMaterial",
-      {
-        map: tex,
-        transparent: true,
-        alphaTest: 0.1,
-        metalness: 0.1,
-        roughness: 0.5,
-        side: DoubleSide
-      }
-    )
-  ] });
-}
-function DeckTapeMesh({ tape, playing }) {
-  const groupRef = (0, import_react8.useRef)(null);
-  const [scene, setScene] = (0, import_react8.useState)(null);
-  const [halfY, setHalfY] = (0, import_react8.useState)(0.8);
-  const seed = tape.id.split("").reduce((a3, c3) => a3 + c3.charCodeAt(0), 0);
-  const variant = tape.textureVariant || VARIANTS[seed % VARIANTS.length];
-  const meshName = VARIANT_TO_MESH["a"];
-  const textures = useVariantTextures(variant);
-  (0, import_react8.useEffect)(() => {
-    loadFBXCached().then((fbx) => {
-      const clone2 = fbx.clone();
-      let target = null;
-      clone2.traverse((child) => {
-        if (child.isMesh) {
-          const m3 = child;
-          if (m3.name === meshName) {
-            m3.visible = true;
-            target = m3;
-          } else {
-            m3.visible = false;
-          }
-        }
-      });
-      if (target) {
-        const m3 = target;
-        m3.updateWorldMatrix(true, false);
-        const geo = m3.geometry.clone();
-        geo.applyMatrix4(m3.matrixWorld);
-        const box = new Box3().setFromBufferAttribute(geo.attributes.position);
-        const center = box.getCenter(new Vector3());
-        geo.translate(-center.x, -center.y, -center.z);
-        const size = box.getSize(new Vector3());
-        const newMesh = new Mesh(geo, m3.material);
-        newMesh.name = meshName;
-        const group = new Group();
-        group.add(newMesh);
-        setHalfY(size.y / 2);
-        setScene(group);
-      }
-    });
-  }, [meshName]);
-  (0, import_react8.useEffect)(() => {
-    if (!scene || !textures) return;
-    const colorMap = tape.title ? stampTitle(textures.baseColor, tape.title, variant, tape) : textures.baseColor;
-    scene.traverse((child) => {
-      if (child.isMesh) {
-        child.material = new MeshStandardMaterial({
-          map: colorMap,
-          metalness: 0,
-          roughness: 0.75,
-          normalMap: textures.normal,
-          normalScale: new Vector2(0.5, 0.5),
-          envMapIntensity: 0.3
-        });
-      }
-    });
-  }, [scene, textures, tape.title]);
-  if (!scene || !textures) return null;
-  const s2 = 1;
-  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("group", { ref: groupRef, rotation: [0, Math.PI, 0], scale: [s2, s2, s2], children: [
-    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("primitive", { object: scene }),
-    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(SpoolDisc, { x: -2.1, z: 0.3, halfY, spinning: playing, rpm: 15 }),
-    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(SpoolDisc, { x: 2.1, z: 0.3, halfY, spinning: playing, rpm: 30 })
-  ] });
-}
-function DeckTape3D({ tape, playing, loading: loading2 }) {
-  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: { width: 234, height: 143, position: "relative" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
-      Canvas,
-      {
-        orthographic: true,
-        camera: {
-          position: [0, 50, 0],
-          near: 0.1,
-          far: 200,
-          up: [0, 0, -1],
-          zoom: 1
-        },
-        gl: { antialias: true, alpha: true, powerPreference: "high-performance" },
-        dpr: [1, 2],
-        style: { background: "transparent" },
-        onCreated: ({ camera }) => {
-          const cam = camera;
-          const aspect2 = 234 / 143;
-          const halfW = 5.25;
-          const halfH = halfW / aspect2;
-          cam.left = -halfW;
-          cam.right = halfW;
-          cam.top = halfH;
-          cam.bottom = -halfH;
-          cam.updateProjectionMatrix();
-          cam.lookAt(0, 0, 0);
-        },
-        children: [
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("ambientLight", { intensity: 0.9, color: "#fffaf6" }),
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("directionalLight", { position: [4, 20, -3], intensity: 1.5, color: "#fff0e6" }),
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("pointLight", { position: [-4, 5, -2], intensity: 0.3, color: "#ffe8d6" }),
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(DeckTapeMesh, { tape, playing })
-        ]
-      }
-    ),
-    loading2 && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { style: {
-      position: "absolute",
-      inset: 0,
-      borderRadius: 4,
-      background: "rgba(0,0,0,0.5)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 10
-    }, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { style: {
-      width: 24,
-      height: 24,
-      border: "3px solid rgba(255,255,255,0.2)",
-      borderTopColor: "#e8c840",
-      borderRadius: "50%",
-      animation: "tape-loading-spin 0.8s linear infinite"
-    } }) })
-  ] });
-}
+// src/tapes/TapesTable.tsx
+init_DeckTape3D();
 
 // src/mixtape/Creator.tsx
 var import_react9 = __toESM(require_react(), 1);
@@ -80068,14 +80160,14 @@ var styles = {
 };
 
 // src/tapes/TapesTable.tsx
-var import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
-var TapesTable3D2 = (0, import_react12.lazy)(() => Promise.resolve().then(() => (init_TapesTable3D(), TapesTable3D_exports)).then((m3) => ({ default: m3.TapesTable3D })));
+var import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
+var TapesTable3D2 = (0, import_react13.lazy)(() => Promise.resolve().then(() => (init_TapesTable3D(), TapesTable3D_exports)).then((m3) => ({ default: m3.TapesTable3D })));
 var TEXTURE_VARIANTS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
 var nextVariantIndex = 0;
 function nextTextureVariant() {
-  const v5 = TEXTURE_VARIANTS[nextVariantIndex % TEXTURE_VARIANTS.length];
+  const v2 = TEXTURE_VARIANTS[nextVariantIndex % TEXTURE_VARIANTS.length];
   nextVariantIndex++;
-  return v5;
+  return v2;
 }
 function randomTextureVariant() {
   return TEXTURE_VARIANTS[Math.floor(Math.random() * TEXTURE_VARIANTS.length)];
@@ -80156,49 +80248,49 @@ async function fetchInfiniteTracks(config, page = 1) {
   }
 }
 function TapesTable({ mixtape }) {
-  const [tapes, setTapes] = (0, import_react12.useState)([]);
-  const [mounted, setMounted] = (0, import_react12.useState)(false);
-  const [menuId, setMenuId] = (0, import_react12.useState)(null);
-  const [dragId, setDragId] = (0, import_react12.useState)(null);
-  const [dragPos, setDragPos] = (0, import_react12.useState)(null);
-  const [dragScreenPos, setDragScreenPos] = (0, import_react12.useState)(null);
-  const [dragOver, setDragOver] = (0, import_react12.useState)(false);
-  const [zOrder2, setZOrder] = (0, import_react12.useState)([]);
-  const [rewindingId, setRewindingId] = (0, import_react12.useState)(null);
-  const [landingId, setLandingId] = (0, import_react12.useState)(null);
-  const [show3D, setShow3D] = (0, import_react12.useState)(true);
-  const externalDrag = (0, import_react12.useRef)({ tapeId: null, targetX: 0, targetZ: 0 });
-  const [isPanning, setIsPanning] = (0, import_react12.useState)(false);
-  const [loadedTape, setLoadedTape] = (0, import_react12.useState)(null);
-  const [recorderSourced, setRecorderSourced] = (0, import_react12.useState)(false);
-  const [deckEjecting, setDeckEjecting] = (0, import_react12.useState)(false);
-  const [isPlaying, setIsPlaying] = (0, import_react12.useState)(false);
-  const [infiniteLoading, setInfiniteLoading] = (0, import_react12.useState)(false);
-  const [currentVideoId, setCurrentVideoId] = (0, import_react12.useState)(null);
-  const tableRef = (0, import_react12.useRef)(null);
-  const playerZoneRef = (0, import_react12.useRef)(null);
+  const [tapes, setTapes] = (0, import_react13.useState)([]);
+  const [mounted, setMounted] = (0, import_react13.useState)(false);
+  const [menuId, setMenuId] = (0, import_react13.useState)(null);
+  const [dragId, setDragId] = (0, import_react13.useState)(null);
+  const [dragPos, setDragPos] = (0, import_react13.useState)(null);
+  const [dragScreenPos, setDragScreenPos] = (0, import_react13.useState)(null);
+  const [dragOver, setDragOver] = (0, import_react13.useState)(false);
+  const [zOrder2, setZOrder] = (0, import_react13.useState)([]);
+  const [rewindingId, setRewindingId] = (0, import_react13.useState)(null);
+  const [landingId, setLandingId] = (0, import_react13.useState)(null);
+  const [show3D, setShow3D] = (0, import_react13.useState)(true);
+  const externalDrag = (0, import_react13.useRef)({ tapeId: null, targetX: 0, targetZ: 0 });
+  const [isPanning, setIsPanning] = (0, import_react13.useState)(false);
+  const [loadedTape, setLoadedTape] = (0, import_react13.useState)(null);
+  const [recorderSourced, setRecorderSourced] = (0, import_react13.useState)(false);
+  const [deckEjecting, setDeckEjecting] = (0, import_react13.useState)(false);
+  const [isPlaying, setIsPlaying] = (0, import_react13.useState)(false);
+  const [infiniteLoading, setInfiniteLoading] = (0, import_react13.useState)(false);
+  const [currentVideoId, setCurrentVideoId] = (0, import_react13.useState)(null);
+  const tableRef = (0, import_react13.useRef)(null);
+  const playerZoneRef = (0, import_react13.useRef)(null);
   const deckPortal = typeof document !== "undefined" ? document.getElementById("tape-deck") : null;
   const MIXTAPE_ID = "__jeem_mixtape__";
-  const [mixtapeTapeId] = (0, import_react12.useState)(MIXTAPE_ID);
-  const mixtapeLoadedRef = (0, import_react12.useRef)(false);
-  const [showMixtapeCreator, setShowMixtapeCreator] = (0, import_react12.useState)(false);
-  const [mixtapeData, setMixtapeData] = (0, import_react12.useState)(mixtape ?? null);
-  const [playlistTracks, setPlaylistTracks] = (0, import_react12.useState)(null);
-  const [view, setView] = (0, import_react12.useState)("table");
-  const [playerTapeId, setPlayerTapeId] = (0, import_react12.useState)(null);
-  const tapesRef = (0, import_react12.useRef)(tapes);
+  const [mixtapeTapeId] = (0, import_react13.useState)(MIXTAPE_ID);
+  const mixtapeLoadedRef = (0, import_react13.useRef)(false);
+  const [showMixtapeCreator, setShowMixtapeCreator] = (0, import_react13.useState)(false);
+  const [mixtapeData, setMixtapeData] = (0, import_react13.useState)(mixtape ?? null);
+  const [playlistTracks, setPlaylistTracks] = (0, import_react13.useState)(null);
+  const [view, setView] = (0, import_react13.useState)("table");
+  const [playerTapeId, setPlayerTapeId] = (0, import_react13.useState)(null);
+  const tapesRef = (0, import_react13.useRef)(tapes);
   tapesRef.current = tapes;
-  const loadedRef = (0, import_react12.useRef)(loadedTape);
+  const loadedRef = (0, import_react13.useRef)(loadedTape);
   loadedRef.current = loadedTape;
-  const viewRef = (0, import_react12.useRef)(view);
+  const viewRef = (0, import_react13.useRef)(view);
   viewRef.current = view;
-  const autoEjectRef = (0, import_react12.useRef)(() => {
+  const autoEjectRef = (0, import_react13.useRef)(() => {
   });
-  const infinitePageRef = (0, import_react12.useRef)(1);
-  const infiniteFetchingRef = (0, import_react12.useRef)(false);
-  const [recorderLoadingId, setRecorderLoadingId] = (0, import_react12.useState)(null);
-  const recorderLoadingTimerRef = (0, import_react12.useRef)(null);
-  const wipeTransition = (0, import_react12.useCallback)((onCovered, onUncovered) => {
+  const infinitePageRef = (0, import_react13.useRef)(1);
+  const infiniteFetchingRef = (0, import_react13.useRef)(false);
+  const [recorderLoadingId, setRecorderLoadingId] = (0, import_react13.useState)(null);
+  const recorderLoadingTimerRef = (0, import_react13.useRef)(null);
+  const wipeTransition = (0, import_react13.useCallback)((onCovered, onUncovered) => {
     document.body.classList.add("view-flaring");
     setTimeout(() => {
       onCovered();
@@ -80208,7 +80300,7 @@ function TapesTable({ mixtape }) {
       if (onUncovered) onUncovered();
     }, 600);
   }, []);
-  const enterPlayerView = (0, import_react12.useCallback)((tapeId) => {
+  const enterPlayerView = (0, import_react13.useCallback)((tapeId) => {
     setMenuId(null);
     const tape = tapesRef.current.find((t3) => t3.id === tapeId);
     if (tape?.isPlaylist && tape.playlistId) {
@@ -80222,78 +80314,21 @@ function TapesTable({ mixtape }) {
     } else {
       setPlaylistTracks(null);
     }
-    wipeTransition(
-      // Behind the wipe: despawn all, set up player view
-      () => {
-        setPlayerTapeId("__despawn__");
-        setView("player");
-        const startForm = document.getElementById("start-form");
-        if (startForm) startForm.style.display = "none";
-        requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { x: -4 } })));
-      },
-      // After uncover: spawn the tape dropping from height
-      () => {
-        setPlayerTapeId(tapeId);
-        setNewTapeIds((s2) => new Set(s2).add(tapeId));
-        setTimeout(() => setNewTapeIds((s2) => {
-          const n2 = new Set(s2);
-          n2.delete(tapeId);
-          return n2;
-        }), 2e3);
-      }
-    );
-  }, [wipeTransition]);
-  const [excludeTapeId, setExcludeTapeId] = (0, import_react12.useState)(null);
-  const exitPlayerView = (0, import_react12.useCallback)((droppingTapeId) => {
-    wipeTransition(
-      // Behind the wipe: swap to table view, exclude dropping tape so it unmounts
-      () => {
-        if (droppingTapeId) setExcludeTapeId(droppingTapeId);
-        setView("table");
-        setPlayerTapeId(null);
-        setLoadedTape(null);
-        setIsPlaying(false);
-        setPlaylistTracks(null);
-        if (window.myApp) {
-          try {
-            window.myApp.player.pause();
-          } catch {
-          }
-          const songEl = document.getElementById("song-container");
-          const titleEl = document.getElementById("title-container");
-          const padEl = document.getElementById("padinfo");
-          if (songEl) songEl.style.display = "none";
-          if (titleEl) titleEl.style.display = "none";
-          if (padEl) padEl.style.display = "none";
-          if (window.AppState) {
-            window.AppState.playing = false;
-            window.AppState.starting = true;
-            window.AppState.infiniteTape = false;
-          }
-        }
-        const deckEl = document.getElementById("tape-deck");
-        if (deckEl) deckEl.style.display = "none";
-        const startForm = document.getElementById("start-form");
-        if (startForm) startForm.style.display = "";
-        const startEl = document.getElementById("start-container");
-        if (startEl) startEl.style.display = "flex";
-        if (window.switchBgType) window.switchBgType(5);
-      },
-      // After uncover: re-add the tape as new so it remounts and drops from height
-      droppingTapeId ? () => {
-        setNewTapeIds((s2) => new Set(s2).add(droppingTapeId));
-        setExcludeTapeId(null);
-        setTimeout(() => setNewTapeIds((s2) => {
-          const n2 = new Set(s2);
-          n2.delete(droppingTapeId);
-          return n2;
-        }), 2e3);
-      } : void 0
-    );
-  }, [wipeTransition]);
-  (0, import_react12.useEffect)(() => {
+    setPlayerTapeId(tapeId);
+    setView("player");
+  }, []);
+  const [excludeTapeId, setExcludeTapeId] = (0, import_react13.useState)(null);
+  const exitPlayerView = (0, import_react13.useCallback)((opts) => {
+    setPlayerTapeId(null);
+    setView("table");
+    setPlaylistTracks(null);
+    if (!opts?.skipCameraReset) {
+      window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { tx: 0, tz: 0, animate: true } }));
+    }
+  }, []);
+  (0, import_react13.useEffect)(() => {
     function handleLogoClick(e3) {
-      if (view !== "player") return;
+      if (!playerTapeId) return;
       e3.preventDefault();
       if (showMixtapeCreator) {
         setTapes((prev) => prev.filter((t3) => t3.id !== MIXTAPE_ID));
@@ -80307,20 +80342,20 @@ function TapesTable({ mixtape }) {
     const logos = document.querySelectorAll(".start-title a, .title a");
     logos.forEach((el) => el.addEventListener("click", handleLogoClick));
     return () => logos.forEach((el) => el.removeEventListener("click", handleLogoClick));
-  }, [view, exitPlayerView, showMixtapeCreator]);
-  (0, import_react12.useLayoutEffect)(() => {
+  }, [playerTapeId, exitPlayerView, showMixtapeCreator]);
+  (0, import_react13.useLayoutEffect)(() => {
     const deckEl = document.getElementById("tape-deck");
     if (deckEl) deckEl.style.display = "none";
   }, [view]);
-  const lastTapRef = (0, import_react12.useRef)({ time: 0, id: "" });
-  const isDoubleTap = (0, import_react12.useCallback)((id) => {
+  const lastTapRef = (0, import_react13.useRef)({ time: 0, id: "" });
+  const isDoubleTap = (0, import_react13.useCallback)((id) => {
     const now = Date.now();
     const last = lastTapRef.current;
     const isDbl = last.id === id && now - last.time < 400;
     lastTapRef.current = { time: now, id };
     return isDbl;
   }, []);
-  (0, import_react12.useEffect)(() => {
+  (0, import_react13.useEffect)(() => {
     async function init() {
       let loaded = await loadTapes();
       if (loaded.length === 0) {
@@ -80343,22 +80378,22 @@ function TapesTable({ mixtape }) {
           try {
             const oldHistory = JSON.parse(localStorage.getItem("userVideoHistory") || "[]");
             if (Array.isArray(oldHistory) && oldHistory.length > 0) {
-              loaded = oldHistory.map((v5, i4) => {
-                const isPlaylist = v5.type !== "single";
+              loaded = oldHistory.map((v2, i4) => {
+                const isPlaylist = v2.type !== "single";
                 const col = i4 % 4;
                 const row = Math.floor(i4 / 4);
                 return {
                   id: crypto.randomUUID?.() ?? `${Date.now()}-${i4}`,
-                  videoId: isPlaylist ? "" : v5.id,
-                  playlistId: isPlaylist ? v5.id : void 0,
+                  videoId: isPlaylist ? "" : v2.id,
+                  playlistId: isPlaylist ? v2.id : void 0,
                   isPlaylist,
-                  title: v5.name || "Untitled",
-                  author: v5.author || "",
+                  title: v2.name || "Untitled",
+                  author: v2.author || "",
                   tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
                   textureVariant: nextTextureVariant(),
-                  progress: v5.progress || 0,
-                  playlistIndex: v5.track || 0,
-                  timestamp: v5.timestamp || Date.now(),
+                  progress: v2.progress || 0,
+                  playlistIndex: v2.track || 0,
+                  timestamp: v2.timestamp || Date.now(),
                   x: 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
                   y: HEADER_BLOCK_H + row * 170 + Math.round((Math.random() - 0.5) * 30),
                   angle: Math.round((Math.random() * 40 - 20) * 10) / 10
@@ -80381,12 +80416,12 @@ function TapesTable({ mixtape }) {
     }
     init().catch(console.error);
   }, []);
-  (0, import_react12.useEffect)(() => {
+  (0, import_react13.useEffect)(() => {
     if (mounted) {
       saveTapes(tapes).catch(console.error);
     }
   }, [tapes, mounted]);
-  (0, import_react12.useEffect)(() => {
+  (0, import_react13.useEffect)(() => {
     window.TapesBridge = {
       onTapePlay: () => {
       },
@@ -80562,7 +80597,7 @@ function TapesTable({ mixtape }) {
       delete window.TapesBridge;
     };
   }, []);
-  (0, import_react12.useEffect)(() => {
+  (0, import_react13.useEffect)(() => {
     if (!mixtape || mixtapeLoadedRef.current) return;
     mixtapeLoadedRef.current = true;
     const tracks = mixtape.tracks.map((t3) => ({
@@ -80599,16 +80634,16 @@ function TapesTable({ mixtape }) {
     const padinfo = document.getElementById("padinfo");
     if (padinfo) padinfo.style.display = "none";
   }, [mixtape]);
-  (0, import_react12.useEffect)(() => {
+  (0, import_react13.useEffect)(() => {
     if (!mixtape) return;
     if (!(loadedTape?.isInfinite && loadedTape?.author === "mixtape")) {
       const padinfo = document.getElementById("padinfo");
       if (padinfo) padinfo.style.display = "";
     }
   }, [loadedTape, mixtape]);
-  const [mixtapeKeywords, setMixtapeKeywords] = (0, import_react12.useState)("");
-  const [mixtapeGenerating, setMixtapeGenerating] = (0, import_react12.useState)(false);
-  (0, import_react12.useEffect)(() => {
+  const [mixtapeKeywords, setMixtapeKeywords] = (0, import_react13.useState)("");
+  const [mixtapeGenerating, setMixtapeGenerating] = (0, import_react13.useState)(false);
+  (0, import_react13.useEffect)(() => {
     function handleCreateMixtape(e3) {
       const keywords = e3.detail?.keywords || "";
       if (!keywords) return;
@@ -80616,22 +80651,13 @@ function TapesTable({ mixtape }) {
       setShowMixtapeCreator(true);
       setMixtapeGenerating(true);
       setMenuId(null);
-      wipeTransition(
-        () => {
-          setPlayerTapeId("__despawn__");
-          setView("player");
-          const startForm = document.getElementById("start-form");
-          if (startForm) startForm.style.display = "none";
-          const deckEl = document.getElementById("tape-deck");
-          if (deckEl) deckEl.style.display = "none";
-          requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { x: -4 } })));
-        }
-      );
+      setView("player");
+      window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { tx: 0, tz: 0, animate: true } }));
     }
     window.addEventListener("jeem-create-mixtape", handleCreateMixtape);
     return () => window.removeEventListener("jeem-create-mixtape", handleCreateMixtape);
-  }, [wipeTransition]);
-  const playVideoById = (0, import_react12.useCallback)((videoId, title, author, seekProgress = 0) => {
+  }, []);
+  const playVideoById = (0, import_react13.useCallback)((videoId, title, author, seekProgress = 0) => {
     if (!window.myApp || !window.AppState) return;
     const AppState = window.AppState;
     AppState.starting = true;
@@ -80656,7 +80682,7 @@ function TapesTable({ mixtape }) {
     }
     if (window.Inactivity) window.Inactivity.reset();
   }, []);
-  const loadNextInfiniteTrack = (0, import_react12.useCallback)(async () => {
+  const loadNextInfiniteTrack = (0, import_react13.useCallback)(async () => {
     const tape = loadedRef.current;
     if (!tape?.isInfinite || !tape.infiniteConfig || infiniteFetchingRef.current) return;
     const history = tape.infiniteHistory || [];
@@ -80693,7 +80719,7 @@ function TapesTable({ mixtape }) {
     setTapes((prev) => prev.map((t3) => t3.id === tape.id ? { ...t3, infiniteHistory: updatedHistory, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : t3));
     playVideoById(track.videoId, track.title, track.author);
   }, [playVideoById]);
-  const loadPrevInfiniteTrack = (0, import_react12.useCallback)(() => {
+  const loadPrevInfiniteTrack = (0, import_react13.useCallback)(() => {
     const tape = loadedRef.current;
     if (!tape?.isInfinite) return;
     const history = tape.infiniteHistory || [];
@@ -80705,12 +80731,12 @@ function TapesTable({ mixtape }) {
     setTapes((prev) => prev.map((t3) => t3.id === tape.id ? { ...t3, infiniteIndex: prevIdx, videoId: track.videoId, progress: 0 } : t3));
     playVideoById(track.videoId, track.title, track.author);
   }, [playVideoById]);
-  const loadNextRef = (0, import_react12.useRef)(loadNextInfiniteTrack);
+  const loadNextRef = (0, import_react13.useRef)(loadNextInfiniteTrack);
   loadNextRef.current = loadNextInfiniteTrack;
-  const loadPrevRef = (0, import_react12.useRef)(loadPrevInfiniteTrack);
+  const loadPrevRef = (0, import_react13.useRef)(loadPrevInfiniteTrack);
   loadPrevRef.current = loadPrevInfiniteTrack;
-  const loadIntoPlayerRef = (0, import_react12.useRef)(null);
-  const loadIntoPlayer = (0, import_react12.useCallback)((tape) => {
+  const loadIntoPlayerRef = (0, import_react13.useRef)(null);
+  const loadIntoPlayer = (0, import_react13.useCallback)((tape) => {
     setLoadedTape(tape);
     playTapeInsert();
     setTimeout(playTapeWhirr, 200);
@@ -80786,7 +80812,7 @@ function TapesTable({ mixtape }) {
     }
   }, [playVideoById]);
   loadIntoPlayerRef.current = loadIntoPlayer;
-  const deleteTape = (0, import_react12.useCallback)((id) => {
+  const deleteTape = (0, import_react13.useCallback)((id) => {
     setTapes((prev) => prev.filter((t3) => t3.id !== id));
     setZOrder((prev) => prev.filter((i4) => i4 !== id));
     setLoadedTape((cur) => {
@@ -80795,13 +80821,13 @@ function TapesTable({ mixtape }) {
     });
     setMenuId(null);
   }, []);
-  const rewindTape = (0, import_react12.useCallback)((id) => {
+  const rewindTape = (0, import_react13.useCallback)((id) => {
     setTapes((prev) => prev.map((t3) => t3.id === id ? { ...t3, progress: 0 } : t3));
     setRewindingId(id);
     setTimeout(() => setRewindingId(null), 400);
     setMenuId(null);
   }, []);
-  const autoEject = (0, import_react12.useCallback)(() => {
+  const autoEject = (0, import_react13.useCallback)(() => {
     const tape = loadedRef.current;
     if (!tape) return;
     setTapes((prev) => prev.map((t3) => t3.id === tape.id ? { ...t3, progress: 0 } : t3));
@@ -80829,37 +80855,44 @@ function TapesTable({ mixtape }) {
         window.AppState.infiniteTape = false;
       }
     }
-    if (window.switchBgType) window.switchBgType(5);
   }, []);
   autoEjectRef.current = autoEject;
-  const cancelMenu = (0, import_react12.useCallback)(() => {
+  const cancelMenu = (0, import_react13.useCallback)(() => {
     setMenuId(null);
   }, []);
-  const [dragging3D, setDragging3D] = (0, import_react12.useState)(false);
-  const handle3DDragStart = (0, import_react12.useCallback)(() => {
+  const [dragging3D, setDragging3D] = (0, import_react13.useState)(false);
+  const recorderLoadedDuringDragRef = (0, import_react13.useRef)(false);
+  const handle3DDragStart = (0, import_react13.useCallback)((tapeId) => {
     cancelMenu();
     setDragging3D(true);
-  }, [cancelMenu]);
-  const handle3DDragEnd = (0, import_react12.useCallback)((tapeId, x2d, y2d, droppedOnDeck) => {
+    recorderLoadedDuringDragRef.current = false;
+    if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
+    enterPlayerView(tapeId);
+  }, [cancelMenu, enterPlayerView, showMixtapeCreator]);
+  const handle3DDragEnd = (0, import_react13.useCallback)((tapeId, x2d, y2d, droppedOnDeck) => {
     setDragging3D(false);
     if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
-    if (droppedOnDeck && view === "player") {
+    if (droppedOnDeck) {
       const t3 = tapesRef.current.find((t4) => t4.id === tapeId);
       if (t3) loadIntoPlayer(t3);
-    } else if (!droppedOnDeck && view === "table") {
-      setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, x: x2d, y: y2d } : t3));
+      return;
     }
-  }, [loadIntoPlayer, showMixtapeCreator, view]);
-  const handleRecorderLoad = (0, import_react12.useCallback)((tapeId) => {
+    setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, x: x2d, y: y2d } : t3));
+    if (!recorderLoadedDuringDragRef.current) {
+      exitPlayerView({ skipCameraReset: true });
+    }
+  }, [loadIntoPlayer, showMixtapeCreator, exitPlayerView]);
+  const handleRecorderLoad = (0, import_react13.useCallback)((tapeId) => {
     const t3 = tapesRef.current.find((t4) => t4.id === tapeId);
     if (!t3) return;
+    recorderLoadedDuringDragRef.current = true;
     setRecorderSourced(true);
     setRecorderLoadingId(tapeId);
     if (recorderLoadingTimerRef.current) clearTimeout(recorderLoadingTimerRef.current);
     recorderLoadingTimerRef.current = setTimeout(() => setRecorderLoadingId(null), 8e3);
     loadIntoPlayer(t3);
   }, [loadIntoPlayer]);
-  const handleRecorderEject = (0, import_react12.useCallback)(() => {
+  const handleRecorderEject = (0, import_react13.useCallback)(() => {
     setRecorderSourced(false);
     if (recorderLoadingTimerRef.current) {
       clearTimeout(recorderLoadingTimerRef.current);
@@ -80868,18 +80901,12 @@ function TapesTable({ mixtape }) {
     setRecorderLoadingId(null);
     autoEjectRef.current();
   }, []);
-  const handle3DDoubleTap = (0, import_react12.useCallback)((tapeId) => {
-    if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
-    if (view === "table") {
-      enterPlayerView(tapeId);
-    } else if (view === "player") {
-      exitPlayerView(tapeId);
-    }
-  }, [showMixtapeCreator, view, enterPlayerView, exitPlayerView]);
-  const handle3DMenuAction = (0, import_react12.useCallback)((_tapeId, _action) => {
+  const handle3DDoubleTap = (0, import_react13.useCallback)((_tapeId) => {
   }, []);
-  const [newTapeIds, setNewTapeIds] = (0, import_react12.useState)(() => /* @__PURE__ */ new Set());
-  const startDrag = (0, import_react12.useCallback)((e3, tape) => {
+  const handle3DMenuAction = (0, import_react13.useCallback)((_tapeId, _action) => {
+  }, []);
+  const [newTapeIds, setNewTapeIds] = (0, import_react13.useState)(() => /* @__PURE__ */ new Set());
+  const startDrag = (0, import_react13.useCallback)((e3, tape) => {
     e3.preventDefault();
     e3.stopPropagation();
     cancelMenu();
@@ -80938,7 +80965,7 @@ function TapesTable({ mixtape }) {
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
   }, [loadIntoPlayer, cancelMenu]);
-  const startDeckDrag = (0, import_react12.useCallback)((e3) => {
+  const startDeckDrag = (0, import_react13.useCallback)((e3) => {
     e3.preventDefault();
     const tape = loadedRef.current;
     const startX = e3.clientX;
@@ -80991,12 +81018,7 @@ function TapesTable({ mixtape }) {
           window.AppState.starting = true;
           window.AppState.infiniteTape = false;
         }
-        setTimeout(() => {
-          const pauseEl = document.getElementById("pause-overlay");
-          if (pauseEl) pauseEl.classList.remove("visible");
-        }, 50);
       }
-      if (window.switchBgType) window.switchBgType(5);
       externalDrag.current.screenX = fromEv.clientX;
       externalDrag.current.screenY = fromEv.clientY;
       externalDrag.current.targetX = 0;
@@ -81021,7 +81043,7 @@ function TapesTable({ mixtape }) {
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
   }, [loadIntoPlayer]);
-  const startPan = (0, import_react12.useCallback)((e3) => {
+  const startPan = (0, import_react13.useCallback)((e3) => {
     if (e3.target.closest("[data-tape]")) return;
     if (e3.target.closest("[data-deck]")) return;
     const tbl = tableRef.current;
@@ -81078,8 +81100,8 @@ function TapesTable({ mixtape }) {
     positionedTapes.slice(0, 2).map((t3) => ({ id: t3.id.slice(0, 8), x: t3.x, y: t3.y }))
   );
   const tableTapes = positionedTapes.filter((t3) => t3.id !== loadedTape?.id);
-  return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(import_jsx_runtime10.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("style", { children: `
+  return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(import_jsx_runtime11.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("style", { children: `
         @keyframes tape-spin-slow { to { transform: rotate(-360deg) } }
         @keyframes tape-spin-fast { to { transform: rotate(-360deg) } }
         @keyframes tape-rewind { 0%,100% { transform: rotate(0deg) } 20% { transform: rotate(-4deg) } 40% { transform: rotate(4deg) } 60% { transform: rotate(-3deg) } 80% { transform: rotate(2deg) } }
@@ -81100,10 +81122,10 @@ function TapesTable({ mixtape }) {
         }
         body.view-flaring { animation: view-flare 0.6s ease-in-out; overflow: hidden; }
       ` }),
-    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(import_react12.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(import_react13.Suspense, { fallback: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { flex: 1, background: "#0a0805" } }), children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
       TapesTable3D2,
       {
-        tapes: view === "player" && playerTapeId ? positionedTapes.filter((t3) => t3.id === playerTapeId).map((t3) => ({ ...t3, x: CANVAS_W2 * 0.35 + 150, y: CANVAS_H2 / 2 })) : positionedTapes.filter((t3) => t3.id !== excludeTapeId),
+        tapes: positionedTapes.filter((t3) => t3.id !== excludeTapeId),
         loadedTapeId: recorderSourced ? null : loadedTape?.id ?? null,
         onDragStart: handle3DDragStart,
         onDragEnd: handle3DDragEnd,
@@ -81115,14 +81137,14 @@ function TapesTable({ mixtape }) {
         externalDrag: externalDrag.current,
         lockedTapeId: showMixtapeCreator ? MIXTAPE_ID : null,
         pickupBlockedTapeId: recorderLoadingId,
-        maxDragX: view === "player" ? -6 : void 0,
-        lockCamera: view === "player" || showMixtapeCreator,
+        lockCamera: showMixtapeCreator || view === "player",
+        freePan: view === "player" || dragging3D,
         onRecorderLoad: handleRecorderLoad,
         onRecorderEject: handleRecorderEject,
-        showRecorder: view === "player"
+        showRecorder: true
       }
     ) }),
-    view === "player" && playerTapeId && !showMixtapeCreator && (() => {
+    playerTapeId && !showMixtapeCreator && (() => {
       const tape = loadedTape ?? tapes.find((t3) => t3.id === playerTapeId);
       if (!tape) return null;
       const interactive = isPlaying && !!loadedTape && loadedTape.id === tape.id;
@@ -81158,7 +81180,7 @@ function TapesTable({ mixtape }) {
         }
       };
       return (0, import_react_dom.createPortal)(
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "tape-info-panel", style: {
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "tape-info-panel", style: {
           position: "fixed",
           top: "50%",
           left: "calc(50% - 70px)",
@@ -81181,7 +81203,7 @@ function TapesTable({ mixtape }) {
           padding: "24px 24px 20px",
           transition: "opacity 1s ease"
         }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: {
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
             fontFamily: "'04b03', monospace",
             fontSize: "1.3em",
             color: "rgba(250,249,246,0.7)",
@@ -81192,14 +81214,14 @@ function TapesTable({ mixtape }) {
             pointerEvents: interactive ? "auto" : "none",
             userSelect: interactive ? "auto" : "none"
           }, children: tape.title || "Untitled" }),
-          !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: {
+          !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
             color: "rgba(250,249,246,0.5)",
             marginTop: "6px",
             fontSize: "1em",
             pointerEvents: interactive ? "auto" : "none",
             userSelect: interactive ? "auto" : "none"
           }, children: tape.author }),
-          hasTracklist && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: {
+          hasTracklist && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
             flex: 1,
             overflowY: "auto",
             scrollbarWidth: "thin",
@@ -81207,7 +81229,7 @@ function TapesTable({ mixtape }) {
             padding: "10px 14px"
           }, children: tracklistItems.map((track, i4) => {
             const isCurrent = i4 === currentIndex;
-            return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
+            return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
               "div",
               {
                 onClick: interactive ? () => handleSelect(i4, track) : void 0,
@@ -81228,83 +81250,31 @@ function TapesTable({ mixtape }) {
                 },
                 title: interactive ? `${track.title} \u2014 ${track.author}` : void 0,
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { style: { color: "rgba(250,249,246,0.5)", width: "30px", flexShrink: 0, textAlign: "right" }, children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("span", { style: { color: "rgba(250,249,246,0.5)", width: "30px", flexShrink: 0, textAlign: "right" }, children: [
                     String(i4 + 1).padStart(2, "0"),
                     "."
                   ] }),
-                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, color: isCurrent && interactive ? "rgba(250,249,246,0.95)" : "rgba(250,249,246,0.9)" }, children: track.title }),
-                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { style: { color: "rgba(250,249,246,0.5)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: track.author }),
-                  track.durationText && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { style: { color: "rgba(250,249,246,0.5)", flexShrink: 0, width: "50px", textAlign: "right" }, children: track.durationText })
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, color: isCurrent && interactive ? "rgba(250,249,246,0.95)" : "rgba(250,249,246,0.9)" }, children: track.title }),
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { color: "rgba(250,249,246,0.5)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: track.author }),
+                  track.durationText && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { color: "rgba(250,249,246,0.5)", flexShrink: 0, width: "50px", textAlign: "right" }, children: track.durationText })
                 ]
               },
               i4
             );
-          }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { style: {
-            display: "flex",
-            justifyContent: "flex-start",
-            gap: "8px",
-            marginTop: "16px",
-            paddingTop: "12px",
-            flexShrink: 0,
-            visibility: interactive ? "hidden" : "visible",
-            pointerEvents: interactive ? "none" : "auto"
-          }, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-              "button",
-              {
-                className: "tape-ui-btn",
-                onClick: () => {
-                  rewindTape(tape.id);
-                },
-                style: {
-                  fontFamily: "'04b03', monospace",
-                  fontSize: "1em",
-                  lineHeight: "1em",
-                  color: "rgba(250,249,246,0.9)",
-                  background: "transparent",
-                  borderRadius: 0,
-                  padding: "6px 10px 3px",
-                  cursor: "pointer"
-                },
-                children: "rewind"
-              }
-            ),
-            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-              "button",
-              {
-                className: "tape-ui-btn",
-                onClick: () => {
-                  deleteTape(tape.id);
-                  exitPlayerView();
-                },
-                style: {
-                  fontFamily: "'04b03', monospace",
-                  fontSize: "1em",
-                  lineHeight: "1em",
-                  color: "rgba(250,249,246,0.9)",
-                  background: "transparent",
-                  borderRadius: 0,
-                  padding: "6px 10px 3px",
-                  cursor: "pointer"
-                },
-                children: "remove"
-              }
-            )
-          ] })
+          }) })
         ] }),
         document.body
       );
     })(),
     deckPortal && (0, import_react_dom.createPortal)(
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
         "div",
         {
           "data-deck": "true",
           ref: playerZoneRef,
           style: { position: "relative" },
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
+            /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
               "div",
               {
                 className: "deck-slot",
@@ -81326,23 +81296,23 @@ function TapesTable({ mixtape }) {
                   transition: "opacity 0.2s, box-shadow 0.2s, border-color 0.2s"
                 },
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", bottom: 2, left: 117 - 75, width: 150, height: 28, background: "#111", border: "1px solid #1a1a1a", clipPath: "polygon(6px 0, 144px 0, 100% 100%, 0 100%)", boxShadow: "inset 0 2px 6px rgba(0,0,0,0.6)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: 20, top: 20, width: 8, height: 8, borderRadius: "50%", background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", right: 20, top: 20, width: 8, height: 8, borderRadius: "50%", background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", right: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: 117 - 4, top: 108, width: 8, height: 5, borderRadius: 1, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.6)", zIndex: 0 } }),
-                  /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: 65 + 22, top: 55, width: 169 - 65 - 44, height: 26, borderRadius: 2, background: "linear-gradient(135deg, #6b4420 0%, #8a5a28 30%, #7a4a20 50%, #5a3a18 70%, #6b4420 100%)", opacity: 0.5, zIndex: 0 } }),
-                  [70, 164].map((cx2, i4) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: cx2 - 13, top: 65 - 13, width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(160deg, #2a2a2a 0%, #111 60%, #000 100%)", border: "1px solid #333", boxShadow: "0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08)", zIndex: 0 }, children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { style: { position: "absolute", inset: 3, borderRadius: "50%", background: "linear-gradient(160deg, #222 0%, #141414 50%, #0a0a0a 100%)", boxShadow: "inset 0 -1px 2px rgba(255,255,255,0.06), inset 0 1px 2px rgba(0,0,0,0.6)", border: "0.5px solid #2a2a2a" }, children: [
-                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: "50%", top: 2, bottom: 2, width: 2, transform: "translateX(-50%)", background: "linear-gradient(180deg, #333 0%, #1a1a1a 100%)", borderRadius: 1, boxShadow: "0 0 1px rgba(0,0,0,0.5)" } }),
-                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", top: "50%", left: 2, right: 2, height: 2, transform: "translateY(-50%)", background: "linear-gradient(90deg, #333 0%, #1a1a1a 100%)", borderRadius: 1, boxShadow: "0 0 1px rgba(0,0,0,0.5)" } }),
-                    /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "absolute", left: "50%", top: "50%", width: 7, height: 7, transform: "translate(-50%, -50%)", borderRadius: "50%", background: "linear-gradient(145deg, #2a2a2a 0%, #080808 100%)", border: "0.5px solid #333", boxShadow: "0 1px 2px rgba(0,0,0,0.7), inset 0 0.5px 0.5px rgba(255,255,255,0.1)" } })
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { position: "absolute", bottom: 2, left: 117 - 75, width: 150, height: 28, background: "#111", border: "1px solid #1a1a1a", clipPath: "polygon(6px 0, 144px 0, 100% 100%, 0 100%)", boxShadow: "inset 0 2px 6px rgba(0,0,0,0.6)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { position: "absolute", left: 20, top: 20, width: 8, height: 8, borderRadius: "50%", background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { position: "absolute", right: 20, top: 20, width: 8, height: 8, borderRadius: "50%", background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.8)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { position: "absolute", left: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { position: "absolute", right: 12, top: 68, width: 6, height: 14, borderRadius: 2, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { position: "absolute", left: 117 - 4, top: 108, width: 8, height: 5, borderRadius: 1, background: "#111", border: "1px solid #1a1a1a", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.6)", zIndex: 0 } }),
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { position: "absolute", left: 65 + 22, top: 55, width: 169 - 65 - 44, height: 26, borderRadius: 2, background: "linear-gradient(135deg, #6b4420 0%, #8a5a28 30%, #7a4a20 50%, #5a3a18 70%, #6b4420 100%)", opacity: 0.5, zIndex: 0 } }),
+                  [70, 164].map((cx2, i4) => /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { position: "absolute", left: cx2 - 13, top: 65 - 13, width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(160deg, #2a2a2a 0%, #111 60%, #000 100%)", border: "1px solid #333", boxShadow: "0 2px 4px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08)", zIndex: 0 }, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { style: { position: "absolute", inset: 3, borderRadius: "50%", background: "linear-gradient(160deg, #222 0%, #141414 50%, #0a0a0a 100%)", boxShadow: "inset 0 -1px 2px rgba(255,255,255,0.06), inset 0 1px 2px rgba(0,0,0,0.6)", border: "0.5px solid #2a2a2a" }, children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { position: "absolute", left: "50%", top: 2, bottom: 2, width: 2, transform: "translateX(-50%)", background: "linear-gradient(180deg, #333 0%, #1a1a1a 100%)", borderRadius: 1, boxShadow: "0 0 1px rgba(0,0,0,0.5)" } }),
+                    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { position: "absolute", top: "50%", left: 2, right: 2, height: 2, transform: "translateY(-50%)", background: "linear-gradient(90deg, #333 0%, #1a1a1a 100%)", borderRadius: 1, boxShadow: "0 0 1px rgba(0,0,0,0.5)" } }),
+                    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { position: "absolute", left: "50%", top: "50%", width: 7, height: 7, transform: "translate(-50%, -50%)", borderRadius: "50%", background: "linear-gradient(145deg, #2a2a2a 0%, #080808 100%)", border: "0.5px solid #333", boxShadow: "0 1px 2px rgba(0,0,0,0.7), inset 0 0.5px 0.5px rgba(255,255,255,0.1)" } })
                   ] }) }, i4)),
-                  loadedTape ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { position: "relative", zIndex: 1 }, children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(DeckTape3D, { tape: loadedTape, playing: isPlaying, loading: infiniteLoading }) }) : null
+                  loadedTape ? /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { position: "relative", zIndex: 1 }, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(DeckTape3D, { tape: loadedTape, playing: isPlaying, loading: infiniteLoading }) }) : null
                 ]
               }
             ),
-            dragging3D && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: {
+            dragging3D && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
               position: "absolute",
               inset: 0,
               borderRadius: 5,
@@ -81355,7 +81325,7 @@ function TapesTable({ mixtape }) {
       ),
       deckPortal
     ),
-    showMixtapeCreator && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+    showMixtapeCreator && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
       MixtapeCreator,
       {
         initialKeywords: mixtapeKeywords,
@@ -81435,7 +81405,7 @@ function TapesTable({ mixtape }) {
 }
 
 // src/tapes/index.tsx
-var import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime12 = __toESM(require_jsx_runtime(), 1);
 var MIXTAPE_STORAGE_KEY = "jeem_mixtape";
 function getMixtapeFromStorage() {
   try {
@@ -81454,7 +81424,7 @@ var initialMixtape = showMixtape ? getMixtapeFromStorage() : void 0;
 var container = document.getElementById("tapes-root");
 if (container) {
   const root = (0, import_client.createRoot)(container);
-  root.render(/* @__PURE__ */ (0, import_jsx_runtime11.jsx)(TapesTable, { mixtape: initialMixtape }));
+  root.render(/* @__PURE__ */ (0, import_jsx_runtime12.jsx)(TapesTable, { mixtape: initialMixtape }));
 }
 /*! Bundled license information:
 

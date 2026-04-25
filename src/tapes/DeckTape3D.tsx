@@ -10,7 +10,7 @@ import { stampTitle } from './TapeBody';
 // Render the 2D spool SVG to a canvas texture (cached)
 let spoolTexture: THREE.CanvasTexture | null = null;
 
-function getSpoolTexture(color = '#e8dcc4'): THREE.CanvasTexture {
+export function getSpoolTexture(color = '#e8dcc4'): THREE.CanvasTexture {
   if (spoolTexture) return spoolTexture;
 
   const size = 128;
@@ -58,31 +58,51 @@ function getSpoolTexture(color = '#e8dcc4'): THREE.CanvasTexture {
   return tex;
 }
 
-// Spool disc — a textured cylinder sitting in the cassette hub hole
-function SpoolDisc({ x, z, halfY, spinning, rpm, color }: { x: number; z: number; halfY: number; spinning?: boolean; rpm?: number; color?: string }) {
-  const ref = useRef<THREE.Mesh>(null);
-  const radius = 0.605;
+// Spool disc — a textured cylinder sitting in the cassette hub hole.
+// `spinningRef` lets the parent toggle rotation without causing re-renders; if
+// omitted, falls back to the `spinning` prop.
+export function SpoolDisc({ x, z, halfY, spinning, spinningRef, rpm, color, radius = 0.605, opacityRef, yOffset = 0.01 }: {
+  x: number; z: number; halfY: number;
+  spinning?: boolean;
+  spinningRef?: React.MutableRefObject<boolean>;
+  rpm?: number;
+  color?: string;
+  radius?: number;
+  opacityRef?: React.MutableRefObject<number>;
+  yOffset?: number;
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const angleRef = useRef(0);
   const thickness = 0.08;
   const tex = getSpoolTexture(color);
 
   useFrame((_, delta) => {
-    if (ref.current && spinning) {
-      ref.current.rotation.z += (rpm || 10) * Math.PI * 2 * delta / 60;
+    const spin = spinningRef ? spinningRef.current : spinning;
+    if (meshRef.current && spin) {
+      angleRef.current += (rpm || 10) * Math.PI * 2 * delta / 60;
+      meshRef.current.rotation.z = angleRef.current;
+    }
+    if (opacityRef && meshRef.current) {
+      const mat = meshRef.current.material as THREE.MeshStandardMaterial;
+      mat.opacity = opacityRef.current;
+      meshRef.current.visible = opacityRef.current > 0.02;
     }
   });
 
   return (
-    <mesh ref={ref} position={[x, halfY + thickness / 2 + 0.01, z]} rotation={[-Math.PI / 2, 0, 0]}>
-      <circleGeometry args={[radius, 32]} />
-      <meshStandardMaterial
-        map={tex}
-        transparent
-        alphaTest={0.1}
-        metalness={0.1}
-        roughness={0.5}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
+    <group position={[x, halfY + thickness / 2 + yOffset, z]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh ref={meshRef}>
+        <circleGeometry args={[radius, 32]} />
+        <meshStandardMaterial
+          map={tex}
+          transparent
+          alphaTest={0.1}
+          metalness={0.1}
+          roughness={0.5}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </group>
   );
 }
 

@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { Tape } from './types';
 import { TAPE_W, TAPE_H, TAPE_D, DRAG_HEIGHT, to3D } from './coords';
 import { loadFBXCached, useVariantTextures, VARIANTS, VARIANT_TO_MESH } from './Tape3D';
+import { SpoolDisc } from './DeckTape3D';
 
 // Matches DragState in coords.ts — inlined to avoid bundler issues
 interface DragState {
@@ -45,6 +46,7 @@ interface VariantGeo {
   halfX: number;
   halfY: number;
   halfZ: number;
+  scale: number;
 }
 const variantMeta = new Map<string, VariantGeo>();
 let fbxDumped = false;
@@ -85,7 +87,7 @@ function extractVariant(fbx: THREE.Group, meshName: string): { group: THREE.Grou
   const group = new THREE.Group();
   if (!targetMesh) {
     console.warn('[TapeBody] mesh not found:', meshName);
-    return { group, geo: { halfX: 7, halfY: 0.8, halfZ: 3.6 } };
+    return { group, geo: { halfX: 7, halfY: 0.8, halfZ: 3.6, scale: 1 } };
   }
 
   const m = targetMesh as THREE.Mesh;
@@ -116,6 +118,7 @@ function extractVariant(fbx: THREE.Group, meshName: string): { group: THREE.Grou
     halfX: (size.x * scale) / 2 * shrink,
     halfY: (size.y * scale) / 2 * shrink,
     halfZ: (size.z * scale) / 2 * shrink,
+    scale,
   };
   variantMeta.set(meshName, result);
 
@@ -359,6 +362,8 @@ export function TapeBody({
   // Snap-into-recorder state (post-drop tween + pinning).
   const isSnapping = useRef(false);
   const isLoaded = useRef(false);
+  const [loaded, setLoaded] = useState(false);
+  const spinRef = useRef(false);
   const snapElapsed = useRef(0);
   const snapStart = useRef({ x: 0, y: 0, z: 0, qx: 0, qy: 0, qz: 0, qw: 1 });
   const snapTarget = useRef({ x: 0, y: 0, z: 0, yaw: 0 });
@@ -447,6 +452,7 @@ export function TapeBody({
         if (wasInRecorder) {
           if (isLoaded.current) body.setBodyType(0, true);
           isLoaded.current = false;
+          setLoaded(false);
           isSnapping.current = false;
           if (snap.tapeId === tape.id) snap.tapeId = null;
         }
@@ -584,6 +590,7 @@ export function TapeBody({
       if (t01 >= 1) {
         isSnapping.current = false;
         isLoaded.current = true;
+        setLoaded(true);
         // Switch to kinematic while loaded — no physics contacts, no jitter.
         body.setBodyType(2, true);
       }
@@ -594,6 +601,7 @@ export function TapeBody({
       if (snap.tapeId !== tape.id) {
         // Another tape took the recorder slot — fall.
         isLoaded.current = false;
+        setLoaded(false);
         body.setBodyType(0, true);
         falling.current = true;
         body.setGravityScale(1, true);
@@ -620,6 +628,9 @@ export function TapeBody({
         body.setGravityScale(Math.min(1, gs + delta * 0.8), true);
       }
     }
+
+    // Spool spin only while loaded in recorder AND YouTube is playing.
+    spinRef.current = isLoaded.current && !!(window as any).AppState?.playing;
 
     // Inactivity fade. Shadow drops at opacity > 0.85 so it leads rather than
     // lags the body transition; group is hidden entirely once effectively clear.
@@ -659,25 +670,32 @@ export function TapeBody({
       <CuboidCollider args={[geo.halfX, geo.halfY, geo.halfZ]} />
       <group name={`tape-${tape.id}`} ref={groupRef}>
         <primitive object={sceneData.group} />
+        {loaded && (
+          <>
+            <SpoolDisc
+              x={-1.9 * geo.scale - 0.325}
+              z={0.3 * geo.scale}
+              halfY={geo.halfY}
+              spinningRef={spinRef}
+              opacityRef={opacityRef}
+              rpm={15}
+              radius={0.765 * geo.scale}
+              yOffset={-0.1}
+            />
+            <SpoolDisc
+              x={1.9 * geo.scale}
+              z={0.3 * geo.scale}
+              halfY={geo.halfY}
+              spinningRef={spinRef}
+              opacityRef={opacityRef}
+              rpm={30}
+              radius={0.765 * geo.scale}
+              yOffset={-0.1}
+            />
+          </>
+        )}
       </group>
 
-      {/* Context menu */}
-      {menuOpen && (
-        <Html center position={[0, 0.5, 0]} style={{ pointerEvents: 'auto' }}>
-          <div style={{
-            display: 'flex', gap: 6, whiteSpace: 'nowrap',
-          }} onPointerDown={(e) => e.stopPropagation()}>
-            <button
-              onClick={(e) => { e.stopPropagation(); onMenuAction?.(tape.id, 'rewind'); }}
-              style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#333', color: '#fff', fontSize: 12, cursor: 'pointer', fontFamily: "'Courier New', monospace" }}
-            >Rewind</button>
-            <button
-              onClick={(e) => { e.stopPropagation(); onMenuAction?.(tape.id, 'remove'); }}
-              style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#ef4444', color: '#fff', fontSize: 12, cursor: 'pointer', fontFamily: "'Courier New', monospace" }}
-            >Remove</button>
-          </div>
-        </Html>
-      )}
     </RigidBody>
   );
 }

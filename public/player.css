@@ -642,27 +642,6 @@ input:focus, select:focus, textarea:focus, button:focus {
   color: rgba(250, 249, 246, 0.8);
 }
 
-.pause-overlay {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 6em;
-  color: rgba(250, 249, 246, 0.9);
-  background-color: rgba(0, 0, 0, 0);
-  padding: 40px 50px;
-  pointer-events: none;
-  z-index: 100;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.pause-overlay.visible {
-  opacity: 1;
-}
-.pause-overlay i {
-  display: block;
-}
-
 /* ── Popup ── */
 
 .popup .popuptext {

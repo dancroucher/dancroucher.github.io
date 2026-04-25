@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, InfiniteConfig, InfiniteTrack } from './types';
+import { to3D } from './coords';
 import { loadTapes, saveTapes } from './db';
 import { CassetteTape } from './CassetteTape';
 import { DeckTape3D } from './DeckTape3D';
@@ -269,73 +270,26 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     } else {
       setPlaylistTracks(null);
     }
-    wipeTransition(
-      // Behind the wipe: despawn all, set up player view
-      () => {
-        setPlayerTapeId('__despawn__');
-        setView('player');
-        const startForm = document.getElementById('start-form');
-        if (startForm) startForm.style.display = 'none';
-        // Centre camera between tape (x=-12) and UI panel — offset to x=-4
-        requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { x: -4 } })));
-      },
-      // After uncover: spawn the tape dropping from height
-      () => {
-        setPlayerTapeId(tapeId);
-        setNewTapeIds(s => new Set(s).add(tapeId));
-        setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(tapeId); return n; }), 2000);
-      },
-    );
-  }, [wipeTransition]);
+    setPlayerTapeId(tapeId);
+    setView('player');
+  }, []);
 
   // Tape excluded from table render — used to force remount for drop animation
   const [excludeTapeId, setExcludeTapeId] = useState<string | null>(null);
 
-  const exitPlayerView = useCallback((droppingTapeId?: string) => {
-    wipeTransition(
-      // Behind the wipe: swap to table view, exclude dropping tape so it unmounts
-      () => {
-        if (droppingTapeId) setExcludeTapeId(droppingTapeId);
-        setView('table');
-        setPlayerTapeId(null);
-        setLoadedTape(null);
-        setIsPlaying(false);
-        setPlaylistTracks(null);
-        if (window.myApp) {
-          try { window.myApp.player.pause(); } catch {}
-          const songEl = document.getElementById('song-container');
-          const titleEl = document.getElementById('title-container');
-          const padEl = document.getElementById('padinfo');
-          if (songEl) songEl.style.display = 'none';
-          if (titleEl) titleEl.style.display = 'none';
-          if (padEl) padEl.style.display = 'none';
-          if (window.AppState) {
-            window.AppState.playing = false;
-            window.AppState.starting = true;
-            window.AppState.infiniteTape = false;
-          }
-        }
-        const deckEl = document.getElementById('tape-deck');
-        if (deckEl) deckEl.style.display = 'none';
-        const startForm = document.getElementById('start-form');
-        if (startForm) startForm.style.display = '';
-        const startEl = document.getElementById('start-container');
-        if (startEl) startEl.style.display = 'flex';
-        if (window.switchBgType) window.switchBgType(5);
-      },
-      // After uncover: re-add the tape as new so it remounts and drops from height
-      droppingTapeId ? () => {
-        setNewTapeIds(s => new Set(s).add(droppingTapeId));
-        setExcludeTapeId(null);
-        setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(droppingTapeId); return n; }), 2000);
-      } : undefined,
-    );
-  }, [wipeTransition]);
+  const exitPlayerView = useCallback((opts?: { skipCameraReset?: boolean }) => {
+    setPlayerTapeId(null);
+    setView('table');
+    setPlaylistTracks(null);
+    if (!opts?.skipCameraReset) {
+      window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { tx: 0, tz: 0, animate: true } }));
+    }
+  }, []);
 
   // Listen for logo click to return to table view
   useEffect(() => {
     function handleLogoClick(e: Event) {
-      if (view !== 'player') return;
+      if (!playerTapeId) return;
       e.preventDefault();
       // Clean up any in-progress mixtape creation
       if (showMixtapeCreator) {
@@ -351,7 +305,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     const logos = document.querySelectorAll('.start-title a, .title a');
     logos.forEach(el => el.addEventListener('click', handleLogoClick));
     return () => logos.forEach(el => el.removeEventListener('click', handleLogoClick));
-  }, [view, exitPlayerView, showMixtapeCreator]);
+  }, [playerTapeId, exitPlayerView, showMixtapeCreator]);
 
   // 2D deck UI is hidden entirely — 3D recorder replaces it in player view.
   useLayoutEffect(() => {
@@ -686,23 +640,13 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       setShowMixtapeCreator(true);
       setMixtapeGenerating(true);
 
-      // Wipe to view 2 — no tape yet, just empty table with generating overlay
       setMenuId(null);
-      wipeTransition(
-        () => {
-          setPlayerTapeId('__despawn__');
-          setView('player');
-          const startForm = document.getElementById('start-form');
-          if (startForm) startForm.style.display = 'none';
-          const deckEl = document.getElementById('tape-deck');
-          if (deckEl) deckEl.style.display = 'none';
-          requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { x: -4 } })));
-        },
-      );
+      setView('player');
+      window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { tx: 0, tz: 0, animate: true } }));
     }
     window.addEventListener('jeem-create-mixtape', handleCreateMixtape);
     return () => window.removeEventListener('jeem-create-mixtape', handleCreateMixtape);
-  }, [wipeTransition]);
+  }, []);
 
   // ── Play a single video by ID (used for infinite tape tracks) ──
   const playVideoById = useCallback((videoId: string, title: string, author: string, seekProgress = 0) => {
@@ -955,7 +899,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       }
     }
 
-    if (window.switchBgType) window.switchBgType(5);
   }, []);
   autoEjectRef.current = autoEject;
 
@@ -965,30 +908,40 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const [dragging3D, setDragging3D] = useState(false);
 
   // --- 3D table callbacks ---
-  const handle3DDragStart = useCallback(() => {
+  // Track whether the current drag ended in a recorder load — we skip
+  // exitPlayerView so the loaded UI stays up after release.
+  const recorderLoadedDuringDragRef = useRef(false);
+  const handle3DDragStart = useCallback((tapeId: string) => {
     cancelMenu();
     setDragging3D(true);
-  }, [cancelMenu]);
+    recorderLoadedDuringDragRef.current = false;
+    if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
+    enterPlayerView(tapeId);
+  }, [cancelMenu, enterPlayerView, showMixtapeCreator]);
 
   const handle3DDragEnd = useCallback((tapeId: string, x2d: number, y2d: number, droppedOnDeck: boolean) => {
     setDragging3D(false);
     // Block interaction with mixtape tape while creator is open
     if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
-    if (droppedOnDeck && view === 'player') {
-      // Only allow deck loading in player view
+    if (droppedOnDeck) {
       const t = tapesRef.current.find(t => t.id === tapeId);
       if (t) loadIntoPlayer(t);
-    } else if (!droppedOnDeck && view === 'table') {
-      // Only save position changes in table view
-      setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: x2d, y: y2d } : t));
+      return;
     }
-  }, [loadIntoPlayer, showMixtapeCreator, view]);
+    setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: x2d, y: y2d } : t));
+    if (!recorderLoadedDuringDragRef.current) {
+      // Drag-end camera handling lives in TapesTable3D (zoom-only restore).
+      // Skip the centre-camera reset here so xz stays where it is.
+      exitPlayerView({ skipCameraReset: true });
+    }
+  }, [loadIntoPlayer, showMixtapeCreator, exitPlayerView]);
 
   // Recorder snap/eject → playback. Tape stays visible in 3D scene (recorderSourced=true
   // tells the 3D component not to filter the loaded tape out for the deck).
   const handleRecorderLoad = useCallback((tapeId: string) => {
     const t = tapesRef.current.find(t => t.id === tapeId);
     if (!t) return;
+    recorderLoadedDuringDragRef.current = true;
     setRecorderSourced(true);
     // Lock this tape from being yanked back out until YouTube actually starts
     // playing. Safety timeout clears the lock if PLAYING never fires (e.g. a
@@ -1009,14 +962,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     autoEjectRef.current();
   }, []);
 
-  const handle3DDoubleTap = useCallback((tapeId: string) => {
-    if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
-    if (view === 'table') {
-      enterPlayerView(tapeId);
-    } else if (view === 'player') {
-      exitPlayerView(tapeId);
-    }
-  }, [showMixtapeCreator, view, enterPlayerView, exitPlayerView]);
+  const handle3DDoubleTap = useCallback((_tapeId: string) => {
+    // Double-tap disabled — player view UI now toggles on press-and-hold drag.
+  }, []);
 
   const handle3DMenuAction = useCallback((_tapeId: string, _action: 'link' | 'rewind' | 'remove') => {
     // Context menu disabled — functionality will be rebuilt later
@@ -1140,15 +1088,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           window.AppState.starting = true;
           window.AppState.infiniteTape = false;
         }
-        // Suppress pause overlay (state_change fires async after pause)
-        setTimeout(() => {
-          const pauseEl = document.getElementById('pause-overlay');
-          if (pauseEl) pauseEl.classList.remove('visible');
-        }, 50);
       }
-
-      // Switch to tapes bg so user can see where the tape lands
-      if (window.switchBgType) window.switchBgType(5);
 
       // Hand off to 3D drag system — tape will appear on table and be picked up
       // Store screen coords so the 3D scene can raycast the initial position
@@ -1272,9 +1212,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       {/* 3D table with FBX tapes, physics, drag, camera pan */}
       <Suspense fallback={<div style={{ flex: 1, background: '#0a0805' }} />}>
         <TapesTable3D
-          tapes={view === 'player' && playerTapeId
-            ? positionedTapes.filter(t => t.id === playerTapeId).map(t => ({ ...t, x: CANVAS_W * 0.35 + 150, y: CANVAS_H / 2 }))
-            : positionedTapes.filter(t => t.id !== excludeTapeId)}
+          tapes={positionedTapes.filter(t => t.id !== excludeTapeId)}
           loadedTapeId={recorderSourced ? null : (loadedTape?.id ?? null)}
           onDragStart={handle3DDragStart}
           onDragEnd={handle3DDragEnd}
@@ -1286,16 +1224,16 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           externalDrag={externalDrag.current}
           lockedTapeId={showMixtapeCreator ? MIXTAPE_ID : null}
           pickupBlockedTapeId={recorderLoadingId}
-          maxDragX={view === 'player' ? -6 : undefined}
-          lockCamera={view === 'player' || showMixtapeCreator}
+          lockCamera={showMixtapeCreator || view === 'player'}
+          freePan={view === 'player' || dragging3D}
           onRecorderLoad={handleRecorderLoad}
           onRecorderEject={handleRecorderEject}
-          showRecorder={view === 'player'}
+          showRecorder={true}
         />
       </Suspense>
 
 {/* Unified tape info + tracklist panel — single layout for idle and playback */}
-      {view === 'player' && playerTapeId && !showMixtapeCreator && (() => {
+      {playerTapeId && !showMixtapeCreator && (() => {
         // Prefer loaded tape (source of truth during playback), else the focused player tape
         const tape = loadedTape ?? tapes.find(t => t.id === playerTapeId);
         if (!tape) return null;
@@ -1428,34 +1366,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 })}
               </div>
             )}
-            {/* Rewind + Remove buttons — always mounted; hidden (but space reserved)
-                during playback so the tracklist doesn't jump when interactive toggles. */}
-            <div style={{
-              display: 'flex', justifyContent: 'flex-start', gap: '8px',
-              marginTop: '16px', paddingTop: '12px',
-              flexShrink: 0,
-              visibility: interactive ? 'hidden' : 'visible',
-              pointerEvents: interactive ? 'none' : 'auto',
-            }}>
-              <button
-                className="tape-ui-btn"
-                onClick={() => { rewindTape(tape.id); }}
-                style={{
-                  fontFamily: "'04b03', monospace", fontSize: '1em', lineHeight: '1em',
-                  color: 'rgba(250,249,246,0.9)', background: 'transparent',
-                  borderRadius: 0, padding: '6px 10px 3px', cursor: 'pointer',
-                }}
-              >rewind</button>
-              <button
-                className="tape-ui-btn"
-                onClick={() => { deleteTape(tape.id); exitPlayerView(); }}
-                style={{
-                  fontFamily: "'04b03', monospace", fontSize: '1em', lineHeight: '1em',
-                  color: 'rgba(250,249,246,0.9)', background: 'transparent',
-                  borderRadius: 0, padding: '6px 10px 3px', cursor: 'pointer',
-                }}
-              >remove</button>
-            </div>
           </div>,
           document.body
         );

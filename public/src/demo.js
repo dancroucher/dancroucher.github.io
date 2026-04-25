@@ -89,11 +89,6 @@ var Demo = (function () {
                     // Single video ended — notify React to rewind & eject
                     if (window.TapesBridge) window.TapesBridge.onTrackEnded();
                 }
-                if (state === 2 && !AppState.starting) {
-                    this._showOverlay("pause-overlay");
-                } else {
-                    this._hideOverlay("pause-overlay");
-                }
             });
         },
 
@@ -111,20 +106,24 @@ var Demo = (function () {
         togglePlayback: function () {
             const state = this.player.get_player_state();
             const bgVideo = Backgrounds.getActiveVideo();
+            const isMedia = Backgrounds._isMediaType();
             if (state === 2) {
                 this.player.play();
-                if (Backgrounds._isMediaType() && bgVideo) bgVideo.play();
+                if (isMedia && bgVideo) bgVideo.play();
                 AppState.playing = true;
                 if (window.TapesBridge) window.TapesBridge.notifyPlayState(true);
-                this._hideOverlay("pause-overlay");
             } else if (state === 1) {
                 this.player.pause();
-                if (Backgrounds._isMediaType() && bgVideo) bgVideo.pause();
+                if (isMedia && bgVideo) bgVideo.pause();
                 AppState.playing = false;
                 if (window.TapesBridge) window.TapesBridge.notifyPlayState(false);
-                this._showOverlay("pause-overlay");
-                // Save progress on pause
                 this._saveProgress();
+            } else if (isMedia && bgVideo) {
+                // YT player not in play/pause state (e.g. start screen,
+                // unstarted, cued) — still toggle the background video so
+                // space reliably pauses whatever's on screen.
+                if (bgVideo.paused) bgVideo.play();
+                else bgVideo.pause();
             }
         },
 

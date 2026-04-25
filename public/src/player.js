@@ -18,7 +18,6 @@ const DOM = {
     bgYoutube: document.getElementById("bg-youtube"),
     bgNone: document.getElementById("bg-none"),
     bgTransition: document.getElementById("bg-transition"),
-    pauseOverlay: document.getElementById("pause-overlay"),
     loadingOverlay: document.getElementById("loading-overlay"),
     trackNumber: document.getElementById("track-number"),
     playlistPrev: document.getElementById("playlist-prev"),
@@ -29,7 +28,7 @@ const DOM = {
 };
 
 // ── Background management ──
-const BG_TYPES = ["vintage", "anime", "video", "original", "none", "tapes"];
+const BG_TYPES = ["vintage", "anime", "video", "original"];
 const CHANGE_TIMES = [0, 30, 10]; // seconds (0 = off)
 
 const Backgrounds = {
@@ -49,6 +48,10 @@ const Backgrounds = {
     _initVideos() {
         this._activeEl = DOM.mp4BackgroundA;
         this._inactiveEl = DOM.mp4BackgroundB;
+    },
+
+    _activeKey() {
+        return this._activeEl === DOM.mp4BackgroundA ? 'a' : 'b';
     },
 
     // Get the currently active background video element (for play/pause sync)
@@ -112,34 +115,38 @@ const Backgrounds = {
         const outgoing = this._activeEl;
         const needsLoad = incoming.getAttribute("src") !== newSrc;
 
+        const inTableMode = DOM.tapesRoot && DOM.tapesRoot.style.display !== "none";
         const doSwap = () => {
-            // Start glitch animation on the container
-            document.documentElement.classList.add("glitching");
-            DOM.bgMp4.classList.add("glitching");
-            // Also glitch the 3D canvas — the real video plays there while
-            // tapes-active, which hides #bg-mp4 so its CSS keyframes are
-            // invisible on their own. CSS for #tapes-root.glitching reuses
-            // the same bg-glitch keyframes.
-            DOM.tapesRoot.classList.add("glitching");
+            if (!inTableMode) {
+                document.documentElement.classList.add("glitching");
+                DOM.bgMp4.classList.add("glitching");
+            }
 
             // Swap videos at peak blowout (~270ms into 600ms animation)
             setTimeout(() => {
                 if (AppState.playing) incoming.play();
                 incoming.classList.add("active");
                 outgoing.classList.remove("active");
+                // Commit the swap in state immediately so React's dual-plane
+                // TableSurface can tween opacity from outgoing → incoming
+                // while the CSS glitch masks the instant.
+                this._activeEl = incoming;
+                this._inactiveEl = outgoing;
+                window.dispatchEvent(new CustomEvent('jeem-bg-swap', {
+                    detail: { activeKey: this._activeKey() }
+                }));
             }, 270);
 
             // Clean up after animation ends
             setTimeout(() => {
                 document.documentElement.classList.remove("glitching");
                 DOM.bgMp4.classList.remove("glitching");
-                DOM.tapesRoot.classList.remove("glitching");
+                // `outgoing` was the pre-swap active element — now the
+                // inactive one. Pause it but leave the src in place; the
+                // React plane has already faded it to opacity 0, and the
+                // next _preloadNext will reuse or replace its src. This
+                // avoids the emptied/black-plane window we used to hit.
                 outgoing.pause();
-                outgoing.removeAttribute("src");
-                outgoing.load();
-
-                this._activeEl = incoming;
-                this._inactiveEl = outgoing;
                 this._transitioning = false;
 
                 this._preloadNext();
@@ -177,6 +184,7 @@ const Backgrounds = {
             detail: {
                 bgTypeIndex: index,
                 videoEl: this._isMediaType() ? this._activeEl : null,
+                activeKey: this._isMediaType() ? this._activeKey() : null,
             }
         }));
 
@@ -190,32 +198,18 @@ const Backgrounds = {
             DOM.bgMp4.style.display = "block";
             DOM.bgNone.style.background = "#000000";
             DOM.bgYoutube.style.display = "block";
-            DOM.tapesRoot.style.display = "flex";
-        } else if (index === 3) {
+        } else {
+            // original (YouTube)
             this._clearVideos();
             DOM.bgMp4.style.display = "none";
             DOM.bgNone.style.background = "#00000000";
             DOM.bgYoutube.style.display = "block";
-            if (AppState.playing) DOM.tapesRoot.style.display = "none";
-        } else if (index === 5) {
-            // tapes
-            this._clearVideos();
-            DOM.bgMp4.style.display = "none";
-            DOM.bgNone.style.background = "#000000";
-            DOM.bgYoutube.style.display = "block";
-            DOM.tapesRoot.style.display = "flex";
-        } else {
-            // none
-            this._clearVideos();
-            DOM.bgMp4.style.display = "none";
-            DOM.bgNone.style.background = "#000000";
-            DOM.bgYoutube.style.display = "block";
-            if (AppState.playing) DOM.tapesRoot.style.display = "none";
         }
 
         // Hide bg change interval button for static modes (original, none, tapes)
         const isMedia = index <= 2;
-        DOM.backgroundAuto.style.display = isMedia ? "" : "none";
+        const inTableMode = DOM.tapesRoot && DOM.tapesRoot.style.display !== "none";
+        DOM.backgroundAuto.style.display = (isMedia && !inTableMode) ? "" : "none";
 
         if (persist) localStorage.setItem("backtype", index);
 
@@ -260,13 +254,24 @@ const Backgrounds = {
         const list = this[folder];
         if (list.length === 0) return;
 
-        this.indices[folder] = (this.indices[folder] + 1) % list.length;
-        this._crossfade(this._srcFor(folder, this.indices[folder]));
+        // Pick a new index that differs from the current one so auto-change
+        // never transitions to the same video it's already on.
+        let nextIndex;
+        if (list.length === 1) {
+            nextIndex = 0;
+        } else {
+            do {
+                nextIndex = Math.floor(Math.random() * list.length);
+            } while (nextIndex === this.indices[folder]);
+        }
+        this.indices[folder] = nextIndex;
+        this._crossfade(this._srcFor(folder, nextIndex));
     },
 
     loadSavedType() {
         const saved = localStorage.getItem("backtype");
-        this.bgTypeIndex = saved !== null ? parseInt(saved) : 0;
+        const idx = saved !== null ? parseInt(saved) : 0;
+        this.bgTypeIndex = idx >= 0 && idx < BG_TYPES.length ? idx : 0;
     },
 
     loadSavedChangeTime() {
@@ -523,7 +528,9 @@ const Inactivity = {
             if (infoPanel) infoPanel.style.opacity = "0";
             this._visible = false;
             document.body.style.cursor = "none";
-            window.dispatchEvent(new CustomEvent('jeem-ui-fade', { detail: { hidden: true } }));
+            if (!DOM.tapesRoot || DOM.tapesRoot.style.display === "none") {
+                window.dispatchEvent(new CustomEvent('jeem-ui-fade', { detail: { hidden: true } }));
+            }
         }
     },
 
@@ -541,7 +548,9 @@ const Inactivity = {
             if (infoPanel) infoPanel.style.opacity = "1";
             this._visible = true;
             document.body.style.cursor = "default";
-            window.dispatchEvent(new CustomEvent('jeem-ui-fade', { detail: { hidden: false } }));
+            if (!DOM.tapesRoot || DOM.tapesRoot.style.display === "none") {
+                window.dispatchEvent(new CustomEvent('jeem-ui-fade', { detail: { hidden: false } }));
+            }
         }
     },
 };
@@ -579,10 +588,42 @@ window.addEventListener("keydown", (event) => {
     }
 });
 
+// Toggle between 3D table view and vanilla 2D playback view.
+// Hides #tapes-root and removes .tapes-active so #bg-mp4 / #bg-youtube show.
+// Remembers the current bg mode — does not change Backgrounds.bgTypeIndex.
+window.toggleTableView = function () {
+    const root = DOM.tapesRoot;
+    const crt = document.querySelector(".crt");
+    const btn = document.getElementById("table-toggle");
+    const bgTypeBtn = document.getElementById("background-type");
+    const bgAutoBtn = document.getElementById("background-auto");
+    const showing = root && root.style.display !== "none";
+    if (showing) {
+        if (root) root.style.display = "none";
+        if (crt) crt.classList.remove("tapes-active");
+        if (btn) btn.innerHTML = `<i class='fas fa-tv'></i>&nbsp;video`;
+        if (bgTypeBtn) bgTypeBtn.style.display = "";
+        if (bgAutoBtn) bgAutoBtn.style.display = "";
+    } else {
+        if (root) root.style.display = "flex";
+        if (crt) crt.classList.add("tapes-active");
+        if (btn) btn.innerHTML = `<i class='fas fa-th'></i>&nbsp;table`;
+        if (bgTypeBtn) bgTypeBtn.style.display = "none";
+        if (bgAutoBtn) bgAutoBtn.style.display = "none";
+    }
+};
+
 // ── Click handlers for UI buttons ──
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("background-type")?.addEventListener("click", () => Backgrounds.cycleType());
     document.getElementById("background-auto")?.addEventListener("click", () => Backgrounds.cycleChangeTime());
+    document.getElementById("table-toggle")?.addEventListener("click", () => window.toggleTableView && window.toggleTableView());
+    if (DOM.tapesRoot && DOM.tapesRoot.style.display !== "none") {
+        const bgTypeBtn = document.getElementById("background-type");
+        const bgAutoBtn = document.getElementById("background-auto");
+        if (bgTypeBtn) bgTypeBtn.style.display = "none";
+        if (bgAutoBtn) bgAutoBtn.style.display = "none";
+    }
     document.getElementById("fullscreen-btn")?.addEventListener("click", doFullscreen);
     document.getElementById("info-btn")?.addEventListener("click", doPopup);
     DOM.playlistPrev.addEventListener("click", () => {

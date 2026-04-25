@@ -64,60 +64,80 @@ function DebugGrid() {
   );
 }
 
-interface BgInfo { bgTypeIndex: number; videoEl: HTMLVideoElement | null }
+type ActiveKey = 'a' | 'b';
+interface BgInfo { bgTypeIndex: number; activeKey: ActiveKey }
 
 export function TableSurface() {
   const woodTexture = useLoader(THREE.TextureLoader, '/wood-table-alt.jpg');
 
-  // Bridged from public/src/player.js via the `jeem-bg-change` CustomEvent.
-  // Indices 0–2 are MP4 modes (vintage/anime/video) — the table renders the
-  // active <video> as a VideoTexture so the recorder stays usable for eject.
-  // Read synchronously on first render so we don't miss the init-time event.
+  // Dual video elements owned by the vanilla JS layer. We always bind a
+  // VideoTexture to each and crossfade plane opacity on swap, so the
+  // transition timing is driven entirely by React — no DOM-element flip in
+  // the middle of the fade.
+  const videoElA = useMemo(() => document.getElementById('mp4-background-a') as HTMLVideoElement | null, []);
+  const videoElB = useMemo(() => document.getElementById('mp4-background-b') as HTMLVideoElement | null, []);
+
+  // Bridged from public/src/player.js via `jeem-bg-change` (mode change) and
+  // `jeem-bg-swap` (A↔B swap during crossfade). Read synchronously on first
+  // render so we don't miss the init-time event.
   const [bgInfo, setBgInfo] = useState<BgInfo>(() => {
     const bg = (window as any).Backgrounds;
-    if (!bg) return { bgTypeIndex: -1, videoEl: null };
-    const isMedia = typeof bg._isMediaType === 'function' ? bg._isMediaType() : (bg.bgTypeIndex >= 0 && bg.bgTypeIndex <= 2);
-    return {
-      bgTypeIndex: bg.bgTypeIndex ?? -1,
-      videoEl: isMedia ? (bg._activeEl ?? null) : null,
-    };
+    if (!bg) return { bgTypeIndex: -1, activeKey: 'a' };
+    const activeKey: ActiveKey = bg._activeEl && bg._activeEl.id === 'mp4-background-b' ? 'b' : 'a';
+    return { bgTypeIndex: bg.bgTypeIndex ?? -1, activeKey };
   });
 
   useEffect(() => {
-    function handler(e: Event) {
-      const detail = (e as CustomEvent).detail as BgInfo | undefined;
-      setBgInfo({
+    function onChange(e: Event) {
+      const detail = (e as CustomEvent).detail as { bgTypeIndex?: number; activeKey?: ActiveKey } | undefined;
+      setBgInfo((prev) => ({
         bgTypeIndex: detail?.bgTypeIndex ?? -1,
-        videoEl: detail?.videoEl ?? null,
-      });
+        activeKey: detail?.activeKey ?? prev.activeKey,
+      }));
     }
-    window.addEventListener('jeem-bg-change', handler);
-    return () => window.removeEventListener('jeem-bg-change', handler);
+    function onSwap(e: Event) {
+      const detail = (e as CustomEvent).detail as { activeKey?: ActiveKey } | undefined;
+      if (!detail?.activeKey) return;
+      setBgInfo((prev) => ({ ...prev, activeKey: detail.activeKey! }));
+    }
+    window.addEventListener('jeem-bg-change', onChange);
+    window.addEventListener('jeem-bg-swap', onSwap);
+    return () => {
+      window.removeEventListener('jeem-bg-change', onChange);
+      window.removeEventListener('jeem-bg-swap', onSwap);
+    };
   }, []);
 
-  const isMediaMode = bgInfo.bgTypeIndex >= 0 && bgInfo.bgTypeIndex <= 2;
+  // Surface video disabled — playback reverts to the vanilla 2D layer.
+  // Was: bgInfo.bgTypeIndex >= 0 && bgInfo.bgTypeIndex <= 2
+  const isMediaMode = false;
 
-  // Gate the video plane on the <video> actually having data. At initial load,
-  // Backgrounds defaults to index 0 (media) but no src has been set yet, so the
-  // video renders as a black rectangle. Only flip to video mode once the
-  // element reports readyState >= 2.
-  const [hasLoadedVideo, setHasLoadedVideo] = useState(false);
+  // Track per-element "has data" so a plane whose video hasn't loaded yet
+  // stays at opacity 0 (prevents black-flash on first paint + on any window
+  // where an element is between src swaps).
+  const [loadedA, setLoadedA] = useState(false);
+  const [loadedB, setLoadedB] = useState(false);
   useEffect(() => {
-    const v = bgInfo.videoEl;
-    if (!isMediaMode || !v) { setHasLoadedVideo(false); return; }
-    const check = () => setHasLoadedVideo(!!v.currentSrc && v.readyState >= 2);
-    check();
-    v.addEventListener('loadeddata', check);
-    v.addEventListener('canplay', check);
-    v.addEventListener('emptied', check);
-    return () => {
-      v.removeEventListener('loadeddata', check);
-      v.removeEventListener('canplay', check);
-      v.removeEventListener('emptied', check);
-    };
-  }, [isMediaMode, bgInfo.videoEl]);
+    function bind(v: HTMLVideoElement | null, setLoaded: (b: boolean) => void) {
+      if (!v) return () => {};
+      const check = () => setLoaded(!!v.currentSrc && v.readyState >= 2);
+      check();
+      v.addEventListener('loadeddata', check);
+      v.addEventListener('canplay', check);
+      v.addEventListener('emptied', check);
+      return () => {
+        v.removeEventListener('loadeddata', check);
+        v.removeEventListener('canplay', check);
+        v.removeEventListener('emptied', check);
+      };
+    }
+    const offA = bind(videoElA, setLoadedA);
+    const offB = bind(videoElB, setLoadedB);
+    return () => { offA(); offB(); };
+  }, [videoElA, videoElB]);
 
-  const showVideo = isMediaMode && hasLoadedVideo;
+  const activeLoaded = bgInfo.activeKey === 'a' ? loadedA : loadedB;
+  const showVideo = isMediaMode && activeLoaded;
 
   // Mirror Recorder3D's UI-fade signal so the cast-shadow on the video plane
   // fades in/out with the recorder body instead of snapping on/off.
@@ -144,52 +164,63 @@ export function TableSurface() {
   });
 
 
-  const videoTexture = useMemo(() => {
-    if (!isMediaMode || !bgInfo.videoEl) return null;
-    const tex = new THREE.VideoTexture(bgInfo.videoEl);
+  function makeVideoTexture(el: HTMLVideoElement | null) {
+    if (!el) return null;
+    const tex = new THREE.VideoTexture(el);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.minFilter = THREE.LinearFilter;
     tex.magFilter = THREE.LinearFilter;
     tex.format = THREE.RGBAFormat;
     return tex;
-  }, [isMediaMode, bgInfo.videoEl]);
+  }
 
-  useEffect(() => {
-    return () => { videoTexture?.dispose(); };
-  }, [videoTexture]);
+  const textureA = useMemo(() => makeVideoTexture(videoElA), [videoElA]);
+  const textureB = useMemo(() => makeVideoTexture(videoElB), [videoElB]);
 
-  // Force VideoTexture to refresh from the element every frame. Three.js does
-  // this automatically in most builds, but explicit needsUpdate is a cheap
-  // safety net and guarantees the plane never freezes on a stale frame.
-  const texRef = useRef<THREE.VideoTexture | null>(null);
-  texRef.current = videoTexture;
+  useEffect(() => () => { textureA?.dispose(); }, [textureA]);
+  useEffect(() => () => { textureB?.dispose(); }, [textureB]);
+
+  // Force VideoTextures to refresh from their elements every frame.
   useFrame(() => {
-    const tex = texRef.current;
-    const v = tex?.image as HTMLVideoElement | undefined;
-    if (tex && v && v.readyState >= 2) tex.needsUpdate = true;
+    if (textureA) {
+      const v = textureA.image as HTMLVideoElement | undefined;
+      if (v && v.readyState >= 2) textureA.needsUpdate = true;
+    }
+    if (textureB) {
+      const v = textureB.image as HTMLVideoElement | undefined;
+      if (v && v.readyState >= 2) textureB.needsUpdate = true;
+    }
   });
 
-  // Keep the video playing. player.js pauses it whenever no tape is playing,
-  // which freezes the texture. We force play via multiple triggers and a
-  // low-frequency polling fallback so browser quirks can't leave us stuck.
+  // Keep both video elements playing whenever AppState.playing is true.
+  // player.js pauses outgoing elements at the end of a crossfade, so we don't
+  // auto-kick the inactive one — only the active one needs to be running for
+  // its texture to stay live.
   useEffect(() => {
-    const v = bgInfo.videoEl;
-    if (!isMediaMode || !v) return;
-    v.muted = true;
-    (v as any).playsInline = true;
-    const kick = () => { v.play().catch(() => {}); };
-    kick();
-    v.addEventListener('pause', kick);
-    v.addEventListener('loadeddata', kick);
-    v.addEventListener('canplay', kick);
-    const poll = setInterval(() => { if (v.paused) kick(); }, 500);
-    return () => {
-      v.removeEventListener('pause', kick);
-      v.removeEventListener('loadeddata', kick);
-      v.removeEventListener('canplay', kick);
-      clearInterval(poll);
-    };
-  }, [isMediaMode, bgInfo.videoEl]);
+    if (!isMediaMode) return;
+    const offs: Array<() => void> = [];
+    function wire(v: HTMLVideoElement | null, isActive: () => boolean) {
+      if (!v) return;
+      v.muted = true;
+      (v as any).playsInline = true;
+      const shouldPlay = () => isActive() && !!(window as any).AppState?.playing;
+      const kick = () => { if (shouldPlay()) v.play().catch(() => {}); };
+      kick();
+      v.addEventListener('pause', kick);
+      v.addEventListener('loadeddata', kick);
+      v.addEventListener('canplay', kick);
+      const poll = setInterval(() => { if (v.paused && shouldPlay()) v.play().catch(() => {}); }, 500);
+      offs.push(() => {
+        v.removeEventListener('pause', kick);
+        v.removeEventListener('loadeddata', kick);
+        v.removeEventListener('canplay', kick);
+        clearInterval(poll);
+      });
+    }
+    wire(videoElA, () => bgInfo.activeKey === 'a');
+    wire(videoElB, () => bgInfo.activeKey === 'b');
+    return () => { offs.forEach((f) => f()); };
+  }, [isMediaMode, videoElA, videoElB, bgInfo.activeKey]);
 
   const woodMaterial = useMemo(() => {
     woodTexture.wrapS = woodTexture.wrapT = THREE.RepeatWrapping;
@@ -203,10 +234,29 @@ export function TableSurface() {
     });
   }, [woodTexture]);
 
-  const videoMaterial = useMemo(() => {
-    if (!videoTexture) return null;
-    return new THREE.MeshBasicMaterial({ map: videoTexture, toneMapped: false });
-  }, [videoTexture]);
+  const videoMaterialA = useMemo(() => {
+    if (!textureA) return null;
+    return new THREE.MeshBasicMaterial({ map: textureA, toneMapped: false, transparent: true });
+  }, [textureA]);
+  const videoMaterialB = useMemo(() => {
+    if (!textureB) return null;
+    return new THREE.MeshBasicMaterial({ map: textureB, toneMapped: false, transparent: true });
+  }, [textureB]);
+
+  // Tween plane opacities toward their targets. During a crossfade both
+  // planes are visible and we fade A→B (or B→A) smoothly; outside a swap,
+  // the inactive plane sits at 0 so only the active video is visible.
+  const opacityARef = useRef(bgInfo.activeKey === 'a' ? 1 : 0);
+  const opacityBRef = useRef(bgInfo.activeKey === 'b' ? 1 : 0);
+  useFrame((_, dt) => {
+    const targetA = (bgInfo.activeKey === 'a' && loadedA && isMediaMode) ? 1 : 0;
+    const targetB = (bgInfo.activeKey === 'b' && loadedB && isMediaMode) ? 1 : 0;
+    const k = 1 - Math.exp(-dt * 10); // ~300ms fade
+    opacityARef.current += (targetA - opacityARef.current) * k;
+    opacityBRef.current += (targetB - opacityBRef.current) * k;
+    if (videoMaterialA) videoMaterialA.opacity = opacityARef.current;
+    if (videoMaterialB) videoMaterialB.opacity = opacityBRef.current;
+  });
 
 
   // CRT overlay texture — scanlines + chromatic stripes + vignette. Drawn once
@@ -281,14 +331,23 @@ export function TableSurface() {
         </mesh>
       )}
 
-      {/* Video screen — 5:3 aspect matches the original 2D canvas.
-          renderOrder=-1 ensures it renders behind other objects. */}
-      {showVideo && videoMaterial && (
+      {/* Dual video planes — both always rendered in media mode. Opacity is
+          tweened via useFrame so A↔B crossfades smoothly during a swap and
+          the table wood never peeks through between videos. */}
+      {isMediaMode && videoMaterialA && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]}>
+          <planeGeometry args={[VIDEO_W, VIDEO_H]} />
+          <primitive object={videoMaterialA} attach="material" />
+        </mesh>
+      )}
+      {isMediaMode && videoMaterialB && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.101, 0]}>
+          <planeGeometry args={[VIDEO_W, VIDEO_H]} />
+          <primitive object={videoMaterialB} attach="material" />
+        </mesh>
+      )}
+      {showVideo && (
         <>
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]}>
-            <planeGeometry args={[VIDEO_W, VIDEO_H]} />
-            <primitive object={videoMaterial} attach="material" />
-          </mesh>
           {/* Shadow-only catcher — MeshBasicMaterial on the video can't receive
               shadows, so overlay a transparent ShadowMaterial plane to draw the
               recorder's cast shadow on top of the video. */}
