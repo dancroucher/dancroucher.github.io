@@ -72,8 +72,8 @@ app.post('/api/mixtape/generate', async (req, res) => {
 
 app.post('/api/tape-share', async (req, res) => {
   try {
-    const { createShare } = await import('./api/tape-share.js');
-    createShare(req, res);
+    const { default: handler } = await import('./api/tape-share.js');
+    await handler(req, res);
   } catch (error) {
     res.status(500).json({ error: 'Tape share create failed: ' + error.message });
   }
@@ -81,8 +81,8 @@ app.post('/api/tape-share', async (req, res) => {
 
 app.get('/api/tape-share/:id', async (req, res) => {
   try {
-    const { getShare } = await import('./api/tape-share.js');
-    getShare(req, res);
+    const { default: handler } = await import('./api/tape-share/[id].js');
+    await handler(req, res);
   } catch (error) {
     res.status(500).json({ error: 'Tape share fetch failed: ' + error.message });
   }

@@ -33,6 +33,14 @@
     {
       "src": "/api/mixtape/:id",
       "dest": "/api/mixtape/[id].js"
+    },
+    {
+      "src": "/api/tape-share",
+      "dest": "/api/tape-share.js"
+    },
+    {
+      "src": "/api/tape-share/:id",
+      "dest": "/api/tape-share/[id].js"
     }
   ],
   "headers": [

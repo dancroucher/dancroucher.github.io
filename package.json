@@ -11,10 +11,11 @@
     "@react-three/fiber": "^9.5.0",
     "@react-three/rapier": "^2.2.0",
     "@types/three": "^0.183.1",
-    "idb": "^8.0.3",
+    "@upstash/redis": "^1.37.0",
     "esbuild": "^0.27.4",
     "express": "^5.2.1",
     "html2canvas": "^1.4.1",
+    "idb": "^8.0.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "three": "^0.183.2"
