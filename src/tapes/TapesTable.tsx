@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, InfiniteConfig, InfiniteTrack } from './types';
 import { to3D } from './coords';
 import { loadTapes, saveTapes } from './db';
+import { buildShareUrl, decodeTapeShare, fetchShareById, type SharePayload } from './share';
 import { CassetteTape } from './CassetteTape';
 import { DeckTape3D } from './DeckTape3D';
 import { MixtapeCreator, MIXTAPE_PANEL_STYLES, MIXTAPE_TRACK_LIST, MIXTAPE_TRACK_ROW, MIXTAPE_TRACK_NUM, MIXTAPE_TRACK_TITLE, MIXTAPE_TRACK_AUTHOR, MIXTAPE_TRACK_DURATION } from '../mixtape/Creator';
@@ -22,17 +23,12 @@ export interface MixtapeData {
   tracks: MixtapeTrack[];
 }
 
-// ── Texture variant cycling ──
-const TEXTURE_VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'];
-let nextVariantIndex = 0;
-function nextTextureVariant(): string {
-  const v = TEXTURE_VARIANTS[nextVariantIndex % TEXTURE_VARIANTS.length];
-  nextVariantIndex++;
-  return v;
-}
+// ── Texture variant selection (always random) ──
+const TEXTURE_VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'];
 function randomTextureVariant(): string {
   return TEXTURE_VARIANTS[Math.floor(Math.random() * TEXTURE_VARIANTS.length)];
 }
+const nextTextureVariant = randomTextureVariant;
 
 // ── Tape sounds (real samples) ──
 
@@ -46,6 +42,38 @@ function playSfx(src: string, volume = 1, trimEnd = 0) {
       setTimeout(() => { if (!a.paused) a.pause(); }, stopAt * 1000);
     });
   }
+}
+
+function ShareButton({ tape }: { tape: Tape }) {
+  const [copied, setCopied] = useState(false);
+  const onClick = async () => {
+    const url = await buildShareUrl(tape);
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // Fallback for non-secure contexts: select-and-copy via temp textarea
+      const ta = document.createElement('textarea');
+      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch {}
+      document.body.removeChild(ta);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <button
+      onClick={onClick}
+      className="tape-ui-btn"
+      style={{
+        background: 'rgba(0,0,0,0.5)', color: 'rgba(250,249,246,0.95)',
+        fontFamily: '"04b03", monospace', fontSize: 12, letterSpacing: '1px',
+        padding: '6px 10px', cursor: 'pointer', flexShrink: 0,
+        border: '1px solid rgba(250,249,246,0.2)',
+        pointerEvents: 'auto',
+      }}
+    >{copied ? 'copied' : 'share'}</button>
+  );
 }
 
 function playTapeInsert() { playSfx('/sfx/tape-insert.mp3', 0.6, 0.4); }
@@ -188,6 +216,7 @@ function mountMixtapeOverlay(el: HTMLElement, mixtape: MixtapeData, currentIndex
 export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const [tapes, setTapes] = useState<Tape[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [sceneReady, setSceneReady] = useState(false);
   const [menuId, setMenuId] = useState<string | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
@@ -221,6 +250,35 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // View system: 'table' = many tapes overview, 'player' = single tape focused
   const [view, setView] = useState<'table' | 'player'>('table');
   const [playerTapeId, setPlayerTapeId] = useState<string | null>(null);
+  // Inspect view: closer-zoom single-tape pose (no recorder, no controls).
+  // Toggled by double-tap from table view.
+  const [inspectTapeId, setInspectTapeId] = useState<string | null>(null);
+
+  // Fetch playlist tracks when inspecting a playlist tape (so tracklist UI shows).
+  useEffect(() => {
+    if (!inspectTapeId) return;
+    const tape = tapesRef.current.find(t => t.id === inspectTapeId);
+    if (!tape?.isPlaylist || !tape.playlistId) return;
+    if (playlistTracks && playlistTracks.name === (tape.title || 'Playlist')) return;
+    setPlaylistTracks(null);
+    fetch(`/api/playlist-tracks?list=${encodeURIComponent(tape.playlistId)}`)
+      .then(r => r.ok ? r.json() : [])
+      .then((tracks: MixtapeTrack[]) => {
+        if (tracks.length > 0) {
+          setPlaylistTracks({ name: tape.title || 'Playlist', description: '', tracks });
+        }
+      })
+      .catch(() => {});
+  }, [inspectTapeId]);
+
+  // Hide vanilla search/mixtape/lucky UI while inspecting a tape.
+  useEffect(() => {
+    const form = document.getElementById('start-form');
+    if (!form) return;
+    const prev = form.style.display;
+    if (inspectTapeId) form.style.display = 'none';
+    return () => { form.style.display = prev; };
+  }, [inspectTapeId]);
   const tapesRef = useRef(tapes);
   tapesRef.current = tapes;
   const loadedRef = useRef(loadedTape);
@@ -386,9 +444,27 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         loaded = tidyTapes(loaded);
       }
 
-      setTapes(loaded);
-      setZOrder(loaded.map(t => t.id));
-      setMounted(true);
+      // Delay before spawning saved tapes so they pop into view from
+      // pickup height (DRAG_HEIGHT) rather than appearing flat on the
+      // table. Marking them as `newTapeIds` makes TapeBody use the
+      // pickup-height spawnY path.
+      // Prepend any tape that arrived via ?t= or ?tape= share URL.
+      const shared = await sharedTapePromiseRef.current;
+      if (shared) {
+        loaded = [shared, ...loaded];
+        if (loaded.length > 50) loaded.pop();
+      }
+
+      const ids = loaded.map(t => t.id);
+      setTimeout(() => {
+        setNewTapeIds(s => { const n = new Set(s); ids.forEach(id => n.add(id)); return n; });
+        setTapes(loaded);
+        setZOrder(ids);
+        setMounted(true);
+        setTimeout(() => {
+          setNewTapeIds(s => { const n = new Set(s); ids.forEach(id => n.delete(id)); return n; });
+        }, 2000);
+      }, 500);
     }
 
     init().catch(console.error);
@@ -567,6 +643,47 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       },
     };
     return () => { delete window.TapesBridge; };
+  }, []);
+
+  // ── Parse ?t=<id> or ?tape=<encoded> on mount; init() awaits the promise. ──
+  const sharedTapePromiseRef = useRef<Promise<Tape | null>>(Promise.resolve(null));
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('t');
+    const enc = params.get('tape');
+    if (!id && !enc) return;
+    params.delete('t'); params.delete('tape');
+    const newSearch = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash);
+    const root = document.getElementById('tapes-root') as HTMLElement | null;
+    if (root && root.style.display === 'none' && typeof (window as any).toggleTableView === 'function') {
+      (window as any).toggleTableView();
+    }
+    sharedTapePromiseRef.current = (async () => {
+      let p: SharePayload | null = null;
+      if (id) p = await fetchShareById(id);
+      if (!p && enc) p = decodeTapeShare(enc);
+      if (!p) return null;
+      return {
+        id: crypto.randomUUID?.() ?? `${Date.now()}`,
+        videoId: p.videoId,
+        playlistId: p.playlistId,
+        isPlaylist: !!p.isPlaylist,
+        isInfinite: p.isInfinite,
+        infiniteConfig: p.infiniteConfig,
+        infiniteHistory: p.infiniteHistory,
+        infiniteIndex: p.infiniteIndex,
+        title: p.title,
+        author: p.author,
+        tapeStyle: typeof p.tapeStyle === 'number' ? p.tapeStyle : Math.floor(Math.random() * TAPE_STYLES.length),
+        textureVariant: p.textureVariant ?? randomTextureVariant(),
+        progress: 0,
+        timestamp: Date.now(),
+        x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 80),
+        y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 60),
+        angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
+      } as Tape;
+    })();
   }, []);
 
   // ── Load mixtape on mount ──
@@ -965,9 +1082,24 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     autoEjectRef.current();
   }, []);
 
-  const handle3DDoubleTap = useCallback((_tapeId: string) => {
-    // Double-tap disabled — player view UI now toggles on press-and-hold drag.
-  }, []);
+  const handle3DDoubleTap = useCallback((tapeId: string) => {
+    // Double-tap on table view → enter inspect view (closer zoom, single tape).
+    // Double-tap while inspecting → exit back to table view.
+    if (viewRef.current === 'player' || showMixtapeCreator) return;
+    setInspectTapeId(prev => {
+      if (prev) {
+        window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { tx: 0, tz: 0, animate: true, camY: 40 } }));
+        return null;
+      }
+      const tape = tapesRef.current.find(t => t.id === tapeId);
+      if (!tape || tape.x == null || tape.y == null) return null;
+      const [tx, tz] = to3D(tape.x, tape.y);
+      // tx/tz form lands target at (tx+8, 0, tz); pass tx-4 so tape sits 4
+      // units left of centre, leaving some room on the right for the tracklist.
+      window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { tx: tx - 4, tz, animate: true, camY: 20 } }));
+      return tapeId;
+    });
+  }, [showMixtapeCreator]);
 
   const handle3DMenuAction = useCallback((_tapeId: string, _action: 'link' | 'rewind' | 'remove') => {
     // Context menu disabled — functionality will be rebuilt later
@@ -1228,17 +1360,102 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           lockedTapeId={showMixtapeCreator ? MIXTAPE_ID : null}
           pickupBlockedTapeId={recorderLoadingId}
           lockCamera={showMixtapeCreator}
+          lockPan={view === 'player'}
           freePan={view === 'player' || dragging3D}
           onRecorderLoad={handleRecorderLoad}
           onRecorderEject={handleRecorderEject}
-          showRecorder={true}
+          showRecorder={!inspectTapeId}
+          onSceneReady={() => setSceneReady(true)}
+          inspectTapeId={inspectTapeId}
         />
       </Suspense>
 
+      {!sceneReady && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 99997,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: '#0a0805', pointerEvents: 'auto',
+        }}>
+          <div style={{
+            width: 48, height: 48,
+            border: '3px solid rgba(250,249,246,0.15)',
+            borderTopColor: 'rgba(250,249,246,0.85)',
+            borderRadius: '50%',
+            animation: 'tape-loading-spin 0.9s linear infinite',
+          }} />
+        </div>
+      )}
+
+      {inspectTapeId && (() => {
+        const tape = tapes.find(t => t.id === inspectTapeId);
+        if (!tape) return null;
+        const colStyle: React.CSSProperties = {
+          position: 'fixed', left: '32%', transform: 'translateX(-50%)',
+          zIndex: 99996, pointerEvents: 'auto',
+          display: 'flex', justifyContent: 'center',
+        };
+        return (
+          <>
+            <div style={{ ...colStyle, top: '18vh' }}>
+              <textarea
+                rows={1}
+                value={tape.title}
+                onChange={(e) => {
+                  const newTitle = e.target.value;
+                  setTapes(prev => prev.map(t => t.id === inspectTapeId ? { ...t, title: newTitle } : t));
+                  const ta = e.target as HTMLTextAreaElement;
+                  ta.style.height = 'auto';
+                  ta.style.height = ta.scrollHeight + 'px';
+                }}
+                ref={(el) => {
+                  if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+                }}
+                style={{
+                  background: 'transparent', border: 'none', outline: 'none',
+                  borderBottom: '1px dashed rgba(250,249,246,0.3)',
+                  color: 'rgba(250,249,246,0.95)', fontFamily: '"04b03", monospace',
+                  fontSize: 26, lineHeight: 1.25, textAlign: 'center',
+                  minWidth: 560, maxWidth: '80vw',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.8)', padding: '4px 8px',
+                  resize: 'none', overflow: 'hidden',
+                }}
+              />
+            </div>
+            <div style={{ ...colStyle, bottom: '18vh', gap: 12 }}>
+              <button
+                className="tape-ui-btn"
+                onClick={() => rewindTape(inspectTapeId)}
+                style={{
+                  background: 'rgba(0,0,0,0.5)', color: 'rgba(250,249,246,0.95)',
+                  fontFamily: '"04b03", monospace', fontSize: 14,
+                  padding: '8px 16px', cursor: 'pointer',
+                }}
+              >rewind</button>
+              <ShareButton tape={tape} />
+
+              <button
+                className="tape-ui-btn"
+                onClick={() => {
+                  deleteTape(inspectTapeId);
+                  setInspectTapeId(null);
+                  window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { tx: 0, tz: 0, animate: true, camY: 40 } }));
+                }}
+                style={{
+                  background: 'rgba(0,0,0,0.5)', color: 'rgba(250,249,246,0.95)',
+                  fontFamily: '"04b03", monospace', fontSize: 14,
+                  padding: '8px 16px', cursor: 'pointer',
+                }}
+              >remove</button>
+            </div>
+          </>
+        );
+      })()}
+
 {/* Unified tape info + tracklist panel — single layout for idle and playback */}
-      {playerTapeId && !showMixtapeCreator && (() => {
-        // Prefer loaded tape (source of truth during playback), else the focused player tape
-        const tape = loadedTape ?? tapes.find(t => t.id === playerTapeId);
+      {(playerTapeId || inspectTapeId) && !showMixtapeCreator && (() => {
+        const focusId = playerTapeId || inspectTapeId;
+        // Prefer loaded tape (source of truth during playback), else the focused player/inspect tape
+        const tape = loadedTape ?? tapes.find(t => t.id === focusId);
         if (!tape) return null;
 
         const interactive = isPlaying && !!loadedTape && loadedTape.id === tape.id;
@@ -1305,16 +1522,24 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             padding: '24px 24px 20px',
             transition: 'opacity 1s ease',
           }}>
-            <div style={{
-              fontFamily: "'04b03', monospace", fontSize: '1.3em',
-              color: 'rgba(250,249,246,0.7)', letterSpacing: '1.5px',
-              whiteSpace: 'nowrap', marginBottom: hasTracklist ? '12px' : '0',
-              flexShrink: 0,
-              pointerEvents: interactive ? 'auto' : 'none',
-              userSelect: interactive ? 'auto' : 'none',
-            }}>
-              {tape.title || 'Untitled'}
-            </div>
+            {!inspectTapeId && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                marginBottom: hasTracklist ? '12px' : '0',
+                flexShrink: 0,
+              }}>
+                <div style={{
+                  fontFamily: "'04b03', monospace", fontSize: '1.3em',
+                  color: 'rgba(250,249,246,0.7)', letterSpacing: '1.5px',
+                  whiteSpace: 'nowrap', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis',
+                  pointerEvents: interactive ? 'auto' : 'none',
+                  userSelect: interactive ? 'auto' : 'none',
+                }}>
+                  {tape.title || 'Untitled'}
+                </div>
+                <ShareButton tape={tape} />
+              </div>
+            )}
             {!hasTracklist && tape.author && (
               <div style={{
                 color: 'rgba(250,249,246,0.5)', marginTop: '6px', fontSize: '1em',

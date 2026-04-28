@@ -83,6 +83,7 @@ interface TapesTable3DProps {
   // camera pan/zoom — it just rejects pointer-down on this one tape.
   pickupBlockedTapeId?: string | null;
   lockCamera?: boolean;
+  lockPan?: boolean;
   // While true, skip the active-area pan clamp — used during drag/player view
   // so the camera can sit at a tape-centred offset without being yanked back.
   freePan?: boolean;
@@ -90,10 +91,14 @@ interface TapesTable3DProps {
   onRecorderLoad?: (tapeId: string) => void;
   onRecorderEject?: () => void;
   showRecorder?: boolean;
+  onSceneReady?: () => void;
+  // When set: closer-zoom inspect mode showing only this one tape, no recorder,
+  // no camera control, no pickup. Parent dispatches jeem-centre-camera at camY=20.
+  inspectTapeId?: string | null;
 }
 
 function SceneContents({
-  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder,
+  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId,
 }: TapesTable3DProps) {
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
@@ -126,6 +131,25 @@ function SceneContents({
   // Don't mount any TapeBody until the recorder GLB has loaded — guarantees
   // the recorder appears on the table before any tape model.
   const [recorderReady, setRecorderReady] = useState(false);
+  // Track which tapes have finished loading their FBX + textures + materials.
+  // Used to gate the "scene ready" signal that hides the loading spinner.
+  const readyTapeIdsRef = useRef<Set<string>>(new Set());
+  const [readyTick, setReadyTick] = useState(0);
+  const handleTapeReady = useCallback((id: string) => {
+    if (readyTapeIdsRef.current.has(id)) return;
+    readyTapeIdsRef.current.add(id);
+    setReadyTick(t => t + 1);
+  }, []);
+  const tableTapesForReady = tapes.filter(t => t.id !== loadedTapeId);
+  const allTapesReady = tableTapesForReady.every(t => readyTapeIdsRef.current.has(t.id));
+  const sceneReady = (!showRecorder || recorderReady) && allTapesReady;
+  const sceneReadyFiredRef = useRef(false);
+  useEffect(() => {
+    if (sceneReady && !sceneReadyFiredRef.current) {
+      sceneReadyFiredRef.current = true;
+      onSceneReady?.();
+    }
+  }, [sceneReady, onSceneReady]);
   const lidCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Track snap.tapeId across frames so we can detect pickup (eject) transitions.
   const prevSnapTapeId = useRef<string | null>(null);
@@ -202,7 +226,9 @@ function SceneContents({
   // even with no pointermove event firing.
   const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
 
-  const tableTapes = tapes.filter(t => t.id !== loadedTapeId);
+  const tableTapes = inspectTapeId
+    ? tapes.filter(t => t.id === inspectTapeId)
+    : tapes.filter(t => t.id !== loadedTapeId);
 
   const raycastToPlane = useCallback((clientX: number, clientY: number, planeY: number): THREE.Vector3 | null => {
     const rect = gl.domElement.getBoundingClientRect();
@@ -293,6 +319,9 @@ function SceneContents({
     function onMove(ev: PointerEvent) {
       const ps = pointerState.current;
       if (!ps.downTapeId) return;
+      // Inspect mode: allow raycast tap detection (for double-tap-to-exit) but
+      // block drag from starting.
+      if (inspectTapeId && !ps.active) return;
       // Clamp pointer to a border inside the canvas while dragging so the
       // tape can't be flung offscreen past the edge-pan zone.
       const rect = gl.domElement.getBoundingClientRect();
@@ -406,7 +435,7 @@ function SceneContents({
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
-  }, [gl, drag, snap, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, isOverRecorder, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, pickupBlockedTapeId, maxDragX, onRecorderLoad, showRecorder]);
+  }, [gl, drag, snap, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, isOverRecorder, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, pickupBlockedTapeId, maxDragX, onRecorderLoad, showRecorder, inspectTapeId]);
 
   // Track mouse hover over the recorder footprint (for lid open on hover).
   useEffect(() => {
@@ -508,7 +537,7 @@ function SceneContents({
     // player view — at typical aspect ratios the active-area is narrower than
     // the viewport so maxX collapses to 0 and yanks the camera back to origin
     // ~600ms after a pickup, jumping the view.
-    if (camTweenRef.current || freePan) return;
+    if (camTweenRef.current || freePan || inspectTapeId) return;
     const cam = camera as THREE.PerspectiveCamera;
     const halfH = cam.position.y * Math.tan((cam.fov * Math.PI) / 360);
     const halfW = halfH * cam.aspect;
@@ -660,30 +689,33 @@ function SceneContents({
           <TableSurface />
           <YouTubeSurface />
           {/* Recorder — lower-left, partially running off the table edge */}
-          {showRecorder && <Recorder3D position={RECORDER_POS} rotationY={RECORDER_ROT_Y} lidOpen={lidOpen} hidden={uiHidden} onReady={() => setRecorderReady(true)} />}
-          {(!showRecorder || recorderReady) && tableTapes.map(tape => (
-            <TapeBody
-              key={tape.id}
-              tape={tape}
-              drag={drag}
-              snap={snap}
-              menuOpen={menuId === tape.id}
-              onMenuAction={onMenuAction}
-              isNew={newTapeIds.has(tape.id)}
-              bounceTapeId={bounceTapeId}
-              hidden={uiHidden}
-            />
-          ))}
+          <group visible={sceneReady}>
+            {showRecorder && <Recorder3D position={RECORDER_POS} rotationY={RECORDER_ROT_Y} lidOpen={lidOpen} hidden={uiHidden} onReady={() => setRecorderReady(true)} />}
+            {(!showRecorder || recorderReady) && tableTapes.map(tape => (
+              <TapeBody
+                key={tape.id}
+                tape={tape}
+                drag={drag}
+                snap={snap}
+                menuOpen={menuId === tape.id}
+                onMenuAction={onMenuAction}
+                isNew={newTapeIds.has(tape.id)}
+                bounceTapeId={bounceTapeId}
+                hidden={uiHidden}
+                onReady={handleTapeReady}
+              />
+            ))}
+          </group>
         </Physics>
       </Suspense>
 
       <MapControls
         ref={controlsRef}
         enableRotate={false}
-        enablePan={!lockedTapeId && !lockCamera}
-        enableZoom={!lockedTapeId && !lockCamera}
-        minDistance={35}
-        maxDistance={45}
+        enablePan={!lockedTapeId && !lockCamera && !lockPan && !inspectTapeId}
+        enableZoom={!lockedTapeId && !lockCamera && !inspectTapeId}
+        minDistance={inspectTapeId ? 18 : 35}
+        maxDistance={inspectTapeId ? 22 : 45}
         panSpeed={1.5}
         zoomSpeed={1.2}
         screenSpacePanning={false}

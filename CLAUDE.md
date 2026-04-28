@@ -462,3 +462,40 @@ wipeTransition(onCovered, onUncovered)
   yanked the user back to the table.
 - `loadSavedType` clamps the saved index against the new
   `BG_TYPES.length` so old localStorage values don't crash.
+
+### Tape sharing
+
+- **Share button** in the tape inspect view (`ShareButton` in
+  `TapesTable.tsx`) calls `buildShareUrl(tape)` and copies the resulting
+  URL to clipboard.
+- **`src/tapes/share.ts`**:
+  - `WirePayload` uses 1-letter keys (`i`, `t`, `a`, `s`, `v`, `p`, `pl`,
+    `n`, `c`, `h`, `x`) to keep payloads compact.
+  - `buildShareUrl` is async — POSTs the wire payload to
+    `/api/tape-share`, returns `?t=<id>`. On any error (server down,
+    non-OK response) it falls back to inline base64url:
+    `?tape=<encoded>`.
+  - `fetchShareById` GETs `/api/tape-share/:id` and converts the wire
+    payload back to `SharePayload`.
+- **Server routes** (`server.js` + `api/tape-share.js`):
+  - `POST /api/tape-share { payload }` → `{ id }` (8-char alphanumeric).
+  - `GET /api/tape-share/:id` → `{ payload }`.
+  - File-backed at `data/tape-shares.json` (read-modify-write). The
+    `data/` dir is auto-created and is NOT checked in. This local-disk
+    store will not work on Vercel — swap for `@vercel/kv` (or similar)
+    on deploy.
+- **Spawn flow** in `TapesTable.tsx`:
+  - URL effect parses `?t=<id>` first, then `?tape=<encoded>` as
+    fallback. Strips both params via `history.replaceState` so reloads
+    don't re-spawn.
+  - Auto-calls `window.toggleTableView()` if the tape table is hidden
+    when the link is opened.
+  - The async resolution lives in `sharedTapePromiseRef`. The IndexedDB
+    `init()` effect awaits this promise before its final `setTapes`,
+    ensuring the shared tape is prepended even when the network round-
+    trip outlasts the local DB load.
+- **`public/index.html` mixtape-bundle gate**: the inline script that
+  loads `dist/mixtape.js` previously triggered on `params.has('tape')`
+  too. That caused the mixtape bundle's `useEffect` to redirect to `/`
+  (since `create_mixtape` was unset), stripping the share param before
+  React saw it. The condition is now `create_mixtape === '1'` only.

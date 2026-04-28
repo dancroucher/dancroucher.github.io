@@ -5,3 +5,5 @@
 OfficeJeem65/
 .vercel
 .env*.local
+/data
+public/tsconfig.tsbuildinfo

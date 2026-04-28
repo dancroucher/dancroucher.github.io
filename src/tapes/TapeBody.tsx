@@ -39,6 +39,7 @@ interface TapeBodyProps {
   isNew?: boolean;
   bounceTapeId?: React.MutableRefObject<string | null>;
   hidden?: boolean;
+  onReady?: (tapeId: string) => void;
 }
 
 // Per-variant cached: isolated mesh centered at origin + measured half-extents
@@ -341,7 +342,7 @@ export function stampTitle(baseColor: THREE.Texture, title: string, variant: str
 }
 
 export function TapeBody({
-  tape, drag, snap, menuOpen, onMenuAction, isNew, bounceTapeId, hidden = false,
+  tape, drag, snap, menuOpen, onMenuAction, isNew, bounceTapeId, hidden = false, onReady,
 }: TapeBodyProps) {
   const bodyRef = useRef<RapierRigidBody>(null);
   const groupRef = useRef<THREE.Group>(null);
@@ -409,7 +410,8 @@ export function TapeBody({
       }
     });
     materialsRef.current = mats;
-  }, [sceneData, textures, tape.title]);
+    if (mats.length > 0) onReady?.(tape.id);
+  }, [sceneData, textures, tape.title, tape.id, onReady]);
 
   // Initial position from 2D coords — only used on first mount, not on prop updates
   // (drag-end updates tape.x/y in React state but the physics body is already positioned)

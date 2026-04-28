@@ -402,7 +402,7 @@ var require_react_production = __commonJS({
     function isValidElement(object) {
       return "object" === typeof object && null !== object && object.$$typeof === REACT_ELEMENT_TYPE;
     }
-    function escape(key) {
+    function escape2(key) {
       var escaperLookup = { "=": "=0", ":": "=2" };
       return "$" + key.replace(/[=:]/g, function(match) {
         return escaperLookup[match];
@@ -410,7 +410,7 @@ var require_react_production = __commonJS({
     }
     var userProvidedKeyEscapeRegex = /\/+/g;
     function getElementKey(element, index) {
-      return "object" === typeof element && null !== element && null != element.key ? escape("" + element.key) : index.toString(36);
+      return "object" === typeof element && null !== element && null != element.key ? escape2("" + element.key) : index.toString(36);
     }
     function resolveThenable(thenable) {
       switch (thenable.status) {
@@ -12708,6 +12708,47 @@ var require_client = __commonJS({
     } else {
       module.exports = null;
     }
+  }
+});
+
+// src/tapes/coords.ts
+function to3D(x2d, y2d) {
+  return [
+    (x2d - CANVAS_W / 2) / MAP_SCALE,
+    (y2d - CANVAS_H / 2) / MAP_SCALE
+  ];
+}
+function to2D(x3d, z3d) {
+  return [
+    x3d * MAP_SCALE + CANVAS_W / 2,
+    z3d * MAP_SCALE + CANVAS_H / 2
+  ];
+}
+var CANVAS_W, CANVAS_H, SCALE, MAP_SCALE, TAPE_W, TAPE_H, TAPE_D, TILE_H, TILE_W, ACTIVE_TILES, ACTIVE_W, ACTIVE_H, TABLE_W, TABLE_H, VISUAL_W, VISUAL_H, CAM_BOUND_X, CAM_BOUND_Z, DRAG_BOUND_X, DRAG_BOUND_Z, DRAG_HEIGHT;
+var init_coords = __esm({
+  "src/tapes/coords.ts"() {
+    "use strict";
+    CANVAS_W = 4e3;
+    CANVAS_H = 2400;
+    SCALE = 50;
+    MAP_SCALE = SCALE;
+    TAPE_W = 234 / SCALE * 1.5;
+    TAPE_H = 143 / SCALE * 1.5;
+    TAPE_D = 0.48 * 1.5;
+    TILE_H = 10;
+    TILE_W = TILE_H * (884 / 579);
+    ACTIVE_TILES = 3;
+    ACTIVE_W = TILE_W * ACTIVE_TILES;
+    ACTIVE_H = TILE_H * ACTIVE_TILES;
+    TABLE_W = TILE_W * 5;
+    TABLE_H = TILE_H * 5;
+    VISUAL_W = TABLE_W;
+    VISUAL_H = TABLE_H;
+    CAM_BOUND_X = ACTIVE_W / 2;
+    CAM_BOUND_Z = ACTIVE_H / 2;
+    DRAG_BOUND_X = ACTIVE_W / 2 + TILE_W / 2 - TAPE_W / 2;
+    DRAG_BOUND_Z = ACTIVE_H / 2 + TILE_H / 2 - TAPE_H / 2;
+    DRAG_HEIGHT = 5;
   }
 });
 
@@ -74415,47 +74456,6 @@ var init_react_three_rapier_esm = __esm({
   }
 });
 
-// src/tapes/coords.ts
-function to3D(x2d, y2d) {
-  return [
-    (x2d - CANVAS_W / 2) / MAP_SCALE,
-    (y2d - CANVAS_H / 2) / MAP_SCALE
-  ];
-}
-function to2D(x3d, z3d) {
-  return [
-    x3d * MAP_SCALE + CANVAS_W / 2,
-    z3d * MAP_SCALE + CANVAS_H / 2
-  ];
-}
-var CANVAS_W, CANVAS_H, SCALE, MAP_SCALE, TAPE_W, TAPE_H, TAPE_D, TILE_H, TILE_W, ACTIVE_TILES, ACTIVE_W, ACTIVE_H, TABLE_W, TABLE_H, VISUAL_W, VISUAL_H, CAM_BOUND_X, CAM_BOUND_Z, DRAG_BOUND_X, DRAG_BOUND_Z, DRAG_HEIGHT;
-var init_coords = __esm({
-  "src/tapes/coords.ts"() {
-    "use strict";
-    CANVAS_W = 4e3;
-    CANVAS_H = 2400;
-    SCALE = 50;
-    MAP_SCALE = SCALE;
-    TAPE_W = 234 / SCALE * 1.5;
-    TAPE_H = 143 / SCALE * 1.5;
-    TAPE_D = 0.48 * 1.5;
-    TILE_H = 10;
-    TILE_W = TILE_H * (884 / 579);
-    ACTIVE_TILES = 3;
-    ACTIVE_W = TILE_W * ACTIVE_TILES;
-    ACTIVE_H = TILE_H * ACTIVE_TILES;
-    TABLE_W = TILE_W * 5;
-    TABLE_H = TILE_H * 5;
-    VISUAL_W = TABLE_W;
-    VISUAL_H = TABLE_H;
-    CAM_BOUND_X = ACTIVE_W / 2;
-    CAM_BOUND_Z = ACTIVE_H / 2;
-    DRAG_BOUND_X = ACTIVE_W / 2 + TILE_W / 2 - TAPE_W / 2;
-    DRAG_BOUND_Z = ACTIVE_H / 2 + TILE_H / 2 - TAPE_H / 2;
-    DRAG_HEIGHT = 5;
-  }
-});
-
 // src/tapes/TableSurface.tsx
 function TableSurface() {
   const woodTexture = useLoader(TextureLoader, "/wood-table-alt.jpg");
@@ -74762,7 +74762,7 @@ var init_Tape3D = __esm({
     init_coords();
     init_TableSurface();
     import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
-    VARIANTS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
+    VARIANTS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"];
     VARIANT_TO_MESH = {
       a: "prop_cassette_tape_01002",
       b: "prop_cassette_tape_01001",
@@ -75008,7 +75008,8 @@ function TapeBody({
   onMenuAction,
   isNew,
   bounceTapeId,
-  hidden = false
+  hidden = false,
+  onReady
 }) {
   const bodyRef = (0, import_react7.useRef)(null);
   const groupRef = (0, import_react7.useRef)(null);
@@ -75064,7 +75065,8 @@ function TapeBody({
       }
     });
     materialsRef.current = mats;
-  }, [sceneData, textures, tape.title]);
+    if (mats.length > 0) onReady?.(tape.id);
+  }, [sceneData, textures, tape.title, tape.id, onReady]);
   const initialPos = (0, import_react7.useRef)(null);
   const halfY = sceneData?.geo.halfY ?? 0.8;
   if (!initialPos.current) {
@@ -78686,11 +78688,14 @@ function SceneContents({
   lockedTapeId,
   pickupBlockedTapeId,
   lockCamera,
+  lockPan,
   freePan,
   maxDragX,
   onRecorderLoad,
   onRecorderEject,
-  showRecorder
+  showRecorder,
+  onSceneReady,
+  inspectTapeId
 }) {
   const { camera, gl, scene } = useThree();
   const controlsRef = (0, import_react12.useRef)(null);
@@ -78711,6 +78716,23 @@ function SceneContents({
   }, []);
   const [tapeInRecorder, setTapeInRecorder] = (0, import_react12.useState)(false);
   const [recorderReady, setRecorderReady] = (0, import_react12.useState)(false);
+  const readyTapeIdsRef = (0, import_react12.useRef)(/* @__PURE__ */ new Set());
+  const [readyTick, setReadyTick] = (0, import_react12.useState)(0);
+  const handleTapeReady = (0, import_react12.useCallback)((id) => {
+    if (readyTapeIdsRef.current.has(id)) return;
+    readyTapeIdsRef.current.add(id);
+    setReadyTick((t3) => t3 + 1);
+  }, []);
+  const tableTapesForReady = tapes.filter((t3) => t3.id !== loadedTapeId);
+  const allTapesReady = tableTapesForReady.every((t3) => readyTapeIdsRef.current.has(t3.id));
+  const sceneReady = (!showRecorder || recorderReady) && allTapesReady;
+  const sceneReadyFiredRef = (0, import_react12.useRef)(false);
+  (0, import_react12.useEffect)(() => {
+    if (sceneReady && !sceneReadyFiredRef.current) {
+      sceneReadyFiredRef.current = true;
+      onSceneReady?.();
+    }
+  }, [sceneReady, onSceneReady]);
   const lidCloseTimer = (0, import_react12.useRef)(null);
   const prevSnapTapeId = (0, import_react12.useRef)(null);
   const onRecorderEjectRef = (0, import_react12.useRef)(onRecorderEject);
@@ -78764,7 +78786,7 @@ function SceneContents({
   const lastTapRef = (0, import_react12.useRef)({ time: 0, id: "" });
   const savedCamPoseRef = (0, import_react12.useRef)(null);
   const lastPointerRef = (0, import_react12.useRef)(null);
-  const tableTapes = tapes.filter((t3) => t3.id !== loadedTapeId);
+  const tableTapes = inspectTapeId ? tapes.filter((t3) => t3.id === inspectTapeId) : tapes.filter((t3) => t3.id !== loadedTapeId);
   const raycastToPlane = (0, import_react12.useCallback)((clientX, clientY, planeY) => {
     const rect = gl.domElement.getBoundingClientRect();
     const ndcX = (clientX - rect.left) / rect.width * 2 - 1;
@@ -78843,6 +78865,7 @@ function SceneContents({
     function onMove(ev) {
       const ps = pointerState.current;
       if (!ps.downTapeId) return;
+      if (inspectTapeId && !ps.active) return;
       const rect = gl.domElement.getBoundingClientRect();
       const border = 24;
       const px2 = Math.max(rect.left + border, Math.min(rect.right - border, ev.clientX));
@@ -78929,7 +78952,7 @@ function SceneContents({
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
     };
-  }, [gl, drag, snap, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, isOverRecorder, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, pickupBlockedTapeId, maxDragX, onRecorderLoad, showRecorder]);
+  }, [gl, drag, snap, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, isOverRecorder, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, pickupBlockedTapeId, maxDragX, onRecorderLoad, showRecorder, inspectTapeId]);
   (0, import_react12.useEffect)(() => {
     const el = gl.domElement;
     function onHoverMove(ev) {
@@ -79010,7 +79033,7 @@ function SceneContents({
   useFrame(() => {
     const c3 = controlsRef.current;
     if (!c3) return;
-    if (camTweenRef.current || freePan) return;
+    if (camTweenRef.current || freePan || inspectTapeId) return;
     const cam = camera;
     const halfH = cam.position.y * Math.tan(cam.fov * Math.PI / 360);
     const halfW = halfH * cam.aspect;
@@ -79153,31 +79176,34 @@ function SceneContents({
     /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(import_react12.Suspense, { fallback: null, children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(Physics, { gravity: [0, -400, 0], timeStep: 1 / 60, children: [
       /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(TableSurface, {}),
       /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(YouTubeSurface, {}),
-      showRecorder && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Recorder3D, { position: RECORDER_POS, rotationY: RECORDER_ROT_Y, lidOpen, hidden: uiHidden, onReady: () => setRecorderReady(true) }),
-      (!showRecorder || recorderReady) && tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-        TapeBody,
-        {
-          tape,
-          drag,
-          snap,
-          menuOpen: menuId === tape.id,
-          onMenuAction,
-          isNew: newTapeIds.has(tape.id),
-          bounceTapeId,
-          hidden: uiHidden
-        },
-        tape.id
-      ))
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("group", { visible: sceneReady, children: [
+        showRecorder && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Recorder3D, { position: RECORDER_POS, rotationY: RECORDER_ROT_Y, lidOpen, hidden: uiHidden, onReady: () => setRecorderReady(true) }),
+        (!showRecorder || recorderReady) && tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+          TapeBody,
+          {
+            tape,
+            drag,
+            snap,
+            menuOpen: menuId === tape.id,
+            onMenuAction,
+            isNew: newTapeIds.has(tape.id),
+            bounceTapeId,
+            hidden: uiHidden,
+            onReady: handleTapeReady
+          },
+          tape.id
+        ))
+      ] })
     ] }) }),
     /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
       MapControls2,
       {
         ref: controlsRef,
         enableRotate: false,
-        enablePan: !lockedTapeId && !lockCamera,
-        enableZoom: !lockedTapeId && !lockCamera,
-        minDistance: 35,
-        maxDistance: 45,
+        enablePan: !lockedTapeId && !lockCamera && !lockPan && !inspectTapeId,
+        enableZoom: !lockedTapeId && !lockCamera && !inspectTapeId,
+        minDistance: inspectTapeId ? 18 : 35,
+        maxDistance: inspectTapeId ? 22 : 45,
         panSpeed: 1.5,
         zoomSpeed: 1.2,
         screenSpacePanning: false,
@@ -79509,6 +79535,9 @@ var TAPE_STYLES = [
   }
 ];
 
+// src/tapes/TapesTable.tsx
+init_coords();
+
 // node_modules/idb/build/index.js
 var instanceOfAny = (object, constructors) => constructors.some((c3) => object instanceof c3);
 var idbProxyableTypes;
@@ -79771,6 +79800,95 @@ async function saveTapes(tapes) {
   await tx.store.clear();
   await Promise.all(tapes.map((tape) => tx.store.put(tape)));
   await tx.done;
+}
+
+// src/tapes/share.ts
+function toB64Url(s2) {
+  return btoa(unescape(encodeURIComponent(s2))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function fromB64Url(s2) {
+  const pad = s2.length % 4 === 0 ? "" : "=".repeat(4 - s2.length % 4);
+  const b64 = s2.replace(/-/g, "+").replace(/_/g, "/") + pad;
+  return decodeURIComponent(escape(atob(b64)));
+}
+function decodeTapeShare(s2) {
+  try {
+    return wireToPayload(JSON.parse(fromB64Url(s2)));
+  } catch {
+    return null;
+  }
+}
+function urlWithParam(key, value) {
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set(key, value);
+  return url.toString();
+}
+async function buildShareUrl(t3) {
+  const wire = encodeTapeWire(t3);
+  try {
+    const r3 = await fetch("/api/tape-share", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payload: wire })
+    });
+    if (r3.ok) {
+      const { id } = await r3.json();
+      if (id) return urlWithParam("t", id);
+    }
+  } catch {
+  }
+  return urlWithParam("tape", toB64Url(JSON.stringify(wire)));
+}
+async function fetchShareById(id) {
+  try {
+    const r3 = await fetch(`/api/tape-share/${encodeURIComponent(id)}`);
+    if (!r3.ok) return null;
+    const { payload } = await r3.json();
+    return wireToPayload(payload);
+  } catch {
+    return null;
+  }
+}
+function encodeTapeWire(t3) {
+  const w2 = { t: t3.title };
+  if (t3.videoId) w2.i = t3.videoId;
+  if (t3.author) w2.a = t3.author;
+  if (typeof t3.tapeStyle === "number") w2.s = t3.tapeStyle;
+  if (t3.textureVariant) w2.v = t3.textureVariant;
+  if (t3.isPlaylist) {
+    w2.p = 1;
+    if (t3.playlistId) w2.pl = t3.playlistId;
+  }
+  if (t3.isInfinite) {
+    w2.n = 1;
+    if (t3.infiniteConfig) w2.c = t3.infiniteConfig;
+    if (t3.infiniteHistory && t3.infiniteHistory.length) w2.h = t3.infiniteHistory;
+    if (typeof t3.infiniteIndex === "number") w2.x = t3.infiniteIndex;
+  }
+  return w2;
+}
+function wireToPayload(w2) {
+  if (!w2 || typeof w2.t !== "string") return null;
+  const p4 = {
+    videoId: w2.i ?? "",
+    title: w2.t,
+    author: w2.a ?? ""
+  };
+  if (w2.s !== void 0) p4.tapeStyle = w2.s;
+  if (w2.v !== void 0) p4.textureVariant = w2.v;
+  if (w2.p) {
+    p4.isPlaylist = true;
+    if (w2.pl) p4.playlistId = w2.pl;
+  }
+  if (w2.n) {
+    p4.isInfinite = true;
+    if (w2.c) p4.infiniteConfig = w2.c;
+    if (w2.h) p4.infiniteHistory = w2.h;
+    if (typeof w2.x === "number") p4.infiniteIndex = w2.x;
+  }
+  return p4;
 }
 
 // src/tapes/TapesTable.tsx
@@ -80162,16 +80280,11 @@ var styles = {
 // src/tapes/TapesTable.tsx
 var import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
 var TapesTable3D2 = (0, import_react13.lazy)(() => Promise.resolve().then(() => (init_TapesTable3D(), TapesTable3D_exports)).then((m3) => ({ default: m3.TapesTable3D })));
-var TEXTURE_VARIANTS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
-var nextVariantIndex = 0;
-function nextTextureVariant() {
-  const v2 = TEXTURE_VARIANTS[nextVariantIndex % TEXTURE_VARIANTS.length];
-  nextVariantIndex++;
-  return v2;
-}
+var TEXTURE_VARIANTS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"];
 function randomTextureVariant() {
   return TEXTURE_VARIANTS[Math.floor(Math.random() * TEXTURE_VARIANTS.length)];
 }
+var nextTextureVariant = randomTextureVariant;
 function playSfx(src, volume = 1, trimEnd = 0) {
   const a3 = new Audio(src);
   a3.volume = volume;
@@ -80185,6 +80298,49 @@ function playSfx(src, volume = 1, trimEnd = 0) {
       }, stopAt * 1e3);
     });
   }
+}
+function ShareButton({ tape }) {
+  const [copied, setCopied] = (0, import_react13.useState)(false);
+  const onClick = async () => {
+    const url = await buildShareUrl(tape);
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = url;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+      } catch {
+      }
+      document.body.removeChild(ta);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+    "button",
+    {
+      onClick,
+      className: "tape-ui-btn",
+      style: {
+        background: "rgba(0,0,0,0.5)",
+        color: "rgba(250,249,246,0.95)",
+        fontFamily: '"04b03", monospace',
+        fontSize: 12,
+        letterSpacing: "1px",
+        padding: "6px 10px",
+        cursor: "pointer",
+        flexShrink: 0,
+        border: "1px solid rgba(250,249,246,0.2)",
+        pointerEvents: "auto"
+      },
+      children: copied ? "copied" : "share"
+    }
+  );
 }
 function playTapeInsert() {
   playSfx("/sfx/tape-insert.mp3", 0.6, 0.4);
@@ -80250,6 +80406,7 @@ async function fetchInfiniteTracks(config, page = 1) {
 function TapesTable({ mixtape }) {
   const [tapes, setTapes] = (0, import_react13.useState)([]);
   const [mounted, setMounted] = (0, import_react13.useState)(false);
+  const [sceneReady, setSceneReady] = (0, import_react13.useState)(false);
   const [menuId, setMenuId] = (0, import_react13.useState)(null);
   const [dragId, setDragId] = (0, import_react13.useState)(null);
   const [dragPos, setDragPos] = (0, import_react13.useState)(null);
@@ -80278,6 +80435,29 @@ function TapesTable({ mixtape }) {
   const [playlistTracks, setPlaylistTracks] = (0, import_react13.useState)(null);
   const [view, setView] = (0, import_react13.useState)("table");
   const [playerTapeId, setPlayerTapeId] = (0, import_react13.useState)(null);
+  const [inspectTapeId, setInspectTapeId] = (0, import_react13.useState)(null);
+  (0, import_react13.useEffect)(() => {
+    if (!inspectTapeId) return;
+    const tape = tapesRef.current.find((t3) => t3.id === inspectTapeId);
+    if (!tape?.isPlaylist || !tape.playlistId) return;
+    if (playlistTracks && playlistTracks.name === (tape.title || "Playlist")) return;
+    setPlaylistTracks(null);
+    fetch(`/api/playlist-tracks?list=${encodeURIComponent(tape.playlistId)}`).then((r3) => r3.ok ? r3.json() : []).then((tracks) => {
+      if (tracks.length > 0) {
+        setPlaylistTracks({ name: tape.title || "Playlist", description: "", tracks });
+      }
+    }).catch(() => {
+    });
+  }, [inspectTapeId]);
+  (0, import_react13.useEffect)(() => {
+    const form = document.getElementById("start-form");
+    if (!form) return;
+    const prev = form.style.display;
+    if (inspectTapeId) form.style.display = "none";
+    return () => {
+      form.style.display = prev;
+    };
+  }, [inspectTapeId]);
   const tapesRef = (0, import_react13.useRef)(tapes);
   tapesRef.current = tapes;
   const loadedRef = (0, import_react13.useRef)(loadedTape);
@@ -80410,9 +80590,29 @@ function TapesTable({ mixtape }) {
       if (localStorage.getItem("jeem_keep_tidy") === "1") {
         loaded = tidyTapes(loaded);
       }
-      setTapes(loaded);
-      setZOrder(loaded.map((t3) => t3.id));
-      setMounted(true);
+      const shared = await sharedTapePromiseRef.current;
+      if (shared) {
+        loaded = [shared, ...loaded];
+        if (loaded.length > 50) loaded.pop();
+      }
+      const ids = loaded.map((t3) => t3.id);
+      setTimeout(() => {
+        setNewTapeIds((s2) => {
+          const n2 = new Set(s2);
+          ids.forEach((id) => n2.add(id));
+          return n2;
+        });
+        setTapes(loaded);
+        setZOrder(ids);
+        setMounted(true);
+        setTimeout(() => {
+          setNewTapeIds((s2) => {
+            const n2 = new Set(s2);
+            ids.forEach((id) => n2.delete(id));
+            return n2;
+          });
+        }, 2e3);
+      }, 500);
     }
     init().catch(console.error);
   }, []);
@@ -80596,6 +80796,46 @@ function TapesTable({ mixtape }) {
     return () => {
       delete window.TapesBridge;
     };
+  }, []);
+  const sharedTapePromiseRef = (0, import_react13.useRef)(Promise.resolve(null));
+  (0, import_react13.useEffect)(() => {
+    const params2 = new URLSearchParams(window.location.search);
+    const id = params2.get("t");
+    const enc = params2.get("tape");
+    if (!id && !enc) return;
+    params2.delete("t");
+    params2.delete("tape");
+    const newSearch = params2.toString();
+    window.history.replaceState({}, "", window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
+    const root = document.getElementById("tapes-root");
+    if (root && root.style.display === "none" && typeof window.toggleTableView === "function") {
+      window.toggleTableView();
+    }
+    sharedTapePromiseRef.current = (async () => {
+      let p4 = null;
+      if (id) p4 = await fetchShareById(id);
+      if (!p4 && enc) p4 = decodeTapeShare(enc);
+      if (!p4) return null;
+      return {
+        id: crypto.randomUUID?.() ?? `${Date.now()}`,
+        videoId: p4.videoId,
+        playlistId: p4.playlistId,
+        isPlaylist: !!p4.isPlaylist,
+        isInfinite: p4.isInfinite,
+        infiniteConfig: p4.infiniteConfig,
+        infiniteHistory: p4.infiniteHistory,
+        infiniteIndex: p4.infiniteIndex,
+        title: p4.title,
+        author: p4.author,
+        tapeStyle: typeof p4.tapeStyle === "number" ? p4.tapeStyle : Math.floor(Math.random() * TAPE_STYLES.length),
+        textureVariant: p4.textureVariant ?? randomTextureVariant(),
+        progress: 0,
+        timestamp: Date.now(),
+        x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 80),
+        y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 60),
+        angle: Math.round((Math.random() * 40 - 20) * 10) / 10
+      };
+    })();
   }, []);
   (0, import_react13.useEffect)(() => {
     if (!mixtape || mixtapeLoadedRef.current) return;
@@ -80902,8 +81142,20 @@ function TapesTable({ mixtape }) {
     setRecorderLoadingId(null);
     autoEjectRef.current();
   }, []);
-  const handle3DDoubleTap = (0, import_react13.useCallback)((_tapeId) => {
-  }, []);
+  const handle3DDoubleTap = (0, import_react13.useCallback)((tapeId) => {
+    if (viewRef.current === "player" || showMixtapeCreator) return;
+    setInspectTapeId((prev) => {
+      if (prev) {
+        window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { tx: 0, tz: 0, animate: true, camY: 40 } }));
+        return null;
+      }
+      const tape = tapesRef.current.find((t3) => t3.id === tapeId);
+      if (!tape || tape.x == null || tape.y == null) return null;
+      const [tx, tz] = to3D(tape.x, tape.y);
+      window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { tx: tx - 4, tz, animate: true, camY: 20 } }));
+      return tapeId;
+    });
+  }, [showMixtapeCreator]);
   const handle3DMenuAction = (0, import_react13.useCallback)((_tapeId, _action) => {
   }, []);
   const [newTapeIds, setNewTapeIds] = (0, import_react13.useState)(() => /* @__PURE__ */ new Set());
@@ -81139,14 +81391,126 @@ function TapesTable({ mixtape }) {
         lockedTapeId: showMixtapeCreator ? MIXTAPE_ID : null,
         pickupBlockedTapeId: recorderLoadingId,
         lockCamera: showMixtapeCreator,
+        lockPan: view === "player",
         freePan: view === "player" || dragging3D,
         onRecorderLoad: handleRecorderLoad,
         onRecorderEject: handleRecorderEject,
-        showRecorder: true
+        showRecorder: !inspectTapeId,
+        onSceneReady: () => setSceneReady(true),
+        inspectTapeId
       }
     ) }),
-    playerTapeId && !showMixtapeCreator && (() => {
-      const tape = loadedTape ?? tapes.find((t3) => t3.id === playerTapeId);
+    !sceneReady && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
+      position: "fixed",
+      inset: 0,
+      zIndex: 99997,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "#0a0805",
+      pointerEvents: "auto"
+    }, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
+      width: 48,
+      height: 48,
+      border: "3px solid rgba(250,249,246,0.15)",
+      borderTopColor: "rgba(250,249,246,0.85)",
+      borderRadius: "50%",
+      animation: "tape-loading-spin 0.9s linear infinite"
+    } }) }),
+    inspectTapeId && (() => {
+      const tape = tapes.find((t3) => t3.id === inspectTapeId);
+      if (!tape) return null;
+      const colStyle = {
+        position: "fixed",
+        left: "32%",
+        transform: "translateX(-50%)",
+        zIndex: 99996,
+        pointerEvents: "auto",
+        display: "flex",
+        justifyContent: "center"
+      };
+      return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(import_jsx_runtime11.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { ...colStyle, top: "18vh" }, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+          "textarea",
+          {
+            rows: 1,
+            value: tape.title,
+            onChange: (e3) => {
+              const newTitle = e3.target.value;
+              setTapes((prev) => prev.map((t3) => t3.id === inspectTapeId ? { ...t3, title: newTitle } : t3));
+              const ta = e3.target;
+              ta.style.height = "auto";
+              ta.style.height = ta.scrollHeight + "px";
+            },
+            ref: (el) => {
+              if (el) {
+                el.style.height = "auto";
+                el.style.height = el.scrollHeight + "px";
+              }
+            },
+            style: {
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              borderBottom: "1px dashed rgba(250,249,246,0.3)",
+              color: "rgba(250,249,246,0.95)",
+              fontFamily: '"04b03", monospace',
+              fontSize: 26,
+              lineHeight: 1.25,
+              textAlign: "center",
+              minWidth: 560,
+              maxWidth: "80vw",
+              textShadow: "0 1px 2px rgba(0,0,0,0.8)",
+              padding: "4px 8px",
+              resize: "none",
+              overflow: "hidden"
+            }
+          }
+        ) }),
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { style: { ...colStyle, bottom: "18vh", gap: 12 }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+            "button",
+            {
+              className: "tape-ui-btn",
+              onClick: () => rewindTape(inspectTapeId),
+              style: {
+                background: "rgba(0,0,0,0.5)",
+                color: "rgba(250,249,246,0.95)",
+                fontFamily: '"04b03", monospace',
+                fontSize: 14,
+                padding: "8px 16px",
+                cursor: "pointer"
+              },
+              children: "rewind"
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(ShareButton, { tape }),
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+            "button",
+            {
+              className: "tape-ui-btn",
+              onClick: () => {
+                deleteTape(inspectTapeId);
+                setInspectTapeId(null);
+                window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { tx: 0, tz: 0, animate: true, camY: 40 } }));
+              },
+              style: {
+                background: "rgba(0,0,0,0.5)",
+                color: "rgba(250,249,246,0.95)",
+                fontFamily: '"04b03", monospace',
+                fontSize: 14,
+                padding: "8px 16px",
+                cursor: "pointer"
+              },
+              children: "remove"
+            }
+          )
+        ] })
+      ] });
+    })(),
+    (playerTapeId || inspectTapeId) && !showMixtapeCreator && (() => {
+      const focusId = playerTapeId || inspectTapeId;
+      const tape = loadedTape ?? tapes.find((t3) => t3.id === focusId);
       if (!tape) return null;
       const interactive = isPlaying && !!loadedTape && loadedTape.id === tape.id;
       const hasInfiniteTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
@@ -81204,17 +81568,27 @@ function TapesTable({ mixtape }) {
           padding: "24px 24px 20px",
           transition: "opacity 1s ease"
         }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
-            fontFamily: "'04b03', monospace",
-            fontSize: "1.3em",
-            color: "rgba(250,249,246,0.7)",
-            letterSpacing: "1.5px",
-            whiteSpace: "nowrap",
+          !inspectTapeId && /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
             marginBottom: hasTracklist ? "12px" : "0",
-            flexShrink: 0,
-            pointerEvents: interactive ? "auto" : "none",
-            userSelect: interactive ? "auto" : "none"
-          }, children: tape.title || "Untitled" }),
+            flexShrink: 0
+          }, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
+              fontFamily: "'04b03', monospace",
+              fontSize: "1.3em",
+              color: "rgba(250,249,246,0.7)",
+              letterSpacing: "1.5px",
+              whiteSpace: "nowrap",
+              flex: 1,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              pointerEvents: interactive ? "auto" : "none",
+              userSelect: interactive ? "auto" : "none"
+            }, children: tape.title || "Untitled" }),
+            /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(ShareButton, { tape })
+          ] }),
           !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
             color: "rgba(250,249,246,0.5)",
             marginTop: "6px",

@@ -9,7 +9,7 @@ import { Tape } from './types';
 import { to3D } from './coords';
 import { TableSurface } from './TableSurface';
 
-export const VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'] as const;
+export const VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'] as const;
 // Mesh→material mapping from FBX:
 // prop_cassette_tape_01002 → audio_cassette_a
 // prop_cassette_tape_01001 → audio_cassette_b
@@ -317,6 +317,96 @@ export function TapeOverlay3D({ tapes }: { tapes: Tape[] }) {
         <OverlayScene tapes={tapes} />
       </Canvas>
     </div>
+  );
+}
+
+// ── New cassette test (assets/cassette_new) ──
+//
+// Loads tape.FBX and applies three material sets by mesh-name heuristic:
+//   *glass*  → transparent glass (window over the tape)
+//   *line*   → LINE03 (label/strip)
+//   everything else → variant-NN body PBR (default 01)
+// Mesh names are logged on first load so the heuristic can be refined.
+
+const NEW_TEX_BASE = '/assets/cassette_new/Textures/';
+
+function loadPBR(prefix: string, hasOpacity = false) {
+  const loader = new THREE.TextureLoader();
+  const maps = {
+    map: loader.load(`${prefix}BaseColor.png`),
+    metalnessMap: loader.load(`${prefix}Metallic.png`),
+    roughnessMap: loader.load(`${prefix}Roughness.png`),
+    normalMap: loader.load(`${prefix}Normal.png`),
+    alphaMap: hasOpacity ? loader.load(`${prefix}opacity.png`) : undefined,
+  };
+  maps.map.colorSpace = THREE.SRGBColorSpace;
+  return maps;
+}
+
+export function NewTapeFBXTest({ position = [0, 0, 0] as [number, number, number], variant = '01', targetWidth = 7 }: {
+  position?: [number, number, number];
+  variant?: string;
+  targetWidth?: number;
+}) {
+  const [scene, setScene] = useState<THREE.Group | null>(null);
+  const [autoScale, setAutoScale] = useState(1);
+
+  useEffect(() => {
+    const loader = new FBXLoader();
+    loader.load('/assets/cassette_new/tape.FBX', (fbx) => {
+      const bodyMaps = loadPBR(`${NEW_TEX_BASE}${variant}/${variant}_`);
+      const lineMaps = loadPBR(`${NEW_TEX_BASE}LINE03_`);
+      const glassMaps = loadPBR(`${NEW_TEX_BASE}glass_`, true);
+
+      const bodyMat = new THREE.MeshStandardMaterial({ ...bodyMaps, metalness: 0.2, roughness: 0.7 });
+      const lineMat = new THREE.MeshStandardMaterial({ ...lineMaps, metalness: 0.1, roughness: 0.8 });
+      const glassMat = new THREE.MeshStandardMaterial({
+        ...glassMaps,
+        metalness: 0.1,
+        roughness: 0.15,
+        transparent: true,
+        depthWrite: false,
+      });
+
+      const box = new THREE.Box3().setFromObject(fbx);
+      const size = new THREE.Vector3();
+      const center = new THREE.Vector3();
+      box.getSize(size);
+      box.getCenter(center);
+      // Recenter: translate every mesh so the bbox center sits at the FBX origin.
+      fbx.position.sub(center);
+      const longest = Math.max(size.x, size.y, size.z);
+      const s = longest > 0 ? targetWidth / longest : 1;
+      setAutoScale(s);
+      console.log('[NewTapeFBXTest] bbox size:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2), 'center:', center.x.toFixed(2), center.y.toFixed(2), center.z.toFixed(2), '→ scale:', s.toFixed(4));
+
+      const seen: string[] = [];
+      fbx.traverse((child) => {
+        const mesh = child as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        const lname = mesh.name.toLowerCase();
+        seen.push(`${mesh.name} (mat: ${(mesh.material as any)?.name ?? '?'})`);
+        if (lname.includes('glass')) mesh.material = glassMat;
+        else if (lname.includes('line')) mesh.material = lineMat;
+        else mesh.material = bodyMat;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      });
+      console.log('[NewTapeFBXTest] meshes:', seen);
+      setScene(fbx);
+    }, undefined, (err) => console.error('[NewTapeFBXTest] load error', err));
+  }, [variant, targetWidth]);
+
+  if (!scene) return null;
+  return (
+    <group position={position} scale={[autoScale, autoScale, autoScale]}>
+      <primitive object={scene} />
+      {/* Debug: red wireframe box at origin so we can spot the slot even if model is invisible */}
+      <mesh>
+        <boxGeometry args={[1 / autoScale, 1 / autoScale, 1 / autoScale]} />
+        <meshBasicMaterial color="red" wireframe />
+      </mesh>
+    </group>
   );
 }
 

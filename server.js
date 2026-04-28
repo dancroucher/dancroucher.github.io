@@ -70,6 +70,24 @@ app.post('/api/mixtape/generate', async (req, res) => {
   }
 });
 
+app.post('/api/tape-share', async (req, res) => {
+  try {
+    const { createShare } = await import('./api/tape-share.js');
+    createShare(req, res);
+  } catch (error) {
+    res.status(500).json({ error: 'Tape share create failed: ' + error.message });
+  }
+});
+
+app.get('/api/tape-share/:id', async (req, res) => {
+  try {
+    const { getShare } = await import('./api/tape-share.js');
+    getShare(req, res);
+  } catch (error) {
+    res.status(500).json({ error: 'Tape share fetch failed: ' + error.message });
+  }
+});
+
 app.get('/api/playlist-tracks', async (req, res) => {
   try {
     const { default: handler } = await import('./api/playlist-tracks.js');

@@ -106,7 +106,7 @@ __/ / \__/ \__//_/_/_/    /_/ /_/_/_/
         // NOT for ?mixtape=1 — that route is handled by TapesTable directly.
         (function() {
           var params = new URLSearchParams(window.location.search);
-          if (params.get('create_mixtape') === '1' || params.has('tape')) {
+          if (params.get('create_mixtape') === '1') {
             // Load YouTube Iframe API first
             var tag = document.createElement('script');
             tag.src = 'https://www.youtube.com/iframe_api';
