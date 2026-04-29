@@ -562,8 +562,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             textureVariant: nextTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
-            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 80),
-            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 60),
+            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280),
+            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
           };
           const next = [tape, ...prev];
@@ -590,8 +590,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             textureVariant: randomTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
-            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 80),
-            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 60),
+            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280),
+            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
           };
           const next = [tape, ...prev];
@@ -629,8 +629,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             textureVariant: nextTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
-            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 80),
-            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 60),
+            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280),
+            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
           };
           const next = [tape, ...prev];
@@ -679,8 +679,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         textureVariant: p.textureVariant ?? randomTextureVariant(),
         progress: 0,
         timestamp: Date.now(),
-        x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 80),
-        y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 60),
+        x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280),
+        y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200),
         angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
       } as Tape;
     })();
@@ -1062,6 +1062,27 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     const t = tapesRef.current.find(t => t.id === tapeId);
     if (!t) return;
     recorderLoadedDuringDragRef.current = true;
+
+    // Respawn any previously-loaded tape: drop it back onto the centre of the
+    // table from SPAWN_HEIGHT (with a bit of variance) instead of having it
+    // fall in place from the recorder pose.
+    const prev = loadedRef.current;
+    if (prev && prev.id !== tapeId) {
+      const px = CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280);
+      const py = CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200);
+      const pa = Math.round((Math.random() * 40 - 20) * 10) / 10;
+      setTapes(prevList => prevList.map(tt =>
+        tt.id === prev.id ? { ...tt, x: px, y: py, angle: pa } : tt,
+      ));
+      setNewTapeIds(s => { const n = new Set(s); n.add(prev.id); return n; });
+      setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(prev.id); return n; }), 2000);
+      setRespawnVersions(m => {
+        const n = new Map(m);
+        n.set(prev.id, (n.get(prev.id) ?? 0) + 1);
+        return n;
+      });
+    }
+
     setRecorderSourced(true);
     // Lock this tape from being yanked back out until YouTube actually starts
     // playing. Safety timeout clears the lock if PLAYING never fires (e.g. a
@@ -1106,6 +1127,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   }, []);
 
   const [newTapeIds, setNewTapeIds] = useState(() => new Set<string>());
+  // Bump per-tape to force a TapeBody remount — used to respawn a tape from
+  // SPAWN_HEIGHT (e.g. when it's ejected from the recorder by a replacement).
+  const [respawnVersions, setRespawnVersions] = useState(() => new Map<string, number>());
 
   // --- Drag from table ---
   const startDrag = useCallback((e: React.PointerEvent, tape: Tape) => {
@@ -1300,16 +1324,16 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       // Otherwise re-center with jitter (old tapes may have coords from a different layout)
       return {
         ...tape,
-        x: cx + Math.round((Math.random() - 0.5) * 80),
-        y: cy + Math.round((Math.random() - 0.5) * 60),
+        x: cx + Math.round((Math.random() - 0.5) * 280),
+        y: cy + Math.round((Math.random() - 0.5) * 200),
       };
     }
     const col = i % 3;
     const row = Math.floor(i / 3);
     return {
       ...tape,
-      x: cx + Math.round((Math.random() - 0.5) * 80),
-      y: cy + Math.round((Math.random() - 0.5) * 60),
+      x: cx + Math.round((Math.random() - 0.5) * 280),
+      y: cy + Math.round((Math.random() - 0.5) * 200),
       angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
     };
   });
@@ -1356,6 +1380,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           menuId={menuId}
           onClearMenu={cancelMenu}
           newTapeIds={newTapeIds}
+          respawnVersions={respawnVersions}
           externalDrag={externalDrag.current}
           lockedTapeId={showMixtapeCreator ? MIXTAPE_ID : null}
           pickupBlockedTapeId={recorderLoadingId}
@@ -1537,7 +1562,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 }}>
                   {tape.title || 'Untitled'}
                 </div>
-                <ShareButton tape={tape} />
               </div>
             )}
             {!hasTracklist && tape.author && (

@@ -30,6 +30,10 @@ interface SnapState {
 // Seconds to tween from release pose into the loaded-in-recorder pose.
 const SNAP_DURATION = 0.4;
 
+// Height new tapes spawn at before falling. Higher = more dramatic drop and
+// gives nearby resting tapes time to settle before the new one lands.
+const SPAWN_HEIGHT = 22;
+
 interface TapeBodyProps {
   tape: Tape;
   drag: DragState; // shared mutable object — read in useFrame, no re-renders
@@ -40,6 +44,7 @@ interface TapeBodyProps {
   bounceTapeId?: React.MutableRefObject<string | null>;
   hidden?: boolean;
   onReady?: (tapeId: string) => void;
+  spawnAllowed?: boolean;
 }
 
 // Per-variant cached: isolated mesh centered at origin + measured half-extents
@@ -342,7 +347,7 @@ export function stampTitle(baseColor: THREE.Texture, title: string, variant: str
 }
 
 export function TapeBody({
-  tape, drag, snap, menuOpen, onMenuAction, isNew, bounceTapeId, hidden = false, onReady,
+  tape, drag, snap, menuOpen, onMenuAction, isNew, bounceTapeId, hidden = false, onReady, spawnAllowed = true,
 }: TapeBodyProps) {
   const bodyRef = useRef<RapierRigidBody>(null);
   const groupRef = useRef<THREE.Group>(null);
@@ -371,6 +376,7 @@ export function TapeBody({
   // Inactivity fade — eased toward 1 (visible) or 0 (hidden) each frame.
   const opacityRef = useRef(1);
   const materialsRef = useRef<THREE.Material[]>([]);
+  const materialsReady = useRef(false);
 
   // Pick texture variant — use stored field if available, fall back to seed-based for legacy tapes
   const seed = tape.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
@@ -410,7 +416,10 @@ export function TapeBody({
       }
     });
     materialsRef.current = mats;
-    if (mats.length > 0) onReady?.(tape.id);
+    if (mats.length > 0) {
+      materialsReady.current = true;
+      onReady?.(tape.id);
+    }
   }, [sceneData, textures, tape.title, tape.id, onReady]);
 
   // Initial position from 2D coords — only used on first mount, not on prop updates
@@ -419,7 +428,7 @@ export function TapeBody({
   const halfY = sceneData?.geo.halfY ?? 0.8;
   if (!initialPos.current) {
     const [ix, iz] = to3D(tape.x ?? 500, tape.y ?? 500);
-    initialPos.current = { x3d: ix, z3d: iz, spawnY: isNew ? DRAG_HEIGHT : halfY + 0.01 };
+    initialPos.current = { x3d: ix, z3d: iz, spawnY: isNew ? SPAWN_HEIGHT : halfY + 0.01 };
   }
   const { x3d, z3d, spawnY } = initialPos.current;
   // 180° base rotation so label faces camera, plus random yaw
@@ -430,11 +439,22 @@ export function TapeBody({
     const body = bodyRef.current;
     if (!body) return;
 
-    // New tape spawn: start with gentle gravity so it visibly falls
+    // New tape spawn: hold the body frozen at spawn height until textures and
+    // materials are applied, then release into a gentle fall. This avoids
+    // dropping a placeholder mesh and keeps the visual fade-in lined up with
+    // the start of the drop.
     if (needsSpawnDrop.current) {
-      needsSpawnDrop.current = false;
-      body.setGravityScale(0.1, true);
-      body.setLinvel({ x: 0, y: -1, z: 0 }, true);
+      if (!materialsReady.current || !spawnAllowed) {
+        body.setGravityScale(0, true);
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        body.setTranslation({ x: x3d, y: spawnY, z: z3d }, true);
+      } else {
+        needsSpawnDrop.current = false;
+        falling.current = true;
+        body.setGravityScale(0.25, true);
+        body.setLinvel({ x: 0, y: -1, z: 0 }, true);
+      }
     }
 
     // Bounce on double-tap

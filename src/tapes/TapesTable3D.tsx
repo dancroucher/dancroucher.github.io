@@ -76,6 +76,10 @@ interface TapesTable3DProps {
   menuId: string | null;
   onClearMenu: () => void;
   newTapeIds: Set<string>;
+  // Per-tape remount key. When a value bumps, that tape's TapeBody remounts —
+  // used to "respawn" a tape (e.g. ejected from recorder by a replacement) so
+  // it falls from SPAWN_HEIGHT at its updated x/y instead of dropping in place.
+  respawnVersions?: Map<string, number>;
   externalDrag?: DragState; // shared mutable object for external drag initiation
   lockedTapeId?: string | null;
   // Prevents pickup of a specific tape (e.g. while the recorder is still
@@ -98,7 +102,7 @@ interface TapesTable3DProps {
 }
 
 function SceneContents({
-  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId,
+  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId,
 }: TapesTable3DProps) {
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
@@ -247,6 +251,7 @@ function SceneContents({
     if (!hit) return null;
 
     let bestId: string | null = null;
+    let bestY = -Infinity;
     let bestDist = Infinity;
     const HALF_W = TAPE_W / 2;
     const HALF_H = TAPE_H / 2;
@@ -259,7 +264,11 @@ function SceneContents({
       const dz = Math.abs(hit.z - world.z);
       if (dx < HALF_W + 0.1 && dz < HALF_H + 0.1) {
         const dist = dx + dz;
-        if (dist < bestDist) {
+        // Prefer the tape stacked highest (top of any pile). Tie-break by
+        // proximity to centre. 0.05 tolerance keeps flat-on-table tapes
+        // (which all sit at ~halfY) tied so the original distance rule wins.
+        if (world.y > bestY + 0.05 || (Math.abs(world.y - bestY) <= 0.05 && dist < bestDist)) {
+          bestY = world.y;
           bestDist = dist;
           bestId = obj.name.replace('tape-', '');
         }
@@ -693,7 +702,7 @@ function SceneContents({
             {showRecorder && <Recorder3D position={RECORDER_POS} rotationY={RECORDER_ROT_Y} lidOpen={lidOpen} hidden={uiHidden} onReady={() => setRecorderReady(true)} />}
             {(!showRecorder || recorderReady) && tableTapes.map(tape => (
               <TapeBody
-                key={tape.id}
+                key={`${tape.id}:${respawnVersions?.get(tape.id) ?? 0}`}
                 tape={tape}
                 drag={drag}
                 snap={snap}
@@ -703,6 +712,7 @@ function SceneContents({
                 bounceTapeId={bounceTapeId}
                 hidden={uiHidden}
                 onReady={handleTapeReady}
+                spawnAllowed={sceneReady}
               />
             ))}
           </group>

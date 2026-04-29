@@ -75009,7 +75009,8 @@ function TapeBody({
   isNew,
   bounceTapeId,
   hidden = false,
-  onReady
+  onReady,
+  spawnAllowed = true
 }) {
   const bodyRef = (0, import_react7.useRef)(null);
   const groupRef = (0, import_react7.useRef)(null);
@@ -75032,6 +75033,7 @@ function TapeBody({
   const snapTarget = (0, import_react7.useRef)({ x: 0, y: 0, z: 0, yaw: 0 });
   const opacityRef = (0, import_react7.useRef)(1);
   const materialsRef = (0, import_react7.useRef)([]);
+  const materialsReady = (0, import_react7.useRef)(false);
   const seed = tape.id.split("").reduce((a3, c3) => a3 + c3.charCodeAt(0), 0);
   const variant = tape.textureVariant || VARIANTS[seed % VARIANTS.length];
   const meshName = VARIANT_TO_MESH["a"];
@@ -75065,13 +75067,16 @@ function TapeBody({
       }
     });
     materialsRef.current = mats;
-    if (mats.length > 0) onReady?.(tape.id);
+    if (mats.length > 0) {
+      materialsReady.current = true;
+      onReady?.(tape.id);
+    }
   }, [sceneData, textures, tape.title, tape.id, onReady]);
   const initialPos = (0, import_react7.useRef)(null);
   const halfY = sceneData?.geo.halfY ?? 0.8;
   if (!initialPos.current) {
     const [ix, iz] = to3D(tape.x ?? 500, tape.y ?? 500);
-    initialPos.current = { x3d: ix, z3d: iz, spawnY: isNew ? DRAG_HEIGHT : halfY + 0.01 };
+    initialPos.current = { x3d: ix, z3d: iz, spawnY: isNew ? SPAWN_HEIGHT : halfY + 0.01 };
   }
   const { x3d, z3d, spawnY } = initialPos.current;
   const angleRad = (tape.angle ?? 0) * Math.PI / 180 + Math.PI;
@@ -75079,9 +75084,17 @@ function TapeBody({
     const body = bodyRef.current;
     if (!body) return;
     if (needsSpawnDrop.current) {
-      needsSpawnDrop.current = false;
-      body.setGravityScale(0.1, true);
-      body.setLinvel({ x: 0, y: -1, z: 0 }, true);
+      if (!materialsReady.current || !spawnAllowed) {
+        body.setGravityScale(0, true);
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        body.setTranslation({ x: x3d, y: spawnY, z: z3d }, true);
+      } else {
+        needsSpawnDrop.current = false;
+        falling.current = true;
+        body.setGravityScale(0.25, true);
+        body.setLinvel({ x: 0, y: -1, z: 0 }, true);
+      }
     }
     if (bounceTapeId?.current === tape.id) {
       bounceTapeId.current = null;
@@ -75306,7 +75319,7 @@ function TapeBody({
     }
   );
 }
-var import_react7, import_jsx_runtime5, SNAP_DURATION, variantMeta, fbxDumped, stampCache, STAMP_DEBUG;
+var import_react7, import_jsx_runtime5, SNAP_DURATION, SPAWN_HEIGHT, variantMeta, fbxDumped, stampCache, STAMP_DEBUG;
 var init_TapeBody = __esm({
   "src/tapes/TapeBody.tsx"() {
     "use strict";
@@ -75319,6 +75332,7 @@ var init_TapeBody = __esm({
     init_DeckTape3D();
     import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
     SNAP_DURATION = 0.4;
+    SPAWN_HEIGHT = 22;
     variantMeta = /* @__PURE__ */ new Map();
     fbxDumped = false;
     stampCache = /* @__PURE__ */ new Map();
@@ -78801,6 +78815,7 @@ function SceneContents({
     const hit = raycastToPlane(clientX, clientY, 0);
     if (!hit) return null;
     let bestId = null;
+    let bestY = -Infinity;
     let bestDist = Infinity;
     const HALF_W = TAPE_W / 2;
     const HALF_H = TAPE_H / 2;
@@ -78812,7 +78827,8 @@ function SceneContents({
       const dz = Math.abs(hit.z - world.z);
       if (dx < HALF_W + 0.1 && dz < HALF_H + 0.1) {
         const dist = dx + dz;
-        if (dist < bestDist) {
+        if (world.y > bestY + 0.05 || Math.abs(world.y - bestY) <= 0.05 && dist < bestDist) {
+          bestY = world.y;
           bestDist = dist;
           bestId = obj.name.replace("tape-", "");
         }
@@ -79189,7 +79205,8 @@ function SceneContents({
             isNew: newTapeIds.has(tape.id),
             bounceTapeId,
             hidden: uiHidden,
-            onReady: handleTapeReady
+            onReady: handleTapeReady,
+            spawnAllowed: sceneReady
           },
           tape.id
         ))
@@ -81568,27 +81585,24 @@ function TapesTable({ mixtape }) {
           padding: "24px 24px 20px",
           transition: "opacity 1s ease"
         }, children: [
-          !inspectTapeId && /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { style: {
+          !inspectTapeId && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
             display: "flex",
             alignItems: "center",
             gap: 12,
             marginBottom: hasTracklist ? "12px" : "0",
             flexShrink: 0
-          }, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
-              fontFamily: "'04b03', monospace",
-              fontSize: "1.3em",
-              color: "rgba(250,249,246,0.7)",
-              letterSpacing: "1.5px",
-              whiteSpace: "nowrap",
-              flex: 1,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              pointerEvents: interactive ? "auto" : "none",
-              userSelect: interactive ? "auto" : "none"
-            }, children: tape.title || "Untitled" }),
-            /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(ShareButton, { tape })
-          ] }),
+          }, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
+            fontFamily: "'04b03', monospace",
+            fontSize: "1.3em",
+            color: "rgba(250,249,246,0.7)",
+            letterSpacing: "1.5px",
+            whiteSpace: "nowrap",
+            flex: 1,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            pointerEvents: interactive ? "auto" : "none",
+            userSelect: interactive ? "auto" : "none"
+          }, children: tape.title || "Untitled" }) }),
           !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
             color: "rgba(250,249,246,0.5)",
             marginTop: "6px",
