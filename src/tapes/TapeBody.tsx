@@ -658,14 +658,20 @@ export function TapeBody({
     // lags the body transition; group is hidden entirely once effectively clear.
     if (materialsRef.current.length) {
       const opTarget = hidden ? 0 : 1;
-      const k = 1 - Math.exp(-delta * 2.5);
+      const k = 1 - Math.exp(-delta * 4.5);
       opacityRef.current += (opTarget - opacityRef.current) * k;
       const castOn = opacityRef.current > 0.85;
       sceneData?.group.traverse((child) => {
         const m = child as THREE.Mesh;
         if (m.isMesh) m.castShadow = castOn;
       });
-      for (const mat of materialsRef.current) mat.opacity = opacityRef.current;
+      // Disable depthWrite while fading so sub-meshes (body shell vs. spools)
+      // don't z-fight and produce stencil-like cutouts at low opacity.
+      const writeDepth = opacityRef.current > 0.995;
+      for (const mat of materialsRef.current) {
+        mat.opacity = opacityRef.current;
+        mat.depthWrite = writeDepth;
+      }
       const g = groupRef.current;
       if (g) g.visible = opacityRef.current > 0.02;
     }

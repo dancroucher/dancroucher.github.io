@@ -99,10 +99,13 @@ interface TapesTable3DProps {
   // When set: closer-zoom inspect mode showing only this one tape, no recorder,
   // no camera control, no pickup. Parent dispatches jeem-centre-camera at camY=20.
   inspectTapeId?: string | null;
+  // When true, the inspected tape is faded out alongside the others (used
+  // by the remove flow to dissolve the tape before the exit-inspect tween).
+  fadeInspectedTape?: boolean;
 }
 
 function SceneContents({
-  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId,
+  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId, fadeInspectedTape,
 }: TapesTable3DProps) {
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
@@ -230,9 +233,9 @@ function SceneContents({
   // even with no pointermove event firing.
   const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
 
-  const tableTapes = inspectTapeId
-    ? tapes.filter(t => t.id === inspectTapeId)
-    : tapes.filter(t => t.id !== loadedTapeId);
+  // In inspect mode, keep all tapes mounted (so the non-focused ones can fade
+  // out via their `hidden` prop) instead of filtering them away abruptly.
+  const tableTapes = tapes.filter(t => t.id !== loadedTapeId);
 
   const raycastToPlane = useCallback((clientX: number, clientY: number, planeY: number): THREE.Vector3 | null => {
     const rect = gl.domElement.getBoundingClientRect();
@@ -537,6 +540,13 @@ function SceneContents({
     fromTgt: THREE.Vector3; toTgt: THREE.Vector3;
     start: number; dur: number;
   } | null>(null);
+  // Separate Y-only tween so a zoom can run in parallel with the pan tween
+  // (typically slightly offset in time) without overwriting it.
+  const camYTweenRef = useRef<{ fromY: number; toY: number; start: number; dur: number } | null>(null);
+  // Camera pose captured right before entering inspect mode, so the exit
+  // tween can restore exactly where the user was instead of snapping to
+  // origin (where the post-tween clamp may want to push it).
+  const savedInspectPoseRef = useRef<{ pos: THREE.Vector3; tgt: THREE.Vector3 } | null>(null);
 
   // Clamp camera pan so viewport edge stops at active area boundary
   useFrame(() => {
@@ -546,7 +556,7 @@ function SceneContents({
     // player view — at typical aspect ratios the active-area is narrower than
     // the viewport so maxX collapses to 0 and yanks the camera back to origin
     // ~600ms after a pickup, jumping the view.
-    if (camTweenRef.current || freePan || inspectTapeId) return;
+    if (camTweenRef.current || camYTweenRef.current || freePan || inspectTapeId) return;
     const cam = camera as THREE.PerspectiveCamera;
     const halfH = cam.position.y * Math.tan((cam.fov * Math.PI) / 360);
     const halfW = halfH * cam.aspect;
@@ -572,9 +582,18 @@ function SceneContents({
   useEffect(() => {
     function handleCentre(e: Event) {
       const detail = (e as CustomEvent).detail || {};
-      const camY = detail.camY ?? 40;
+      // If `zoomTo` is supplied, the pan tween leaves Y untouched and a
+      // separate camYTween handles the zoom (optionally delayed by zoomDelay).
+      const zoomTo: number | undefined = detail.zoomTo;
+      const camY = zoomTo != null ? camera.position.y : (detail.camY ?? camera.position.y);
       let camX: number, camZ: number, tgtX: number, tgtZ: number;
-      if (detail.tx !== undefined || detail.tz !== undefined) {
+      const saved = savedInspectPoseRef.current;
+      if (detail.restoreSaved && saved) {
+        // Exit-from-inspect: restore the pre-entry pose exactly so the post-
+        // tween clamp doesn't yank the camera to a different spot.
+        camX = saved.pos.x; camZ = saved.pos.z;
+        tgtX = saved.tgt.x; tgtZ = saved.tgt.z;
+      } else if (detail.tx !== undefined || detail.tz !== undefined) {
         const tx = detail.tx ?? 0;
         const tz = detail.tz ?? 0;
         camX = tx + 8; camZ = tz + 3;
@@ -584,17 +603,33 @@ function SceneContents({
         tgtX = camX; tgtZ = 0;
       }
       const c = controlsRef.current;
+      if (detail.saveCurrentPose && c) {
+        savedInspectPoseRef.current = { pos: camera.position.clone(), tgt: c.target.clone() };
+      }
       if (detail.animate && c) {
+        const dur = detail.dur ?? 600;
         camTweenRef.current = {
           fromPos: camera.position.clone(),
           toPos: new THREE.Vector3(camX, camY, camZ),
           fromTgt: c.target.clone(),
           toTgt: new THREE.Vector3(tgtX, 0, tgtZ),
           start: performance.now(),
-          dur: 600,
+          dur,
         };
+        if (zoomTo != null) {
+          const zoomDelay = detail.zoomDelay ?? 0;
+          const zoomDur = detail.zoomDur ?? dur;
+          setTimeout(() => {
+            camYTweenRef.current = {
+              fromY: camera.position.y,
+              toY: zoomTo,
+              start: performance.now(),
+              dur: zoomDur,
+            };
+          }, zoomDelay);
+        }
       } else {
-        camera.position.set(camX, camY, camZ);
+        camera.position.set(camX, zoomTo ?? camY, camZ);
         if (c) { c.target.set(tgtX, 0, tgtZ); c.update(); }
       }
     }
@@ -604,13 +639,23 @@ function SceneContents({
 
   useFrame(() => {
     const t = camTweenRef.current;
-    if (!t) return;
+    const yT = camYTweenRef.current;
+    if (!t && !yT) return;
     const c = controlsRef.current;
-    const k = Math.min(1, (performance.now() - t.start) / t.dur);
-    const e = 1 - Math.pow(1 - k, 3);
-    camera.position.lerpVectors(t.fromPos, t.toPos, e);
-    if (c) { c.target.lerpVectors(t.fromTgt, t.toTgt, e); c.update(); }
-    if (k >= 1) camTweenRef.current = null;
+    if (t) {
+      const k = Math.min(1, (performance.now() - t.start) / t.dur);
+      const e = 1 - Math.pow(1 - k, 3);
+      camera.position.lerpVectors(t.fromPos, t.toPos, e);
+      if (c) { c.target.lerpVectors(t.fromTgt, t.toTgt, e); c.update(); }
+      if (k >= 1) camTweenRef.current = null;
+    }
+    if (yT) {
+      const k = Math.min(1, (performance.now() - yT.start) / yT.dur);
+      const e = 1 - Math.pow(1 - k, 3);
+      camera.position.y = yT.fromY + (yT.toY - yT.fromY) * e;
+      if (c) c.update();
+      if (k >= 1) camYTweenRef.current = null;
+    }
   });
 
   // Edge-of-screen camera pan while dragging a tape — so tapes picked up far
@@ -699,8 +744,11 @@ function SceneContents({
           <YouTubeSurface />
           {/* Recorder — lower-left, partially running off the table edge */}
           <group visible={sceneReady}>
-            {showRecorder && <Recorder3D position={RECORDER_POS} rotationY={RECORDER_ROT_Y} lidOpen={lidOpen} hidden={uiHidden} onReady={() => setRecorderReady(true)} />}
-            {(!showRecorder || recorderReady) && tableTapes.map(tape => (
+            {/* Always mounted so it can fade out via `hidden` when entering
+                inspect mode instead of unmounting abruptly. `showRecorder`
+                still gates interaction (drag-to-load, hover detection). */}
+            <Recorder3D position={RECORDER_POS} rotationY={RECORDER_ROT_Y} lidOpen={lidOpen} hidden={uiHidden || !showRecorder} onReady={() => setRecorderReady(true)} />
+            {recorderReady && tableTapes.map(tape => (
               <TapeBody
                 key={`${tape.id}:${respawnVersions?.get(tape.id) ?? 0}`}
                 tape={tape}
@@ -710,7 +758,7 @@ function SceneContents({
                 onMenuAction={onMenuAction}
                 isNew={newTapeIds.has(tape.id)}
                 bounceTapeId={bounceTapeId}
-                hidden={uiHidden}
+                hidden={uiHidden || (!!inspectTapeId && (tape.id !== inspectTapeId || !!fadeInspectedTape))}
                 onReady={handleTapeReady}
                 spawnAllowed={sceneReady}
               />
@@ -724,8 +772,8 @@ function SceneContents({
         enableRotate={false}
         enablePan={!lockedTapeId && !lockCamera && !lockPan && !inspectTapeId}
         enableZoom={!lockedTapeId && !lockCamera && !inspectTapeId}
-        minDistance={inspectTapeId ? 18 : 35}
-        maxDistance={inspectTapeId ? 22 : 45}
+        minDistance={inspectTapeId ? 20 : 35}
+        maxDistance={45}
         panSpeed={1.5}
         zoomSpeed={1.2}
         screenSpacePanning={false}

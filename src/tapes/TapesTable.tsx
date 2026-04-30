@@ -253,6 +253,15 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // Inspect view: closer-zoom single-tape pose (no recorder, no controls).
   // Toggled by double-tap from table view.
   const [inspectTapeId, setInspectTapeId] = useState<string | null>(null);
+  const inspectTapeIdRef = useRef<string | null>(null);
+  inspectTapeIdRef.current = inspectTapeId;
+  // Delayed flag — UI overlays for the inspect view only appear after the
+  // fade + camera tween have settled. Cleared immediately on exit.
+  const [inspectUiVisible, setInspectUiVisible] = useState(false);
+  const inspectUiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Set when the user clicks remove on the inspected tape — fades it away
+  // before the exit-inspect sequence runs. Cleared once removal completes.
+  const [removingInspected, setRemovingInspected] = useState(false);
 
   // Fetch playlist tracks when inspecting a playlist tape (so tracklist UI shows).
   useEffect(() => {
@@ -1103,24 +1112,49 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     autoEjectRef.current();
   }, []);
 
+  const exitInspect = useCallback(() => {
+    if (inspectUiTimerRef.current) { clearTimeout(inspectUiTimerRef.current); inspectUiTimerRef.current = null; }
+    if (inspectTapeIdRef.current == null) return;
+    const camDur = 1000;
+    const zoomDelay = 200;
+    const zoomDur = 1000;
+    setInspectUiVisible(false);
+    window.dispatchEvent(new CustomEvent('jeem-centre-camera', {
+      detail: { restoreSaved: true, animate: true, dur: camDur, zoomTo: 40, zoomDelay, zoomDur },
+    }));
+    inspectUiTimerRef.current = setTimeout(() => {
+      setInspectTapeId(null);
+      inspectUiTimerRef.current = null;
+    }, zoomDelay + zoomDur);
+  }, []);
+
   const handle3DDoubleTap = useCallback((tapeId: string) => {
     // Double-tap on table view → enter inspect view (closer zoom, single tape).
     // Double-tap while inspecting → exit back to table view.
     if (viewRef.current === 'player' || showMixtapeCreator) return;
-    setInspectTapeId(prev => {
-      if (prev) {
-        window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { tx: 0, tz: 0, animate: true, camY: 40 } }));
-        return null;
-      }
-      const tape = tapesRef.current.find(t => t.id === tapeId);
-      if (!tape || tape.x == null || tape.y == null) return null;
-      const [tx, tz] = to3D(tape.x, tape.y);
-      // tx/tz form lands target at (tx+8, 0, tz); pass tx-4 so tape sits 4
-      // units left of centre, leaving some room on the right for the tracklist.
-      window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { tx: tx - 4, tz, animate: true, camY: 20 } }));
-      return tapeId;
-    });
-  }, [showMixtapeCreator]);
+    if (inspectTapeIdRef.current != null) {
+      exitInspect();
+      return;
+    }
+    if (inspectUiTimerRef.current) { clearTimeout(inspectUiTimerRef.current); inspectUiTimerRef.current = null; }
+    const tape = tapesRef.current.find(t => t.id === tapeId);
+    if (!tape || tape.x == null || tape.y == null) return;
+    const [tx, tz] = to3D(tape.x, tape.y);
+    setInspectTapeId(tapeId);
+    const camDelay = 200;
+    const camDur = 1000;
+    const zoomDelay = 200;
+    const zoomDur = 1000;
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('jeem-centre-camera', {
+        detail: { tx: tx - 2, tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true },
+      }));
+    }, camDelay);
+    inspectUiTimerRef.current = setTimeout(() => {
+      setInspectUiVisible(true);
+      inspectUiTimerRef.current = null;
+    }, camDelay + zoomDelay + zoomDur + 250);
+  }, [showMixtapeCreator, exitInspect]);
 
   const handle3DMenuAction = useCallback((_tapeId: string, _action: 'link' | 'rewind' | 'remove') => {
     // Context menu disabled — functionality will be rebuilt later
@@ -1392,6 +1426,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           showRecorder={!inspectTapeId}
           onSceneReady={() => setSceneReady(true)}
           inspectTapeId={inspectTapeId}
+          fadeInspectedTape={removingInspected}
         />
       </Suspense>
 
@@ -1411,7 +1446,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         </div>
       )}
 
-      {inspectTapeId && (() => {
+      {inspectTapeId && inspectUiVisible && (() => {
         const tape = tapes.find(t => t.id === inspectTapeId);
         if (!tape) return null;
         const colStyle: React.CSSProperties = {
@@ -1461,9 +1496,22 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               <button
                 className="tape-ui-btn"
                 onClick={() => {
-                  deleteTape(inspectTapeId);
-                  setInspectTapeId(null);
-                  window.dispatchEvent(new CustomEvent('jeem-centre-camera', { detail: { tx: 0, tz: 0, animate: true, camY: 40 } }));
+                  const target = inspectTapeId;
+                  if (!target) return;
+                  // Fade the inspected tape out, then run the standard
+                  // exit-inspect sequence; delete the tape data only after
+                  // both have settled so the visual sequence isn't cut short.
+                  setInspectUiVisible(false);
+                  setRemovingInspected(true);
+                  const FADE_MS = 600;
+                  setTimeout(() => {
+                    // Delete first so the tape is gone from the scene before
+                    // exitInspect clears inspectTapeId (otherwise the dying
+                    // tape would briefly fade back in with the others).
+                    deleteTape(target);
+                    setRemovingInspected(false);
+                    exitInspect();
+                  }, FADE_MS);
                 }}
                 style={{
                   background: 'rgba(0,0,0,0.5)', color: 'rgba(250,249,246,0.95)',
@@ -1477,7 +1525,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       })()}
 
 {/* Unified tape info + tracklist panel — single layout for idle and playback */}
-      {(playerTapeId || inspectTapeId) && !showMixtapeCreator && (() => {
+      {((playerTapeId && isPlaying) || (inspectTapeId && inspectUiVisible)) && !showMixtapeCreator && (() => {
         const focusId = playerTapeId || inspectTapeId;
         // Prefer loaded tape (source of truth during playback), else the focused player/inspect tape
         const tape = loadedTape ?? tapes.find(t => t.id === focusId);
@@ -1545,7 +1593,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
             border: 'none', borderRadius: 0,
             padding: '24px 24px 20px',
-            transition: 'opacity 1s ease',
+            opacity: dragging3D ? 0 : 1,
+            transition: 'opacity 0.2s ease',
           }}>
             {!inspectTapeId && (
               <div style={{

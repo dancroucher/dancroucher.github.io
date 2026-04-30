@@ -197,7 +197,7 @@ export function Recorder3D({
     const mats = loaded?.materials;
     if (mats && mats.length) {
       const target = hidden ? 0 : 1;
-      const k = 1 - Math.exp(-dt * 2.5);
+      const k = 1 - Math.exp(-dt * 4.5);
       opacityRef.current += (target - opacityRef.current) * k;
       for (const m of mats) m.opacity = opacityRef.current;
       // Keep cast-shadow on almost until the mesh is gone so the shadow tracks

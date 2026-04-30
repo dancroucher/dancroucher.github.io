@@ -75254,14 +75254,18 @@ function TapeBody({
     spinRef.current = isLoaded.current && !!window.AppState?.playing;
     if (materialsRef.current.length) {
       const opTarget = hidden ? 0 : 1;
-      const k3 = 1 - Math.exp(-delta * 2.5);
+      const k3 = 1 - Math.exp(-delta * 4.5);
       opacityRef.current += (opTarget - opacityRef.current) * k3;
       const castOn = opacityRef.current > 0.85;
       sceneData?.group.traverse((child) => {
         const m3 = child;
         if (m3.isMesh) m3.castShadow = castOn;
       });
-      for (const mat of materialsRef.current) mat.opacity = opacityRef.current;
+      const writeDepth = opacityRef.current > 0.995;
+      for (const mat of materialsRef.current) {
+        mat.opacity = opacityRef.current;
+        mat.depthWrite = writeDepth;
+      }
       const g3 = groupRef.current;
       if (g3) g3.visible = opacityRef.current > 0.02;
     }
@@ -78321,7 +78325,7 @@ function Recorder3D({
     const mats = loaded?.materials;
     if (mats && mats.length) {
       const target = hidden ? 0 : 1;
-      const k3 = 1 - Math.exp(-dt * 2.5);
+      const k3 = 1 - Math.exp(-dt * 4.5);
       opacityRef.current += (target - opacityRef.current) * k3;
       for (const m3 of mats) m3.opacity = opacityRef.current;
       const castOn = opacityRef.current > 0.05;
@@ -78698,6 +78702,7 @@ function SceneContents({
   menuId,
   onClearMenu,
   newTapeIds,
+  respawnVersions,
   externalDrag,
   lockedTapeId,
   pickupBlockedTapeId,
@@ -78709,7 +78714,8 @@ function SceneContents({
   onRecorderEject,
   showRecorder,
   onSceneReady,
-  inspectTapeId
+  inspectTapeId,
+  fadeInspectedTape
 }) {
   const { camera, gl, scene } = useThree();
   const controlsRef = (0, import_react12.useRef)(null);
@@ -78800,7 +78806,7 @@ function SceneContents({
   const lastTapRef = (0, import_react12.useRef)({ time: 0, id: "" });
   const savedCamPoseRef = (0, import_react12.useRef)(null);
   const lastPointerRef = (0, import_react12.useRef)(null);
-  const tableTapes = inspectTapeId ? tapes.filter((t3) => t3.id === inspectTapeId) : tapes.filter((t3) => t3.id !== loadedTapeId);
+  const tableTapes = tapes.filter((t3) => t3.id !== loadedTapeId);
   const raycastToPlane = (0, import_react12.useCallback)((clientX, clientY, planeY) => {
     const rect = gl.domElement.getBoundingClientRect();
     const ndcX = (clientX - rect.left) / rect.width * 2 - 1;
@@ -79046,10 +79052,12 @@ function SceneContents({
   }
   const lastSavedZoom = (0, import_react12.useRef)(camera.position.y);
   const camTweenRef = (0, import_react12.useRef)(null);
+  const camYTweenRef = (0, import_react12.useRef)(null);
+  const savedInspectPoseRef = (0, import_react12.useRef)(null);
   useFrame(() => {
     const c3 = controlsRef.current;
     if (!c3) return;
-    if (camTweenRef.current || freePan || inspectTapeId) return;
+    if (camTweenRef.current || camYTweenRef.current || freePan || inspectTapeId) return;
     const cam = camera;
     const halfH = cam.position.y * Math.tan(cam.fov * Math.PI / 360);
     const halfW = halfH * cam.aspect;
@@ -79067,9 +79075,16 @@ function SceneContents({
   (0, import_react12.useEffect)(() => {
     function handleCentre(e3) {
       const detail = e3.detail || {};
-      const camY = detail.camY ?? 40;
+      const zoomTo = detail.zoomTo;
+      const camY = zoomTo != null ? camera.position.y : detail.camY ?? camera.position.y;
       let camX, camZ, tgtX, tgtZ;
-      if (detail.tx !== void 0 || detail.tz !== void 0) {
+      const saved = savedInspectPoseRef.current;
+      if (detail.restoreSaved && saved) {
+        camX = saved.pos.x;
+        camZ = saved.pos.z;
+        tgtX = saved.tgt.x;
+        tgtZ = saved.tgt.z;
+      } else if (detail.tx !== void 0 || detail.tz !== void 0) {
         const tx = detail.tx ?? 0;
         const tz = detail.tz ?? 0;
         camX = tx + 8;
@@ -79083,17 +79098,33 @@ function SceneContents({
         tgtZ = 0;
       }
       const c3 = controlsRef.current;
+      if (detail.saveCurrentPose && c3) {
+        savedInspectPoseRef.current = { pos: camera.position.clone(), tgt: c3.target.clone() };
+      }
       if (detail.animate && c3) {
+        const dur = detail.dur ?? 600;
         camTweenRef.current = {
           fromPos: camera.position.clone(),
           toPos: new Vector3(camX, camY, camZ),
           fromTgt: c3.target.clone(),
           toTgt: new Vector3(tgtX, 0, tgtZ),
           start: performance.now(),
-          dur: 600
+          dur
         };
+        if (zoomTo != null) {
+          const zoomDelay = detail.zoomDelay ?? 0;
+          const zoomDur = detail.zoomDur ?? dur;
+          setTimeout(() => {
+            camYTweenRef.current = {
+              fromY: camera.position.y,
+              toY: zoomTo,
+              start: performance.now(),
+              dur: zoomDur
+            };
+          }, zoomDelay);
+        }
       } else {
-        camera.position.set(camX, camY, camZ);
+        camera.position.set(camX, zoomTo ?? camY, camZ);
         if (c3) {
           c3.target.set(tgtX, 0, tgtZ);
           c3.update();
@@ -79105,16 +79136,26 @@ function SceneContents({
   }, [camera]);
   useFrame(() => {
     const t3 = camTweenRef.current;
-    if (!t3) return;
+    const yT = camYTweenRef.current;
+    if (!t3 && !yT) return;
     const c3 = controlsRef.current;
-    const k3 = Math.min(1, (performance.now() - t3.start) / t3.dur);
-    const e3 = 1 - Math.pow(1 - k3, 3);
-    camera.position.lerpVectors(t3.fromPos, t3.toPos, e3);
-    if (c3) {
-      c3.target.lerpVectors(t3.fromTgt, t3.toTgt, e3);
-      c3.update();
+    if (t3) {
+      const k3 = Math.min(1, (performance.now() - t3.start) / t3.dur);
+      const e3 = 1 - Math.pow(1 - k3, 3);
+      camera.position.lerpVectors(t3.fromPos, t3.toPos, e3);
+      if (c3) {
+        c3.target.lerpVectors(t3.fromTgt, t3.toTgt, e3);
+        c3.update();
+      }
+      if (k3 >= 1) camTweenRef.current = null;
     }
-    if (k3 >= 1) camTweenRef.current = null;
+    if (yT) {
+      const k3 = Math.min(1, (performance.now() - yT.start) / yT.dur);
+      const e3 = 1 - Math.pow(1 - k3, 3);
+      camera.position.y = yT.fromY + (yT.toY - yT.fromY) * e3;
+      if (c3) c3.update();
+      if (k3 >= 1) camYTweenRef.current = null;
+    }
   });
   useFrame((_2, dt) => {
     if (!drag.tapeId) return;
@@ -79193,8 +79234,8 @@ function SceneContents({
       /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(TableSurface, {}),
       /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(YouTubeSurface, {}),
       /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("group", { visible: sceneReady, children: [
-        showRecorder && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Recorder3D, { position: RECORDER_POS, rotationY: RECORDER_ROT_Y, lidOpen, hidden: uiHidden, onReady: () => setRecorderReady(true) }),
-        (!showRecorder || recorderReady) && tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Recorder3D, { position: RECORDER_POS, rotationY: RECORDER_ROT_Y, lidOpen, hidden: uiHidden || !showRecorder, onReady: () => setRecorderReady(true) }),
+        recorderReady && tableTapes.map((tape) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           TapeBody,
           {
             tape,
@@ -79204,11 +79245,11 @@ function SceneContents({
             onMenuAction,
             isNew: newTapeIds.has(tape.id),
             bounceTapeId,
-            hidden: uiHidden,
+            hidden: uiHidden || !!inspectTapeId && (tape.id !== inspectTapeId || !!fadeInspectedTape),
             onReady: handleTapeReady,
             spawnAllowed: sceneReady
           },
-          tape.id
+          `${tape.id}:${respawnVersions?.get(tape.id) ?? 0}`
         ))
       ] })
     ] }) }),
@@ -79219,8 +79260,8 @@ function SceneContents({
         enableRotate: false,
         enablePan: !lockedTapeId && !lockCamera && !lockPan && !inspectTapeId,
         enableZoom: !lockedTapeId && !lockCamera && !inspectTapeId,
-        minDistance: inspectTapeId ? 18 : 35,
-        maxDistance: inspectTapeId ? 22 : 45,
+        minDistance: inspectTapeId ? 20 : 35,
+        maxDistance: 45,
         panSpeed: 1.5,
         zoomSpeed: 1.2,
         screenSpacePanning: false,
@@ -80453,6 +80494,11 @@ function TapesTable({ mixtape }) {
   const [view, setView] = (0, import_react13.useState)("table");
   const [playerTapeId, setPlayerTapeId] = (0, import_react13.useState)(null);
   const [inspectTapeId, setInspectTapeId] = (0, import_react13.useState)(null);
+  const inspectTapeIdRef = (0, import_react13.useRef)(null);
+  inspectTapeIdRef.current = inspectTapeId;
+  const [inspectUiVisible, setInspectUiVisible] = (0, import_react13.useState)(false);
+  const inspectUiTimerRef = (0, import_react13.useRef)(null);
+  const [removingInspected, setRemovingInspected] = (0, import_react13.useState)(false);
   (0, import_react13.useEffect)(() => {
     if (!inspectTapeId) return;
     const tape = tapesRef.current.find((t3) => t3.id === inspectTapeId);
@@ -80720,8 +80766,8 @@ function TapesTable({ mixtape }) {
             textureVariant: nextTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
-            x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 80),
-            y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 60),
+            x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 280),
+            y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 200),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10
           };
           const next = [tape, ...prev];
@@ -80752,8 +80798,8 @@ function TapesTable({ mixtape }) {
             textureVariant: randomTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
-            x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 80),
-            y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 60),
+            x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 280),
+            y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 200),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10
           };
           const next = [tape, ...prev];
@@ -80793,8 +80839,8 @@ function TapesTable({ mixtape }) {
             textureVariant: nextTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
-            x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 80),
-            y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 60),
+            x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 280),
+            y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 200),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10
           };
           const next = [tape, ...prev];
@@ -80848,8 +80894,8 @@ function TapesTable({ mixtape }) {
         textureVariant: p4.textureVariant ?? randomTextureVariant(),
         progress: 0,
         timestamp: Date.now(),
-        x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 80),
-        y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 60),
+        x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 280),
+        y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 200),
         angle: Math.round((Math.random() * 40 - 20) * 10) / 10
       };
     })();
@@ -81144,6 +81190,30 @@ function TapesTable({ mixtape }) {
     const t3 = tapesRef.current.find((t4) => t4.id === tapeId);
     if (!t3) return;
     recorderLoadedDuringDragRef.current = true;
+    const prev = loadedRef.current;
+    if (prev && prev.id !== tapeId) {
+      const px2 = CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 280);
+      const py2 = CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 200);
+      const pa = Math.round((Math.random() * 40 - 20) * 10) / 10;
+      setTapes((prevList) => prevList.map(
+        (tt) => tt.id === prev.id ? { ...tt, x: px2, y: py2, angle: pa } : tt
+      ));
+      setNewTapeIds((s2) => {
+        const n2 = new Set(s2);
+        n2.add(prev.id);
+        return n2;
+      });
+      setTimeout(() => setNewTapeIds((s2) => {
+        const n2 = new Set(s2);
+        n2.delete(prev.id);
+        return n2;
+      }), 2e3);
+      setRespawnVersions((m3) => {
+        const n2 = new Map(m3);
+        n2.set(prev.id, (n2.get(prev.id) ?? 0) + 1);
+        return n2;
+      });
+    }
     setRecorderSourced(true);
     setRecorderLoadingId(tapeId);
     if (recorderLoadingTimerRef.current) clearTimeout(recorderLoadingTimerRef.current);
@@ -81159,23 +81229,56 @@ function TapesTable({ mixtape }) {
     setRecorderLoadingId(null);
     autoEjectRef.current();
   }, []);
+  const exitInspect = (0, import_react13.useCallback)(() => {
+    if (inspectUiTimerRef.current) {
+      clearTimeout(inspectUiTimerRef.current);
+      inspectUiTimerRef.current = null;
+    }
+    if (inspectTapeIdRef.current == null) return;
+    const camDur = 1e3;
+    const zoomDelay = 200;
+    const zoomDur = 1e3;
+    setInspectUiVisible(false);
+    window.dispatchEvent(new CustomEvent("jeem-centre-camera", {
+      detail: { restoreSaved: true, animate: true, dur: camDur, zoomTo: 40, zoomDelay, zoomDur }
+    }));
+    inspectUiTimerRef.current = setTimeout(() => {
+      setInspectTapeId(null);
+      inspectUiTimerRef.current = null;
+    }, zoomDelay + zoomDur);
+  }, []);
   const handle3DDoubleTap = (0, import_react13.useCallback)((tapeId) => {
     if (viewRef.current === "player" || showMixtapeCreator) return;
-    setInspectTapeId((prev) => {
-      if (prev) {
-        window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { tx: 0, tz: 0, animate: true, camY: 40 } }));
-        return null;
-      }
-      const tape = tapesRef.current.find((t3) => t3.id === tapeId);
-      if (!tape || tape.x == null || tape.y == null) return null;
-      const [tx, tz] = to3D(tape.x, tape.y);
-      window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { tx: tx - 4, tz, animate: true, camY: 20 } }));
-      return tapeId;
-    });
-  }, [showMixtapeCreator]);
+    if (inspectTapeIdRef.current != null) {
+      exitInspect();
+      return;
+    }
+    if (inspectUiTimerRef.current) {
+      clearTimeout(inspectUiTimerRef.current);
+      inspectUiTimerRef.current = null;
+    }
+    const tape = tapesRef.current.find((t3) => t3.id === tapeId);
+    if (!tape || tape.x == null || tape.y == null) return;
+    const [tx, tz] = to3D(tape.x, tape.y);
+    setInspectTapeId(tapeId);
+    const camDelay = 200;
+    const camDur = 1e3;
+    const zoomDelay = 200;
+    const zoomDur = 1e3;
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent("jeem-centre-camera", {
+        detail: { tx: tx - 2, tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true }
+      }));
+    }, camDelay);
+    inspectUiTimerRef.current = setTimeout(() => {
+      setInspectUiVisible(true);
+      inspectUiTimerRef.current = null;
+    }, camDelay + zoomDelay + zoomDur + 250);
+  }, [showMixtapeCreator, exitInspect]);
   const handle3DMenuAction = (0, import_react13.useCallback)((_tapeId, _action) => {
   }, []);
   const [newTapeIds, setNewTapeIds] = (0, import_react13.useState)(() => /* @__PURE__ */ new Set());
+  const [respawnVersions, setRespawnVersions] = (0, import_react13.useState)(() => /* @__PURE__ */ new Map());
   const startDrag = (0, import_react13.useCallback)((e3, tape) => {
     e3.preventDefault();
     e3.stopPropagation();
@@ -81349,16 +81452,16 @@ function TapesTable({ mixtape }) {
       if (inside) return tape;
       return {
         ...tape,
-        x: cx + Math.round((Math.random() - 0.5) * 80),
-        y: cy + Math.round((Math.random() - 0.5) * 60)
+        x: cx + Math.round((Math.random() - 0.5) * 280),
+        y: cy + Math.round((Math.random() - 0.5) * 200)
       };
     }
     const col = i4 % 3;
     const row = Math.floor(i4 / 3);
     return {
       ...tape,
-      x: cx + Math.round((Math.random() - 0.5) * 80),
-      y: cy + Math.round((Math.random() - 0.5) * 60),
+      x: cx + Math.round((Math.random() - 0.5) * 280),
+      y: cy + Math.round((Math.random() - 0.5) * 200),
       angle: Math.round((Math.random() * 40 - 20) * 10) / 10
     };
   });
@@ -81404,6 +81507,7 @@ function TapesTable({ mixtape }) {
         menuId,
         onClearMenu: cancelMenu,
         newTapeIds,
+        respawnVersions,
         externalDrag: externalDrag.current,
         lockedTapeId: showMixtapeCreator ? MIXTAPE_ID : null,
         pickupBlockedTapeId: recorderLoadingId,
@@ -81414,7 +81518,8 @@ function TapesTable({ mixtape }) {
         onRecorderEject: handleRecorderEject,
         showRecorder: !inspectTapeId,
         onSceneReady: () => setSceneReady(true),
-        inspectTapeId
+        inspectTapeId,
+        fadeInspectedTape: removingInspected
       }
     ) }),
     !sceneReady && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
@@ -81434,7 +81539,7 @@ function TapesTable({ mixtape }) {
       borderRadius: "50%",
       animation: "tape-loading-spin 0.9s linear infinite"
     } }) }),
-    inspectTapeId && (() => {
+    inspectTapeId && inspectUiVisible && (() => {
       const tape = tapes.find((t3) => t3.id === inspectTapeId);
       if (!tape) return null;
       const colStyle = {
@@ -81507,9 +81612,16 @@ function TapesTable({ mixtape }) {
             {
               className: "tape-ui-btn",
               onClick: () => {
-                deleteTape(inspectTapeId);
-                setInspectTapeId(null);
-                window.dispatchEvent(new CustomEvent("jeem-centre-camera", { detail: { tx: 0, tz: 0, animate: true, camY: 40 } }));
+                const target = inspectTapeId;
+                if (!target) return;
+                setInspectUiVisible(false);
+                setRemovingInspected(true);
+                const FADE_MS = 600;
+                setTimeout(() => {
+                  deleteTape(target);
+                  setRemovingInspected(false);
+                  exitInspect();
+                }, FADE_MS);
               },
               style: {
                 background: "rgba(0,0,0,0.5)",
@@ -81525,7 +81637,7 @@ function TapesTable({ mixtape }) {
         ] })
       ] });
     })(),
-    (playerTapeId || inspectTapeId) && !showMixtapeCreator && (() => {
+    (playerTapeId && isPlaying || inspectTapeId && inspectUiVisible) && !showMixtapeCreator && (() => {
       const focusId = playerTapeId || inspectTapeId;
       const tape = loadedTape ?? tapes.find((t3) => t3.id === focusId);
       if (!tape) return null;
@@ -81583,7 +81695,8 @@ function TapesTable({ mixtape }) {
           border: "none",
           borderRadius: 0,
           padding: "24px 24px 20px",
-          transition: "opacity 1s ease"
+          opacity: dragging3D ? 0 : 1,
+          transition: "opacity 0.2s ease"
         }, children: [
           !inspectTapeId && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
             display: "flex",
