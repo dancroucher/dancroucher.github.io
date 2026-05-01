@@ -727,6 +727,53 @@ html.glitching, html.glitching body {
   overflow: hidden;
 }
 
+/* Glitch/flicker-out animation used to remove UI on inactivity instead of a
+   plain opacity fade. Ends at opacity:0 (forwards) so the element stays
+   hidden after the animation. Removing the class + setting inline opacity:1
+   restores the element instantly. */
+/* Keyframes deliberately do NOT touch `transform` — some targets (e.g. the
+   tape-info-panel) rely on `transform: translateY(-50%)` for centering, and
+   overriding that mid-animation would yank them across the screen. */
+@keyframes ui-glitch-out {
+  0%   { opacity: 1; filter: none; }
+  12%  { opacity: 1; filter: brightness(2.2) contrast(1.6) saturate(1.5); }
+  22%  { opacity: 0.85; filter: brightness(0.3) contrast(2.4); }
+  34%  { opacity: 1; filter: brightness(3) contrast(0.4) saturate(0) hue-rotate(20deg); }
+  42%  { opacity: 0; filter: brightness(0.2); }
+  54%  { opacity: 0.65; filter: brightness(2.5) saturate(0); }
+  68%  { opacity: 0.05; filter: brightness(0.6); }
+  82%  { opacity: 0.25; filter: brightness(1.4) contrast(1.2); }
+  100% { opacity: 0; filter: none; }
+}
+
+.ui-glitching-out {
+  animation: ui-glitch-out 0.45s steps(9, end) forwards;
+}
+
+/* Mirror animation used when the scene finishes loading and the search /
+   start UI flickers back in. */
+@keyframes ui-glitch-in {
+  0%   { opacity: 0; filter: none; }
+  18%  { opacity: 0.3; filter: brightness(1.4) contrast(1.2); }
+  32%  { opacity: 0.05; filter: brightness(0.6); }
+  46%  { opacity: 0.65; filter: brightness(2.5) saturate(0); }
+  58%  { opacity: 0; filter: brightness(0.2); }
+  66%  { opacity: 1; filter: brightness(3) contrast(0.4) saturate(0) hue-rotate(20deg); }
+  78%  { opacity: 0.85; filter: brightness(0.3) contrast(2.4); }
+  88%  { opacity: 1; filter: brightness(2.2) contrast(1.6) saturate(1.5); }
+  100% { opacity: 1; filter: none; }
+}
+
+.ui-glitching-in {
+  animation: ui-glitch-in 0.45s steps(9, end) forwards;
+}
+
+/* Hide the search/start UI until the 3D scene (tapes + recorder) is ready. */
+body.scene-not-ready #start-container {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 #bg-none {
   position: fixed;
   object-fit: cover;

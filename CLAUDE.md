@@ -499,3 +499,130 @@ wipeTransition(onCovered, onUncovered)
   too. That caused the mixtape bundle's `useEffect` to redirect to `/`
   (since `create_mixtape` was unset), stripping the share param before
   React saw it. The condition is now `create_mixtape === '1'` only.
+
+## Recent Changes (2026-05)
+
+### Inspect-view transition (double-tap a tape)
+
+Multi-stage fade + pan + zoom on entry, mirrored on exit. Implemented
+in `handle3DDoubleTap` / `exitInspect` (TapesTable.tsx) coordinating
+with the `jeem-centre-camera` handler in TapesTable3D.tsx.
+
+- Entry timeline (relative to double-tap):
+  - 0ms: `inspectTapeId` set → other tapes + recorder fade out via
+    their `hidden` prop (no longer filtered out — they stay mounted so
+    the fade can play). Easing rate bumped to 4.5 (TapeBody +
+    Recorder3D) so ~0.5s reaches near-fully faded.
+  - 200ms: pan tween starts (1000ms). Camera target lands at
+    `(tx + 8, 0, tz)` — pass `tx - 2` from the parent so the tape
+    sits ~6 units left of camera centre (left half of screen).
+  - 400ms: zoom tween starts (1000ms) to camY = 24, runs in parallel
+    via a separate `camYTweenRef` so it can be offset in time without
+    overwriting the position tween.
+  - 1650ms: inspect-view UI appears with `ui-glitching-in` class.
+- Exit (double-tap focused tape, or remove flow):
+  - UI hides immediately (`ui-glitching-out` then unmount after 450ms
+    via `inspectUiPhase` state machine: `hidden|showing|visible|hiding`).
+  - Pan + zoom-out reverse tweens.
+  - `inspectTapeId` cleared at the end → other tapes/recorder fade in.
+- `jeem-centre-camera` event detail extensions:
+  - `dur`: pan tween duration (default 600).
+  - `zoomTo`: optional Y target → spawns a parallel `camYTween`.
+  - `zoomDelay` / `zoomDur`: timing for the Y tween.
+  - `saveCurrentPose` / `restoreSaved`: capture pre-entry pose on the
+    way in, restore exact pose on the way out so the post-tween clamp
+    can't snap the camera somewhere else.
+- Remove button (in inspect view): sets `removingInspected` → the
+  inspected tape gets `hidden=true` and fades over 600ms. Then
+  `deleteTape(target)` runs first (so the tape is gone from `tapes`),
+  then `exitInspect()` runs the standard zoom-out + pan-back.
+- `minDistance` drops to 20 during inspect so the y=24 zoom isn't
+  clamped back up. Zoom controls disabled during inspect.
+
+### Sub-mesh transparency artifact
+
+Tape materials now toggle `depthWrite` off when `opacity < 0.995` to
+kill stencil-like z-fight cutouts that appeared between body shell
+and spool sub-meshes at low opacity (`TapeBody.tsx` per-frame fade).
+
+### Inactivity glitch + reveal animations
+
+Inactivity hide replaced with a glitch-out flicker. Reveal of the
+search/start UI on initial load is also a glitch-in.
+
+- `@keyframes ui-glitch-out` and `ui-glitch-in` in `player.css` —
+  flicker via opacity + filter (`brightness/contrast/saturate/
+  hue-rotate`) over 0.45s with `steps(9, end)` for digital cadence.
+  **Keyframes intentionally do not touch `transform`** — some targets
+  (notably `.tape-info-panel`, which uses `translateY(-50%)` to centre)
+  would yank across the screen if mid-animation `transform` overrode
+  their static centring transform.
+- `Inactivity` module in `public/src/player.js`:
+  - `_hide()` adds class `ui-glitching-out` to each target (forces
+    reflow first so re-adding restarts the animation). `forwards`
+    fill-mode keeps opacity:0 after end.
+  - `_show()` removes the class and sets `style.opacity = "1"`. The
+    inline opacity overrides the animation's persisted final state.
+  - `_glitchTargets()` includes `titleContainer` now (was previously
+    held at 0.25 separately — now glitches with the rest).
+- Initial-load reveal:
+  - `<body class="scene-not-ready">` in `index.html`. CSS hides
+    `#start-container` via opacity:0 + pointer-events:none while the
+    class is present.
+  - `TapesTable.tsx` has a useEffect on `sceneReady` that, after a
+    500ms beat, removes `scene-not-ready` from body and adds
+    `ui-glitching-in` to `#start-container` for ~600ms.
+
+### Loading-spinner staging
+
+The full-screen loading overlay no longer hides the table the entire
+time. `TableSurface.tsx` dispatches `jeem-table-ready` once the wood
+texture has resolved (after the Suspense fallback). `TapesTable.tsx`
+listens, sets `tableReady`, and drops the overlay's opaque background
+(`#0a0805` → transparent) — the wood is visible behind the spinner
+while tapes/recorder finish loading. The overlay disappears entirely
+when `sceneReady` fires.
+
+### Tape-info / tracklist panel during interaction
+
+- `tape-info-panel` opacity drops to 0 while `dragging3D` (200ms
+  transition). Restores when drag ends. Inspect view + idle playback
+  unaffected.
+- During playback, the panel waits for `isPlaying === true` (set via
+  `notifyPlayState`) before mounting — so it doesn't flash empty
+  state during YouTube load.
+- Inspect-view UI mount/unmount goes through `inspectUiPhase` state
+  machine so the glitch-out animation plays before unmount.
+  Apply via `className={inspectUiClass}` on the panel wrapper (only
+  when in inspect mode — playback path doesn't get the class).
+
+### Recorder-pose-persistence bug
+
+When a tape was loaded into the recorder via drag, `handle3DDragEnd`
+saved the drop coords (= recorder pose) as the tape's `x/y`. On
+refresh the tape would spawn under the recorder and stay stuck.
+Fixed in two places:
+
+- `handle3DDragEnd` in `TapesTable.tsx` skips the `setTapes({ x, y })`
+  update if `recorderLoadedDuringDragRef.current` is true.
+- `init()` migration: any tape whose saved (x, y) lands within the
+  recorder zone (centre 1000, 1400; box ±380, ±420 in 2D) gets
+  re-positioned at canvas centre with the standard random jitter.
+
+### 2D spool overlay tuning
+
+`SpoolDisc` parameters in `TapeBody.tsx`:
+
+- `yOffset = -0.04` — flush with the tape's top face (was -0.1 which
+  was inside the body). Position is `halfY + thickness/2 + yOffset`
+  with thickness = 0.08, so -0.04 lands the disc exactly at `halfY`.
+- Per-tape positions are tweaked manually — see the live values in
+  `TapeBody.tsx` near the SpoolDisc invocations. Default symmetry is
+  `±1.9 * geo.scale`; nudges are added inline.
+
+### Build watch script
+
+`build-tapes-watch.js` (untracked at repo root) runs esbuild in watch
+mode for both `tapes.js` and `mixtape.js` bundles. Use during dev so
+edits to `src/tapes/**` and `src/mixtape/**` auto-rebuild on save —
+the regular `npm start` build is one-shot.

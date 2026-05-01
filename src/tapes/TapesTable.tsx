@@ -217,6 +217,27 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const [tapes, setTapes] = useState<Tape[]>([]);
   const [mounted, setMounted] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
+  const [tableReady, setTableReady] = useState(false);
+  useEffect(() => {
+    function onTableReady() { setTableReady(true); }
+    window.addEventListener('jeem-table-ready', onTableReady);
+    return () => window.removeEventListener('jeem-table-ready', onTableReady);
+  }, []);
+  // Reveal the search/start UI with a glitch-in flicker once the 3D scene is
+  // fully ready (table texture + recorder + tapes all loaded).
+  useEffect(() => {
+    if (!sceneReady) return;
+    // Wait a beat after the tapes settle before flickering the start UI in.
+    const reveal = setTimeout(() => {
+      document.body.classList.remove('scene-not-ready');
+      const startEl = document.getElementById('start-container');
+      if (startEl) {
+        startEl.classList.add('ui-glitching-in');
+        setTimeout(() => startEl.classList.remove('ui-glitching-in'), 600);
+      }
+    }, 500);
+    return () => clearTimeout(reveal);
+  }, [sceneReady]);
   const [menuId, setMenuId] = useState<string | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
@@ -259,6 +280,25 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // fade + camera tween have settled. Cleared immediately on exit.
   const [inspectUiVisible, setInspectUiVisible] = useState(false);
   const inspectUiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Animation phase for the inspect-view UI so we can apply a glitch-in /
+  // glitch-out flicker around the boolean visibility toggle.
+  // 'hidden'  → not rendered.
+  // 'showing' → rendered + ui-glitching-in class for ~450ms.
+  // 'visible' → rendered, no animation class.
+  // 'hiding'  → rendered + ui-glitching-out class for ~450ms before unmount.
+  const [inspectUiPhase, setInspectUiPhase] = useState<'hidden' | 'showing' | 'visible' | 'hiding'>('hidden');
+  useEffect(() => {
+    if (inspectUiVisible) {
+      setInspectUiPhase('showing');
+      const t = setTimeout(() => setInspectUiPhase('visible'), 450);
+      return () => clearTimeout(t);
+    }
+    setInspectUiPhase(prev => (prev === 'hidden' ? 'hidden' : 'hiding'));
+    const t = setTimeout(() => setInspectUiPhase('hidden'), 450);
+    return () => clearTimeout(t);
+  }, [inspectUiVisible]);
+  const inspectUiRendered = inspectUiPhase !== 'hidden';
+  const inspectUiClass = inspectUiPhase === 'showing' ? 'ui-glitching-in' : inspectUiPhase === 'hiding' ? 'ui-glitching-out' : '';
   // Set when the user clicks remove on the inspected tape — fades it away
   // before the exit-inspect sequence runs. Cleared once removal completes.
   const [removingInspected, setRemovingInspected] = useState(false);
@@ -452,6 +492,25 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       if (localStorage.getItem('jeem_keep_tidy') === '1') {
         loaded = tidyTapes(loaded);
       }
+
+      // Migration: rescue any tape whose saved position lands under the 3D
+      // recorder (older builds saved the recorder pose as the tape's xy when
+      // it was loaded). Without this, refreshing while a tape is in the
+      // recorder leaves that tape stuck under it.
+      // Recorder is at 3D (-20, 0, 4) → 2D (1000, 1400); snap zone ~350×400.
+      const RX = 1000, RY = 1400, RW = 380, RH = 420;
+      loaded = loaded.map(t => {
+        if (t.x == null || t.y == null) return t;
+        if (Math.abs(t.x - RX) < RW && Math.abs(t.y - RY) < RH) {
+          return {
+            ...t,
+            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280),
+            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200),
+            angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
+          };
+        }
+        return t;
+      });
 
       // Delay before spawning saved tapes so they pop into view from
       // pickup height (DRAG_HEIGHT) rather than appearing flat on the
@@ -1057,7 +1116,12 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       if (t) loadIntoPlayer(t);
       return;
     }
-    setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: x2d, y: y2d } : t));
+    // If the drag ended by loading into the recorder, skip the position
+    // save — `x2d/y2d` are the recorder pose, and persisting them means the
+    // tape would spawn under the recorder on refresh and get stuck there.
+    if (!recorderLoadedDuringDragRef.current) {
+      setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: x2d, y: y2d } : t));
+    }
     if (!recorderLoadedDuringDragRef.current && (!loadedRef.current || loadedRef.current.id === tapeId)) {
       // Drag-end camera handling lives in TapesTable3D (zoom-only restore).
       // Skip the centre-camera reset here so xz stays where it is.
@@ -1434,7 +1498,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         <div style={{
           position: 'fixed', inset: 0, zIndex: 99997,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: '#0a0805', pointerEvents: 'auto',
+          // Drop the opaque background once the table texture is rendered so
+          // the wood surface is visible behind the spinner while tapes load.
+          background: tableReady ? 'transparent' : '#0a0805',
+          pointerEvents: tableReady ? 'none' : 'auto',
+          transition: 'background 0.25s ease',
         }}>
           <div style={{
             width: 48, height: 48,
@@ -1446,7 +1514,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         </div>
       )}
 
-      {inspectTapeId && inspectUiVisible && (() => {
+      {inspectTapeId && inspectUiRendered && (() => {
         const tape = tapes.find(t => t.id === inspectTapeId);
         if (!tape) return null;
         const colStyle: React.CSSProperties = {
@@ -1455,7 +1523,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           display: 'flex', justifyContent: 'center',
         };
         return (
-          <>
+          <div className={inspectUiClass}>
             <div style={{ ...colStyle, top: '18vh' }}>
               <textarea
                 rows={1}
@@ -1520,12 +1588,12 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 }}
               >remove</button>
             </div>
-          </>
+          </div>
         );
       })()}
 
 {/* Unified tape info + tracklist panel — single layout for idle and playback */}
-      {((playerTapeId && isPlaying) || (inspectTapeId && inspectUiVisible)) && !showMixtapeCreator && (() => {
+      {((playerTapeId && isPlaying) || (inspectTapeId && inspectUiRendered)) && !showMixtapeCreator && (() => {
         const focusId = playerTapeId || inspectTapeId;
         // Prefer loaded tape (source of truth during playback), else the focused player/inspect tape
         const tape = loadedTape ?? tapes.find(t => t.id === focusId);
@@ -1582,7 +1650,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         // The old #mixtape-tracklist / #playlist-tracklist overlays mounted
         // directly on <body> for the same reason.
         return createPortal(
-          <div className="tape-info-panel" style={{
+          <div className={`tape-info-panel${inspectTapeId ? ` ${inspectUiClass}` : ''}`} style={{
             position: 'fixed', top: '50%', left: 'calc(50% - 70px)', transform: 'translateY(-50%)',
             width: '50vw', maxHeight: '70vh',
             fontFamily: "'04b03', monospace", fontSize: '1em', color: 'rgba(250,249,246,0.9)',

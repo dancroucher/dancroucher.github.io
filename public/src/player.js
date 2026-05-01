@@ -514,18 +514,23 @@ const Inactivity = {
         this._timer = setTimeout(() => this._hide(), this.DELAY);
     },
 
+    _glitchTargets() {
+        const els = [DOM.songContainer, DOM.padinfo, DOM.tapeDeck, DOM.titleContainer];
+        const ids = ['mixtape-tracklist', 'playlist-tracklist'];
+        ids.forEach(id => { const el = document.getElementById(id); if (el) els.push(el); });
+        const infoPanel = document.querySelector('.tape-info-panel');
+        if (infoPanel) els.push(infoPanel);
+        return els.filter(Boolean);
+    },
+
     _hide() {
         if (DOM.songContainer && this._visible && AppState.playing) {
-            DOM.songContainer.style.opacity = "0";
-            DOM.padinfo.style.opacity = "0";
-            DOM.tapeDeck.style.opacity = "0";
-            if (DOM.titleContainer) DOM.titleContainer.style.opacity = "0.25";
-            const tracklist = document.getElementById('mixtape-tracklist');
-            if (tracklist) tracklist.style.opacity = "0";
-            const plTracklist = document.getElementById('playlist-tracklist');
-            if (plTracklist) plTracklist.style.opacity = "0";
-            const infoPanel = document.querySelector('.tape-info-panel');
-            if (infoPanel) infoPanel.style.opacity = "0";
+            this._glitchTargets().forEach(el => {
+                el.style.opacity = "";          // let the animation drive opacity
+                el.classList.remove('ui-glitching-out');
+                void el.offsetWidth;            // force reflow so animation restarts
+                el.classList.add('ui-glitching-out');
+            });
             this._visible = false;
             document.body.style.cursor = "none";
             if (!DOM.tapesRoot || DOM.tapesRoot.style.display === "none") {
@@ -536,16 +541,10 @@ const Inactivity = {
 
     _show() {
         if (DOM.songContainer && !this._visible) {
-            DOM.songContainer.style.opacity = "1";
-            DOM.padinfo.style.opacity = "1";
-            DOM.tapeDeck.style.opacity = "1";
-            if (DOM.titleContainer) DOM.titleContainer.style.opacity = "1";
-            const tracklist = document.getElementById('mixtape-tracklist');
-            if (tracklist) tracklist.style.opacity = "1";
-            const plTracklist = document.getElementById('playlist-tracklist');
-            if (plTracklist) plTracklist.style.opacity = "1";
-            const infoPanel = document.querySelector('.tape-info-panel');
-            if (infoPanel) infoPanel.style.opacity = "1";
+            this._glitchTargets().forEach(el => {
+                el.classList.remove('ui-glitching-out');
+                el.style.opacity = "1";
+            });
             this._visible = true;
             document.body.style.cursor = "default";
             if (!DOM.tapesRoot || DOM.tapesRoot.style.display === "none") {

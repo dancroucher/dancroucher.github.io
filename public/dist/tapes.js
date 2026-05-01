@@ -74459,6 +74459,9 @@ var init_react_three_rapier_esm = __esm({
 // src/tapes/TableSurface.tsx
 function TableSurface() {
   const woodTexture = useLoader(TextureLoader, "/wood-table-alt.jpg");
+  (0, import_react5.useEffect)(() => {
+    window.dispatchEvent(new CustomEvent("jeem-table-ready"));
+  }, []);
   const videoElA = (0, import_react5.useMemo)(() => document.getElementById("mp4-background-a"), []);
   const videoElB = (0, import_react5.useMemo)(() => document.getElementById("mp4-background-b"), []);
   const [bgInfo, setBgInfo] = (0, import_react5.useState)(() => {
@@ -74810,7 +74813,9 @@ function extractVariant(fbx, meshName) {
   m3.updateWorldMatrix(true, false);
   const geo = m3.geometry.clone();
   geo.applyMatrix4(m3.matrixWorld);
-  const box = new Box3().setFromBufferAttribute(geo.attributes.position);
+  const box = new Box3().setFromBufferAttribute(
+    geo.attributes.position
+  );
   const center = box.getCenter(new Vector3());
   const size = box.getSize(new Vector3());
   geo.translate(-center.x, -center.y, -center.z);
@@ -74829,7 +74834,9 @@ function extractVariant(fbx, meshName) {
     scale
   };
   variantMeta.set(meshName, result);
-  console.log(`[TapeBody] ${meshName}: raw ${size.x.toFixed(1)}x${size.y.toFixed(1)}x${size.z.toFixed(1)} \u2192 collider ${(result.halfX * 2).toFixed(1)}x${(result.halfY * 2).toFixed(1)}x${(result.halfZ * 2).toFixed(1)}`);
+  console.log(
+    `[TapeBody] ${meshName}: raw ${size.x.toFixed(1)}x${size.y.toFixed(1)}x${size.z.toFixed(1)} \u2192 collider ${(result.halfX * 2).toFixed(1)}x${(result.halfY * 2).toFixed(1)}x${(result.halfZ * 2).toFixed(1)}`
+  );
   return { group, geo: result };
 }
 function stampTitle(baseColor, title, variant, tape) {
@@ -74921,13 +74928,24 @@ function stampTitle(baseColor, title, variant, tape) {
     const stickerY = 280;
     const stickerW = 200;
     const stickerH = 140;
-    const grad = ctx.createLinearGradient(stickerX - stickerW / 2, stickerY, stickerX + stickerW / 2, stickerY + stickerH);
+    const grad = ctx.createLinearGradient(
+      stickerX - stickerW / 2,
+      stickerY,
+      stickerX + stickerW / 2,
+      stickerY + stickerH
+    );
     grad.addColorStop(0, "#f0d848");
     grad.addColorStop(1, "#e8c830");
     ctx.fillStyle = grad;
     ctx.beginPath();
     const r3 = 12;
-    ctx.roundRect(stickerX - stickerW / 2, stickerY - stickerH / 2, stickerW, stickerH, r3);
+    ctx.roundRect(
+      stickerX - stickerW / 2,
+      stickerY - stickerH / 2,
+      stickerW,
+      stickerH,
+      r3
+    );
     ctx.fill();
     ctx.strokeStyle = "rgba(180,150,30,0.4)";
     ctx.lineWidth = 2;
@@ -74948,13 +74966,24 @@ function stampTitle(baseColor, title, variant, tape) {
     const stickerY = 280;
     const stickerW = 280;
     const stickerH = 100;
-    const grad = ctx.createLinearGradient(stickerX - stickerW / 2, stickerY, stickerX + stickerW / 2, stickerY);
+    const grad = ctx.createLinearGradient(
+      stickerX - stickerW / 2,
+      stickerY,
+      stickerX + stickerW / 2,
+      stickerY
+    );
     grad.addColorStop(0, "#d42020");
     grad.addColorStop(1, "#b81818");
     ctx.fillStyle = grad;
     ctx.beginPath();
     const r3 = 12;
-    ctx.roundRect(stickerX - stickerW / 2, stickerY - stickerH / 2, stickerW, stickerH, r3);
+    ctx.roundRect(
+      stickerX - stickerW / 2,
+      stickerY - stickerH / 2,
+      stickerW,
+      stickerH,
+      r3
+    );
     ctx.fill();
     ctx.strokeStyle = "rgba(120,20,20,0.4)";
     ctx.lineWidth = 2;
@@ -74975,13 +75004,24 @@ function stampTitle(baseColor, title, variant, tape) {
     const stickerY = 280;
     const stickerW = 300;
     const stickerH = 110;
-    const grad = ctx.createLinearGradient(stickerX - stickerW / 2, stickerY, stickerX + stickerW / 2, stickerY);
+    const grad = ctx.createLinearGradient(
+      stickerX - stickerW / 2,
+      stickerY,
+      stickerX + stickerW / 2,
+      stickerY
+    );
     grad.addColorStop(0, "#1a4a8a");
     grad.addColorStop(1, "#0f3580");
     ctx.fillStyle = grad;
     ctx.beginPath();
     const r3 = 12;
-    ctx.roundRect(stickerX - stickerW / 2, stickerY - stickerH / 2, stickerW, stickerH, r3);
+    ctx.roundRect(
+      stickerX - stickerW / 2,
+      stickerY - stickerH / 2,
+      stickerW,
+      stickerH,
+      r3
+    );
     ctx.fill();
     ctx.strokeStyle = "rgba(30,80,160,0.5)";
     ctx.lineWidth = 2;
@@ -75076,7 +75116,11 @@ function TapeBody({
   const halfY = sceneData?.geo.halfY ?? 0.8;
   if (!initialPos.current) {
     const [ix, iz] = to3D(tape.x ?? 500, tape.y ?? 500);
-    initialPos.current = { x3d: ix, z3d: iz, spawnY: isNew ? SPAWN_HEIGHT : halfY + 0.01 };
+    initialPos.current = {
+      x3d: ix,
+      z3d: iz,
+      spawnY: isNew ? SPAWN_HEIGHT : halfY + 0.01
+    };
   }
   const { x3d, z3d, spawnY } = initialPos.current;
   const angleRad = (tape.angle ?? 0) * Math.PI / 180 + Math.PI;
@@ -75099,7 +75143,14 @@ function TapeBody({
     if (bounceTapeId?.current === tape.id) {
       bounceTapeId.current = null;
       body.applyImpulse({ x: 0, y: 3, z: 0 }, true);
-      body.applyTorqueImpulse({ x: (Math.random() - 0.5) * 0.5, y: 0, z: (Math.random() - 0.5) * 0.5 }, true);
+      body.applyTorqueImpulse(
+        {
+          x: (Math.random() - 0.5) * 0.5,
+          y: 0,
+          z: (Math.random() - 0.5) * 0.5
+        },
+        true
+      );
     }
     const isDragged = drag.tapeId === tape.id;
     if (isDragged) {
@@ -75120,7 +75171,10 @@ function TapeBody({
         if (dist > 5) {
           smoothPos.current.x = drag.targetX;
           smoothPos.current.z = drag.targetZ;
-          body.setTranslation({ x: drag.targetX, y: DRAG_HEIGHT, z: drag.targetZ }, true);
+          body.setTranslation(
+            { x: drag.targetX, y: DRAG_HEIGHT, z: drag.targetZ },
+            true
+          );
         } else {
           smoothPos.current.x = t3.x;
           smoothPos.current.z = t3.z;
@@ -75129,7 +75183,10 @@ function TapeBody({
         velocity.current.z = 0;
         currentDragY.current = DRAG_HEIGHT;
         const r3 = body.rotation();
-        const euler = new Euler().setFromQuaternion(new Quaternion(r3.x, r3.y, r3.z, r3.w), "YXZ");
+        const euler = new Euler().setFromQuaternion(
+          new Quaternion(r3.x, r3.y, r3.z, r3.w),
+          "YXZ"
+        );
         savedYRot.current = wasInRecorder ? angleRad : euler.y;
         currentYaw.current = euler.y;
         currentPitch.current = 0;
@@ -75147,8 +75204,14 @@ function TapeBody({
         velocity.current.z = (smoothPos.current.z - prevZ) / delta;
       }
       const maxTilt = 0.25;
-      const tiltX = Math.max(-maxTilt, Math.min(maxTilt, velocity.current.z * 0.03));
-      const tiltZ = Math.max(-maxTilt, Math.min(maxTilt, -velocity.current.x * 0.03));
+      const tiltX = Math.max(
+        -maxTilt,
+        Math.min(maxTilt, velocity.current.z * 0.03)
+      );
+      const tiltZ = Math.max(
+        -maxTilt,
+        Math.min(maxTilt, -velocity.current.x * 0.03)
+      );
       const yawTarget = drag.targetYaw ?? savedYRot.current;
       let yawDiff = yawTarget - currentYaw.current;
       while (yawDiff > Math.PI) yawDiff -= 2 * Math.PI;
@@ -75159,11 +75222,14 @@ function TapeBody({
       currentPitch.current += (pitchTarget - currentPitch.current) * rotK;
       const yTarget = drag.targetY ?? DRAG_HEIGHT;
       currentDragY.current += (yTarget - currentDragY.current) * rotK;
-      body.setTranslation({
-        x: smoothPos.current.x,
-        y: currentDragY.current,
-        z: smoothPos.current.z
-      }, true);
+      body.setTranslation(
+        {
+          x: smoothPos.current.x,
+          y: currentDragY.current,
+          z: smoothPos.current.z
+        },
+        true
+      );
       const q2 = new Quaternion();
       q2.setFromEuler(new Euler(tiltX, currentYaw.current, tiltZ));
       if (currentPitch.current !== 0) {
@@ -75181,18 +75247,29 @@ function TapeBody({
         snapElapsed.current = 0;
         const t3 = body.translation();
         const r3 = body.rotation();
-        snapStart.current = { x: t3.x, y: t3.y, z: t3.z, qx: r3.x, qy: r3.y, qz: r3.z, qw: r3.w };
+        snapStart.current = {
+          x: t3.x,
+          y: t3.y,
+          z: t3.z,
+          qx: r3.x,
+          qy: r3.y,
+          qz: r3.z,
+          qw: r3.w
+        };
         snapTarget.current = { x: snap.x, y: snap.y, z: snap.z, yaw: snap.yaw };
         body.setLinvel({ x: 0, y: 0, z: 0 }, true);
         body.setAngvel({ x: 0, y: 0, z: 0 }, true);
         body.setGravityScale(0, true);
       } else {
         falling.current = true;
-        body.setTranslation({
-          x: smoothPos.current.x,
-          y: currentDragY.current,
-          z: smoothPos.current.z
-        }, true);
+        body.setTranslation(
+          {
+            x: smoothPos.current.x,
+            y: currentDragY.current,
+            z: smoothPos.current.z
+          },
+          true
+        );
         body.setGravityScale(0.15, true);
         const vx = velocity.current.x * 0.4;
         const vz = velocity.current.z * 0.4;
@@ -75206,13 +75283,18 @@ function TapeBody({
       const e3 = 1 - Math.pow(1 - t01, 3);
       const s2 = snapStart.current;
       const g3 = snapTarget.current;
-      body.setTranslation({
-        x: s2.x + (g3.x - s2.x) * e3,
-        y: s2.y + (g3.y - s2.y) * e3,
-        z: s2.z + (g3.z - s2.z) * e3
-      }, true);
+      body.setTranslation(
+        {
+          x: s2.x + (g3.x - s2.x) * e3,
+          y: s2.y + (g3.y - s2.y) * e3,
+          z: s2.z + (g3.z - s2.z) * e3
+        },
+        true
+      );
       const startQ = new Quaternion(s2.qx, s2.qy, s2.qz, s2.qw);
-      const endQ = new Quaternion().setFromEuler(new Euler(0, g3.yaw, 0));
+      const endQ = new Quaternion().setFromEuler(
+        new Euler(0, g3.yaw, 0)
+      );
       const q2 = startQ.clone().slerp(endQ, e3);
       body.setRotation({ x: q2.x, y: q2.y, z: q2.z, w: q2.w }, true);
       body.setLinvel({ x: 0, y: 0, z: 0 }, true);
@@ -75235,7 +75317,9 @@ function TapeBody({
         body.setAngvel({ x: 0, y: 0, z: 0 }, true);
       } else {
         body.setTranslation({ x: snap.x, y: snap.y, z: snap.z }, true);
-        const q2 = new Quaternion().setFromEuler(new Euler(0, snap.yaw, 0));
+        const q2 = new Quaternion().setFromEuler(
+          new Euler(0, snap.yaw, 0)
+        );
         body.setRotation({ x: q2.x, y: q2.y, z: q2.z, w: q2.w }, true);
         body.setLinvel({ x: 0, y: 0, z: 0 }, true);
         body.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -75294,14 +75378,14 @@ function TapeBody({
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
               SpoolDisc,
               {
-                x: -1.9 * geo.scale - 0.325,
+                x: -2.2 * geo.scale,
                 z: 0.3 * geo.scale,
                 halfY: geo.halfY,
                 spinningRef: spinRef,
                 opacityRef,
                 rpm: 15,
                 radius: 0.765 * geo.scale,
-                yOffset: -0.1
+                yOffset: -0.04
               }
             ),
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
@@ -75314,7 +75398,7 @@ function TapeBody({
                 opacityRef,
                 rpm: 30,
                 radius: 0.765 * geo.scale,
-                yOffset: -0.1
+                yOffset: -0.04
               }
             )
           ] })
@@ -80465,6 +80549,26 @@ function TapesTable({ mixtape }) {
   const [tapes, setTapes] = (0, import_react13.useState)([]);
   const [mounted, setMounted] = (0, import_react13.useState)(false);
   const [sceneReady, setSceneReady] = (0, import_react13.useState)(false);
+  const [tableReady, setTableReady] = (0, import_react13.useState)(false);
+  (0, import_react13.useEffect)(() => {
+    function onTableReady() {
+      setTableReady(true);
+    }
+    window.addEventListener("jeem-table-ready", onTableReady);
+    return () => window.removeEventListener("jeem-table-ready", onTableReady);
+  }, []);
+  (0, import_react13.useEffect)(() => {
+    if (!sceneReady) return;
+    const reveal = setTimeout(() => {
+      document.body.classList.remove("scene-not-ready");
+      const startEl = document.getElementById("start-container");
+      if (startEl) {
+        startEl.classList.add("ui-glitching-in");
+        setTimeout(() => startEl.classList.remove("ui-glitching-in"), 600);
+      }
+    }, 500);
+    return () => clearTimeout(reveal);
+  }, [sceneReady]);
   const [menuId, setMenuId] = (0, import_react13.useState)(null);
   const [dragId, setDragId] = (0, import_react13.useState)(null);
   const [dragPos, setDragPos] = (0, import_react13.useState)(null);
@@ -80498,6 +80602,19 @@ function TapesTable({ mixtape }) {
   inspectTapeIdRef.current = inspectTapeId;
   const [inspectUiVisible, setInspectUiVisible] = (0, import_react13.useState)(false);
   const inspectUiTimerRef = (0, import_react13.useRef)(null);
+  const [inspectUiPhase, setInspectUiPhase] = (0, import_react13.useState)("hidden");
+  (0, import_react13.useEffect)(() => {
+    if (inspectUiVisible) {
+      setInspectUiPhase("showing");
+      const t4 = setTimeout(() => setInspectUiPhase("visible"), 450);
+      return () => clearTimeout(t4);
+    }
+    setInspectUiPhase((prev) => prev === "hidden" ? "hidden" : "hiding");
+    const t3 = setTimeout(() => setInspectUiPhase("hidden"), 450);
+    return () => clearTimeout(t3);
+  }, [inspectUiVisible]);
+  const inspectUiRendered = inspectUiPhase !== "hidden";
+  const inspectUiClass = inspectUiPhase === "showing" ? "ui-glitching-in" : inspectUiPhase === "hiding" ? "ui-glitching-out" : "";
   const [removingInspected, setRemovingInspected] = (0, import_react13.useState)(false);
   (0, import_react13.useEffect)(() => {
     if (!inspectTapeId) return;
@@ -80653,6 +80770,19 @@ function TapesTable({ mixtape }) {
       if (localStorage.getItem("jeem_keep_tidy") === "1") {
         loaded = tidyTapes(loaded);
       }
+      const RX = 1e3, RY = 1400, RW = 380, RH = 420;
+      loaded = loaded.map((t3) => {
+        if (t3.x == null || t3.y == null) return t3;
+        if (Math.abs(t3.x - RX) < RW && Math.abs(t3.y - RY) < RH) {
+          return {
+            ...t3,
+            x: CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 280),
+            y: CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 200),
+            angle: Math.round((Math.random() * 40 - 20) * 10) / 10
+          };
+        }
+        return t3;
+      });
       const shared = await sharedTapePromiseRef.current;
       if (shared) {
         loaded = [shared, ...loaded];
@@ -81181,7 +81311,9 @@ function TapesTable({ mixtape }) {
       if (t3) loadIntoPlayer(t3);
       return;
     }
-    setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, x: x2d, y: y2d } : t3));
+    if (!recorderLoadedDuringDragRef.current) {
+      setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, x: x2d, y: y2d } : t3));
+    }
     if (!recorderLoadedDuringDragRef.current && (!loadedRef.current || loadedRef.current.id === tapeId)) {
       exitPlayerView({ skipCameraReset: true });
     }
@@ -81529,8 +81661,11 @@ function TapesTable({ mixtape }) {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "#0a0805",
-      pointerEvents: "auto"
+      // Drop the opaque background once the table texture is rendered so
+      // the wood surface is visible behind the spinner while tapes load.
+      background: tableReady ? "transparent" : "#0a0805",
+      pointerEvents: tableReady ? "none" : "auto",
+      transition: "background 0.25s ease"
     }, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
       width: 48,
       height: 48,
@@ -81539,7 +81674,7 @@ function TapesTable({ mixtape }) {
       borderRadius: "50%",
       animation: "tape-loading-spin 0.9s linear infinite"
     } }) }),
-    inspectTapeId && inspectUiVisible && (() => {
+    inspectTapeId && inspectUiRendered && (() => {
       const tape = tapes.find((t3) => t3.id === inspectTapeId);
       if (!tape) return null;
       const colStyle = {
@@ -81551,7 +81686,7 @@ function TapesTable({ mixtape }) {
         display: "flex",
         justifyContent: "center"
       };
-      return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(import_jsx_runtime11.Fragment, { children: [
+      return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: inspectUiClass, children: [
         /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { ...colStyle, top: "18vh" }, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
           "textarea",
           {
@@ -81637,7 +81772,7 @@ function TapesTable({ mixtape }) {
         ] })
       ] });
     })(),
-    (playerTapeId && isPlaying || inspectTapeId && inspectUiVisible) && !showMixtapeCreator && (() => {
+    (playerTapeId && isPlaying || inspectTapeId && inspectUiRendered) && !showMixtapeCreator && (() => {
       const focusId = playerTapeId || inspectTapeId;
       const tape = loadedTape ?? tapes.find((t3) => t3.id === focusId);
       if (!tape) return null;
@@ -81674,7 +81809,7 @@ function TapesTable({ mixtape }) {
         }
       };
       return (0, import_react_dom.createPortal)(
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "tape-info-panel", style: {
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: `tape-info-panel${inspectTapeId ? ` ${inspectUiClass}` : ""}`, style: {
           position: "fixed",
           top: "50%",
           left: "calc(50% - 70px)",

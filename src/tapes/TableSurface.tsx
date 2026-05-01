@@ -70,6 +70,13 @@ interface BgInfo { bgTypeIndex: number; activeKey: ActiveKey }
 export function TableSurface() {
   const woodTexture = useLoader(THREE.TextureLoader, '/wood-table-alt.jpg');
 
+  // Once the wood texture has resolved (we're past the Suspense fallback) the
+  // table is rendered — let the loading overlay drop its opaque background so
+  // the table is visible behind the spinner while tapes/recorder finish.
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('jeem-table-ready'));
+  }, []);
+
   // Dual video elements owned by the vanilla JS layer. We always bind a
   // VideoTexture to each and crossfade plane opacity on swap, so the
   // transition timing is driven entirely by React — no DOM-element flip in
