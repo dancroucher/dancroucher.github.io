@@ -303,6 +303,49 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // before the exit-inspect sequence runs. Cleared once removal completes.
   const [removingInspected, setRemovingInspected] = useState(false);
 
+  // Brief glitch-in flicker on the playback info panel each time the panel
+  // appears (i.e. each time `isPlaying` transitions from false to true).
+  const [playbackPanelGlitching, setPlaybackPanelGlitching] = useState(false);
+  const wasPlayingRef = useRef(false);
+  useEffect(() => {
+    if (isPlaying && !wasPlayingRef.current) {
+      setPlaybackPanelGlitching(true);
+      const t = setTimeout(() => setPlaybackPanelGlitching(false), 500);
+      wasPlayingRef.current = true;
+      return () => clearTimeout(t);
+    }
+    if (!isPlaying) wasPlayingRef.current = false;
+  }, [isPlaying]);
+
+  // While a pending placeholder tape is in inspect view, show the
+  // search-creator overlay (#single-tape-creator) with the same glitch
+  // class as the rest of the inspect UI. The two action buttons in
+  // #start-form are already hidden by the existing inspect → form-hide
+  // effect, so we don't need to touch #start-container here.
+  const inspectedIsPending = !!inspectTapeId && (tapes.find(t => t.id === inspectTapeId)?.isPending ?? false);
+  useEffect(() => {
+    const pendingActive = inspectedIsPending && inspectUiRendered;
+    const creatorEl = document.getElementById('single-tape-creator');
+    if (!creatorEl) return;
+    if (pendingActive) {
+      creatorEl.style.display = 'flex';
+      creatorEl.classList.remove('ui-glitching-in', 'ui-glitching-out');
+      if (inspectUiClass) {
+        void creatorEl.offsetWidth;
+        creatorEl.classList.add(inspectUiClass);
+      }
+      if (inspectUiPhase === 'visible') {
+        const input = document.getElementById('idEntry') as HTMLInputElement | null;
+        if (input && document.activeElement !== input) input.focus();
+      }
+    } else {
+      creatorEl.classList.remove('ui-glitching-in', 'ui-glitching-out');
+      creatorEl.style.display = 'none';
+      const input = document.getElementById('idEntry') as HTMLInputElement | null;
+      if (input) input.value = '';
+    }
+  }, [inspectedIsPending, inspectUiRendered, inspectUiClass, inspectUiPhase]);
+
   // Fetch playlist tracks when inspecting a playlist tape (so tracklist UI shows).
   useEffect(() => {
     if (!inspectTapeId) return;
@@ -538,10 +581,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     init().catch(console.error);
   }, []);
 
-  // Persist to IndexedDB on every tapes state change
+  // Persist to IndexedDB on every tapes state change. Skip pending
+  // placeholder tapes so they don't get saved across refreshes.
   useEffect(() => {
     if (mounted) {
-      saveTapes(tapes).catch(console.error);
+      saveTapes(tapes.filter(t => !t.isPending)).catch(console.error);
     }
   }, [tapes, mounted]);
 
@@ -671,6 +715,15 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         });
       },
       addTapeFromSearch: (videoId: string, title: string, author: string, isPlaylist: boolean, playlistId?: string) => {
+        // If a pending placeholder is in the inspect view, hand off the
+        // metadata to finishPendingTape so it can drive the timed sequence
+        // (fade UI/tape, populate, camera back, respawn). We don't update
+        // tapes here at all in that case.
+        const hasPending = tapesRef.current.some(t => t.isPending);
+        if (hasPending) {
+          finishPendingTapeRef.current?.({ videoId, title, author, isPlaylist, playlistId });
+          return;
+        }
         setTapes(prev => {
           const dedupKey = isPlaylist ? playlistId! : videoId;
           if (prev.some(t => isPlaylist ? t.playlistId === dedupKey : t.videoId === dedupKey)) {
@@ -682,9 +735,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             });
             return updated;
           }
-
-          const col = prev.length % 3;
-          const row2 = Math.floor(prev.length / 3);
 
           const tape: Tape = {
             id: crypto.randomUUID?.() ?? `${Date.now()}`,
@@ -1176,6 +1226,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     autoEjectRef.current();
   }, []);
 
+  const exitInspectRef = useRef<(() => void) | null>(null);
+  interface PendingMetadata { videoId: string; title: string; author: string; isPlaylist: boolean; playlistId?: string }
+  const finishPendingTapeRef = useRef<((meta: PendingMetadata) => void) | null>(null);
   const exitInspect = useCallback(() => {
     if (inspectUiTimerRef.current) { clearTimeout(inspectUiTimerRef.current); inspectUiTimerRef.current = null; }
     if (inspectTapeIdRef.current == null) return;
@@ -1186,11 +1239,65 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     window.dispatchEvent(new CustomEvent('jeem-centre-camera', {
       detail: { restoreSaved: true, animate: true, dur: camDur, zoomTo: 40, zoomDelay, zoomDur },
     }));
+    // If the inspected tape is still a pending placeholder (no videoId set),
+    // delete it as part of the exit so we don't leave an empty tape behind.
+    const inspectingId = inspectTapeIdRef.current;
     inspectUiTimerRef.current = setTimeout(() => {
+      const stillPending = tapesRef.current.some(t => t.id === inspectingId && t.isPending);
+      if (stillPending) {
+        setTapes(prev => prev.filter(t => t.id !== inspectingId));
+      }
       setInspectTapeId(null);
       inspectUiTimerRef.current = null;
     }, zoomDelay + zoomDur);
   }, []);
+  exitInspectRef.current = exitInspect;
+
+  // Sequence that runs after the user submits a URL/search while in the
+  // pending-tape inspect view. Mirrors the entry timing in reverse:
+  //   t=0    glitch search UI out, fade the populated tape
+  //   t=600  start camera tween back to the table
+  //   t=1800 inspectTapeId clears; respawn the tape from SPAWN_HEIGHT so it
+  //          drops into a fresh spot on the table view
+  const finishPendingTape = useCallback((meta: PendingMetadata) => {
+    const placeholderId = inspectTapeIdRef.current;
+    if (!placeholderId) return;
+    // t=0: glitch the search overlay out + fade the placeholder tape.
+    setInspectUiVisible(false);
+    setRemovingInspected(true);
+    const FADE_MS = 600;
+    const EXIT_MS = 1200; // matches zoomDelay + zoomDur in exitInspect
+    setTimeout(() => {
+      // t=600: fade complete. Populate the placeholder in place (keep its
+      // id so exitInspect's restore-saved-pose still operates on the same
+      // tape) and start the camera tween back to the table.
+      setTapes(prev => prev.map(t => t.id === placeholderId ? {
+        ...t,
+        videoId: meta.videoId,
+        playlistId: meta.playlistId || undefined,
+        isPlaylist: meta.isPlaylist,
+        title: meta.title,
+        author: meta.author,
+        timestamp: Date.now(),
+        isPending: false,
+      } : t));
+      exitInspectRef.current?.();
+      setTimeout(() => {
+        // t=1800: camera back. Re-position the now-populated tape at canvas
+        // centre with random jitter and bump its respawn version so TapeBody
+        // remounts and drops in from SPAWN_HEIGHT.
+        const px = CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280);
+        const py = CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200);
+        const pa = Math.round((Math.random() * 40 - 20) * 10) / 10;
+        setTapes(prev => prev.map(t => t.id === placeholderId ? { ...t, x: px, y: py, angle: pa } : t));
+        setNewTapeIds(s => { const n = new Set(s); n.add(placeholderId); return n; });
+        setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(placeholderId); return n; }), 2000);
+        setRespawnVersions(m => { const n = new Map(m); n.set(placeholderId, (n.get(placeholderId) ?? 0) + 1); return n; });
+        setRemovingInspected(false);
+      }, EXIT_MS);
+    }, FADE_MS);
+  }, []);
+  finishPendingTapeRef.current = finishPendingTape;
 
   const handle3DDoubleTap = useCallback((tapeId: string) => {
     // Double-tap on table view → enter inspect view (closer zoom, single tape).
@@ -1209,9 +1316,14 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     const camDur = 1000;
     const zoomDelay = 200;
     const zoomDur = 1000;
+    // Single tapes have no tracklist panel, so centre the tape on screen.
+    // Playlist / infinite / mixtape tapes leave room on the right for the
+    // tracklist by sitting in the left half of the screen.
+    const isSingle = !tape.isPlaylist && !tape.isInfinite;
+    const tapeOffset = isSingle ? -8 : -2;
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('jeem-centre-camera', {
-        detail: { tx: tx - 2, tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true },
+        detail: { tx: tx + tapeOffset, tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true },
       }));
     }, camDelay);
     inspectUiTimerRef.current = setTimeout(() => {
@@ -1223,6 +1335,57 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const handle3DMenuAction = useCallback((_tapeId: string, _action: 'link' | 'rewind' | 'remove') => {
     // Context menu disabled — functionality will be rebuilt later
   }, []);
+
+  // ── "make a single tape" flow ──
+  // Spawns a placeholder tape and runs the inspect-entry sequence so the
+  // user lands in view 2 with a blank tape and a search bar.
+  const startPendingSingleTape = useCallback(() => {
+    if (viewRef.current === 'player' || showMixtapeCreator) return;
+    if (inspectTapeIdRef.current != null) return;
+    if (tapesRef.current.some(t => t.isPending)) return;
+
+    const px = CANVAS_W / 2;
+    const py = CANVAS_H / 2;
+    const placeholderId = crypto.randomUUID?.() ?? `pending-${Date.now()}`;
+    const placeholder: Tape = {
+      id: placeholderId,
+      videoId: '',
+      isPlaylist: false,
+      title: '',
+      author: '',
+      tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+      textureVariant: nextTextureVariant(),
+      progress: 0,
+      timestamp: Date.now(),
+      x: px, y: py,
+      angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
+      isPending: true,
+    };
+    setTapes(prev => [placeholder, ...prev]);
+    setZOrder(o => [placeholder.id, ...o]);
+    setNewTapeIds(s => { const n = new Set(s); n.add(placeholder.id); return n; });
+    setTimeout(() => setNewTapeIds(s => { const n = new Set(s); n.delete(placeholder.id); return n; }), 2000);
+
+    if (inspectUiTimerRef.current) { clearTimeout(inspectUiTimerRef.current); inspectUiTimerRef.current = null; }
+    setInspectTapeId(placeholderId);
+    const [tx, tz] = to3D(px, py);
+    const camDelay = 200, camDur = 1000, zoomDelay = 200, zoomDur = 1000;
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('jeem-centre-camera', {
+        detail: { tx: tx - 8, tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true },
+      }));
+    }, camDelay);
+    inspectUiTimerRef.current = setTimeout(() => {
+      setInspectUiVisible(true);
+      inspectUiTimerRef.current = null;
+    }, camDelay + zoomDelay + zoomDur + 250);
+  }, [showMixtapeCreator]);
+
+  useEffect(() => {
+    function handle() { startPendingSingleTape(); }
+    window.addEventListener('jeem-create-pending-tape', handle);
+    return () => window.removeEventListener('jeem-create-pending-tape', handle);
+  }, [startPendingSingleTape]);
 
   const [newTapeIds, setNewTapeIds] = useState(() => new Set<string>());
   // Bump per-tape to force a TapeBody remount — used to respawn a tape from
@@ -1517,8 +1680,16 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       {inspectTapeId && inspectUiRendered && (() => {
         const tape = tapes.find(t => t.id === inspectTapeId);
         if (!tape) return null;
+        // Pending placeholder uses a separate DOM overlay (#single-tape-creator)
+        // for the search input — no title/remove UI here.
+        if (tape.isPending) return null;
+        // Single tapes get a centred camera + no tracklist panel, so centre
+        // the title and button row over the tape too. Playlist / infinite /
+        // mixtape inspect keeps them at 32% so they sit above the tape in
+        // the left half of the screen.
+        const isSingle = !tape.isPlaylist && !tape.isInfinite;
         const colStyle: React.CSSProperties = {
-          position: 'fixed', left: '32%', transform: 'translateX(-50%)',
+          position: 'fixed', left: isSingle ? '50%' : '32%', transform: 'translateX(-50%)',
           zIndex: 99996, pointerEvents: 'auto',
           display: 'flex', justifyContent: 'center',
         };
@@ -1598,8 +1769,18 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         // Prefer loaded tape (source of truth during playback), else the focused player/inspect tape
         const tape = loadedTape ?? tapes.find(t => t.id === focusId);
         if (!tape) return null;
+        if (tape.isPending) return null;
+        // Single-tape inspect view: nothing useful to show in the panel
+        // (no tracklist, no per-track info), so suppress it entirely.
+        if (inspectTapeId && !playerTapeId && !tape.isPlaylist && !tape.isInfinite) return null;
 
         const interactive = isPlaying && !!loadedTape && loadedTape.id === tape.id;
+        const isMixtape = tape.author === 'mixtape' && !!tape.isInfinite;
+        const isPlaylistTape = !!tape.isPlaylist;
+        // Mixtape + playlist tracklists are read-only — clicks should fall
+        // through to the 3D canvas so users can still drag tapes underneath.
+        const tracklistInteractive = interactive && !isMixtape && !isPlaylistTape;
+        const headerLabel = isMixtape ? 'mixtape' : isPlaylistTape ? 'playlist' : null;
         const hasInfiniteTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
         const hasPlaylistTracklist = tape.isPlaylist && playlistTracks && playlistTracks.tracks.length > 0;
 
@@ -1649,15 +1830,18 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         // being display:none'd by player.js during non-tapes bg modes.
         // The old #mixtape-tracklist / #playlist-tracklist overlays mounted
         // directly on <body> for the same reason.
+        // Pointer events: mixtapes + playlists always click through (read-only),
+        // and the panel itself disables pointer events while the user is
+        // dragging a tape (so the click-target is the 3D canvas underneath).
+        const panelClickThrough = dragging3D || isMixtape || isPlaylistTape;
+        const panelGlitchClass = inspectTapeId ? inspectUiClass : (playbackPanelGlitching ? 'ui-glitching-in' : '');
         return createPortal(
-          <div className={`tape-info-panel${inspectTapeId ? ` ${inspectUiClass}` : ''}`} style={{
+          <div className={`tape-info-panel${panelGlitchClass ? ` ${panelGlitchClass}` : ''}`} style={{
             position: 'fixed', top: '50%', left: 'calc(50% - 70px)', transform: 'translateY(-50%)',
             width: '50vw', maxHeight: '70vh',
             fontFamily: "'04b03', monospace", fontSize: '1em', color: 'rgba(250,249,246,0.9)',
             background: 'transparent',
-            // Drag events need to pass through to the 3D canvas below; inactivity
-            // fade toggles opacity via `public/src/player.js` (Inactivity module).
-            pointerEvents: dragging3D ? 'none' : 'auto', zIndex: 200,
+            pointerEvents: panelClickThrough ? 'none' : 'auto', zIndex: 200,
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
             border: 'none', borderRadius: 0,
             padding: '24px 24px 20px',
@@ -1666,16 +1850,26 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           }}>
             {!inspectTapeId && (
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                marginBottom: hasTracklist ? '12px' : '0',
+                display: 'flex', alignItems: 'baseline', gap: 10,
+                marginBottom: hasTracklist ? '14px' : '0',
                 flexShrink: 0,
+                pointerEvents: 'none',
               }}>
+                {headerLabel && (
+                  <div style={{
+                    fontFamily: "'04b03', monospace", fontSize: '0.85em',
+                    color: 'rgba(250,249,246,0.45)', letterSpacing: '2px',
+                    textTransform: 'uppercase', flexShrink: 0,
+                  }}>
+                    {headerLabel} /
+                  </div>
+                )}
                 <div style={{
-                  fontFamily: "'04b03', monospace", fontSize: '1.3em',
-                  color: 'rgba(250,249,246,0.7)', letterSpacing: '1.5px',
+                  fontFamily: "'04b03', monospace", fontSize: '1.4em',
+                  color: 'rgba(255,255,255,0.95)', letterSpacing: '1.5px',
                   whiteSpace: 'nowrap', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis',
-                  pointerEvents: interactive ? 'auto' : 'none',
-                  userSelect: interactive ? 'auto' : 'none',
+                  fontWeight: 700,
+                  textShadow: '0 1px 2px rgba(0,0,0,0.5)',
                 }}>
                   {tape.title || 'Untitled'}
                 </div>
@@ -1697,36 +1891,39 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 padding: '10px 14px',
               }}>
                 {tracklistItems.map((track, i) => {
-                  const isCurrent = i === currentIndex;
+                  const isCurrent = i === currentIndex && interactive;
                   return (
                     <div
                       key={i}
-                      onClick={interactive ? () => handleSelect(i, track) : undefined}
+                      onClick={tracklistInteractive ? () => handleSelect(i, track) : undefined}
                       style={{
+                        position: 'relative',
                         display: 'flex', alignItems: 'center', gap: '8px',
                         fontFamily: "'04b03', monospace", fontSize: '1em',
-                        color: isCurrent && interactive ? 'rgba(250,249,246,0.95)' : 'rgba(250,249,246,0.7)',
-                        background: isCurrent && interactive ? 'rgba(250,249,246,0.08)' : 'transparent',
-                        padding: '6px 4px',
+                        color: isCurrent ? 'rgba(255,255,255,1)' : 'rgba(250,249,246,0.7)',
+                        background: isCurrent ? 'rgba(255,255,255,0.14)' : 'transparent',
+                        padding: '6px 4px 6px 12px',
+                        borderLeft: isCurrent ? '3px solid rgba(255,255,255,0.9)' : '3px solid transparent',
                         borderBottom: '1px solid rgba(250,249,246,0.04)',
-                        cursor: interactive ? 'pointer' : 'default',
-                        transition: 'color 0.15s, background 0.15s',
-                        pointerEvents: interactive ? 'auto' : 'none',
-                        userSelect: interactive ? 'auto' : 'none',
+                        cursor: tracklistInteractive ? 'pointer' : 'default',
+                        transition: 'color 0.15s, background 0.15s, border-color 0.15s',
+                        pointerEvents: tracklistInteractive ? 'auto' : 'none',
+                        userSelect: tracklistInteractive ? 'auto' : 'none',
+                        textShadow: isCurrent ? '0 0 8px rgba(255,255,255,0.4)' : 'none',
                       }}
-                      title={interactive ? `${track.title} — ${track.author}` : undefined}
+                      title={tracklistInteractive ? `${track.title} — ${track.author}` : undefined}
                     >
-                      <span style={{ color: 'rgba(250,249,246,0.5)', width: '30px', flexShrink: 0, textAlign: 'right' }}>
+                      <span style={{ color: isCurrent ? 'rgba(255,255,255,0.85)' : 'rgba(250,249,246,0.5)', width: '30px', flexShrink: 0, textAlign: 'right' }}>
                         {String(i + 1).padStart(2, '0')}.
                       </span>
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, color: isCurrent && interactive ? 'rgba(250,249,246,0.95)' : 'rgba(250,249,246,0.9)' }}>
+                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, color: isCurrent ? 'rgba(255,255,255,1)' : 'rgba(250,249,246,0.9)', fontWeight: isCurrent ? 700 : 400 }}>
                         {track.title}
                       </span>
-                      <span style={{ color: 'rgba(250,249,246,0.5)', flexShrink: 0, width: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ color: isCurrent ? 'rgba(255,255,255,0.7)' : 'rgba(250,249,246,0.5)', flexShrink: 0, width: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {track.author}
                       </span>
                       {track.durationText && (
-                        <span style={{ color: 'rgba(250,249,246,0.5)', flexShrink: 0, width: '50px', textAlign: 'right' }}>
+                        <span style={{ color: isCurrent ? 'rgba(255,255,255,0.7)' : 'rgba(250,249,246,0.5)', flexShrink: 0, width: '50px', textAlign: 'right' }}>
                           {track.durationText}
                         </span>
                       )}

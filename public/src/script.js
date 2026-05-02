@@ -250,6 +250,14 @@ const Search = {
         this._dropdown.className = "search-dropdown";
         this._dropdown.style.display = "none";
 
+        // Insert directly inside the make-tape search container (so width +
+        // position track the search bar). Falls back to the legacy spot
+        // beside .start-form for safety.
+        const searchEl = document.getElementById("single-tape-search");
+        if (searchEl) {
+            searchEl.appendChild(this._dropdown);
+            return;
+        }
         const startForm = document.querySelector(".start-form");
         if (startForm && startForm.parentNode) {
             startForm.parentNode.insertBefore(this._dropdown, startForm.nextSibling);
@@ -429,6 +437,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     LuckyPicks.init();
+
+    // New primary entry points: "make a single tape" / "make a mixtape".
+    const createTapeBtn = document.getElementById("create-tape-btn");
+    if (createTapeBtn) {
+        createTapeBtn.addEventListener("click", () => {
+            window.dispatchEvent(new CustomEvent('jeem-create-pending-tape'));
+        });
+    }
+    // Mixtape button is intentionally disabled for now.
 
     // Grey out mixtape button when search bar is empty
     const mixtapeBtn = document.getElementById("mixtape-btn");

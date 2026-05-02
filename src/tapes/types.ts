@@ -31,6 +31,10 @@ export interface Tape {
   infiniteConfig?: InfiniteConfig;
   infiniteHistory?: InfiniteTrack[];
   infiniteIndex?: number;
+  // Placeholder tape created by the "make a single tape" flow before the
+  // user has provided a YouTube URL or search query. Cleaned up if the user
+  // exits inspect view without populating it.
+  isPending?: boolean;
 }
 
 export const TAPE_STYLES: {

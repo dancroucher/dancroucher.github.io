@@ -78323,6 +78323,11 @@ function Recorder3D({
         rawCenter.y.toFixed(2),
         rawCenter.z.toFixed(2)
       );
+      const meshNames = [];
+      clone2.traverse((c3) => {
+        if (c3.isMesh) meshNames.push(c3.name);
+      });
+      console.log("[Recorder3D] mesh parts:", meshNames);
       const materials = [];
       clone2.traverse((child) => {
         const m3 = child;
@@ -79125,12 +79130,17 @@ function SceneContents({
     window.addEventListener("pointermove", onExtMove);
     window.addEventListener("pointerup", onExtUp);
   });
+  const isMobile = typeof window !== "undefined" && window.innerWidth <= 745;
   const zoomRestored = (0, import_react12.useRef)(false);
   if (!zoomRestored.current) {
-    const saved = localStorage.getItem("jeem_table_zoom");
-    if (saved) {
-      const y2 = parseFloat(saved);
-      if (y2 >= 35 && y2 <= 45) camera.position.y = y2;
+    if (isMobile) {
+      camera.position.y = 45;
+    } else {
+      const saved = localStorage.getItem("jeem_table_zoom");
+      if (saved) {
+        const y2 = parseFloat(saved);
+        if (y2 >= 35 && y2 <= 45) camera.position.y = y2;
+      }
     }
     zoomRestored.current = true;
   }
@@ -79343,8 +79353,8 @@ function SceneContents({
         ref: controlsRef,
         enableRotate: false,
         enablePan: !lockedTapeId && !lockCamera && !lockPan && !inspectTapeId,
-        enableZoom: !lockedTapeId && !lockCamera && !inspectTapeId,
-        minDistance: inspectTapeId ? 20 : 35,
+        enableZoom: !isMobile && !lockedTapeId && !lockCamera && !inspectTapeId,
+        minDistance: inspectTapeId ? 20 : isMobile ? 45 : 35,
         maxDistance: 45,
         panSpeed: 1.5,
         zoomSpeed: 1.2,
@@ -80616,6 +80626,40 @@ function TapesTable({ mixtape }) {
   const inspectUiRendered = inspectUiPhase !== "hidden";
   const inspectUiClass = inspectUiPhase === "showing" ? "ui-glitching-in" : inspectUiPhase === "hiding" ? "ui-glitching-out" : "";
   const [removingInspected, setRemovingInspected] = (0, import_react13.useState)(false);
+  const [playbackPanelGlitching, setPlaybackPanelGlitching] = (0, import_react13.useState)(false);
+  const wasPlayingRef = (0, import_react13.useRef)(false);
+  (0, import_react13.useEffect)(() => {
+    if (isPlaying && !wasPlayingRef.current) {
+      setPlaybackPanelGlitching(true);
+      const t3 = setTimeout(() => setPlaybackPanelGlitching(false), 500);
+      wasPlayingRef.current = true;
+      return () => clearTimeout(t3);
+    }
+    if (!isPlaying) wasPlayingRef.current = false;
+  }, [isPlaying]);
+  const inspectedIsPending = !!inspectTapeId && (tapes.find((t3) => t3.id === inspectTapeId)?.isPending ?? false);
+  (0, import_react13.useEffect)(() => {
+    const pendingActive = inspectedIsPending && inspectUiRendered;
+    const creatorEl = document.getElementById("single-tape-creator");
+    if (!creatorEl) return;
+    if (pendingActive) {
+      creatorEl.style.display = "flex";
+      creatorEl.classList.remove("ui-glitching-in", "ui-glitching-out");
+      if (inspectUiClass) {
+        void creatorEl.offsetWidth;
+        creatorEl.classList.add(inspectUiClass);
+      }
+      if (inspectUiPhase === "visible") {
+        const input = document.getElementById("idEntry");
+        if (input && document.activeElement !== input) input.focus();
+      }
+    } else {
+      creatorEl.classList.remove("ui-glitching-in", "ui-glitching-out");
+      creatorEl.style.display = "none";
+      const input = document.getElementById("idEntry");
+      if (input) input.value = "";
+    }
+  }, [inspectedIsPending, inspectUiRendered, inspectUiClass, inspectUiPhase]);
   (0, import_react13.useEffect)(() => {
     if (!inspectTapeId) return;
     const tape = tapesRef.current.find((t3) => t3.id === inspectTapeId);
@@ -80811,7 +80855,7 @@ function TapesTable({ mixtape }) {
   }, []);
   (0, import_react13.useEffect)(() => {
     if (mounted) {
-      saveTapes(tapes).catch(console.error);
+      saveTapes(tapes.filter((t3) => !t3.isPending)).catch(console.error);
     }
   }, [tapes, mounted]);
   (0, import_react13.useEffect)(() => {
@@ -80945,6 +80989,11 @@ function TapesTable({ mixtape }) {
         });
       },
       addTapeFromSearch: (videoId, title, author, isPlaylist, playlistId) => {
+        const hasPending = tapesRef.current.some((t3) => t3.isPending);
+        if (hasPending) {
+          finishPendingTapeRef.current?.({ videoId, title, author, isPlaylist, playlistId });
+          return;
+        }
         setTapes((prev) => {
           const dedupKey = isPlaylist ? playlistId : videoId;
           if (prev.some((t3) => isPlaylist ? t3.playlistId === dedupKey : t3.videoId === dedupKey)) {
@@ -80956,8 +81005,6 @@ function TapesTable({ mixtape }) {
             });
             return updated;
           }
-          const col = prev.length % 3;
-          const row2 = Math.floor(prev.length / 3);
           const tape = {
             id: crypto.randomUUID?.() ?? `${Date.now()}`,
             videoId,
@@ -81361,6 +81408,8 @@ function TapesTable({ mixtape }) {
     setRecorderLoadingId(null);
     autoEjectRef.current();
   }, []);
+  const exitInspectRef = (0, import_react13.useRef)(null);
+  const finishPendingTapeRef = (0, import_react13.useRef)(null);
   const exitInspect = (0, import_react13.useCallback)(() => {
     if (inspectUiTimerRef.current) {
       clearTimeout(inspectUiTimerRef.current);
@@ -81374,11 +81423,61 @@ function TapesTable({ mixtape }) {
     window.dispatchEvent(new CustomEvent("jeem-centre-camera", {
       detail: { restoreSaved: true, animate: true, dur: camDur, zoomTo: 40, zoomDelay, zoomDur }
     }));
+    const inspectingId = inspectTapeIdRef.current;
     inspectUiTimerRef.current = setTimeout(() => {
+      const stillPending = tapesRef.current.some((t3) => t3.id === inspectingId && t3.isPending);
+      if (stillPending) {
+        setTapes((prev) => prev.filter((t3) => t3.id !== inspectingId));
+      }
       setInspectTapeId(null);
       inspectUiTimerRef.current = null;
     }, zoomDelay + zoomDur);
   }, []);
+  exitInspectRef.current = exitInspect;
+  const finishPendingTape = (0, import_react13.useCallback)((meta) => {
+    const placeholderId = inspectTapeIdRef.current;
+    if (!placeholderId) return;
+    setInspectUiVisible(false);
+    setRemovingInspected(true);
+    const FADE_MS = 600;
+    const EXIT_MS = 1200;
+    setTimeout(() => {
+      setTapes((prev) => prev.map((t3) => t3.id === placeholderId ? {
+        ...t3,
+        videoId: meta.videoId,
+        playlistId: meta.playlistId || void 0,
+        isPlaylist: meta.isPlaylist,
+        title: meta.title,
+        author: meta.author,
+        timestamp: Date.now(),
+        isPending: false
+      } : t3));
+      exitInspectRef.current?.();
+      setTimeout(() => {
+        const px2 = CANVAS_W2 / 2 + Math.round((Math.random() - 0.5) * 280);
+        const py2 = CANVAS_H2 / 2 + Math.round((Math.random() - 0.5) * 200);
+        const pa = Math.round((Math.random() * 40 - 20) * 10) / 10;
+        setTapes((prev) => prev.map((t3) => t3.id === placeholderId ? { ...t3, x: px2, y: py2, angle: pa } : t3));
+        setNewTapeIds((s2) => {
+          const n2 = new Set(s2);
+          n2.add(placeholderId);
+          return n2;
+        });
+        setTimeout(() => setNewTapeIds((s2) => {
+          const n2 = new Set(s2);
+          n2.delete(placeholderId);
+          return n2;
+        }), 2e3);
+        setRespawnVersions((m3) => {
+          const n2 = new Map(m3);
+          n2.set(placeholderId, (n2.get(placeholderId) ?? 0) + 1);
+          return n2;
+        });
+        setRemovingInspected(false);
+      }, EXIT_MS);
+    }, FADE_MS);
+  }, []);
+  finishPendingTapeRef.current = finishPendingTape;
   const handle3DDoubleTap = (0, import_react13.useCallback)((tapeId) => {
     if (viewRef.current === "player" || showMixtapeCreator) return;
     if (inspectTapeIdRef.current != null) {
@@ -81397,9 +81496,11 @@ function TapesTable({ mixtape }) {
     const camDur = 1e3;
     const zoomDelay = 200;
     const zoomDur = 1e3;
+    const isSingle = !tape.isPlaylist && !tape.isInfinite;
+    const tapeOffset = isSingle ? -8 : -2;
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent("jeem-centre-camera", {
-        detail: { tx: tx - 2, tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true }
+        detail: { tx: tx + tapeOffset, tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true }
       }));
     }, camDelay);
     inspectUiTimerRef.current = setTimeout(() => {
@@ -81409,6 +81510,64 @@ function TapesTable({ mixtape }) {
   }, [showMixtapeCreator, exitInspect]);
   const handle3DMenuAction = (0, import_react13.useCallback)((_tapeId, _action) => {
   }, []);
+  const startPendingSingleTape = (0, import_react13.useCallback)(() => {
+    if (viewRef.current === "player" || showMixtapeCreator) return;
+    if (inspectTapeIdRef.current != null) return;
+    if (tapesRef.current.some((t3) => t3.isPending)) return;
+    const px2 = CANVAS_W2 / 2;
+    const py2 = CANVAS_H2 / 2;
+    const placeholderId = crypto.randomUUID?.() ?? `pending-${Date.now()}`;
+    const placeholder = {
+      id: placeholderId,
+      videoId: "",
+      isPlaylist: false,
+      title: "",
+      author: "",
+      tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
+      textureVariant: nextTextureVariant(),
+      progress: 0,
+      timestamp: Date.now(),
+      x: px2,
+      y: py2,
+      angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
+      isPending: true
+    };
+    setTapes((prev) => [placeholder, ...prev]);
+    setZOrder((o4) => [placeholder.id, ...o4]);
+    setNewTapeIds((s2) => {
+      const n2 = new Set(s2);
+      n2.add(placeholder.id);
+      return n2;
+    });
+    setTimeout(() => setNewTapeIds((s2) => {
+      const n2 = new Set(s2);
+      n2.delete(placeholder.id);
+      return n2;
+    }), 2e3);
+    if (inspectUiTimerRef.current) {
+      clearTimeout(inspectUiTimerRef.current);
+      inspectUiTimerRef.current = null;
+    }
+    setInspectTapeId(placeholderId);
+    const [tx, tz] = to3D(px2, py2);
+    const camDelay = 200, camDur = 1e3, zoomDelay = 200, zoomDur = 1e3;
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent("jeem-centre-camera", {
+        detail: { tx: tx - 8, tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true }
+      }));
+    }, camDelay);
+    inspectUiTimerRef.current = setTimeout(() => {
+      setInspectUiVisible(true);
+      inspectUiTimerRef.current = null;
+    }, camDelay + zoomDelay + zoomDur + 250);
+  }, [showMixtapeCreator]);
+  (0, import_react13.useEffect)(() => {
+    function handle() {
+      startPendingSingleTape();
+    }
+    window.addEventListener("jeem-create-pending-tape", handle);
+    return () => window.removeEventListener("jeem-create-pending-tape", handle);
+  }, [startPendingSingleTape]);
   const [newTapeIds, setNewTapeIds] = (0, import_react13.useState)(() => /* @__PURE__ */ new Set());
   const [respawnVersions, setRespawnVersions] = (0, import_react13.useState)(() => /* @__PURE__ */ new Map());
   const startDrag = (0, import_react13.useCallback)((e3, tape) => {
@@ -81677,9 +81836,11 @@ function TapesTable({ mixtape }) {
     inspectTapeId && inspectUiRendered && (() => {
       const tape = tapes.find((t3) => t3.id === inspectTapeId);
       if (!tape) return null;
+      if (tape.isPending) return null;
+      const isSingle = !tape.isPlaylist && !tape.isInfinite;
       const colStyle = {
         position: "fixed",
-        left: "32%",
+        left: isSingle ? "50%" : "32%",
         transform: "translateX(-50%)",
         zIndex: 99996,
         pointerEvents: "auto",
@@ -81776,7 +81937,13 @@ function TapesTable({ mixtape }) {
       const focusId = playerTapeId || inspectTapeId;
       const tape = loadedTape ?? tapes.find((t3) => t3.id === focusId);
       if (!tape) return null;
+      if (tape.isPending) return null;
+      if (inspectTapeId && !playerTapeId && !tape.isPlaylist && !tape.isInfinite) return null;
       const interactive = isPlaying && !!loadedTape && loadedTape.id === tape.id;
+      const isMixtape = tape.author === "mixtape" && !!tape.isInfinite;
+      const isPlaylistTape = !!tape.isPlaylist;
+      const tracklistInteractive = interactive && !isMixtape && !isPlaylistTape;
+      const headerLabel = isMixtape ? "mixtape" : isPlaylistTape ? "playlist" : null;
       const hasInfiniteTracklist = tape.isInfinite && tape.infiniteHistory && tape.infiniteHistory.length > 0;
       const hasPlaylistTracklist = tape.isPlaylist && playlistTracks && playlistTracks.tracks.length > 0;
       const tracklistItems = hasInfiniteTracklist ? tape.infiniteHistory.map((t3, i4) => ({
@@ -81808,8 +81975,10 @@ function TapesTable({ mixtape }) {
           setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, playlistIndex: i4, progress: 0 } : t3));
         }
       };
+      const panelClickThrough = dragging3D || isMixtape || isPlaylistTape;
+      const panelGlitchClass = inspectTapeId ? inspectUiClass : playbackPanelGlitching ? "ui-glitching-in" : "";
       return (0, import_react_dom.createPortal)(
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: `tape-info-panel${inspectTapeId ? ` ${inspectUiClass}` : ""}`, style: {
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: `tape-info-panel${panelGlitchClass ? ` ${panelGlitchClass}` : ""}`, style: {
           position: "fixed",
           top: "50%",
           left: "calc(50% - 70px)",
@@ -81820,9 +81989,7 @@ function TapesTable({ mixtape }) {
           fontSize: "1em",
           color: "rgba(250,249,246,0.9)",
           background: "transparent",
-          // Drag events need to pass through to the 3D canvas below; inactivity
-          // fade toggles opacity via `public/src/player.js` (Inactivity module).
-          pointerEvents: dragging3D ? "none" : "auto",
+          pointerEvents: panelClickThrough ? "none" : "auto",
           zIndex: 200,
           display: "flex",
           flexDirection: "column",
@@ -81833,24 +82000,38 @@ function TapesTable({ mixtape }) {
           opacity: dragging3D ? 0 : 1,
           transition: "opacity 0.2s ease"
         }, children: [
-          !inspectTapeId && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
+          !inspectTapeId && /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { style: {
             display: "flex",
-            alignItems: "center",
-            gap: 12,
-            marginBottom: hasTracklist ? "12px" : "0",
-            flexShrink: 0
-          }, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
-            fontFamily: "'04b03', monospace",
-            fontSize: "1.3em",
-            color: "rgba(250,249,246,0.7)",
-            letterSpacing: "1.5px",
-            whiteSpace: "nowrap",
-            flex: 1,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            pointerEvents: interactive ? "auto" : "none",
-            userSelect: interactive ? "auto" : "none"
-          }, children: tape.title || "Untitled" }) }),
+            alignItems: "baseline",
+            gap: 10,
+            marginBottom: hasTracklist ? "14px" : "0",
+            flexShrink: 0,
+            pointerEvents: "none"
+          }, children: [
+            headerLabel && /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { style: {
+              fontFamily: "'04b03', monospace",
+              fontSize: "0.85em",
+              color: "rgba(250,249,246,0.45)",
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+              flexShrink: 0
+            }, children: [
+              headerLabel,
+              " /"
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
+              fontFamily: "'04b03', monospace",
+              fontSize: "1.4em",
+              color: "rgba(255,255,255,0.95)",
+              letterSpacing: "1.5px",
+              whiteSpace: "nowrap",
+              flex: 1,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              fontWeight: 700,
+              textShadow: "0 1px 2px rgba(0,0,0,0.5)"
+            }, children: tape.title || "Untitled" })
+          ] }),
           !hasTracklist && tape.author && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
             color: "rgba(250,249,246,0.5)",
             marginTop: "6px",
@@ -81865,35 +82046,38 @@ function TapesTable({ mixtape }) {
             scrollbarColor: "rgba(250,249,246,0.2) transparent",
             padding: "10px 14px"
           }, children: tracklistItems.map((track, i4) => {
-            const isCurrent = i4 === currentIndex;
+            const isCurrent = i4 === currentIndex && interactive;
             return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
               "div",
               {
-                onClick: interactive ? () => handleSelect(i4, track) : void 0,
+                onClick: tracklistInteractive ? () => handleSelect(i4, track) : void 0,
                 style: {
+                  position: "relative",
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
                   fontFamily: "'04b03', monospace",
                   fontSize: "1em",
-                  color: isCurrent && interactive ? "rgba(250,249,246,0.95)" : "rgba(250,249,246,0.7)",
-                  background: isCurrent && interactive ? "rgba(250,249,246,0.08)" : "transparent",
-                  padding: "6px 4px",
+                  color: isCurrent ? "rgba(255,255,255,1)" : "rgba(250,249,246,0.7)",
+                  background: isCurrent ? "rgba(255,255,255,0.14)" : "transparent",
+                  padding: "6px 4px 6px 12px",
+                  borderLeft: isCurrent ? "3px solid rgba(255,255,255,0.9)" : "3px solid transparent",
                   borderBottom: "1px solid rgba(250,249,246,0.04)",
-                  cursor: interactive ? "pointer" : "default",
-                  transition: "color 0.15s, background 0.15s",
-                  pointerEvents: interactive ? "auto" : "none",
-                  userSelect: interactive ? "auto" : "none"
+                  cursor: tracklistInteractive ? "pointer" : "default",
+                  transition: "color 0.15s, background 0.15s, border-color 0.15s",
+                  pointerEvents: tracklistInteractive ? "auto" : "none",
+                  userSelect: tracklistInteractive ? "auto" : "none",
+                  textShadow: isCurrent ? "0 0 8px rgba(255,255,255,0.4)" : "none"
                 },
-                title: interactive ? `${track.title} \u2014 ${track.author}` : void 0,
+                title: tracklistInteractive ? `${track.title} \u2014 ${track.author}` : void 0,
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("span", { style: { color: "rgba(250,249,246,0.5)", width: "30px", flexShrink: 0, textAlign: "right" }, children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("span", { style: { color: isCurrent ? "rgba(255,255,255,0.85)" : "rgba(250,249,246,0.5)", width: "30px", flexShrink: 0, textAlign: "right" }, children: [
                     String(i4 + 1).padStart(2, "0"),
                     "."
                   ] }),
-                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, color: isCurrent && interactive ? "rgba(250,249,246,0.95)" : "rgba(250,249,246,0.9)" }, children: track.title }),
-                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { color: "rgba(250,249,246,0.5)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: track.author }),
-                  track.durationText && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { color: "rgba(250,249,246,0.5)", flexShrink: 0, width: "50px", textAlign: "right" }, children: track.durationText })
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, color: isCurrent ? "rgba(255,255,255,1)" : "rgba(250,249,246,0.9)", fontWeight: isCurrent ? 700 : 400 }, children: track.title }),
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { color: isCurrent ? "rgba(255,255,255,0.7)" : "rgba(250,249,246,0.5)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: track.author }),
+                  track.durationText && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { color: isCurrent ? "rgba(255,255,255,0.7)" : "rgba(250,249,246,0.5)", flexShrink: 0, width: "50px", textAlign: "right" }, children: track.durationText })
                 ]
               },
               i4

@@ -85,9 +85,18 @@ var Demo = (function () {
                 const nowPlaying = state === 1;
                 AppState.playing = nowPlaying;
                 if (window.TapesBridge) window.TapesBridge.notifyPlayState(nowPlaying);
-                if (state === 0 && AppState.singleVideo) {
-                    // Single video ended — notify React to rewind & eject
-                    if (window.TapesBridge) window.TapesBridge.onTrackEnded();
+                if (state === 0) {
+                    // Track ended. Single videos rewind/eject; infinite tapes
+                    // auto-advance. Handling this on the iframe event makes
+                    // advancement reliable when the tab is backgrounded — the
+                    // 3s polling fallback below gets throttled to ~1 minute by
+                    // browsers when the page is hidden, which left auto-next
+                    // stalling on inactive tabs.
+                    if (AppState.singleVideo && window.TapesBridge) {
+                        window.TapesBridge.onTrackEnded();
+                    } else if (AppState.infiniteTape && window.TapesBridge) {
+                        window.TapesBridge.loadNextInfiniteTrack();
+                    }
                 }
             });
         },

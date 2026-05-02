@@ -7,3 +7,4 @@ OfficeJeem65/
 .env*.local
 /data
 public/tsconfig.tsbuildinfo
+.soulforge

@@ -176,8 +176,12 @@ const Backgrounds = {
 
     setType(index, persist = true) {
         this.bgTypeIndex = index;
+        // Display label — folder names are kept internal (BG_TYPES doubles as
+        // folder name + display), so map the user-facing label here.
+        const BG_LABELS = { video: "stock" };
         const typeName = BG_TYPES[index];
-        DOM.backgroundType.innerHTML = `<i class='fas fa-file-image'></i>&nbsp;${typeName}`;
+        const label = BG_LABELS[typeName] ?? typeName;
+        DOM.backgroundType.innerHTML = `<i class='fas fa-file-image'></i>&nbsp;${label}`;
 
         // Notify React 3D table so it can render video surface
         window.dispatchEvent(new CustomEvent('jeem-bg-change', {
@@ -577,6 +581,13 @@ window.addEventListener("keydown", (event) => {
             break;
         case "x":
             Backgrounds.cycleType();
+            break;
+        case "z":
+            // Only allow view-toggle while a tape is playing — otherwise the
+            // user could land in the video view with nothing on screen.
+            if (AppState.playing && typeof window.toggleTableView === "function") {
+                window.toggleTableView();
+            }
             break;
         case "i":
             doPopup();

@@ -520,13 +520,21 @@ function SceneContents({
     window.addEventListener('pointerup', onExtUp);
   });
 
-  // Restore saved zoom level
+  // Mobile heuristic — narrow viewport gets a forced wide zoom and disabled
+  // zoom controls so the user can't pinch out to a too-tight view.
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 745;
+
+  // Restore saved zoom level (skip on mobile — we always want max zoom out).
   const zoomRestored = useRef(false);
   if (!zoomRestored.current) {
-    const saved = localStorage.getItem('jeem_table_zoom');
-    if (saved) {
-      const y = parseFloat(saved);
-      if (y >= 35 && y <= 45) camera.position.y = y;
+    if (isMobile) {
+      camera.position.y = 45;
+    } else {
+      const saved = localStorage.getItem('jeem_table_zoom');
+      if (saved) {
+        const y = parseFloat(saved);
+        if (y >= 35 && y <= 45) camera.position.y = y;
+      }
     }
     zoomRestored.current = true;
   }
@@ -771,8 +779,8 @@ function SceneContents({
         ref={controlsRef}
         enableRotate={false}
         enablePan={!lockedTapeId && !lockCamera && !lockPan && !inspectTapeId}
-        enableZoom={!lockedTapeId && !lockCamera && !inspectTapeId}
-        minDistance={inspectTapeId ? 20 : 35}
+        enableZoom={!isMobile && !lockedTapeId && !lockCamera && !inspectTapeId}
+        minDistance={inspectTapeId ? 20 : (isMobile ? 45 : 35)}
         maxDistance={45}
         panSpeed={1.5}
         zoomSpeed={1.2}

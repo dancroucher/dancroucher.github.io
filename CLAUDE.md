@@ -626,3 +626,107 @@ Fixed in two places:
 mode for both `tapes.js` and `mixtape.js` bundles. Use during dev so
 edits to `src/tapes/**` and `src/mixtape/**` auto-rebuild on save —
 the regular `npm start` build is one-shot.
+
+## Recent Changes (2026-05, second batch)
+
+### "make a single tape" creator flow
+
+Replaced the old start-screen search/lucky bar with two action buttons
+(`#create-tape-btn` "make a single tape" + a disabled `#create-mixtape-btn`)
+in `public/index.html`. The mixtape button is reserved for a future
+flow.
+
+- Click `#create-tape-btn` → dispatches `jeem-create-pending-tape`.
+  `TapesTable.tsx` listens, spawns a placeholder tape (`isPending: true`,
+  fresh uuid each time) at canvas centre, and runs the inspect-entry
+  sequence. The standard inspect-view title textarea / remove buttons
+  are skipped for pending tapes (`if (tape.isPending) return null`).
+- Search overlay = `#single-tape-creator` in HTML, holding the blurb
+  + the existing `#video-form`. CSS makes it a full-screen flex column
+  with `justify-content: space-between` so the blurb sits above the
+  centred 3D tape and the search bar sits below — works at any width.
+  Search dropdown is now appended inside `#single-tape-search` so its
+  width tracks the search bar.
+- The pending tape is excluded from `saveTapes` so a half-completed
+  flow doesn't persist across refreshes.
+- Submission hand-off: `addTapeFromSearch` detects `tape.isPending`
+  upfront and forwards the metadata to `finishPendingTape` (without
+  touching `tapes` state itself). `finishPendingTape` orchestrates:
+  - t=0:    glitch the search overlay out (`setInspectUiVisible(false)`),
+            fade the placeholder tape (`setRemovingInspected(true)`).
+  - t=600:  populate the placeholder in place (id stays the same so
+            `restoreSaved` pose still resolves), call `exitInspect()`.
+  - t=1800: re-position the now-real tape at canvas centre + jitter,
+            bump `respawnVersions` and add to `newTapeIds` so TapeBody
+            remounts and falls in from `SPAWN_HEIGHT`. Clear the
+            `removingInspected` flag.
+- Creator-overlay visibility uses `inspectedIsPending && inspectUiRendered`
+  (derived from `tapes.find(t => t.id === inspectTapeId)?.isPending`),
+  so the overlay glitches in/out with the rest of the inspect UI.
+
+### Inspect view layout: single tapes vs. tracklist tapes
+
+- `handle3DDoubleTap` and `startPendingSingleTape` pick a camera offset
+  based on whether the focus tape has a tracklist:
+  - Single tapes (no playlist / no infinite / no mixtape): pass
+    `tx - 8` so the tape lands at the camera centre (centred on screen).
+  - Playlist / infinite / mixtape: pass `tx - 2` so the tape sits in
+    the left half, leaving room for the tracklist on the right.
+- Inspect-mode title + button row uses `left: 50%` for single tapes,
+  `left: 32%` for tracklist tapes.
+- The unified info / tracklist panel returns `null` for single-tape
+  inspect (no tracklist to show — keeps the view clean).
+
+### Tracklist UX during playback
+
+- `tape-info-panel` and each track row become click-through
+  (`pointerEvents: 'none'`) for mixtape AND playlist playback — drag
+  events fall through to the 3D canvas so users can still move tapes
+  around without leaving playback. Infinite (non-mixtape) tapes keep
+  the existing click-to-seek behaviour.
+- Header above the tracklist now shows `MIXTAPE /` or `PLAYLIST /`
+  (faint, uppercase, letter-spaced) followed by the tape's title in
+  bold white with a soft text-shadow.
+- Playing-track highlight: white text + 14% white background, 3px
+  white left border, soft glow `0 0 8px rgba(255,255,255,0.4)`, bold
+  title. Track-number column uses 04b03 (parent font) — kept inline
+  with the rest of the row.
+- New `playbackPanelGlitching` state flips true when `isPlaying`
+  transitions false → true; the panel gets `ui-glitching-in` for
+  500ms so title, author, tracklist all flicker in together.
+
+### Mobile / responsive
+
+- `body` ≤ 745px viewport: padinfo bar is now horizontal across the
+  full width (instead of stacking right-side); `padinfo-row:last-child`
+  uses `margin-left: auto` to push the fullscreen / info pair to the
+  right edge. Reflects the removal of the 2D deck.
+- Title `.start-title` uses `font-size: clamp(1.6em, 7vw, 3em)` plus
+  `white-space: nowrap` so it shrinks instead of wrapping.
+- 3D canvas mobile heuristic (`window.innerWidth <= 745`) in
+  `TapesTable3D.tsx`: forces `camera.position.y = 45` on mount, sets
+  `enableZoom={false}` and `minDistance = maxDistance = 45` so pinch
+  / scroll zoom can't tighten the view. Inspect view still drops to
+  `minDistance: 20` so the inspect zoom-in keeps working.
+
+### Background-tab playback
+
+`public/src/demo.js` `state_change` handler now calls
+`TapesBridge.loadNextInfiniteTrack()` when state=0 for any infinite
+tape — not just single videos. The previous implementation relied on
+a 3-second `setInterval` poll that browsers throttle to ~1 minute on
+hidden tabs, so auto-advance stalled. The iframe's `state_change`
+event isn't a timer, so it fires reasonably even when backgrounded.
+
+### Other small changes
+
+- `z` keybind in `public/src/player.js` toggles between table and
+  video views (mirrors `x` for bg cycle). Gated on `AppState.playing`
+  — disabled when no tape is playing.
+- `BG_LABELS = { video: "stock" }` in `Backgrounds.setType` — the
+  user-facing label is now "stock" while the underlying folder name
+  stays `/video`.
+- `Recorder3D.tsx` logs all GLB mesh names once on load (`[Recorder3D]
+  mesh parts: [...]`) so future animations can reference them.
+- `.videobox-ok` no longer overrides text colour (was a green tint);
+  the `.videobox-notok` red error styling is unchanged.

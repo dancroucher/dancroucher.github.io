@@ -103,6 +103,12 @@ export function Recorder3D({
           'center:', rawCenter.x.toFixed(2), rawCenter.y.toFixed(2), rawCenter.z.toFixed(2),
         );
 
+        const meshNames: string[] = [];
+        clone.traverse((c) => {
+          if ((c as THREE.Mesh).isMesh) meshNames.push(c.name);
+        });
+        console.log('[Recorder3D] mesh parts:', meshNames);
+
         const materials: THREE.Material[] = [];
         clone.traverse((child) => {
           const m = child as THREE.Mesh;

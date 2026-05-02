@@ -69,7 +69,10 @@ a:hover {
 .start-title {
   color: rgba(250, 249, 246, 0.9);
   display: inline-block;
-  font-size: 3em;
+  /* Scale with viewport so the title shrinks on narrow screens instead of
+     wrapping; clamp to a sensible min/max. */
+  font-size: clamp(1.6em, 7vw, 3em);
+  white-space: nowrap;
   padding: 8px 8px 12px 8px;
   animation: textShadow 3.6s infinite;
 }
@@ -89,6 +92,78 @@ a:hover {
   padding: 8px 8px 0 0;
   position: relative;
   width: 100%;
+}
+
+/* Two top-level action buttons that replace the old search/lucky bar. */
+.primary-action-btn {
+  flex: 1;
+  min-width: 160px;
+  padding: 12px 18px;
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(250, 249, 246, 0.95);
+  border: 1px solid rgba(250, 249, 246, 0.25);
+  font-family: '04b03', monospace;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.primary-action-btn:hover {
+  background: rgba(0, 0, 0, 0.75);
+  border-color: rgba(250, 249, 246, 0.5);
+}
+.primary-action-btn--disabled,
+.primary-action-btn[disabled] {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* Make-tape overlay — full-screen flex column. Blurb anchors near the top
+   so it sits above the centred 3D tape; the search bar (and its dropdown)
+   anchor near the bottom so they sit below the tape. Pointer events pass
+   through everywhere except the children, so drag interactions on the
+   canvas still work in the empty middle band. */
+.single-tape-creator {
+  position: fixed;
+  inset: 0;
+  z-index: 99996;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14vh 20px 18vh;
+  pointer-events: none;
+}
+.single-tape-creator > * { pointer-events: auto; }
+.single-tape-blurb {
+  color: rgba(250, 249, 246, 0.85);
+  font-family: '04b03', monospace;
+  font-size: 14px;
+  text-align: center;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  max-width: min(540px, 80vw);
+}
+.single-tape-search {
+  width: min(540px, 80vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.single-tape-search form { width: 100%; }
+.single-tape-search .videobox {
+  width: 100%;
+  box-sizing: border-box;
+  max-width: none;
+  margin: 0;
+}
+/* Search dropdown sits directly under the search bar, matching its width. */
+.single-tape-search .search-dropdown {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-bottom: 0;
 }
 
 .search-source-toggle {
@@ -161,19 +236,31 @@ a:hover {
 }
 
 @media (max-width: 745px) {
+  /* Horizontal bar across the full width — the 2D deck no longer sits in
+     the bottom-right, so buttons can spread across the screen instead of
+     stacking. */
   .padinfo {
-    padding: 0 8px;
-    bottom: 16px;
-    right: 8px;
-    left: auto;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
+    padding: 0 12px;
+    bottom: 12px;
+    left: 0;
+    right: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    column-gap: 8px;
   }
 
   .padinfo-row {
     display: flex;
-    gap: 2px;
+    gap: 4px;
+    align-items: center;
+  }
+
+  /* Push the fullscreen / info pair to the right edge. */
+  .padinfo-row:last-child {
+    margin-left: auto;
   }
 
   .padinfo .fullscreen-button {
@@ -342,7 +429,6 @@ input:focus, select:focus, textarea:focus, button:focus {
 }
 
 .videobox-ok {
-  color: rgba(130, 164, 94, 0.9);
   animation: none;
 }
 
