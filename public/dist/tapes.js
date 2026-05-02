@@ -12718,7 +12718,7 @@ function to3D(x2d, y2d) {
     (y2d - CANVAS_H / 2) / MAP_SCALE
   ];
 }
-function to2D2(x3d, z3d) {
+function to2D(x3d, z3d) {
   return [
     x3d * MAP_SCALE + CANVAS_W / 2,
     z3d * MAP_SCALE + CANVAS_H / 2
@@ -79036,7 +79036,7 @@ function SceneContents({
           lidCloseTimer.current = setTimeout(() => setRecentlyLoaded(false), LID_CLOSE_DELAY);
           onRecorderLoad?.(tapeId);
         }
-        const [x2d, y2d] = to2D2(tx, tz);
+        const [x2d, y2d] = to2D(tx, tz);
         const deckDrop = isDeckDrop(ev.clientX, ev.clientY);
         onDragEnd(tapeId, x2d, y2d, deckDrop);
         savedCamPoseRef.current = null;
@@ -79123,7 +79123,7 @@ function SceneContents({
       window.removeEventListener("pointermove", onExtMove);
       window.removeEventListener("pointerup", onExtUp);
       if (tapeId) {
-        const [x2d, y2d] = to2D2(tx, tz);
+        const [x2d, y2d] = to2D(tx, tz);
         const deckDrop = isDeckDrop(ev.clientX, ev.clientY);
         onDragEnd(tapeId, x2d, y2d, deckDrop);
       }

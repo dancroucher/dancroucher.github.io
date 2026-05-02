@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, InfiniteConfig, InfiniteTrack } from './types';
-import { to3D } from './coords';
+import { to3D, to2D } from './coords';
 import { loadTapes, saveTapes } from './db';
 import { buildShareUrl, decodeTapeShare, fetchShareById, type SharePayload } from './share';
 import { CassetteTape } from './CassetteTape';
