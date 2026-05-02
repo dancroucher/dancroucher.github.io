@@ -42,9 +42,6 @@ function fromB64Url(s: string): string {
   return decodeURIComponent(escape(atob(b64)));
 }
 
-export function encodeTapeShare(t: Tape): string {
-  return toB64Url(JSON.stringify(encodeTapeWire(t)));
-}
 
 export function decodeTapeShare(s: string): SharePayload | null {
   try { return wireToPayload(JSON.parse(fromB64Url(s)) as WirePayload); }

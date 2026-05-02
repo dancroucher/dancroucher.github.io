@@ -8,7 +8,7 @@ import {
 } from "@react-three/rapier";
 import * as THREE from "three";
 import { Tape } from "./types";
-import { TAPE_W, TAPE_H, TAPE_D, DRAG_HEIGHT, to3D } from "./coords";
+import { TAPE_W, TAPE_H, TAPE_D, DRAG_HEIGHT, to3D, DragState, SnapState } from "./coords";
 import {
   loadFBXCached,
   useVariantTextures,
@@ -16,25 +16,6 @@ import {
   VARIANT_TO_MESH,
 } from "./Tape3D";
 import { SpoolDisc } from "./DeckTape3D";
-
-// Matches DragState in coords.ts — inlined to avoid bundler issues
-interface DragState {
-  tapeId: string | null;
-  targetX: number;
-  targetZ: number;
-  targetYaw?: number | null;
-  targetPitch?: number | null;
-  targetY?: number | null;
-}
-
-// Matches SnapState in coords.ts — inlined to avoid bundler issues
-interface SnapState {
-  tapeId: string | null;
-  x: number;
-  y: number;
-  z: number;
-  yaw: number;
-}
 
 // Seconds to tween from release pose into the loaded-in-recorder pose.
 const SNAP_DURATION = 0.4;

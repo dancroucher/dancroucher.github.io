@@ -249,6 +249,13 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const [show3D, setShow3D] = useState(true);
   // Shared mutable object to initiate a 3D drag from outside (e.g. deck eject)
   const externalDrag = useRef<{ tapeId: string | null; targetX: number; targetZ: number }>({ tapeId: null, targetX: 0, targetZ: 0 });
+  // Camera target in 3D — updated by SceneContents so new-tape spawn logic
+  // knows where the camera is looking (e.g. offset on mobile).
+  const cameraTargetRef = useRef<{ x: number; z: number }>({ x: 0, z: 0 });
+  const spawnX = () => Math.round(to2D(cameraTargetRef.current.x, cameraTargetRef.current.z)[0] + (Math.random() - 0.5) * 280);
+  const spawnY = () => Math.round(to2D(cameraTargetRef.current.x, cameraTargetRef.current.z)[1] + (Math.random() - 0.5) * 200);
+  const spawnCX = () => Math.round(to2D(cameraTargetRef.current.x, cameraTargetRef.current.z)[0]);
+  const spawnCY = () => Math.round(to2D(cameraTargetRef.current.x, cameraTargetRef.current.z)[1]);
   const [isPanning, setIsPanning] = useState(false);
   const [loadedTape, setLoadedTape] = useState<Tape | null>(null);
   // True when the current loadedTape is playing via the 3D recorder rather than
@@ -547,8 +554,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         if (Math.abs(t.x - RX) < RW && Math.abs(t.y - RY) < RH) {
           return {
             ...t,
-            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280),
-            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200),
+            x: spawnX(),
+            y: spawnY(),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
           };
         }
@@ -674,8 +681,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             textureVariant: nextTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
-            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280),
-            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200),
+            x: spawnX(),
+            y: spawnY(),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
           };
           const next = [tape, ...prev];
@@ -702,8 +709,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             textureVariant: randomTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
-            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280),
-            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200),
+            x: spawnX(),
+            y: spawnY(),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
           };
           const next = [tape, ...prev];
@@ -747,8 +754,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             textureVariant: nextTextureVariant(),
             progress: 0,
             timestamp: Date.now(),
-            x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280),
-            y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200),
+            x: spawnX(),
+            y: spawnY(),
             angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
           };
           const next = [tape, ...prev];
@@ -797,8 +804,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         textureVariant: p.textureVariant ?? randomTextureVariant(),
         progress: 0,
         timestamp: Date.now(),
-        x: CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280),
-        y: CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200),
+        x: spawnX(),
+        y: spawnY(),
         angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
       } as Tape;
     })();
@@ -1191,8 +1198,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     // fall in place from the recorder pose.
     const prev = loadedRef.current;
     if (prev && prev.id !== tapeId) {
-      const px = CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280);
-      const py = CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200);
+      const px = spawnX();
+      const py = spawnY();
       const pa = Math.round((Math.random() * 40 - 20) * 10) / 10;
       setTapes(prevList => prevList.map(tt =>
         tt.id === prev.id ? { ...tt, x: px, y: py, angle: pa } : tt,
@@ -1286,8 +1293,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         // t=1800: camera back. Re-position the now-populated tape at canvas
         // centre with random jitter and bump its respawn version so TapeBody
         // remounts and drops in from SPAWN_HEIGHT.
-        const px = CANVAS_W / 2 + Math.round((Math.random() - 0.5) * 280);
-        const py = CANVAS_H / 2 + Math.round((Math.random() - 0.5) * 200);
+        const px = spawnX();
+        const py = spawnY();
         const pa = Math.round((Math.random() * 40 - 20) * 10) / 10;
         setTapes(prev => prev.map(t => t.id === placeholderId ? { ...t, x: px, y: py, angle: pa } : t));
         setNewTapeIds(s => { const n = new Set(s); n.add(placeholderId); return n; });
@@ -1344,8 +1351,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     if (inspectTapeIdRef.current != null) return;
     if (tapesRef.current.some(t => t.isPending)) return;
 
-    const px = CANVAS_W / 2;
-    const py = CANVAS_H / 2;
+    const px = spawnCX();
+    const py = spawnCY();
     const placeholderId = crypto.randomUUID?.() ?? `pending-${Date.now()}`;
     const placeholder: Tape = {
       id: placeholderId,
@@ -1568,8 +1575,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   if (!mounted) return null;
 
   // Active area in 2D coords
-  const cx = CANVAS_W / 2;   // 2000
-  const cy = CANVAS_H / 2;   // 1200
+  const cx = spawnCX();   // 2000
+  const cy = spawnCY();   // 1200
   const halfAX = 22.9 * 50;  // ACTIVE_W/2 * MAP_SCALE ≈ 1145
   const halfAZ = 15 * 50;    // ACTIVE_H/2 * MAP_SCALE = 750
   const minX = cx - halfAX + 150;
@@ -1653,6 +1660,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           showRecorder={!inspectTapeId}
           onSceneReady={() => setSceneReady(true)}
           inspectTapeId={inspectTapeId}
+          cameraTargetRef={cameraTargetRef}
           fadeInspectedTape={removingInspected}
         />
       </Suspense>
@@ -2028,7 +2036,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               progress: 0,
               timestamp: Date.now(),
               x: CANVAS_W * 0.35,
-              y: CANVAS_H / 2,
+              y: spawnCY(),
               angle: 0,
             };
             setTapes(prev => [...prev.filter(t => t.id !== MIXTAPE_ID), blankTape]);
@@ -2069,8 +2077,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               textureVariant: randomTextureVariant(),
               progress: 0,
               timestamp: Date.now(),
-              x: CANVAS_W / 2,
-              y: CANVAS_H / 2,
+              x: spawnCX(),
+              y: spawnCY(),
               angle: 0,
               };
             setTapes(prev => prev.map(t => t.id === MIXTAPE_ID ? mixtapeTape : t));

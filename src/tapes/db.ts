@@ -33,7 +33,4 @@ export async function saveTapes(tapes: Tape[]): Promise<void> {
   await tx.done;
 }
 
-export async function clearTapes(): Promise<void> {
-  const db = await getDB();
-  await db.clear(STORE);
-}
+

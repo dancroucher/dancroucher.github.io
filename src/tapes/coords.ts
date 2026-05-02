@@ -30,13 +30,12 @@ export const TAPE_D = 0.48 * 1.5;            // ~0.72
 // Tile matches wood texture aspect (884×579 → 1.527:1)
 // Pick tile height so ~9 tapes fit in 3×3 active area
 export const TILE_H = 10;
-export const TILE_W = TILE_H * (884 / 579); // ~15.27
-export const TILE_SIZE = TILE_W; // for legacy imports
+export const TILE_W = TILE_H * (884 / 579);
 
 // 3×3 active tiles + 1 tile border = 5×5
 export const ACTIVE_TILES = 3;
-export const ACTIVE_W = TILE_W * ACTIVE_TILES; // ~45.8
-export const ACTIVE_H = TILE_H * ACTIVE_TILES; // 30
+export const ACTIVE_W = TILE_W * ACTIVE_TILES;
+export const ACTIVE_H = TILE_H * ACTIVE_TILES;
 
 export const TABLE_W = TILE_W * 5; // ~76.4
 export const TABLE_H = TILE_H * 5; // 50

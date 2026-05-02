@@ -96,6 +96,9 @@ interface TapesTable3DProps {
   onRecorderEject?: () => void;
   showRecorder?: boolean;
   onSceneReady?: () => void;
+  // Shared ref updated by the 3D scene so the parent knows where the
+  // camera is looking (used to spawn new tapes at the camera centre).
+  cameraTargetRef?: React.MutableRefObject<{ x: number; z: number }>;
   // When set: closer-zoom inspect mode showing only this one tape, no recorder,
   // no camera control, no pickup. Parent dispatches jeem-centre-camera at camY=20.
   inspectTapeId?: string | null;
@@ -105,7 +108,7 @@ interface TapesTable3DProps {
 }
 
 function SceneContents({
-  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId, fadeInspectedTape,
+  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId, fadeInspectedTape, cameraTargetRef,
 }: TapesTable3DProps) {
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
@@ -520,9 +523,13 @@ function SceneContents({
     window.addEventListener('pointerup', onExtUp);
   });
 
-  // Mobile heuristic — narrow viewport gets a forced wide zoom and disabled
-  // zoom controls so the user can't pinch out to a too-tight view.
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 745;
+  // Mobile heuristic — touch support OR narrow viewport. Forces wide zoom,
+  // disables zoom controls, and pans the camera toward the recorder so it
+  // isn't off-screen on portrait phones.
+  const isMobile = typeof window !== 'undefined' && (
+    window.innerWidth <= 745 ||
+    (window.innerWidth <= 1024 && navigator.maxTouchPoints > 0)
+  );
 
   // Restore saved zoom level (skip on mobile — we always want max zoom out).
   const zoomRestored = useRef(false);
@@ -537,6 +544,15 @@ function SceneContents({
       }
     }
     zoomRestored.current = true;
+  }
+
+  // On mobile, nudge the initial camera target and position left so the
+  // recorder is in view without requiring a pan first.
+  const mobileTargetSet = useRef(false);
+  if (isMobile && !mobileTargetSet.current && controlsRef.current) {
+    controlsRef.current.target.set(-8, 0, 0);
+    camera.position.x = -8;
+    mobileTargetSet.current = true;
   }
 
   const lastSavedZoom = useRef(camera.position.y);
@@ -568,12 +584,20 @@ function SceneContents({
     const cam = camera as THREE.PerspectiveCamera;
     const halfH = cam.position.y * Math.tan((cam.fov * Math.PI) / 360);
     const halfW = halfH * cam.aspect;
+    // Allow a small Z range on mobile even when halfH exceeds CAM_BOUND_Z
+    // so two-finger-drag panning doesn't feel broken.
+    const minZ = isMobile ? -5 : 0;
     const maxX = Math.max(0, CAM_BOUND_X - halfW);
-    const maxZ = Math.max(0, CAM_BOUND_Z - halfH);
+    const maxZ = Math.max(minZ, CAM_BOUND_Z - halfH);
     c.target.x = Math.max(-maxX, Math.min(maxX, c.target.x));
     c.target.z = Math.max(-maxZ, Math.min(maxZ, c.target.z));
     camera.position.x = Math.max(-maxX, Math.min(maxX, camera.position.x));
     camera.position.z = Math.max(-maxZ, Math.min(maxZ, camera.position.z));
+
+    // Keep the parent aware of where the camera is looking (for spawn logic).
+    if (cameraTargetRef) {
+      cameraTargetRef.current = { x: c.target.x, z: c.target.z };
+    }
 
     // Persist zoom when it changes
     if (Math.abs(cam.position.y - lastSavedZoom.current) > 0.3) {
@@ -690,20 +714,24 @@ function SceneContents({
     if (ny < topMargin) vz = -(topMargin - ny) / topMargin;
     else if (ny > 1 - margin) vz = (ny - (1 - margin)) / margin;
     if (vx === 0 && vz === 0) return;
-    const speed = 40; // world units / sec at full edge
+    const speed = 32; // world units / sec at full edge
     const dx = vx * speed * dt;
     const dz = vz * speed * dt;
+    // Smooth transition: edge-pan ramps up, easing into movement.
+    const lerpFactor = 0.15;
     // Match the edge-pan bound to the active-area clamp's effective bound so
     // releasing the tape doesn't yank the camera back via the clamp.
     const cam = camera as THREE.PerspectiveCamera;
     const halfH = cam.position.y * Math.tan((cam.fov * Math.PI) / 360);
     const halfW = halfH * cam.aspect;
+    const minZ = isMobile ? -5 : 0;
     const maxX = Math.max(0, CAM_BOUND_X - halfW);
-    const maxZ = Math.max(0, CAM_BOUND_Z - halfH);
+    const maxZ = Math.max(minZ, CAM_BOUND_Z - halfH);
     const nxPos = Math.max(-maxX, Math.min(maxX, camera.position.x + dx));
     const nzPos = Math.max(-maxZ, Math.min(maxZ, camera.position.z + dz));
-    const adx = nxPos - camera.position.x;
-    const adz = nzPos - camera.position.z;
+    // Lerp camera toward the target instead of jumping — smoother edge-pan.
+    const adx = (nxPos - camera.position.x) * lerpFactor;
+    const adz = (nzPos - camera.position.z) * lerpFactor;
     camera.position.x = nxPos;
     camera.position.z = nzPos;
     c.target.x += adx;

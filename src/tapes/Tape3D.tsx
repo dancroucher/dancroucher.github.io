@@ -293,41 +293,6 @@ function OverlayScene({ tapes }: { tapes: Tape[] }) {
   );
 }
 
-export function TapeOverlay3D({ tapes }: { tapes: Tape[] }) {
-  useEffect(() => {
-    console.log('[TapeOverlay3D] Mounted with', tapes.length, 'tapes');
-  }, [tapes.length]);
-
-  return (
-    <div style={{
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      width: '100%',
-      height: '100%',
-      pointerEvents: 'none',
-      zIndex: 5,
-    }}>
-      <Canvas
-        camera={{ position: [0, 20, 1], fov: 45, near: 0.1, far: 100 }}
-        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-        dpr={[1, 1.5]}
-        style={{ background: 'transparent', width: '100%', height: '100%', pointerEvents: 'auto' }}
-      >
-        <OverlayScene tapes={tapes} />
-      </Canvas>
-    </div>
-  );
-}
-
-// ── New cassette test (assets/cassette_new) ──
-//
-// Loads tape.FBX and applies three material sets by mesh-name heuristic:
-//   *glass*  → transparent glass (window over the tape)
-//   *line*   → LINE03 (label/strip)
-//   everything else → variant-NN body PBR (default 01)
-// Mesh names are logged on first load so the heuristic can be refined.
-
 const NEW_TEX_BASE = '/assets/cassette_new/Textures/';
 
 function loadPBR(prefix: string, hasOpacity = false) {
@@ -410,55 +375,4 @@ export function NewTapeFBXTest({ position = [0, 0, 0] as [number, number, number
   );
 }
 
-// Demo scene with one tape
-export function Tape3DDemo({ tape }: { tape: Tape }) {
-  const [variantIdx, setVariantIdx] = useState(0);
 
-  return (
-    <div style={{ position: 'relative' }}>
-      <div style={{
-        width: 700,
-        height: 500,
-        borderRadius: 8,
-        overflow: 'hidden',
-        background: '#0a0a0a',
-      }}>
-        <Canvas
-          shadows
-          camera={{ position: [0, 0, 3.5], fov: 45 }}
-          gl={{ antialias: true }}
-        >
-          <ambientLight intensity={0.4} />
-          <directionalLight
-            position={[2, 3, 4]}
-            intensity={1.2}
-            castShadow
-            shadow-mapSize-width={1024}
-            shadow-mapSize-height={1024}
-          />
-          <pointLight position={[-2, 1, 2]} intensity={0.3} color="#ffeedd" />
-          <Environment preset="studio" />
-          <TapeFBX tape={tape} variantOverride={variantIdx} />
-          <OrbitControls
-            enablePan={false}
-            enableZoom={true}
-            minDistance={0.5}
-            maxDistance={10}
-            autoRotate
-            autoRotateSpeed={1}
-          />
-        </Canvas>
-      </div>
-      <button
-        onClick={() => setVariantIdx(i => (i + 1) % 3)}
-        style={{
-          position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
-          padding: '6px 16px', borderRadius: 6, border: 'none',
-          background: 'rgba(255,255,255,0.15)', color: '#fff',
-          fontSize: 12, cursor: 'pointer', fontFamily: "'04b03', monospace",
-          backdropFilter: 'blur(4px)',
-        }}
-      >variant {VARIANTS[variantIdx]} ({variantIdx + 1}/3)</button>
-    </div>
-  );
-}

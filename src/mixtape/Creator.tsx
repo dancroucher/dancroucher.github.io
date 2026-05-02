@@ -80,6 +80,7 @@ function MixtapeTape3D({ name }: { name: string }) {
 
     // ── Load FBX + textures ───────────────────────────────────────────────────
     let disposed = false;
+    let animId = 0;
 
     (async () => {
       // Load base texture for stamping
@@ -116,23 +117,16 @@ function MixtapeTape3D({ name }: { name: string }) {
       if (disposed) return;
 
       // Find body mesh and apply stamped texture
-      let bodyMesh: THREE.Mesh | null = null;
-      fbx.traverse((child) => {
-        const mesh = child as THREE.Mesh;
-        if (mesh.isMesh && mesh.name === 'Cube') {
-          bodyMesh = mesh;
-        }
-      });
-
+      const bodyMesh = fbx.getObjectByName('Cube') as THREE.Mesh | null;
       if (bodyMesh) {
         bodyMesh.material = new THREE.MeshStandardMaterial({
-          map: stampedTex,
+            map: stampedTex,
           roughness: 0.5,
-          metalness: 0.1,
-        });
+            metalness: 0.1,
+          });
         bodyMesh.castShadow = true;
-        bodyMesh.receiveShadow = true;
-      }
+          bodyMesh.receiveShadow = true;
+        }
 
       // Position tape
       const tape = fbx;
@@ -172,7 +166,7 @@ function MixtapeTape3D({ name }: { name: string }) {
         el.removeChild(sceneRef.current.renderer.domElement);
         sceneRef.current = null;
       } else {
-        cancelAnimationFrame(sceneRef.current?.animId ?? 0);
+        cancelAnimationFrame(animId);
         renderer.dispose();
         if (renderer.domElement.parentNode === el) el.removeChild(renderer.domElement);
       }
