@@ -44,7 +44,7 @@ function playSfx(src: string, volume = 1, trimEnd = 0) {
   }
 }
 
-function ShareButton({ tape }: { tape: Tape }) {
+function ShareButton({ tape, narrow = false }: { tape: Tape; narrow?: boolean }) {
   const [copied, setCopied] = useState(false);
   const onClick = async () => {
     const url = await buildShareUrl(tape);
@@ -61,18 +61,31 @@ function ShareButton({ tape }: { tape: Tape }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
+  const narrowStyle: React.CSSProperties = {
+    color: 'rgba(250,249,246,0.9)',
+    fontFamily: '"04b03", monospace',
+    fontSize: '1.1em',
+    background: 'rgba(0,0,0,0.3)',
+    padding: '4px 8px 0',
+    lineHeight: '1.5em',
+    border: 'none',
+    cursor: 'pointer',
+    flexShrink: 0,
+    pointerEvents: 'auto',
+  };
+  const wideStyle: React.CSSProperties = {
+    background: 'rgba(0,0,0,0.5)', color: 'rgba(250,249,246,0.95)',
+    fontFamily: '"04b03", monospace', fontSize: 12, letterSpacing: '1px',
+    padding: '6px 10px', cursor: 'pointer', flexShrink: 0,
+    border: '1px solid rgba(250,249,246,0.2)',
+    pointerEvents: 'auto',
+  };
   return (
     <button
       onClick={onClick}
-      className="tape-ui-btn"
-      style={{
-        background: 'rgba(0,0,0,0.5)', color: 'rgba(250,249,246,0.95)',
-        fontFamily: '"04b03", monospace', fontSize: 12, letterSpacing: '1px',
-        padding: '6px 10px', cursor: 'pointer', flexShrink: 0,
-        border: '1px solid rgba(250,249,246,0.2)',
-        pointerEvents: 'auto',
-      }}
-    >{copied ? 'copied' : 'share'}</button>
+      className={narrow ? 'genre' : 'tape-ui-btn'}
+      style={narrow ? narrowStyle : wideStyle}
+    ><i className={copied ? 'fas fa-check' : 'fas fa-share'} />&nbsp;{copied ? 'copied' : 'share'}</button>
   );
 }
 
@@ -309,6 +322,17 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // Set when the user clicks remove on the inspected tape — fades it away
   // before the exit-inspect sequence runs. Cleared once removal completes.
   const [removingInspected, setRemovingInspected] = useState(false);
+
+  // Track narrow viewports so the tracklist panel + inspect layout can
+  // collapse to a full-width / bottom-anchored layout on phones.
+  const [isNarrow, setIsNarrow] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth <= 745
+  );
+  useEffect(() => {
+    const handler = () => setIsNarrow(window.innerWidth <= 745);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
 
   // Brief glitch-in flicker on the playback info panel each time the panel
   // appears (i.e. each time `isPlaying` transitions from false to true).
@@ -1001,6 +1025,19 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     playTapeInsert();
     setTimeout(playTapeWhirr, 200);
 
+    // Wipe any stale title/author display from the previous tape so the
+    // padinfo bar doesn't flash the previous video while the new YouTube
+    // metadata is loading. demo.js's state_change handler will refill these
+    // once the new video's data arrives.
+    const songName = document.getElementById('song-name');
+    const songAuthor = document.getElementById('song-author');
+    if (songName) songName.innerHTML = '';
+    if (songAuthor) songAuthor.innerHTML = '';
+    if (window.AppState) {
+      window.AppState.songTitle = tape.title || '';
+      window.AppState.songAuthor = tape.author || '';
+    }
+
     // Set mixtapeData early (before early returns) so the tracklist overlay
     // renders even if window.myApp isn't ready yet.
     if (tape.author === 'mixtape' && tape.infiniteHistory) {
@@ -1259,6 +1296,10 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     }, zoomDelay + zoomDur);
   }, []);
   exitInspectRef.current = exitInspect;
+  // Expose for vanilla JS (e.g. // jeem-fm title link) so it can exit
+  // inspect view instead of doing a full page reload.
+  (window as any).exitTapeInspect = exitInspect;
+  (window as any).isTapeInspecting = () => inspectTapeIdRef.current != null;
 
   // Sequence that runs after the user submits a URL/search while in the
   // pending-tape inspect view. Mirrors the entry timing in reverse:
@@ -1306,7 +1347,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   }, []);
   finishPendingTapeRef.current = finishPendingTape;
 
-  const handle3DDoubleTap = useCallback((tapeId: string) => {
+  const handle3DDoubleTap = useCallback((tapeId: string, worldX?: number, worldZ?: number) => {
     // Double-tap on table view → enter inspect view (closer zoom, single tape).
     // Double-tap while inspecting → exit back to table view.
     if (viewRef.current === 'player' || showMixtapeCreator) return;
@@ -1316,8 +1357,18 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     }
     if (inspectUiTimerRef.current) { clearTimeout(inspectUiTimerRef.current); inspectUiTimerRef.current = null; }
     const tape = tapesRef.current.find(t => t.id === tapeId);
-    if (!tape || tape.x == null || tape.y == null) return;
-    const [tx, tz] = to3D(tape.x, tape.y);
+    if (!tape) return;
+    // Prefer the live world XZ from the rigid body — the stored 2D x/y can
+    // lag the actual position, which would offset the inspect camera so the
+    // tape isn't centred on screen.
+    let tx: number, tz: number;
+    if (worldX != null && worldZ != null) {
+      tx = worldX; tz = worldZ;
+    } else if (tape.x != null && tape.y != null) {
+      [tx, tz] = to3D(tape.x, tape.y);
+    } else {
+      return;
+    }
     setInspectTapeId(tapeId);
     const camDelay = 200;
     const camDur = 1000;
@@ -1325,12 +1376,17 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     const zoomDur = 1000;
     // Single tapes have no tracklist panel, so centre the tape on screen.
     // Playlist / infinite / mixtape tapes leave room on the right for the
-    // tracklist by sitting in the left half of the screen.
+    // tracklist by sitting in the left half of the screen — but on narrow
+    // viewports the panel anchors below the tape, so centre it there too.
     const isSingle = !tape.isPlaylist && !tape.isInfinite;
-    const tapeOffset = isSingle ? -8 : -2;
+    const narrowNow = window.innerWidth <= 745;
+    const tapeOffset = (isSingle || narrowNow) ? -8 : -2;
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('jeem-centre-camera', {
-        detail: { tx: tx + tapeOffset, tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true },
+        // tz + 4 shifts the camera target south of the tape, so the tape
+        // projects higher on screen — leaves more room for the title row
+        // above and the tracklist panel below on narrow viewports.
+        detail: { tx: tx + tapeOffset, tz: tz + 4, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true },
       }));
     }, camDelay);
     inspectUiTimerRef.current = setTimeout(() => {
@@ -1379,7 +1435,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     const camDelay = 200, camDur = 1000, zoomDelay = 200, zoomDur = 1000;
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('jeem-centre-camera', {
-        detail: { tx: tx - 8, tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true },
+        detail: { tx: tx - 8, tz: tz + 4, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true },
       }));
     }, camDelay);
     inspectUiTimerRef.current = setTimeout(() => {
@@ -1696,14 +1752,49 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         // mixtape inspect keeps them at 32% so they sit above the tape in
         // the left half of the screen.
         const isSingle = !tape.isPlaylist && !tape.isInfinite;
+        // On narrow viewports the panel anchors at the bottom and the
+        // tape is centred — so place the inspect title/buttons row centred
+        // and full-width too. On wider viewports the tracklist panel sits
+        // in the right half so the inspect row stays at 32% above the tape.
+        const centred = isSingle || isNarrow;
+        const wrapperWidth = centred ? '85vw' : '60vw';
         const colStyle: React.CSSProperties = {
-          position: 'fixed', left: isSingle ? '50%' : '32%', transform: 'translateX(-50%)',
+          position: 'fixed', left: centred ? '50%' : '32%', transform: 'translateX(-50%)',
+          width: wrapperWidth,
           zIndex: 99996, pointerEvents: 'auto',
           display: 'flex', justifyContent: 'center',
         };
+        // Narrow: place title row below the tape (camera puts tape upper-half),
+        // and anchor the buttons row at the very bottom in a .padinfo-style bar.
+        const titleTop = isNarrow ? '44vh' : '12vh';
+        const buttonsRowStyle: React.CSSProperties = isNarrow
+          ? {
+              position: 'fixed', left: 0, right: 0, bottom: 12,
+              padding: '0 12px', zIndex: 99996, pointerEvents: 'auto',
+              display: 'flex', flexDirection: 'row', alignItems: 'center',
+              justifyContent: 'center', gap: 8,
+            }
+          : { ...colStyle, bottom: '18vh', gap: 12, justifyContent: 'center' };
+        const inspectBtnStyle: React.CSSProperties = isNarrow
+          ? {
+              color: 'rgba(250,249,246,0.9)',
+              fontFamily: '"04b03", monospace',
+              fontSize: '1.1em',
+              background: 'rgba(0,0,0,0.3)',
+              padding: '4px 8px 0',
+              lineHeight: '1.5em',
+              border: 'none',
+              cursor: 'pointer',
+              pointerEvents: 'auto',
+            }
+          : {
+              background: 'rgba(0,0,0,0.5)', color: 'rgba(250,249,246,0.95)',
+              fontFamily: '"04b03", monospace', fontSize: 14,
+              padding: '8px 16px', cursor: 'pointer',
+            };
         return (
           <div className={inspectUiClass}>
-            <div style={{ ...colStyle, top: '18vh' }}>
+            <div style={{ ...colStyle, top: titleTop }}>
               <textarea
                 rows={1}
                 value={tape.title}
@@ -1721,27 +1812,33 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                   background: 'transparent', border: 'none', outline: 'none',
                   borderBottom: '1px dashed rgba(250,249,246,0.3)',
                   color: 'rgba(250,249,246,0.95)', fontFamily: '"04b03", monospace',
-                  fontSize: 26, lineHeight: 1.25, textAlign: 'center',
-                  minWidth: 560, maxWidth: '80vw',
+                  fontSize: 19, lineHeight: 1.4, textAlign: 'center',
+                  // Width: keep the textarea on-screen at any viewport size.
+                  // For tracklist tapes the row is anchored at 32% of the
+                  // viewport, so cap at min(64vw, 560) to avoid the right
+                  // edge clipping. For single tapes it's centred at 50% so
+                  // it can use up to 90vw.
+                  width: '100%',
+                  // Fill the wrapper (which is sized to fit on-screen given
+                  // the inspect anchor) so the textarea scales with viewport.
+                  maxWidth: '100%',
+                  boxSizing: 'border-box',
                   textShadow: '0 1px 2px rgba(0,0,0,0.8)', padding: '4px 8px',
                   resize: 'none', overflow: 'hidden',
+                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                 }}
               />
             </div>
-            <div style={{ ...colStyle, bottom: '18vh', gap: 12 }}>
+            <div style={buttonsRowStyle}>
               <button
-                className="tape-ui-btn"
+                className={isNarrow ? 'genre' : 'tape-ui-btn'}
                 onClick={() => rewindTape(inspectTapeId)}
-                style={{
-                  background: 'rgba(0,0,0,0.5)', color: 'rgba(250,249,246,0.95)',
-                  fontFamily: '"04b03", monospace', fontSize: 14,
-                  padding: '8px 16px', cursor: 'pointer',
-                }}
-              >rewind</button>
-              <ShareButton tape={tape} />
+                style={inspectBtnStyle}
+              ><i className="fa fa-fast-backward" />&nbsp;rewind</button>
+              <ShareButton tape={tape} narrow={isNarrow} />
 
               <button
-                className="tape-ui-btn"
+                className={isNarrow ? 'genre' : 'tape-ui-btn'}
                 onClick={() => {
                   const target = inspectTapeId;
                   if (!target) return;
@@ -1760,12 +1857,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                     exitInspect();
                   }, FADE_MS);
                 }}
-                style={{
-                  background: 'rgba(0,0,0,0.5)', color: 'rgba(250,249,246,0.95)',
-                  fontFamily: '"04b03", monospace', fontSize: 14,
-                  padding: '8px 16px', cursor: 'pointer',
-                }}
-              >remove</button>
+                style={inspectBtnStyle}
+              ><i className="fas fa-trash" />&nbsp;remove</button>
             </div>
           </div>
         );
@@ -1841,18 +1934,48 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         // Pointer events: mixtapes + playlists always click through (read-only),
         // and the panel itself disables pointer events while the user is
         // dragging a tape (so the click-target is the 3D canvas underneath).
-        const panelClickThrough = dragging3D || isMixtape || isPlaylistTape;
+        // In inspect mode the panel must accept pointer events so users can
+        // scroll the tracklist (especially on touch devices). During playback
+        // we keep the read-only click-through behaviour for mixtape/playlist.
+        const panelClickThrough = dragging3D || (!inspectTapeId && (isMixtape || isPlaylistTape));
         const panelGlitchClass = inspectTapeId ? inspectUiClass : (playbackPanelGlitching ? 'ui-glitching-in' : '');
+        // Layout: on narrow viewports the panel anchors to the bottom of
+        // the screen and goes full-width with edge padding (the tape sits
+        // above it in inspect view). On wider viewports it sits in the
+        // right half of the screen with the tape on the left.
+        // Bottom 60px leaves room for the inspect-mode buttons row (anchored
+        // at bottom: 12px, ~36px tall) plus a small gap above it.
+        const narrowPanel: React.CSSProperties = inspectTapeId
+          ? {
+              left: 0, right: 0, bottom: 60,
+              width: 'auto', maxHeight: '46vh',
+              padding: '16px 16px 12px',
+            }
+          : {
+              // Span from below the song title/author header down to the
+              // bottom of the screen — forces the panel to actually extend up
+              // (maxHeight alone wouldn't grow a short content list).
+              left: 0, right: 0, top: '22vh', bottom: 60,
+              width: 'auto',
+              // Match the song-name/song-author left edge: their containers
+              // have padding-left: 6px, and .padsong inside adds another 32px
+              // — total 38px from the screen edge.
+              padding: '16px 16px 12px 38px',
+            };
+        const widePanel: React.CSSProperties = {
+          top: '50%', left: 'calc(50% - 70px)', transform: 'translateY(-50%)',
+          width: 'min(56vw, 720px)', maxHeight: '70vh',
+          padding: '24px 24px 20px',
+        };
         return createPortal(
           <div className={`tape-info-panel${panelGlitchClass ? ` ${panelGlitchClass}` : ''}`} style={{
-            position: 'fixed', top: '50%', left: 'calc(50% - 70px)', transform: 'translateY(-50%)',
-            width: '50vw', maxHeight: '70vh',
+            position: 'fixed',
+            ...(isNarrow ? narrowPanel : widePanel),
             fontFamily: "'04b03', monospace", fontSize: '1em', color: 'rgba(250,249,246,0.9)',
             background: 'transparent',
             pointerEvents: panelClickThrough ? 'none' : 'auto', zIndex: 200,
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
             border: 'none', borderRadius: 0,
-            padding: '24px 24px 20px',
             opacity: dragging3D ? 0 : 1,
             transition: 'opacity 0.2s ease',
           }}>
@@ -1873,7 +1996,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                   </div>
                 )}
                 <div style={{
-                  fontFamily: "'04b03', monospace", fontSize: '1.4em',
+                  fontFamily: "'04b03', monospace", fontSize: 19,
                   color: 'rgba(255,255,255,0.95)', letterSpacing: '1.5px',
                   whiteSpace: 'nowrap', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis',
                   fontWeight: 700,
@@ -1896,7 +2019,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               <div style={{
                 flex: 1, overflowY: 'auto',
                 scrollbarWidth: 'thin', scrollbarColor: 'rgba(250,249,246,0.2) transparent',
-                padding: '10px 14px',
+                padding: '10px 0',
               }}>
                 {tracklistItems.map((track, i) => {
                   const isCurrent = i === currentIndex && interactive;
@@ -1910,8 +2033,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                         fontFamily: "'04b03', monospace", fontSize: '1em',
                         color: isCurrent ? 'rgba(255,255,255,1)' : 'rgba(250,249,246,0.7)',
                         background: isCurrent ? 'rgba(255,255,255,0.14)' : 'transparent',
-                        padding: '6px 4px 6px 12px',
-                        borderLeft: isCurrent ? '3px solid rgba(255,255,255,0.9)' : '3px solid transparent',
+                        padding: '6px 4px 6px 0',
+                        boxShadow: isCurrent ? 'inset 3px 0 0 rgba(255,255,255,0.9)' : 'none',
                         borderBottom: '1px solid rgba(250,249,246,0.04)',
                         cursor: tracklistInteractive ? 'pointer' : 'default',
                         transition: 'color 0.15s, background 0.15s, border-color 0.15s',
@@ -1921,16 +2044,23 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                       }}
                       title={tracklistInteractive ? `${track.title} — ${track.author}` : undefined}
                     >
-                      <span style={{ color: isCurrent ? 'rgba(255,255,255,0.85)' : 'rgba(250,249,246,0.5)', width: '30px', flexShrink: 0, textAlign: 'right' }}>
+                      <span style={{ color: isCurrent ? 'rgba(255,255,255,0.85)' : 'rgba(250,249,246,0.5)', flexShrink: 0, textAlign: 'left' }}>
                         {String(i + 1).padStart(2, '0')}.
                       </span>
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, color: isCurrent ? 'rgba(255,255,255,1)' : 'rgba(250,249,246,0.9)', fontWeight: isCurrent ? 700 : 400 }}>
+                      {/* Title gets the lion's share of width and a sensible
+                          minimum so it can't be crushed by the author column. */}
+                      <span style={{ flex: '2 1 60%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, color: isCurrent ? 'rgba(255,255,255,1)' : 'rgba(250,249,246,0.9)', fontWeight: isCurrent ? 700 : 400 }}>
                         {track.title}
                       </span>
-                      <span style={{ color: isCurrent ? 'rgba(255,255,255,0.7)' : 'rgba(250,249,246,0.5)', flexShrink: 0, width: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {track.author}
-                      </span>
-                      {track.durationText && (
+                      {/* Author column flexes (no fixed 140px) so it shrinks
+                          gracefully on narrow rows instead of starving the
+                          title. Hidden entirely on very narrow viewports. */}
+                      {!isNarrow && (
+                        <span style={{ color: isCurrent ? 'rgba(255,255,255,0.7)' : 'rgba(250,249,246,0.5)', flex: '1 1 25%', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                          {track.author}
+                        </span>
+                      )}
+                      {track.durationText && !isNarrow && (
                         <span style={{ color: isCurrent ? 'rgba(255,255,255,0.7)' : 'rgba(250,249,246,0.5)', flexShrink: 0, width: '50px', textAlign: 'right' }}>
                           {track.durationText}
                         </span>

@@ -628,6 +628,24 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("background-type")?.addEventListener("click", () => Backgrounds.cycleType());
     document.getElementById("background-auto")?.addEventListener("click", () => Backgrounds.cycleChangeTime());
     document.getElementById("table-toggle")?.addEventListener("click", () => window.toggleTableView && window.toggleTableView());
+    // // jeem-fm title links: when not on tapes view, return to tapes;
+    // when already on tapes, fall through to href="." which reloads.
+    document.querySelectorAll(".title a, .start-title a").forEach((a) => {
+        a.addEventListener("click", (e) => {
+            const onTapes = DOM.tapesRoot && DOM.tapesRoot.style.display !== "none";
+            // If inspect view is open (incl. make-tape pending tape), exit it
+            // instead of reloading the page.
+            if (onTapes && typeof window.isTapeInspecting === "function" && window.isTapeInspecting()) {
+                e.preventDefault();
+                window.exitTapeInspect && window.exitTapeInspect();
+                return;
+            }
+            if (!onTapes && typeof window.toggleTableView === "function") {
+                e.preventDefault();
+                window.toggleTableView();
+            }
+        });
+    });
     if (DOM.tapesRoot && DOM.tapesRoot.style.display !== "none") {
         const bgTypeBtn = document.getElementById("background-type");
         const bgAutoBtn = document.getElementById("background-auto");

@@ -75240,11 +75240,11 @@ function TapeBody({
       rotation: [0, angleRad, 0],
       type: "dynamic",
       colliders: false,
-      linearDamping: 1.5,
-      angularDamping: 2,
+      linearDamping: 2.5,
+      angularDamping: 5,
       mass: 0.5,
-      restitution: 0.15,
-      friction: 0.6,
+      restitution: 0.05,
+      friction: 0.9,
       ccd: true,
       children: [
         /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(CuboidCollider, { args: [geo.halfX, geo.halfY, geo.halfZ] }),
@@ -79045,7 +79045,8 @@ function SceneContents({
         const last = lastTapRef.current;
         if (last.id === tapeId && now - last.time < 400) {
           bounceTapeId.current = tapeId;
-          setTimeout(() => onDoubleTap(tapeId), 50);
+          const live = getTapeWorldPos(tapeId);
+          setTimeout(() => onDoubleTap(tapeId, live?.x, live?.z), 50);
           lastTapRef.current = { time: 0, id: "" };
         } else {
           lastTapRef.current = { time: now, id: tapeId };
@@ -79283,7 +79284,6 @@ function SceneContents({
     const speed = 32;
     const dx = vx * speed * dt;
     const dz = vz * speed * dt;
-    const lerpFactor = 0.15;
     const cam = camera;
     const halfH = cam.position.y * Math.tan(cam.fov * Math.PI / 360);
     const halfW = halfH * cam.aspect;
@@ -79292,8 +79292,8 @@ function SceneContents({
     const maxZ = Math.max(minZ, CAM_BOUND_Z - halfH);
     const nxPos = Math.max(-maxX, Math.min(maxX, camera.position.x + dx));
     const nzPos = Math.max(-maxZ, Math.min(maxZ, camera.position.z + dz));
-    const adx = (nxPos - camera.position.x) * lerpFactor;
-    const adz = (nzPos - camera.position.z) * lerpFactor;
+    const adx = nxPos - camera.position.x;
+    const adz = nzPos - camera.position.z;
     camera.position.x = nxPos;
     camera.position.z = nzPos;
     c3.target.x += adx;
@@ -80464,7 +80464,7 @@ function playSfx(src, volume = 1, trimEnd = 0) {
     });
   }
 }
-function ShareButton({ tape }) {
+function ShareButton({ tape, narrow = false }) {
   const [copied, setCopied] = (0, import_react13.useState)(false);
   const onClick = async () => {
     const url = await buildShareUrl(tape);
@@ -80486,24 +80486,41 @@ function ShareButton({ tape }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
-  return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+  const narrowStyle = {
+    color: "rgba(250,249,246,0.9)",
+    fontFamily: '"04b03", monospace',
+    fontSize: "1.1em",
+    background: "rgba(0,0,0,0.3)",
+    padding: "4px 8px 0",
+    lineHeight: "1.5em",
+    border: "none",
+    cursor: "pointer",
+    flexShrink: 0,
+    pointerEvents: "auto"
+  };
+  const wideStyle = {
+    background: "rgba(0,0,0,0.5)",
+    color: "rgba(250,249,246,0.95)",
+    fontFamily: '"04b03", monospace',
+    fontSize: 12,
+    letterSpacing: "1px",
+    padding: "6px 10px",
+    cursor: "pointer",
+    flexShrink: 0,
+    border: "1px solid rgba(250,249,246,0.2)",
+    pointerEvents: "auto"
+  };
+  return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
     "button",
     {
       onClick,
-      className: "tape-ui-btn",
-      style: {
-        background: "rgba(0,0,0,0.5)",
-        color: "rgba(250,249,246,0.95)",
-        fontFamily: '"04b03", monospace',
-        fontSize: 12,
-        letterSpacing: "1px",
-        padding: "6px 10px",
-        cursor: "pointer",
-        flexShrink: 0,
-        border: "1px solid rgba(250,249,246,0.2)",
-        pointerEvents: "auto"
-      },
-      children: copied ? "copied" : "share"
+      className: narrow ? "genre" : "tape-ui-btn",
+      style: narrow ? narrowStyle : wideStyle,
+      children: [
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("i", { className: copied ? "fas fa-check" : "fas fa-share" }),
+        "\xA0",
+        copied ? "copied" : "share"
+      ]
     }
   );
 }
@@ -80643,6 +80660,14 @@ function TapesTable({ mixtape }) {
   const inspectUiRendered = inspectUiPhase !== "hidden";
   const inspectUiClass = inspectUiPhase === "showing" ? "ui-glitching-in" : inspectUiPhase === "hiding" ? "ui-glitching-out" : "";
   const [removingInspected, setRemovingInspected] = (0, import_react13.useState)(false);
+  const [isNarrow, setIsNarrow] = (0, import_react13.useState)(
+    () => typeof window !== "undefined" && window.innerWidth <= 745
+  );
+  (0, import_react13.useEffect)(() => {
+    const handler = () => setIsNarrow(window.innerWidth <= 745);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
   const [playbackPanelGlitching, setPlaybackPanelGlitching] = (0, import_react13.useState)(false);
   const wasPlayingRef = (0, import_react13.useRef)(false);
   (0, import_react13.useEffect)(() => {
@@ -81237,6 +81262,14 @@ function TapesTable({ mixtape }) {
     setLoadedTape(tape);
     playTapeInsert();
     setTimeout(playTapeWhirr, 200);
+    const songName = document.getElementById("song-name");
+    const songAuthor = document.getElementById("song-author");
+    if (songName) songName.innerHTML = "";
+    if (songAuthor) songAuthor.innerHTML = "";
+    if (window.AppState) {
+      window.AppState.songTitle = tape.title || "";
+      window.AppState.songAuthor = tape.author || "";
+    }
     if (tape.author === "mixtape" && tape.infiniteHistory) {
       const history = tape.infiniteHistory;
       setMixtapeData((prev) => {
@@ -81451,6 +81484,8 @@ function TapesTable({ mixtape }) {
     }, zoomDelay + zoomDur);
   }, []);
   exitInspectRef.current = exitInspect;
+  window.exitTapeInspect = exitInspect;
+  window.isTapeInspecting = () => inspectTapeIdRef.current != null;
   const finishPendingTape = (0, import_react13.useCallback)((meta) => {
     const placeholderId = inspectTapeIdRef.current;
     if (!placeholderId) return;
@@ -81495,7 +81530,7 @@ function TapesTable({ mixtape }) {
     }, FADE_MS);
   }, []);
   finishPendingTapeRef.current = finishPendingTape;
-  const handle3DDoubleTap = (0, import_react13.useCallback)((tapeId) => {
+  const handle3DDoubleTap = (0, import_react13.useCallback)((tapeId, worldX, worldZ) => {
     if (viewRef.current === "player" || showMixtapeCreator) return;
     if (inspectTapeIdRef.current != null) {
       exitInspect();
@@ -81506,18 +81541,30 @@ function TapesTable({ mixtape }) {
       inspectUiTimerRef.current = null;
     }
     const tape = tapesRef.current.find((t3) => t3.id === tapeId);
-    if (!tape || tape.x == null || tape.y == null) return;
-    const [tx, tz] = to3D(tape.x, tape.y);
+    if (!tape) return;
+    let tx, tz;
+    if (worldX != null && worldZ != null) {
+      tx = worldX;
+      tz = worldZ;
+    } else if (tape.x != null && tape.y != null) {
+      [tx, tz] = to3D(tape.x, tape.y);
+    } else {
+      return;
+    }
     setInspectTapeId(tapeId);
     const camDelay = 200;
     const camDur = 1e3;
     const zoomDelay = 200;
     const zoomDur = 1e3;
     const isSingle = !tape.isPlaylist && !tape.isInfinite;
-    const tapeOffset = isSingle ? -8 : -2;
+    const narrowNow = window.innerWidth <= 745;
+    const tapeOffset = isSingle || narrowNow ? -8 : -2;
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent("jeem-centre-camera", {
-        detail: { tx: tx + tapeOffset, tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true }
+        // tz + 4 shifts the camera target south of the tape, so the tape
+        // projects higher on screen — leaves more room for the title row
+        // above and the tracklist panel below on narrow viewports.
+        detail: { tx: tx + tapeOffset, tz: tz + 4, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true }
       }));
     }, camDelay);
     inspectUiTimerRef.current = setTimeout(() => {
@@ -81570,7 +81617,7 @@ function TapesTable({ mixtape }) {
     const camDelay = 200, camDur = 1e3, zoomDelay = 200, zoomDur = 1e3;
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent("jeem-centre-camera", {
-        detail: { tx: tx - 8, tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true }
+        detail: { tx: tx - 8, tz: tz + 4, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true }
       }));
     }, camDelay);
     inspectUiTimerRef.current = setTimeout(() => {
@@ -81856,17 +81903,53 @@ function TapesTable({ mixtape }) {
       if (!tape) return null;
       if (tape.isPending) return null;
       const isSingle = !tape.isPlaylist && !tape.isInfinite;
+      const centred = isSingle || isNarrow;
+      const wrapperWidth = centred ? "85vw" : "60vw";
       const colStyle = {
         position: "fixed",
-        left: isSingle ? "50%" : "32%",
+        left: centred ? "50%" : "32%",
         transform: "translateX(-50%)",
+        width: wrapperWidth,
         zIndex: 99996,
         pointerEvents: "auto",
         display: "flex",
         justifyContent: "center"
       };
+      const titleTop = isNarrow ? "44vh" : "12vh";
+      const buttonsRowStyle = isNarrow ? {
+        position: "fixed",
+        left: 0,
+        right: 0,
+        bottom: 12,
+        padding: "0 12px",
+        zIndex: 99996,
+        pointerEvents: "auto",
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8
+      } : { ...colStyle, bottom: "18vh", gap: 12, justifyContent: "center" };
+      const inspectBtnStyle = isNarrow ? {
+        color: "rgba(250,249,246,0.9)",
+        fontFamily: '"04b03", monospace',
+        fontSize: "1.1em",
+        background: "rgba(0,0,0,0.3)",
+        padding: "4px 8px 0",
+        lineHeight: "1.5em",
+        border: "none",
+        cursor: "pointer",
+        pointerEvents: "auto"
+      } : {
+        background: "rgba(0,0,0,0.5)",
+        color: "rgba(250,249,246,0.95)",
+        fontFamily: '"04b03", monospace',
+        fontSize: 14,
+        padding: "8px 16px",
+        cursor: "pointer"
+      };
       return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: inspectUiClass, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { ...colStyle, top: "18vh" }, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { ...colStyle, top: titleTop }, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
           "textarea",
           {
             rows: 1,
@@ -81891,40 +81974,46 @@ function TapesTable({ mixtape }) {
               borderBottom: "1px dashed rgba(250,249,246,0.3)",
               color: "rgba(250,249,246,0.95)",
               fontFamily: '"04b03", monospace',
-              fontSize: 26,
-              lineHeight: 1.25,
+              fontSize: 19,
+              lineHeight: 1.4,
               textAlign: "center",
-              minWidth: 560,
-              maxWidth: "80vw",
+              // Width: keep the textarea on-screen at any viewport size.
+              // For tracklist tapes the row is anchored at 32% of the
+              // viewport, so cap at min(64vw, 560) to avoid the right
+              // edge clipping. For single tapes it's centred at 50% so
+              // it can use up to 90vw.
+              width: "100%",
+              // Fill the wrapper (which is sized to fit on-screen given
+              // the inspect anchor) so the textarea scales with viewport.
+              maxWidth: "100%",
+              boxSizing: "border-box",
               textShadow: "0 1px 2px rgba(0,0,0,0.8)",
               padding: "4px 8px",
               resize: "none",
-              overflow: "hidden"
+              overflow: "hidden",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word"
             }
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { style: { ...colStyle, bottom: "18vh", gap: 12 }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { style: buttonsRowStyle, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
             "button",
             {
-              className: "tape-ui-btn",
+              className: isNarrow ? "genre" : "tape-ui-btn",
               onClick: () => rewindTape(inspectTapeId),
-              style: {
-                background: "rgba(0,0,0,0.5)",
-                color: "rgba(250,249,246,0.95)",
-                fontFamily: '"04b03", monospace',
-                fontSize: 14,
-                padding: "8px 16px",
-                cursor: "pointer"
-              },
-              children: "rewind"
+              style: inspectBtnStyle,
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("i", { className: "fa fa-fast-backward" }),
+                "\xA0rewind"
+              ]
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(ShareButton, { tape }),
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(ShareButton, { tape, narrow: isNarrow }),
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
             "button",
             {
-              className: "tape-ui-btn",
+              className: isNarrow ? "genre" : "tape-ui-btn",
               onClick: () => {
                 const target = inspectTapeId;
                 if (!target) return;
@@ -81937,15 +82026,11 @@ function TapesTable({ mixtape }) {
                   exitInspect();
                 }, FADE_MS);
               },
-              style: {
-                background: "rgba(0,0,0,0.5)",
-                color: "rgba(250,249,246,0.95)",
-                fontFamily: '"04b03", monospace',
-                fontSize: 14,
-                padding: "8px 16px",
-                cursor: "pointer"
-              },
-              children: "remove"
+              style: inspectBtnStyle,
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("i", { className: "fas fa-trash" }),
+                "\xA0remove"
+              ]
             }
           )
         ] })
@@ -81993,16 +82078,41 @@ function TapesTable({ mixtape }) {
           setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, playlistIndex: i4, progress: 0 } : t3));
         }
       };
-      const panelClickThrough = dragging3D || isMixtape || isPlaylistTape;
+      const panelClickThrough = dragging3D || !inspectTapeId && (isMixtape || isPlaylistTape);
       const panelGlitchClass = inspectTapeId ? inspectUiClass : playbackPanelGlitching ? "ui-glitching-in" : "";
+      const narrowPanel = inspectTapeId ? {
+        left: 0,
+        right: 0,
+        bottom: 60,
+        width: "auto",
+        maxHeight: "46vh",
+        padding: "16px 16px 12px"
+      } : {
+        // Span from below the song title/author header down to the
+        // bottom of the screen — forces the panel to actually extend up
+        // (maxHeight alone wouldn't grow a short content list).
+        left: 0,
+        right: 0,
+        top: "22vh",
+        bottom: 60,
+        width: "auto",
+        // Match the song-name/song-author left edge: their containers
+        // have padding-left: 6px, and .padsong inside adds another 32px
+        // — total 38px from the screen edge.
+        padding: "16px 16px 12px 38px"
+      };
+      const widePanel = {
+        top: "50%",
+        left: "calc(50% - 70px)",
+        transform: "translateY(-50%)",
+        width: "min(56vw, 720px)",
+        maxHeight: "70vh",
+        padding: "24px 24px 20px"
+      };
       return (0, import_react_dom.createPortal)(
         /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: `tape-info-panel${panelGlitchClass ? ` ${panelGlitchClass}` : ""}`, style: {
           position: "fixed",
-          top: "50%",
-          left: "calc(50% - 70px)",
-          transform: "translateY(-50%)",
-          width: "50vw",
-          maxHeight: "70vh",
+          ...isNarrow ? narrowPanel : widePanel,
           fontFamily: "'04b03', monospace",
           fontSize: "1em",
           color: "rgba(250,249,246,0.9)",
@@ -82014,7 +82124,6 @@ function TapesTable({ mixtape }) {
           overflow: "hidden",
           border: "none",
           borderRadius: 0,
-          padding: "24px 24px 20px",
           opacity: dragging3D ? 0 : 1,
           transition: "opacity 0.2s ease"
         }, children: [
@@ -82039,7 +82148,7 @@ function TapesTable({ mixtape }) {
             ] }),
             /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: {
               fontFamily: "'04b03', monospace",
-              fontSize: "1.4em",
+              fontSize: 19,
               color: "rgba(255,255,255,0.95)",
               letterSpacing: "1.5px",
               whiteSpace: "nowrap",
@@ -82062,7 +82171,7 @@ function TapesTable({ mixtape }) {
             overflowY: "auto",
             scrollbarWidth: "thin",
             scrollbarColor: "rgba(250,249,246,0.2) transparent",
-            padding: "10px 14px"
+            padding: "10px 0"
           }, children: tracklistItems.map((track, i4) => {
             const isCurrent = i4 === currentIndex && interactive;
             return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
@@ -82078,8 +82187,8 @@ function TapesTable({ mixtape }) {
                   fontSize: "1em",
                   color: isCurrent ? "rgba(255,255,255,1)" : "rgba(250,249,246,0.7)",
                   background: isCurrent ? "rgba(255,255,255,0.14)" : "transparent",
-                  padding: "6px 4px 6px 12px",
-                  borderLeft: isCurrent ? "3px solid rgba(255,255,255,0.9)" : "3px solid transparent",
+                  padding: "6px 4px 6px 0",
+                  boxShadow: isCurrent ? "inset 3px 0 0 rgba(255,255,255,0.9)" : "none",
                   borderBottom: "1px solid rgba(250,249,246,0.04)",
                   cursor: tracklistInteractive ? "pointer" : "default",
                   transition: "color 0.15s, background 0.15s, border-color 0.15s",
@@ -82089,13 +82198,13 @@ function TapesTable({ mixtape }) {
                 },
                 title: tracklistInteractive ? `${track.title} \u2014 ${track.author}` : void 0,
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("span", { style: { color: isCurrent ? "rgba(255,255,255,0.85)" : "rgba(250,249,246,0.5)", width: "30px", flexShrink: 0, textAlign: "right" }, children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("span", { style: { color: isCurrent ? "rgba(255,255,255,0.85)" : "rgba(250,249,246,0.5)", flexShrink: 0, textAlign: "left" }, children: [
                     String(i4 + 1).padStart(2, "0"),
                     "."
                   ] }),
-                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, color: isCurrent ? "rgba(255,255,255,1)" : "rgba(250,249,246,0.9)", fontWeight: isCurrent ? 700 : 400 }, children: track.title }),
-                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { color: isCurrent ? "rgba(255,255,255,0.7)" : "rgba(250,249,246,0.5)", flexShrink: 0, width: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: track.author }),
-                  track.durationText && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { color: isCurrent ? "rgba(255,255,255,0.7)" : "rgba(250,249,246,0.5)", flexShrink: 0, width: "50px", textAlign: "right" }, children: track.durationText })
+                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { flex: "2 1 60%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0, color: isCurrent ? "rgba(255,255,255,1)" : "rgba(250,249,246,0.9)", fontWeight: isCurrent ? 700 : 400 }, children: track.title }),
+                  !isNarrow && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { color: isCurrent ? "rgba(255,255,255,0.7)" : "rgba(250,249,246,0.5)", flex: "1 1 25%", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right" }, children: track.author }),
+                  track.durationText && !isNarrow && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { style: { color: isCurrent ? "rgba(255,255,255,0.7)" : "rgba(250,249,246,0.5)", flexShrink: 0, width: "50px", textAlign: "right" }, children: track.durationText })
                 ]
               },
               i4

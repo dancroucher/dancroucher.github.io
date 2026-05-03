@@ -71,7 +71,7 @@ interface TapesTable3DProps {
   loadedTapeId: string | null;
   onDragStart: (tapeId: string) => void;
   onDragEnd: (tapeId: string, x2d: number, y2d: number, droppedOnDeck: boolean) => void;
-  onDoubleTap: (tapeId: string) => void;
+  onDoubleTap: (tapeId: string, worldX?: number, worldZ?: number) => void;
   onMenuAction: (tapeId: string, action: 'link' | 'rewind' | 'remove') => void;
   menuId: string | null;
   onClearMenu: () => void;
@@ -429,7 +429,12 @@ function SceneContents({
         if (last.id === tapeId && now - last.time < 400) {
           bounceTapeId.current = tapeId;
           // Delay menu open slightly so bounce ref is consumed first
-          setTimeout(() => onDoubleTap(tapeId), 50);
+          // Send the tape's current world XZ along — its stored 2D x/y in
+          // state can lag the rigid-body's actual position (physics
+          // settle, recent drops, etc.), and the inspect-camera math
+          // needs the live position to centre the tape correctly.
+          const live = getTapeWorldPos(tapeId);
+          setTimeout(() => onDoubleTap(tapeId, live?.x, live?.z), 50);
           lastTapRef.current = { time: 0, id: '' };
         } else {
           lastTapRef.current = { time: now, id: tapeId };
@@ -717,8 +722,6 @@ function SceneContents({
     const speed = 32; // world units / sec at full edge
     const dx = vx * speed * dt;
     const dz = vz * speed * dt;
-    // Smooth transition: edge-pan ramps up, easing into movement.
-    const lerpFactor = 0.15;
     // Match the edge-pan bound to the active-area clamp's effective bound so
     // releasing the tape doesn't yank the camera back via the clamp.
     const cam = camera as THREE.PerspectiveCamera;
@@ -729,9 +732,13 @@ function SceneContents({
     const maxZ = Math.max(minZ, CAM_BOUND_Z - halfH);
     const nxPos = Math.max(-maxX, Math.min(maxX, camera.position.x + dx));
     const nzPos = Math.max(-maxZ, Math.min(maxZ, camera.position.z + dz));
-    // Lerp camera toward the target instead of jumping — smoother edge-pan.
-    const adx = (nxPos - camera.position.x) * lerpFactor;
-    const adz = (nzPos - camera.position.z) * lerpFactor;
+    // Camera position and target must move by the same delta — otherwise
+    // the look direction changes and the view appears to rotate. The
+    // earlier lerpFactor only on `adx/adz` left the target lagging behind
+    // the camera, which surfaced as a strange rotation while dragging
+    // near the recorder (where edge-pan triggers continuously).
+    const adx = nxPos - camera.position.x;
+    const adz = nzPos - camera.position.z;
     camera.position.x = nxPos;
     camera.position.z = nzPos;
     c.target.x += adx;

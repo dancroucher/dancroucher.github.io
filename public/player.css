@@ -132,14 +132,23 @@ a:hover {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 18vh 20px 18vh;
+  padding: 12vh 20px 18vh;
   pointer-events: none;
+}
+@media (max-width: 745px) {
+  .single-tape-creator {
+    /* Mirror the narrow inspect title row (top: 52vh) and the bottom
+       buttons bar so the search overlay sits in the same vertical band. */
+    padding: 44vh 16px 60px;
+    justify-content: flex-start;
+    gap: 16px;
+  }
 }
 .single-tape-creator > * { pointer-events: auto; }
 .single-tape-blurb {
   color: rgba(250, 249, 246, 0.85);
   font-family: '04b03', monospace;
-  font-size: 18px;
+  font-size: 19px;
   text-align: center;
   line-height: 1.4;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
@@ -305,7 +314,6 @@ a:hover {
   padding: 8px 5px 2px 0;
   margin-bottom: 16px;
   width: fit-content;
-  animation: textShadow 3.6s infinite;
 }
 .song-name:hover {
   background-color: rgba(0, 0, 0, 0.5);
@@ -320,7 +328,6 @@ a:hover {
   padding: 4px 5px 2px 0;
   margin-bottom: 16px;
   width: fit-content;
-  animation: textShadow 3.6s infinite;
 }
 
 /* ── Control buttons ── */

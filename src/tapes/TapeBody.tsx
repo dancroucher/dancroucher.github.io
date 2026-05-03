@@ -787,11 +787,11 @@ export function TapeBody({
       rotation={[0, angleRad, 0]}
       type="dynamic"
       colliders={false}
-      linearDamping={1.5}
-      angularDamping={2}
+      linearDamping={2.5}
+      angularDamping={5}
       mass={0.5}
-      restitution={0.15}
-      friction={0.6}
+      restitution={0.05}
+      friction={0.9}
       ccd={true}
     >
       <CuboidCollider args={[geo.halfX, geo.halfY, geo.halfZ]} />
