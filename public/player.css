@@ -21,6 +21,271 @@ a:hover {
   text-decoration: none;
 }
 
+/* ── Tapes UI tokens ── */
+
+:root {
+  /* Text colors */
+  --tape-text: rgba(250, 249, 246, 0.9);
+  --tape-text-dim: rgba(250, 249, 246, 0.5);
+  --tape-text-subtle: rgba(250, 249, 246, 0.7);
+  --tape-text-strong: rgba(255, 255, 255, 0.95);
+  --tape-text-inverse: #111;
+  /* Backgrounds */
+  --tape-bg: rgba(0, 0, 0, 0.5);
+  --tape-bg-subtle: rgba(0, 0, 0, 0.3);
+  --tape-bg-transparent: transparent;
+  /* Brand */
+  --tape-accent: #4a8adf;
+  --tape-font: '04b03', monospace;
+  /* Borders */
+  --tape-border: 1px solid rgba(250, 249, 246, 0.2);
+  --tape-border-dashed: 1px dashed rgba(250, 249, 246, 0.3);
+  /* Common */
+  --tape-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  --tape-shadow-inset: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Tapes UI base ── */
+
+.tape-ui {
+  font-family: var(--tape-font);
+  color: var(--tape-text);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* ── Inspect view ── */
+
+.tape-inspect {
+  position: fixed;
+  z-index: 99996;
+  display: flex;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.tape-inspect-title {
+  width: 85vw;
+  max-width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  border-bottom: var(--tape-border-dashed);
+  font-family: var(--tape-font);
+  font-size: 21px;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--tape-text-strong);
+  text-shadow: var(--tape-shadow);
+  padding: 4px 8px;
+  resize: none;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+  box-sizing: border-box;
+}
+
+.tape-inspect-buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  z-index: 99996;
+  pointer-events: auto;
+}
+
+/* ── Main UI button (shared between narrow and wide) ── */
+
+.tape-btn {
+  font-size: 1.1em;
+  padding: 4px 8px 0;
+  line-height: 1.5em;
+  background: var(--tape-bg-subtle);
+  border: none;
+  cursor: pointer;
+  color: var(--tape-text);
+  font-family: var(--tape-font);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Tracklist panel ── */
+
+.tape-panel {
+  position: fixed;
+  font-family: var(--tape-font);
+  font-size: 1em;
+  color: var(--tape-text);
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  pointer-events: auto;
+  border: none;
+  border-radius: 0;
+}
+
+.tape-panel-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+
+.tape-panel-label {
+  font-family: var(--tape-font);
+  font-size: 0.85em;
+  color: rgba(250, 249, 246, 0.45);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.tape-panel-title {
+  font-family: var(--tape-font);
+  font-size: 21px;
+  color: var(--tape-text-strong);
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.tape-panel-author {
+  color: var(--tape-text-dim);
+  margin-top: 6px;
+  font-size: 1em;
+}
+
+.tape-panel-tracks {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(250, 249, 246, 0.2) transparent;
+  padding: 10px 0;
+}
+
+/* ── Track row ── */
+
+.tape-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--tape-font);
+  font-size: 1em;
+  color: var(--tape-text-subtle);
+  background: transparent;
+  border-bottom: 1px solid rgba(250, 249, 246, 0.04);
+  cursor: pointer;
+  padding: 6px 4px 6px 0;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.tape-track.active {
+  color: var(--tape-text-strong);
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.9);
+}
+
+.tape-track-num {
+  flex-shrink: 0;
+  text-align: left;
+  color: var(--tape-text-dim);
+}
+
+.tape-track-title {
+  flex: 2 1 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  color: var(--tape-text);
+}
+
+.tape-track-author {
+  flex: 1 1 25%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  color: var(--tape-text-dim);
+}
+
+.tape-track-time {
+  flex-shrink: 0;
+  width: 50px;
+  text-align: right;
+  color: var(--tape-text-dim);
+}
+
+/* Loading spinner */
+
+.tape-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(250, 249, 246, 0.15);
+  border-top-color: rgba(250, 249, 246, 0.85);
+  border-radius: 50%;
+  animation: tape-loading-spin 0.9s linear infinite;
+}
+
+/* Layout containers */
+
+.tape-inspect-centre {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tape-inspect-left {
+  left: 32%;
+}
+
+/* Tracklist panel (wide) — anchored to the top so the first track is always
+   at the same vertical position regardless of how many tracks the tape has
+   (lets the inspect title align with track 1 reliably). */
+.tape-inspect-wide-panel {
+  top: 10vh;
+  left: calc(50% - 70px);
+  width: min(56vw, 720px);
+  max-height: 80vh;
+  padding: 24px 24px 20px;
+  overflow-y: auto;
+}
+
+/* Inspect title (desktop only - half width) */
+.tape-inspect-wide-title {
+  top: 12vh;
+  width: 30vw;
+}
+
+/* Inspect buttons (wide) */
+.tape-inspect-wide-buttons {
+  left: 50%;
+  bottom: 18vh;
+  gap: 8px;
+}
+
+.tape-inspect-narrow-buttons {
+  left: 0;
+  right: 0;
+  bottom: 12px;
+}
+
+.tape-inspect-narrow-panel {
+  left: 0;
+  right: 0;
+  bottom: 70px;
+  width: auto;
+  max-height: 46vh;
+  padding: 16px 18px 12px;
+}
+
 /* ── Layout containers ── */
 
 .song-container {
@@ -148,7 +413,7 @@ a:hover {
 .single-tape-blurb {
   color: rgba(250, 249, 246, 0.85);
   font-family: '04b03', monospace;
-  font-size: 19px;
+  font-size: 21px;
   text-align: center;
   line-height: 1.4;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);

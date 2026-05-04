@@ -314,7 +314,11 @@ const History = {
     _key: "userVideoHistory",
 
     _load() {
-        return JSON.parse(localStorage.getItem(this._key)) || [];
+        try {
+            return JSON.parse(localStorage.getItem(this._key)) || [];
+        } catch {
+            return [];
+        }
     },
 
     _save(list) {

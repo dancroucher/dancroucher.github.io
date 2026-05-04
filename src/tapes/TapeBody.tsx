@@ -35,6 +35,9 @@ interface TapeBodyProps {
   hidden?: boolean;
   onReady?: (tapeId: string) => void;
   spawnAllowed?: boolean;
+  // While true: pin the tape kinematically and tween its rotation flat
+  // (parallel to the table) so the inspect view shows it cleanly.
+  inspecting?: boolean;
 }
 
 // Per-variant cached: isolated mesh centered at origin + measured half-extents
@@ -134,8 +137,11 @@ function extractVariant(
 // UV layout: 2048px texture, upper-right quadrant has two cassette faces side by side
 //   Face 1 (front): label writable area ~x:1050-1470, y:50-180, center ~(1260, 115)
 //   Face 2 (back):  label writable area ~x:1550-1960, y:50-180, center ~(1755, 115)
-// Cache stamped textures by variant+title to avoid re-creating canvases
+// Cache stamped textures by variant+title to avoid re-creating canvases.
+// Evict oldest entries when cache exceeds MAX_STAMP_CACHE entries to prevent unbounded growth.
+const MAX_STAMP_CACHE = 100;
 const stampCache = new Map<string, THREE.CanvasTexture>();
+const stampCacheOrder: string[] = [];
 
 // Set to true to draw debug rectangles showing label regions
 const STAMP_DEBUG = false;
@@ -151,7 +157,13 @@ export function stampTitle(
   const isMixtape = tape?.author === "mixtape" && !!tape?.isInfinite;
   const cacheKey = `${variant}:${title}:${isInfinite ? "inf" : ""}${isPlaylist ? "pl" : ""}${isMixtape ? "mx" : ""}`;
   const cached = stampCache.get(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    // Move to end (most recently used)
+    const idx = stampCacheOrder.indexOf(cacheKey);
+    if (idx !== -1) stampCacheOrder.splice(idx, 1);
+    stampCacheOrder.push(cacheKey);
+    return cached;
+  }
 
   const src = baseColor.image as HTMLImageElement | HTMLCanvasElement;
   const w = 2048;
@@ -377,7 +389,15 @@ export function stampTitle(
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.flipY = baseColor.flipY;
   tex.needsUpdate = true;
+  // Evict oldest entry if cache is full
+  if (stampCacheOrder.length >= MAX_STAMP_CACHE) {
+    const oldest = stampCacheOrder.shift()!;
+    const oldTex = stampCache.get(oldest);
+    if (oldTex) oldTex.dispose();
+    stampCache.delete(oldest);
+  }
   stampCache.set(cacheKey, tex);
+  stampCacheOrder.push(cacheKey);
   return tex;
 }
 
@@ -392,6 +412,7 @@ export function TapeBody({
   hidden = false,
   onReady,
   spawnAllowed = true,
+  inspecting = false,
 }: TapeBodyProps) {
   const bodyRef = useRef<RapierRigidBody>(null);
   const groupRef = useRef<THREE.Group>(null);
@@ -424,6 +445,11 @@ export function TapeBody({
   const opacityRef = useRef(1);
   const materialsRef = useRef<THREE.Material[]>([]);
   const materialsReady = useRef(false);
+  // Inspect-mode pin: when entering inspect we capture the tape's current
+  // x/z/y so we can hold it there while flattening rotation. wasInspecting
+  // tracks the prev-frame value so we can detect transitions.
+  const wasInspecting = useRef(false);
+  const inspectPin = useRef({ x: 0, y: 0, z: 0, yaw: 0 });
 
   // Pick texture variant — use stored field if available, fall back to seed-based for legacy tapes
   const seed = tape.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
@@ -531,6 +557,43 @@ export function TapeBody({
     }
 
     const isDragged = drag.tapeId === tape.id;
+
+    // Inspect-mode pin: capture pose on entry, hold position + tween rotation
+    // toward flat (parallel to the table). Skip if loaded/snapping/dragged —
+    // those states own the body. Restored to dynamic on exit.
+    if (inspecting && !isDragged && !isLoaded.current && !isSnapping.current) {
+      if (!wasInspecting.current) {
+        wasInspecting.current = true;
+        const t = body.translation();
+        const r = body.rotation();
+        const euler = new THREE.Euler().setFromQuaternion(
+          new THREE.Quaternion(r.x, r.y, r.z, r.w),
+          "YXZ",
+        );
+        inspectPin.current = { x: t.x, y: t.y, z: t.z, yaw: euler.y };
+        body.setBodyType(2, true); // kinematic
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      }
+      const pin = inspectPin.current;
+      // Tween rotation toward flat (only Y rotation kept).
+      const r = body.rotation();
+      const cur = new THREE.Quaternion(r.x, r.y, r.z, r.w);
+      const target = new THREE.Quaternion().setFromEuler(
+        new THREE.Euler(0, pin.yaw, 0),
+      );
+      const k = 1 - Math.exp(-delta * 6); // ~0.17s ease, matches drag-yaw rate
+      cur.slerp(target, k);
+      body.setTranslation({ x: pin.x, y: pin.y, z: pin.z }, true);
+      body.setRotation({ x: cur.x, y: cur.y, z: cur.z, w: cur.w }, true);
+      return;
+    } else if (wasInspecting.current && !inspecting) {
+      wasInspecting.current = false;
+      // Restore dynamic only if we still own the body (not loaded/snapping/dragged).
+      if (!isLoaded.current && !isSnapping.current && !isDragged) {
+        body.setBodyType(0, true);
+      }
+    }
 
     if (isDragged) {
       if (!wasDragging.current) {

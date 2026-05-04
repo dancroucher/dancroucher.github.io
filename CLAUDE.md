@@ -730,3 +730,142 @@ event isn't a timer, so it fires reasonably even when backgrounded.
   mesh parts: [...]`) so future animations can reference them.
 - `.videobox-ok` no longer overrides text colour (was a green tint);
   the `.videobox-notok` red error styling is unchanged.
+
+## Recent Changes (2026-05, third batch)
+
+### Inspect view layout — full pass
+
+The inspect-view UI (title row + buttons row + tracklist panel) was
+restructured around four cases: wide single, wide tracklist, narrow
+single, narrow tracklist. Anchors and camera offsets are tuned per
+case so each lays out cleanly.
+
+**Breakpoint:** `isNarrow` in `TapesTable.tsx` bumped 745 → 960. The
+`TapesTable3D.tsx` `isMobile` heuristic stays at 745 (it gates touch /
+zoom behaviour, distinct from layout choice).
+
+**Camera offsets** (in `handle3DDoubleTap`):
+
+- `tapeOffset = (isSingle || narrowNow) ? -8 : -1` — single + narrow
+  centre the tape on screen; wide tracklist nudges -1 so the cassette
+  sits a touch right of centre, opening room for the tracklist.
+- `tzOffset = narrowNow ? (isSingle ? 0 : 3.5) : (isSingle ? 0 : 2)` —
+  narrow tracklist bumps tz so the cassette projects higher in the
+  frame (panel sits at the bottom of the screen below it).
+- Pending-tape (`startPendingSingleTape`) uses `tx: tx - 8, tz: tz`
+  to match wide single inspect.
+
+**Wide single (≥960px, no tracklist):**
+- Title at `top: 12vh, width: 25vw`, anchored `left: 50%` centred.
+- Buttons at `bottom: 18vh, gap: 12, justifyContent: center`.
+
+**Wide tracklist (≥960px, playlist/infinite/mixtape):**
+- Title at `top: 12vh, width: 25vw, paddingRight: 20px`, anchored
+  `left: 25%` (middle of the left half — fixed anchor that doesn't
+  drift with viewport).
+- Buttons at `top: 68vh, width: auto, flexWrap: nowrap` — same 25%
+  anchor, content-sized so the three buttons stay on one line.
+- Tracklist panel `.tape-inspect-wide-panel` anchored `top: 10vh`
+  (was `top: 50%; transform: translateY(-50%)`) so the first track
+  is at a fixed position regardless of list length and aligns with
+  the title.
+
+**Narrow single (<960px, no tracklist):**
+- Title at `top: 20vh, width: 50vw`, centred. Multi-line wrap via
+  the existing `.tape-inspect-title` CSS.
+- Buttons at `top: 75vh, width: auto, flexWrap: nowrap`, centred.
+  No bottom bar.
+
+**Narrow tracklist (<960px, playlist/infinite/mixtape):**
+- Title at `top: 13vh, width: 50vw`, centred.
+- Buttons at `top: 94vh, width: auto, flexWrap: nowrap`, centred.
+- Tracklist panel `.tape-inspect-narrow-panel`: `bottom: 70px`
+  (was 60px), `padding: 16px 18px 12px` (extra 2px on left/right),
+  `max-height: 46vh`. So at max height the panel top is around
+  `100vh − 70px − 46vh ≈ 54vh − 70px`. Buttons at 94vh sit above
+  the bottom bar but can collide with the panel on very short
+  viewports — flag for future iteration.
+
+### Inspect-mode tape flatten
+
+New `inspecting?: boolean` prop on `TapeBody`. When true (and the
+tape isn't dragged / loaded / snapping):
+
+- Body switches to kinematic (`setBodyType(2)`).
+- Captures current `(x, y, z)` and yaw on entry into `inspectPin`
+  ref, then holds position and slerps rotation toward
+  `Euler(0, savedYaw, 0)` over ~0.17s (`1 - exp(-delta * 6)`).
+- Resting tilt from stacking / physics settling is therefore wiped
+  out the moment a tape enters inspect view.
+
+On exit (`inspecting → false`) the body switches back to dynamic
+unless another state (loaded/snapping/dragged) now owns it.
+
+Wired in `TapesTable3D.tsx` via
+`inspecting={!!inspectTapeId && tape.id === inspectTapeId && !fadeInspectedTape}`.
+
+### Font + style polish
+
+- `.tape-inspect-title`, `.tape-panel-title`, and
+  `.single-tape-blurb` bumped from 19px → 21px for legibility.
+- `.tape-btn` gets `white-space: nowrap` + `flex-shrink: 0` so
+  button labels don't wrap and the buttons don't get squashed when
+  the row is constrained.
+- `ShareButton` — `narrow` prop retained for API compat but ignored;
+  both narrow and desktop use the same inline style now.
+- `.single-tape-creator` blurb size updated alongside the title.
+
+### CSS architecture refactor
+
+Inline styles for inspect/playback UI extracted into reusable
+classes in `player.css`:
+
+- `:root` design tokens: `--tape-text`, `--tape-text-dim`,
+  `--tape-text-strong`, `--tape-bg`, `--tape-accent`, `--tape-font`,
+  `--tape-border`, `--tape-shadow`, etc.
+- `.tape-ui`, `.tape-btn`, `.tape-panel`, `.tape-panel-header`,
+  `.tape-panel-label`, `.tape-panel-title`, `.tape-panel-author`,
+  `.tape-panel-tracks`, `.tape-track`, `.tape-track-num`,
+  `.tape-track-title`, `.tape-track-author`, `.tape-track-time`,
+  `.tape-spinner` — used across inspect + playback panels.
+- `.tape-inspect-wide-panel` / `.tape-inspect-narrow-panel` for the
+  two tracklist panel anchors.
+- `.tape-inspect-wide-title` / `.tape-inspect-wide-buttons` for
+  desktop title + buttons row positioning.
+
+`TapesTable.tsx` still sets a few inline styles for case-specific
+overrides (titleTop, paddingRight, width) but the bulk of the
+visual styling is now in CSS.
+
+### Sanity-check fixes (round 1)
+
+- Removed `FADE_MS` reference from inspect remove-button onClick
+  (the constant was scoped to `finishPendingTape`, would have
+  thrown `ReferenceError` on remove). Now uses the literal `600`.
+- Removed an over-eager unmount cleanup in `TapeBody` that was
+  disposing the shared `stampCache` whenever any tape unmounted —
+  it was wiping textures still in use by every other tape. The
+  LRU eviction in `stampTitle` already handles cache growth.
+- `db.ts`: dropped a misleading comment claiming `deleteAll+put`
+  semantics (the code used `clear()`); also dropped the per-put
+  `.catch` since the surrounding transaction would still abort on
+  any error. Added trailing newline.
+- `TapesTable3D.tsx`: hoisted `REC_COS`/`REC_SIN` to module scope
+  (they were declared inside the component, recomputed every
+  render). Pre-allocated `_raycaster`, `_ndcVec`, `_hitVec`,
+  `_worldVec`, `_plane` via `useMemo` so pointer events don't
+  churn `THREE.Vector3` and `THREE.Plane` allocations.
+- `TapesTable.tsx`: cleanup `useEffect` for `inspectUiTimerRef` and
+  `recorderLoadingTimerRef` on unmount, plus a matching cleanup for
+  `lidCloseTimer` in `TapesTable3D.tsx`.
+- `player.js` `History._load()` wrapped in try/catch.
+- `db.ts` `loadTapes` / `saveTapes` wrapped in try/catch with error
+  logging instead of throwing.
+- `stampCache` in `TapeBody.tsx` got LRU eviction via a
+  `stampCacheOrder` array — caps at `MAX_STAMP_CACHE = 100` entries,
+  oldest disposed when full.
+- Removed duplicate `.tape-inspect-wide-title` / `.tape-inspect-wide-buttons`
+  rules in `player.css`; fixed `gap: 8` (invalid — unitless) → `gap: 8px`.
+- `Creator.tsx` + `TapesTable3D.tsx` `Canvas`: changed shadow map
+  from `PCFSoftShadowMap` → `PCFShadowMap` (intentional —
+  `PCFSoftShadowMap` is deprecated).

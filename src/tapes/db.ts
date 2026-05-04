@@ -21,16 +21,23 @@ async function getDB(): Promise<IDBPDatabase> {
 }
 
 export async function loadTapes(): Promise<Tape[]> {
-  const db = await getDB();
-  return db.getAll(STORE);
+  try {
+    const db = await getDB();
+    return await db.getAll(STORE);
+  } catch (err) {
+    console.error('[db] failed to load tapes:', err);
+    return [];
+  }
 }
 
 export async function saveTapes(tapes: Tape[]): Promise<void> {
-  const db = await getDB();
-  const tx = db.transaction(STORE, 'readwrite');
-  await tx.store.clear();
-  await Promise.all(tapes.map(tape => tx.store.put(tape)));
-  await tx.done;
+  try {
+    const db = await getDB();
+    const tx = db.transaction(STORE, 'readwrite');
+    await tx.store.clear();
+    await Promise.all(tapes.map(tape => tx.store.put(tape)));
+    await tx.done;
+  } catch (err) {
+    console.error('[db] failed to save tapes:', err);
+  }
 }
-
-

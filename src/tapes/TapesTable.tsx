@@ -61,30 +61,13 @@ function ShareButton({ tape, narrow = false }: { tape: Tape; narrow?: boolean })
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
-  const narrowStyle: React.CSSProperties = {
-    color: 'rgba(250,249,246,0.9)',
-    fontFamily: '"04b03", monospace',
-    fontSize: '1.1em',
-    background: 'rgba(0,0,0,0.3)',
-    padding: '4px 8px 0',
-    lineHeight: '1.5em',
-    border: 'none',
-    cursor: 'pointer',
-    flexShrink: 0,
-    pointerEvents: 'auto',
-  };
-  const wideStyle: React.CSSProperties = {
-    background: 'rgba(0,0,0,0.5)', color: 'rgba(250,249,246,0.95)',
-    fontFamily: '"04b03", monospace', fontSize: 12, letterSpacing: '1px',
-    padding: '6px 10px', cursor: 'pointer', flexShrink: 0,
-    border: '1px solid rgba(250,249,246,0.2)',
-    pointerEvents: 'auto',
-  };
+  // Narrow + wide use the same style — `narrow` arg retained for API compat.
+  void narrow;
   return (
     <button
       onClick={onClick}
-      className={narrow ? 'genre' : 'tape-ui-btn'}
-      style={narrow ? narrowStyle : wideStyle}
+      className="tape-btn"
+      style={{ fontSize: '1.1em', padding: '4px 10px', lineHeight: '1.5em' }}
     ><i className={copied ? 'fas fa-check' : 'fas fa-share'} />&nbsp;{copied ? 'copied' : 'share'}</button>
   );
 }
@@ -326,10 +309,10 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // Track narrow viewports so the tracklist panel + inspect layout can
   // collapse to a full-width / bottom-anchored layout on phones.
   const [isNarrow, setIsNarrow] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth <= 745
+    typeof window !== 'undefined' && window.innerWidth <= 960
   );
   useEffect(() => {
-    const handler = () => setIsNarrow(window.innerWidth <= 745);
+    const handler = () => setIsNarrow(window.innerWidth <= 960);
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);
@@ -619,6 +602,15 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       saveTapes(tapes.filter(t => !t.isPending)).catch(console.error);
     }
   }, [tapes, mounted]);
+
+  // Cleanup all pending timers on unmount — prevents stale callbacks
+  // from firing on an unmounted component (e.g. navigating away mid-inspect).
+  useEffect(() => {
+    return () => {
+      if (inspectUiTimerRef.current) clearTimeout(inspectUiTimerRef.current);
+      if (recorderLoadingTimerRef.current) clearTimeout(recorderLoadingTimerRef.current);
+    };
+  }, []);
 
   // Bridge for vanilla JS
   useEffect(() => {
@@ -1379,14 +1371,22 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     // tracklist by sitting in the left half of the screen — but on narrow
     // viewports the panel anchors below the tape, so centre it there too.
     const isSingle = !tape.isPlaylist && !tape.isInfinite;
-    const narrowNow = window.innerWidth <= 745;
-    const tapeOffset = (isSingle || narrowNow) ? -8 : -2;
+    const narrowNow = window.innerWidth <= 960;
+    const tapeOffset = (isSingle || narrowNow) ? -8 : -1;
+    // Single / narrow: target south of tape so tape projects higher (leaves room
+    // for title above + tracklist panel below). Wide tracklist: target north of
+    // tape so the cassette drops lower in the frame, with title above and
+    // buttons below stacked tightly around it.
+    // Single tapes: small negative offset puts the cassette in the lower half
+    // of the screen (leaves room above for the title). Narrow viewports keep
+    // the +4 (tape sits high so the bottom-anchored panel has room). Wide
+    // tracklist tapes use +2 (cassette mid-frame, title above, buttons below).
+    // Narrow tracklist bumps tz to 6 so the cassette projects ~10% higher
+    // on screen, leaving room for buttons at 95vh.
+    const tzOffset = narrowNow ? (isSingle ? 0 : 3.5) : (isSingle ? 0 : 2);
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('jeem-centre-camera', {
-        // tz + 4 shifts the camera target south of the tape, so the tape
-        // projects higher on screen — leaves more room for the title row
-        // above and the tracklist panel below on narrow viewports.
-        detail: { tx: tx + tapeOffset, tz: tz + 4, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true },
+        detail: { tx: tx + tapeOffset, tz: tz + tzOffset, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true },
       }));
     }, camDelay);
     inspectUiTimerRef.current = setTimeout(() => {
@@ -1435,7 +1435,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     const camDelay = 200, camDur = 1000, zoomDelay = 200, zoomDur = 1000;
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('jeem-centre-camera', {
-        detail: { tx: tx - 8, tz: tz + 4, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true },
+        detail: { tx: tx - 8, tz: tz, animate: true, dur: camDur, zoomTo: 24, zoomDelay, zoomDur, saveCurrentPose: true },
       }));
     }, camDelay);
     inspectUiTimerRef.current = setTimeout(() => {
@@ -1731,13 +1731,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           pointerEvents: tableReady ? 'none' : 'auto',
           transition: 'background 0.25s ease',
         }}>
-          <div style={{
-            width: 48, height: 48,
-            border: '3px solid rgba(250,249,246,0.15)',
-            borderTopColor: 'rgba(250,249,246,0.85)',
-            borderRadius: '50%',
-            animation: 'tape-loading-spin 0.9s linear infinite',
-          }} />
+          <div className="tape-spinner" />
         </div>
       )}
 
@@ -1757,41 +1751,37 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         // and full-width too. On wider viewports the tracklist panel sits
         // in the right half so the inspect row stays at 32% above the tape.
         const centred = isSingle || isNarrow;
-        const wrapperWidth = centred ? '85vw' : '60vw';
+        // Narrow uses the same desktop-style layout for both single and
+        // tracklist: tighter title, free-floating buttons (no bottom bar).
+        const wrapperWidth = isNarrow ? '50vw' : '25vw';
+        // Wide non-centred (tracklist inspect): anchor at 25% — middle of the
+        // left half of the screen — so title/buttons stay put as the viewport
+        // resizes, instead of drifting with a percentage that doesn't match
+        // the cassette's projected position.
         const colStyle: React.CSSProperties = {
-          position: 'fixed', left: centred ? '50%' : '32%', transform: 'translateX(-50%)',
+          position: 'fixed', left: centred ? '50%' : '25%', transform: 'translateX(-50%)',
           width: wrapperWidth,
           zIndex: 99996, pointerEvents: 'auto',
           display: 'flex', justifyContent: 'center',
         };
-        // Narrow: place title row below the tape (camera puts tape upper-half),
-        // and anchor the buttons row at the very bottom in a .padinfo-style bar.
-        const titleTop = isNarrow ? '44vh' : '12vh';
+        // Title/top position based on viewport. Wide tracklist tapes get a
+        // lower title (sits just above the cassette, which is also dropped
+        // lower in the frame) so the title/cassette/buttons stack tightly.
+        // Title vertical position. Narrow (single + tracklist) matches the
+        // desktop pattern with the title above the cassette.
+        const titleTop = isNarrow ? (isSingle ? '20vh' : '13vh') : '12vh';
+        // Buttons row position. Narrow (single + tracklist) uses the same
+        // free-floating row at 75vh as desktop, content-sized + nowrap.
         const buttonsRowStyle: React.CSSProperties = isNarrow
-          ? {
-              position: 'fixed', left: 0, right: 0, bottom: 12,
-              padding: '0 12px', zIndex: 99996, pointerEvents: 'auto',
-              display: 'flex', flexDirection: 'row', alignItems: 'center',
-              justifyContent: 'center', gap: 8,
-            }
-          : { ...colStyle, bottom: '18vh', gap: 12, justifyContent: 'center' };
-        const inspectBtnStyle: React.CSSProperties = isNarrow
-          ? {
-              color: 'rgba(250,249,246,0.9)',
-              fontFamily: '"04b03", monospace',
-              fontSize: '1.1em',
-              background: 'rgba(0,0,0,0.3)',
-              padding: '4px 8px 0',
-              lineHeight: '1.5em',
-              border: 'none',
-              cursor: 'pointer',
-              pointerEvents: 'auto',
-            }
-          : {
-              background: 'rgba(0,0,0,0.5)', color: 'rgba(250,249,246,0.95)',
-              fontFamily: '"04b03", monospace', fontSize: 14,
-              padding: '8px 16px', cursor: 'pointer',
-            };
+          ? { ...colStyle, width: 'auto', top: isSingle ? '75vh' : '94vh', gap: 12, justifyContent: 'center', flexWrap: 'nowrap' }
+          : centred
+          ? { ...colStyle, bottom: '18vh', gap: 12, justifyContent: 'center' }
+          // Wide tracklist: drop width so the row sizes to its content (lets
+          // the three buttons sit on one line at any viewport, centered on
+          // the same 25% anchor as the title above). nowrap prevents wrap.
+          : { ...colStyle, width: 'auto', top: '68vh', gap: 12, justifyContent: 'center', flexWrap: 'nowrap' };
+        // Shared button classes
+        const btnClass = 'tape-btn';
         return (
           <div className={inspectUiClass}>
             <div style={{ ...colStyle, top: titleTop }}>
@@ -1808,56 +1798,28 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 ref={(el) => {
                   if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
                 }}
-                style={{
-                  background: 'transparent', border: 'none', outline: 'none',
-                  borderBottom: '1px dashed rgba(250,249,246,0.3)',
-                  color: 'rgba(250,249,246,0.95)', fontFamily: '"04b03", monospace',
-                  fontSize: 19, lineHeight: 1.4, textAlign: 'center',
-                  // Width: keep the textarea on-screen at any viewport size.
-                  // For tracklist tapes the row is anchored at 32% of the
-                  // viewport, so cap at min(64vw, 560) to avoid the right
-                  // edge clipping. For single tapes it's centred at 50% so
-                  // it can use up to 90vw.
-                  width: '100%',
-                  // Fill the wrapper (which is sized to fit on-screen given
-                  // the inspect anchor) so the textarea scales with viewport.
-                  maxWidth: '100%',
-                  boxSizing: 'border-box',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.8)', padding: '4px 8px',
-                  resize: 'none', overflow: 'hidden',
-                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                }}
+                className="tape-inspect-title"
+                style={{ width: '100%', paddingRight: centred ? undefined : 20, boxSizing: 'border-box' }}
               />
             </div>
             <div style={buttonsRowStyle}>
               <button
-                className={isNarrow ? 'genre' : 'tape-ui-btn'}
+                className={btnClass}
                 onClick={() => rewindTape(inspectTapeId)}
-                style={inspectBtnStyle}
               ><i className="fa fa-fast-backward" />&nbsp;rewind</button>
               <ShareButton tape={tape} narrow={isNarrow} />
 
               <button
-                className={isNarrow ? 'genre' : 'tape-ui-btn'}
+                className={btnClass}
                 onClick={() => {
                   const target = inspectTapeId;
                   if (!target) return;
-                  // Fade the inspected tape out, then run the standard
-                  // exit-inspect sequence; delete the tape data only after
-                  // both have settled so the visual sequence isn't cut short.
-                  setInspectUiVisible(false);
                   setRemovingInspected(true);
-                  const FADE_MS = 600;
                   setTimeout(() => {
-                    // Delete first so the tape is gone from the scene before
-                    // exitInspect clears inspectTapeId (otherwise the dying
-                    // tape would briefly fade back in with the others).
                     deleteTape(target);
-                    setRemovingInspected(false);
                     exitInspect();
-                  }, FADE_MS);
+                  }, 600);
                 }}
-                style={inspectBtnStyle}
               ><i className="fas fa-trash" />&nbsp;remove</button>
             </div>
           </div>
@@ -1968,47 +1930,25 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           padding: '24px 24px 20px',
         };
         return createPortal(
-          <div className={`tape-info-panel${panelGlitchClass ? ` ${panelGlitchClass}` : ''}`} style={{
-            position: 'fixed',
-            ...(isNarrow ? narrowPanel : widePanel),
-            fontFamily: "'04b03', monospace", fontSize: '1em', color: 'rgba(250,249,246,0.9)',
-            background: 'transparent',
+          <div className={`tape-info-panel tape-panel${isNarrow ? ' tape-inspect-narrow-panel' : ' tape-inspect-wide-panel'}${panelGlitchClass ? ` ${panelGlitchClass}` : ''}`} style={{
             pointerEvents: panelClickThrough ? 'none' : 'auto', zIndex: 200,
-            display: 'flex', flexDirection: 'column', overflow: 'hidden',
-            border: 'none', borderRadius: 0,
             opacity: dragging3D ? 0 : 1,
             transition: 'opacity 0.2s ease',
           }}>
             {!inspectTapeId && (
-              <div style={{
-                display: 'flex', alignItems: 'baseline', gap: 10,
-                marginBottom: hasTracklist ? '14px' : '0',
-                flexShrink: 0,
-                pointerEvents: 'none',
-              }}>
+              <div className="tape-panel-header">
                 {headerLabel && (
-                  <div style={{
-                    fontFamily: "'04b03', monospace", fontSize: '0.85em',
-                    color: 'rgba(250,249,246,0.45)', letterSpacing: '2px',
-                    textTransform: 'uppercase', flexShrink: 0,
-                  }}>
+                  <div className="tape-panel-label">
                     {headerLabel} /
                   </div>
                 )}
-                <div style={{
-                  fontFamily: "'04b03', monospace", fontSize: 19,
-                  color: 'rgba(255,255,255,0.95)', letterSpacing: '1.5px',
-                  whiteSpace: 'nowrap', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis',
-                  fontWeight: 700,
-                  textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                }}>
+                <div className="tape-panel-title">
                   {tape.title || 'Untitled'}
                 </div>
               </div>
             )}
             {!hasTracklist && tape.author && (
-              <div style={{
-                color: 'rgba(250,249,246,0.5)', marginTop: '6px', fontSize: '1em',
+              <div className="tape-panel-author" style={{
                 pointerEvents: interactive ? 'auto' : 'none',
                 userSelect: interactive ? 'auto' : 'none',
               }}>
@@ -2016,52 +1956,34 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               </div>
             )}
             {hasTracklist && (
-              <div style={{
-                flex: 1, overflowY: 'auto',
-                scrollbarWidth: 'thin', scrollbarColor: 'rgba(250,249,246,0.2) transparent',
-                padding: '10px 0',
-              }}>
+              <div className="tape-panel-tracks">
                 {tracklistItems.map((track, i) => {
                   const isCurrent = i === currentIndex && interactive;
                   return (
                     <div
                       key={i}
                       onClick={tracklistInteractive ? () => handleSelect(i, track) : undefined}
+                      className={`tape-track${isCurrent ? ' active' : ''}`}
                       style={{
-                        position: 'relative',
-                        display: 'flex', alignItems: 'center', gap: '8px',
-                        fontFamily: "'04b03', monospace", fontSize: '1em',
-                        color: isCurrent ? 'rgba(255,255,255,1)' : 'rgba(250,249,246,0.7)',
-                        background: isCurrent ? 'rgba(255,255,255,0.14)' : 'transparent',
-                        padding: '6px 4px 6px 0',
-                        boxShadow: isCurrent ? 'inset 3px 0 0 rgba(255,255,255,0.9)' : 'none',
-                        borderBottom: '1px solid rgba(250,249,246,0.04)',
-                        cursor: tracklistInteractive ? 'pointer' : 'default',
-                        transition: 'color 0.15s, background 0.15s, border-color 0.15s',
                         pointerEvents: tracklistInteractive ? 'auto' : 'none',
                         userSelect: tracklistInteractive ? 'auto' : 'none',
                         textShadow: isCurrent ? '0 0 8px rgba(255,255,255,0.4)' : 'none',
                       }}
                       title={tracklistInteractive ? `${track.title} — ${track.author}` : undefined}
                     >
-                      <span style={{ color: isCurrent ? 'rgba(255,255,255,0.85)' : 'rgba(250,249,246,0.5)', flexShrink: 0, textAlign: 'left' }}>
+                      <span className="tape-track-num">
                         {String(i + 1).padStart(2, '0')}.
                       </span>
-                      {/* Title gets the lion's share of width and a sensible
-                          minimum so it can't be crushed by the author column. */}
-                      <span style={{ flex: '2 1 60%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, color: isCurrent ? 'rgba(255,255,255,1)' : 'rgba(250,249,246,0.9)', fontWeight: isCurrent ? 700 : 400 }}>
+                      <span className="tape-track-title">
                         {track.title}
                       </span>
-                      {/* Author column flexes (no fixed 140px) so it shrinks
-                          gracefully on narrow rows instead of starving the
-                          title. Hidden entirely on very narrow viewports. */}
                       {!isNarrow && (
-                        <span style={{ color: isCurrent ? 'rgba(255,255,255,0.7)' : 'rgba(250,249,246,0.5)', flex: '1 1 25%', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                        <span className="tape-track-author">
                           {track.author}
                         </span>
                       )}
                       {track.durationText && !isNarrow && (
-                        <span style={{ color: isCurrent ? 'rgba(255,255,255,0.7)' : 'rgba(250,249,246,0.5)', flexShrink: 0, width: '50px', textAlign: 'right' }}>
+                        <span className="tape-track-time">
                           {track.durationText}
                         </span>
                       )}

@@ -32,6 +32,9 @@ interface SnapState {
 // Recorder placement — kept in sync with the <Recorder3D> props below.
 const RECORDER_POS: [number, number, number] = [-20, 0, 4];
 const RECORDER_ROT_Y = Math.PI / 6;
+// Pre-computed trig for recorder zone tests — module scope, computed once.
+const REC_COS = Math.cos(-RECORDER_ROT_Y);
+const REC_SIN = Math.sin(-RECORDER_ROT_Y);
 // Half-extents of the recorder *hover trigger* zone in local axes. Larger than
 // the physical footprint so the lid pops open before the tape is right on top.
 const RECORDER_HALF_W = 4;
@@ -160,21 +163,29 @@ function SceneContents({
       onSceneReady?.();
     }
   }, [sceneReady, onSceneReady]);
-  const lidCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Track snap.tapeId across frames so we can detect pickup (eject) transitions.
   const prevSnapTapeId = useRef<string | null>(null);
   // Refs so useFrame always calls the latest callbacks.
   const onRecorderEjectRef = useRef(onRecorderEject);
   useEffect(() => { onRecorderEjectRef.current = onRecorderEject; }, [onRecorderEject]);
+  // Mutable timer ref for lid-close delay — must be declared before the
+  // cleanup effect so the ref is available when the effect runs on unmount.
+  const lidCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup lid close timer on unmount
+  useEffect(() => {
+    return () => {
+      if (lidCloseTimer.current) clearTimeout(lidCloseTimer.current);
+    };
+  }, []);
 
   // Local-frame footprint test shared by hover (tape) and hover (mouse) checks.
   const isOverRecorder = useCallback((x: number, z: number) => {
     const dx = x - RECORDER_POS[0];
     const dz = z - RECORDER_POS[2];
-    const cos = Math.cos(-RECORDER_ROT_Y);
-    const sin = Math.sin(-RECORDER_ROT_Y);
-    const lx = dx * cos - dz * sin;
-    const lz = dx * sin + dz * cos;
+    const lx = dx * REC_COS - dz * REC_SIN;
+    const lz = dx * REC_SIN + dz * REC_COS;
     return Math.abs(lx) < RECORDER_HALF_W && Math.abs(lz) < RECORDER_HALF_D;
   }, []);
 
@@ -182,10 +193,8 @@ function SceneContents({
   const isInSnapZone = useCallback((x: number, z: number) => {
     const dx = x - RECORDER_POS[0];
     const dz = z - RECORDER_POS[2];
-    const cos = Math.cos(-RECORDER_ROT_Y);
-    const sin = Math.sin(-RECORDER_ROT_Y);
-    const lx = dx * cos - dz * sin;
-    const lz = dx * sin + dz * cos;
+    const lx = dx * REC_COS - dz * REC_SIN;
+    const lz = dx * REC_SIN + dz * REC_COS;
     return Math.abs(lx) < RECORDER_SNAP_HALF_W && Math.abs(lz) < RECORDER_SNAP_HALF_D;
   }, []);
 
@@ -240,16 +249,21 @@ function SceneContents({
   // out via their `hidden` prop) instead of filtering them away abruptly.
   const tableTapes = tapes.filter(t => t.id !== loadedTapeId);
 
+  // Reusable objects — allocated once, reused every pointer event to avoid GC pressure
+  const _raycaster = useMemo(() => new THREE.Raycaster(), []);
+  const _ndcVec = useMemo(() => new THREE.Vector2(), []);
+  const _hitVec = useMemo(() => new THREE.Vector3(), []);
+  const _worldVec = useMemo(() => new THREE.Vector3(), []);
+
+  const _plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
   const raycastToPlane = useCallback((clientX: number, clientY: number, planeY: number): THREE.Vector3 | null => {
     const rect = gl.domElement.getBoundingClientRect();
-    const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
-    const ndcY = -((clientY - rect.top) / rect.height) * 2 + 1;
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera);
-    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -planeY);
-    const hit = new THREE.Vector3();
-    return raycaster.ray.intersectPlane(plane, hit) ? hit : null;
-  }, [camera, gl]);
+    _ndcVec.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    _ndcVec.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    _raycaster.setFromCamera(_ndcVec, camera);
+    _plane.constant = -planeY;
+    return _raycaster.ray.intersectPlane(_plane, _hitVec) ? _hitVec.clone() : null;
+  }, [camera, gl, _plane, _ndcVec, _raycaster, _hitVec]);
 
   // Hit test: raycast to table plane, find nearest tape within its bounding box
   const raycastTape = useCallback((clientX: number, clientY: number): string | null => {
@@ -264,17 +278,16 @@ function SceneContents({
 
     scene.traverse((obj) => {
       if (!obj.name?.startsWith('tape-')) return;
-      const world = new THREE.Vector3();
-      obj.getWorldPosition(world);
-      const dx = Math.abs(hit.x - world.x);
-      const dz = Math.abs(hit.z - world.z);
+      obj.getWorldPosition(_worldVec);
+      const dx = Math.abs(hit.x - _worldVec.x);
+      const dz = Math.abs(hit.z - _worldVec.z);
       if (dx < HALF_W + 0.1 && dz < HALF_H + 0.1) {
         const dist = dx + dz;
         // Prefer the tape stacked highest (top of any pile). Tie-break by
         // proximity to centre. 0.05 tolerance keeps flat-on-table tapes
         // (which all sit at ~halfY) tied so the original distance rule wins.
-        if (world.y > bestY + 0.05 || (Math.abs(world.y - bestY) <= 0.05 && dist < bestDist)) {
-          bestY = world.y;
+        if (_worldVec.y > bestY + 0.05 || (Math.abs(_worldVec.y - bestY) <= 0.05 && dist < bestDist)) {
+          bestY = _worldVec.y;
           bestDist = dist;
           bestId = obj.name.replace('tape-', '');
         }
@@ -287,9 +300,8 @@ function SceneContents({
     let result: { x: number; z: number } | null = null;
     scene.traverse((obj) => {
       if (obj.name === `tape-${tapeId}`) {
-        const world = new THREE.Vector3();
-        obj.getWorldPosition(world);
-        result = { x: world.x, z: world.z };
+        obj.getWorldPosition(_worldVec);
+        result = { x: _worldVec.x, z: _worldVec.z };
       }
     });
     return result;
@@ -802,6 +814,7 @@ function SceneContents({
                 isNew={newTapeIds.has(tape.id)}
                 bounceTapeId={bounceTapeId}
                 hidden={uiHidden || (!!inspectTapeId && (tape.id !== inspectTapeId || !!fadeInspectedTape))}
+                inspecting={!!inspectTapeId && tape.id === inspectTapeId && !fadeInspectedTape}
                 onReady={handleTapeReady}
                 spawnAllowed={sceneReady}
               />
@@ -830,7 +843,7 @@ export function TapesTable3D(props: TapesTable3DProps) {
   return (
     <div style={{ flex: 1, position: 'relative', background: '#0a0805', isolation: 'isolate' }}>
       <Canvas
-        shadows
+        shadows={{ type: THREE.PCFShadowMap }}
         camera={{ position: [0, 30, 3], fov: 45, near: 0.1, far: 200 }}
         gl={{ antialias: false, powerPreference: 'high-performance', alpha: true }}
         dpr={[1, 1.5]}
