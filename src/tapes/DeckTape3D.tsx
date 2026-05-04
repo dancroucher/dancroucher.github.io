@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Tape } from './types';
-import { loadFBXCached, useVariantTextures, VARIANTS, VARIANT_TO_MESH } from './Tape3D';
+import { loadFBXCached, useVariantTextures, VARIANTS, TAPE_MESH_NAME } from './Tape3D';
 
 // Reuse stampTitle from TapeBody
 import { stampTitle } from './TapeBody';
@@ -113,7 +113,7 @@ function DeckTapeMesh({ tape, playing }: { tape: Tape; playing?: boolean }) {
 
   const seed = tape.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   const variant = (tape.textureVariant as typeof VARIANTS[number]) || VARIANTS[seed % VARIANTS.length];
-  const meshName = VARIANT_TO_MESH['a'];
+  const meshName = TAPE_MESH_NAME;
   const textures = useVariantTextures(variant);
 
   useEffect(() => {

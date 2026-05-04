@@ -50,10 +50,6 @@ const Backgrounds = {
         this._inactiveEl = DOM.mp4BackgroundB;
     },
 
-    _activeKey() {
-        return this._activeEl === DOM.mp4BackgroundA ? 'a' : 'b';
-    },
-
     // Get the currently active background video element (for play/pause sync)
     getActiveVideo() {
         return this._activeEl;
@@ -132,9 +128,6 @@ const Backgrounds = {
                 // while the CSS glitch masks the instant.
                 this._activeEl = incoming;
                 this._inactiveEl = outgoing;
-                window.dispatchEvent(new CustomEvent('jeem-bg-swap', {
-                    detail: { activeKey: this._activeKey() }
-                }));
             }, 270);
 
             // Clean up after animation ends
@@ -183,13 +176,9 @@ const Backgrounds = {
         const label = BG_LABELS[typeName] ?? typeName;
         DOM.backgroundType.innerHTML = `<i class='fas fa-file-image'></i>&nbsp;${label}`;
 
-        // Notify React 3D table so it can render video surface
+        // Notify React 3D table of bg-mode change (used to gate UI elements).
         window.dispatchEvent(new CustomEvent('jeem-bg-change', {
-            detail: {
-                bgTypeIndex: index,
-                videoEl: this._isMediaType() ? this._activeEl : null,
-                activeKey: this._isMediaType() ? this._activeKey() : null,
-            }
+            detail: { bgTypeIndex: index }
         }));
 
         if (this._isMediaType()) {
@@ -228,9 +217,9 @@ const Backgrounds = {
         this._activeEl.load();
         this._inactiveEl.removeAttribute("src");
         this._inactiveEl.load();
-        // Notify React 3D table that videos are cleared
+        // Notify React 3D table that bg mode changed.
         window.dispatchEvent(new CustomEvent('jeem-bg-change', {
-            detail: { bgTypeIndex: this.bgTypeIndex, videoEl: null }
+            detail: { bgTypeIndex: this.bgTypeIndex }
         }));
     },
 

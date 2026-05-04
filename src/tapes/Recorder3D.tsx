@@ -22,16 +22,10 @@ function loadRecorderCached(): Promise<THREE.Group> {
     loader.load(
       RECORDER_URL,
       (gltf) => {
-        console.log('[Recorder3D] GLB loaded');
         resolve(gltf.scene);
       },
-      (evt) => {
-        if (evt.lengthComputable) {
-          console.log('[Recorder3D] loading', Math.round((evt.loaded / evt.total) * 100) + '%');
-        }
-      },
+      undefined,
       (err) => {
-        console.error('[Recorder3D] load error:', err);
         reject(err);
       },
     );
@@ -76,6 +70,9 @@ export function Recorder3D({
   onReady,
 }: Recorder3DProps) {
   const [loaded, setLoaded] = useState<LoadedRecorder | null>(null);
+  // Mirror of loaded.{group, materials} so the disposal cleanup can access
+  // the refs without closing over the async .then() result.
+  const loadedRef = useRef<{ group: THREE.Group; materials: THREE.Material[] } | null>(null);
   const opacityRef = useRef(1);
   const groupRef = useRef<THREE.Group | null>(null);
   // Local state so a click on the recorder can toggle the lid for diagnosis.
@@ -93,21 +90,8 @@ export function Recorder3D({
         if (cancelled) return;
         const clone = scene.clone(true);
 
-        // Debug: raw bbox + mesh names.
         const rawBox = new THREE.Box3().setFromObject(clone);
         const rawSize = rawBox.getSize(new THREE.Vector3());
-        const rawCenter = rawBox.getCenter(new THREE.Vector3());
-        console.log(
-          '[Recorder3D] raw bbox size:',
-          rawSize.x.toFixed(2), rawSize.y.toFixed(2), rawSize.z.toFixed(2),
-          'center:', rawCenter.x.toFixed(2), rawCenter.y.toFixed(2), rawCenter.z.toFixed(2),
-        );
-
-        const meshNames: string[] = [];
-        clone.traverse((c) => {
-          if ((c as THREE.Mesh).isMesh) meshNames.push(c.name);
-        });
-        console.log('[Recorder3D] mesh parts:', meshNames);
 
         const materials: THREE.Material[] = [];
         clone.traverse((child) => {
@@ -166,26 +150,27 @@ export function Recorder3D({
           clone.add(pivot);
           pivot.attach(lidMesh); // preserves the lid's current world transform
           lidPivot = pivot;
-          console.log(
-            '[Recorder3D] lid pivot wrapped — hinge world:',
-            hingeWorld.x.toFixed(2), hingeWorld.y.toFixed(2), hingeWorld.z.toFixed(2),
-            'local:', pivot.position.x.toFixed(2), pivot.position.y.toFixed(2), pivot.position.z.toFixed(2),
-          );
-        } else {
-          console.warn('[Recorder3D] tapelid_low not found — lid animation disabled');
         }
 
-        console.log(
-          '[Recorder3D] scale:', scale.toFixed(4),
-          'scaled size:', scaledSize.x.toFixed(2), scaledSize.y.toFixed(2), scaledSize.z.toFixed(2),
-          'centred at:', clone.position.x.toFixed(2), clone.position.y.toFixed(2), clone.position.z.toFixed(2),
-        );
-
         setLoaded({ group: clone as unknown as THREE.Group, size: scaledSize, lidPivot, materials });
+        loadedRef.current = { group: clone as unknown as THREE.Group, materials };
         onReady?.();
       })
       .catch(() => {/* already logged */});
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      // Dispose per-instance cloned materials and the cloned group's
+      // geometry. The shared GLB scene in recorderCache stays untouched.
+      const prev = loadedRef.current;
+      if (prev) {
+        for (const m of prev.materials) m.dispose();
+        prev.group.traverse((child) => {
+          const mesh = child as THREE.Mesh;
+          if (mesh.isMesh && mesh.geometry) mesh.geometry.dispose();
+        });
+      }
+      loadedRef.current = null;
+    };
   }, [targetWidth]);
 
   // Smoothly ease the lid toward its target angle each frame. Rate 8 gives a

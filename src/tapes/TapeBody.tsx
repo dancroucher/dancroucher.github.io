@@ -13,7 +13,7 @@ import {
   loadFBXCached,
   useVariantTextures,
   VARIANTS,
-  VARIANT_TO_MESH,
+  TAPE_MESH_NAME,
 } from "./Tape3D";
 import { SpoolDisc } from "./DeckTape3D";
 
@@ -38,6 +38,8 @@ interface TapeBodyProps {
   // While true: pin the tape kinematically and tween its rotation flat
   // (parallel to the table) so the inspect view shows it cleanly.
   inspecting?: boolean;
+  // Shared playing ref — when true and tape is loaded in recorder, spools spin.
+  isPlayingRef?: React.MutableRefObject<boolean>;
 }
 
 // Per-variant cached: isolated mesh centered at origin + measured half-extents
@@ -48,7 +50,6 @@ interface VariantGeo {
   scale: number;
 }
 const variantMeta = new Map<string, VariantGeo>();
-let fbxDumped = false;
 
 // Extract a single mesh from the FBX, bake its world transform into geometry,
 // center it at origin, and scale to TAPE_W. Returns a clean group + collider dims.
@@ -57,26 +58,6 @@ function extractVariant(
   meshName: string,
 ): { group: THREE.Group; geo: VariantGeo } {
   const clone = fbx.clone();
-
-  // Dump full scene hierarchy once for debugging
-  if (!fbxDumped) {
-    fbxDumped = true;
-    const dumpNode = (node: THREE.Object3D, depth = 0) => {
-      const indent = "  ".repeat(depth);
-      const mesh = node as THREE.Mesh;
-      let info = `${indent}[${node.type}] "${node.name}"`;
-      if (mesh.isMesh) {
-        node.updateWorldMatrix(true, false);
-        const box = new THREE.Box3().setFromObject(node);
-        const size = box.getSize(new THREE.Vector3());
-        info += ` verts:${mesh.geometry?.attributes?.position?.count} size:(${size.x.toFixed(1)}x${size.y.toFixed(1)}x${size.z.toFixed(1)})`;
-      }
-      info += ` children:${node.children.length}`;
-      console.log(info);
-      for (const child of node.children) dumpNode(child, depth + 1);
-    };
-    dumpNode(clone);
-  }
 
   // Find target mesh
   let targetMesh: THREE.Mesh | null = null;
@@ -125,10 +106,6 @@ function extractVariant(
     scale,
   };
   variantMeta.set(meshName, result);
-
-  console.log(
-    `[TapeBody] ${meshName}: raw ${size.x.toFixed(1)}x${size.y.toFixed(1)}x${size.z.toFixed(1)} → collider ${(result.halfX * 2).toFixed(1)}x${(result.halfY * 2).toFixed(1)}x${(result.halfZ * 2).toFixed(1)}`,
-  );
 
   return { group, geo: result };
 }
@@ -413,6 +390,7 @@ export function TapeBody({
   onReady,
   spawnAllowed = true,
   inspecting = false,
+  isPlayingRef,
 }: TapeBodyProps) {
   const bodyRef = useRef<RapierRigidBody>(null);
   const groupRef = useRef<THREE.Group>(null);
@@ -456,18 +434,36 @@ export function TapeBody({
   const variant =
     (tape.textureVariant as (typeof VARIANTS)[number]) ||
     VARIANTS[seed % VARIANTS.length];
-  const meshName = VARIANT_TO_MESH["a"]; // always use variant a's mesh
+  const meshName = TAPE_MESH_NAME;
   const textures = useVariantTextures(variant); // swap textures for visual variety
 
-  // Load FBX, extract single variant mesh centered at origin
+  // Load FBX, extract single variant mesh centered at origin. On unmount
+  // (or meshName change) dispose the cloned geometry so tape remove/respawn
+  // cycles don't leak GPU memory. The FBX itself is cached at module scope
+  // so we don't touch its buffers.
   useEffect(() => {
+    let cancelled = false;
+    let result: { group: THREE.Group; geo: VariantGeo } | null = null;
     loadFBXCached().then((fbx) => {
-      const result = extractVariant(fbx, meshName);
+      if (cancelled) return;
+      result = extractVariant(fbx, meshName);
       setSceneData(result);
     });
+    return () => {
+      cancelled = true;
+      if (result) {
+        result.group.traverse((child) => {
+          const m = child as THREE.Mesh;
+          if (m.isMesh && m.geometry) m.geometry.dispose();
+        });
+      }
+    };
   }, [meshName]);
 
-  // Apply PBR materials with title stamped onto texture
+  // Apply PBR materials with title stamped onto texture. Each tape owns its
+  // own MeshStandardMaterial instances so per-instance opacity fades don't
+  // leak into other tapes. Dispose the old materials when the effect re-runs
+  // (title/textures change) or on unmount.
   useEffect(() => {
     if (!sceneData || !textures) return;
     const colorMap = tape.title
@@ -497,6 +493,9 @@ export function TapeBody({
       materialsReady.current = true;
       onReady?.(tape.id);
     }
+    return () => {
+      for (const m of mats) m.dispose();
+    };
   }, [sceneData, textures, tape.title, tape.id, onReady]);
 
   // Initial position from 2D coords — only used on first mount, not on prop updates
@@ -814,7 +813,7 @@ export function TapeBody({
     }
 
     // Spool spin only while loaded in recorder AND YouTube is playing.
-    spinRef.current = isLoaded.current && !!(window as any).AppState?.playing;
+    spinRef.current = isLoaded.current && !!isPlayingRef?.current;
 
     // Inactivity fade. Shadow drops at opacity > 0.85 so it leads rather than
     // lags the body transition; group is hidden entirely once effectively clear.

@@ -869,3 +869,43 @@ visual styling is now in CSS.
 - `Creator.tsx` + `TapesTable3D.tsx` `Canvas`: changed shadow map
   from `PCFSoftShadowMap` → `PCFShadowMap` (intentional —
   `PCFSoftShadowMap` is deprecated).
+## Recent Changes (2026-05, fourth batch)
+
+### Sanity-check fixes (round 2)
+
+- **TapeBody hooks bug fixed**: `positionedTapes` `useMemo` was placed
+  *after* the `if (!mounted) return null;` early return, so the hook
+  count changed between the first (mounted=false) and subsequent
+  (mounted=true) renders → React error #310. Moved the `useMemo`
+  above the early return.
+- **`window.AppState?.playing` polling removed** (`TapeBody.tsx` per-
+  frame): replaced with a shared `isPlayingRef: MutableRefObject<boolean>`
+  prop. `TapesTable.tsx` owns the ref, syncs it from `isPlaying` state
+  via a useEffect, and threads it through `TapesTable3D` → `TapeBody`.
+  `TapeBody`'s useFrame reads `isPlayingRef.current` instead of the
+  vanilla-JS global. No re-renders on play/pause toggle.
+- **Recorder-load drag-end flag**: replaced `recorderLoadedDuringDragRef`
+  (set inside `handleRecorderLoad` *after* `loadIntoPlayer`, so a throw
+  in between would leave the flag false and exit player view) with a
+  new `landedOnRecorder` boolean parameter on `onDragEnd`. Set at the
+  actual drop site in `TapesTable3D.tsx`'s `onUp` handler — same
+  moment `snap.tapeId` is assigned. `handle3DDragEnd` reads the
+  parameter directly.
+- **Dead code removed**:
+  - `savedCamPoseRef` in `TapesTable3D.tsx` — written on drag start
+    and cleared on drag end, never read. Removed declaration + both
+    assignments.
+  - `MixtapeOverlayEffect` component + its only-caller helper
+    `mountMixtapeOverlay` (~95 lines of inline-styled DOM template
+    string) in `TapesTable.tsx`.
+- **Debug log strip**:
+  - `Recorder3D.tsx`: GLB load progress, raw bbox, mesh part list,
+    lid pivot coords, scale summary, and the now-unused load progress
+    callback.
+  - `TapeBody.tsx`: full FBX hierarchy dump (`fbxDumped` flag) and
+    per-variant collider-size logs.
+  - `Tape3D.tsx`: FBX bbox + mesh dumps in both `TapeFBX` and
+    `NewTapeFBXTest`. (Components themselves are dead but still
+    bundled — left for now.)
+  - `TapesTable3D.tsx`: per-pointerdown `[TapeTable]` log. WebGL
+    context lost/restored handlers kept (rare error events).

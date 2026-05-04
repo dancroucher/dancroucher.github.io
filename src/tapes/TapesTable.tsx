@@ -4,7 +4,6 @@ import { Tape, TAPE_STYLES, InfiniteConfig, InfiniteTrack } from './types';
 import { to3D, to2D } from './coords';
 import { loadTapes, saveTapes } from './db';
 import { buildShareUrl, decodeTapeShare, fetchShareById, type SharePayload } from './share';
-import { CassetteTape } from './CassetteTape';
 import { DeckTape3D } from './DeckTape3D';
 import { MixtapeCreator, MIXTAPE_PANEL_STYLES, MIXTAPE_TRACK_LIST, MIXTAPE_TRACK_ROW, MIXTAPE_TRACK_NUM, MIXTAPE_TRACK_TITLE, MIXTAPE_TRACK_AUTHOR, MIXTAPE_TRACK_DURATION } from '../mixtape/Creator';
 const TapesTable3D = lazy(() => import('./TapesTable3D').then(m => ({ default: m.TapesTable3D })));
@@ -152,63 +151,6 @@ async function fetchInfiniteTracks(config: InfiniteConfig, page = 1): Promise<In
   }
 }
 
-// ── Direct DOM mount for mixtape track overlay (no React portal, avoids circular init) ──
-// Uses same position/size/font as Creator panel for consistency.
-function mountMixtapeOverlay(el: HTMLElement, mixtape: MixtapeData, currentIndex: number, onSelect: (i: number, t: MixtapeTrack) => void) {
-  // Apply shared panel styles — same position/size as view 2 info panel
-  Object.assign(el.style, {
-    position: 'fixed',
-    top: '50%',
-    left: 'calc(50% - 70px)',
-    transform: 'translateY(-50%)',
-    width: '50vw',
-    maxHeight: '70vh',
-    fontFamily: "'04b03', monospace",
-    fontSize: '1em',
-    color: 'rgba(250,249,246,0.9)',
-    background: 'transparent',
-    pointerEvents: 'auto',
-    zIndex: '200',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    border: 'none',
-    borderRadius: '0',
-    transition: 'opacity 1s ease',
-    padding: '24px 24px 20px',
-  });
-  el.innerHTML = `
-    <div style="font-family:'04b03',monospace;font-size:1.3em;color:rgba(250,249,246,0.7);letter-spacing:1.5px;white-space:nowrap;margin-bottom:4px;flex-shrink:0;">
-      ${mixtape.name}
-    </div>
-    <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(250,249,246,0.2) transparent;padding:10px 14px;">
-      ${mixtape.tracks.map((track, i) => `
-        <div data-idx="${i}" data-videoid="${track.videoId}" data-title="${track.title}" data-author="${track.author}"
-          style="display:flex;align-items:center;gap:8px;font-family:'04b03',monospace;font-size:1em;color:${i === currentIndex ? 'rgba(250,249,246,0.95)' : 'rgba(250,249,246,0.7)'};cursor:pointer;padding:6px 4px;border-bottom:1px solid rgba(250,249,246,0.04);background:${i === currentIndex ? 'rgba(250,249,246,0.08)' : 'transparent'};transition:color 0.15s;"
-          title="${track.title} — ${track.author}">
-          <span style="color:rgba(250,249,246,0.6);width:30px;flex-shrink:0;text-align:right;">${String(i + 1).padStart(2, '0')}.</span>
-          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${track.title}</span>
-          <span style="color:rgba(250,249,246,0.6);flex-shrink:0;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${track.author}</span>
-          <span style="color:rgba(250,249,246,0.5);flex-shrink:0;width:50px;text-align:right;">${track.durationText || ''}</span>
-        </div>
-      `).join('')}
-    </div>
-  `;
-  el.querySelectorAll('[data-idx]').forEach(child => {
-    child.addEventListener('click', () => {
-      const idx = parseInt(child.getAttribute('data-idx') || '0');
-      const track: MixtapeTrack = {
-        videoId: child.getAttribute('data-videoid') || '',
-        title: child.getAttribute('data-title') || '',
-        author: child.getAttribute('data-author') || '',
-        duration: 0,
-        durationText: '',
-      };
-      onSelect(idx, track);
-    });
-  });
-}
-
 export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const [tapes, setTapes] = useState<Tape[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -259,6 +201,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const [recorderSourced, setRecorderSourced] = useState(false);
   const [deckEjecting, setDeckEjecting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  // Shared mutable ref read by TapeBody's useFrame to spin spools — avoids
+  // polling window.AppState every tick and avoids re-rendering all tapes
+  // on play/pause toggles.
+  const isPlayingRef = useRef(false);
+  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
   const [infiniteLoading, setInfiniteLoading] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
@@ -1179,13 +1126,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const [dragging3D, setDragging3D] = useState(false);
 
   // --- 3D table callbacks ---
-  // Track whether the current drag ended in a recorder load — we skip
-  // exitPlayerView so the loaded UI stays up after release.
-  const recorderLoadedDuringDragRef = useRef(false);
   const handle3DDragStart = useCallback((tapeId: string) => {
     cancelMenu();
     setDragging3D(true);
-    recorderLoadedDuringDragRef.current = false;
     if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
     // Don't swap the player-view UI to a newly picked tape while another
     // tape is loaded/playing — the playing tape's tracklist stays put.
@@ -1193,7 +1136,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     enterPlayerView(tapeId);
   }, [cancelMenu, enterPlayerView, showMixtapeCreator]);
 
-  const handle3DDragEnd = useCallback((tapeId: string, x2d: number, y2d: number, droppedOnDeck: boolean) => {
+  const handle3DDragEnd = useCallback((tapeId: string, x2d: number, y2d: number, droppedOnDeck: boolean, landedOnRecorder: boolean) => {
     setDragging3D(false);
     // Block interaction with mixtape tape while creator is open
     if (tapeId === MIXTAPE_ID && showMixtapeCreator) return;
@@ -1205,10 +1148,10 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     // If the drag ended by loading into the recorder, skip the position
     // save — `x2d/y2d` are the recorder pose, and persisting them means the
     // tape would spawn under the recorder on refresh and get stuck there.
-    if (!recorderLoadedDuringDragRef.current) {
+    if (!landedOnRecorder) {
       setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, x: x2d, y: y2d } : t));
     }
-    if (!recorderLoadedDuringDragRef.current && (!loadedRef.current || loadedRef.current.id === tapeId)) {
+    if (!landedOnRecorder && (!loadedRef.current || loadedRef.current.id === tapeId)) {
       // Drag-end camera handling lives in TapesTable3D (zoom-only restore).
       // Skip the centre-camera reset here so xz stays where it is.
       exitPlayerView({ skipCameraReset: true });
@@ -1220,7 +1163,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const handleRecorderLoad = useCallback((tapeId: string) => {
     const t = tapesRef.current.find(t => t.id === tapeId);
     if (!t) return;
-    recorderLoadedDuringDragRef.current = true;
 
     // Respawn any previously-loaded tape: drop it back onto the centre of the
     // table from SPAWN_HEIGHT (with a bit of variance) instead of having it
@@ -1628,8 +1570,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     window.addEventListener('pointerup', onUp);
   }, []);
 
-  if (!mounted) return null;
-
   // Active area in 2D coords
   const cx = spawnCX();   // 2000
   const cy = spawnCY();   // 1200
@@ -1640,7 +1580,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const minY = cy - halfAZ + 100;
   const maxY = cy + halfAZ - 100;
 
-  const positionedTapes = tapes.map((tape, i) => {
+  // Position tapes inside the active area. Cached on `tapes` identity so the
+  // per-tape jitter / re-centering doesn't re-run (with fresh Math.random)
+  // every render — previously this produced a new array + new positions on
+  // every render, which cascaded through the whole 3D tree.
+  const positionedTapes = useMemo(() => tapes.map((tape) => {
     if (tape.x !== undefined && tape.y !== undefined) {
       // If already inside the active area, keep as-is
       const inside = tape.x >= minX && tape.x <= maxX && tape.y >= minY && tape.y <= maxY;
@@ -1652,18 +1596,18 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         y: cy + Math.round((Math.random() - 0.5) * 200),
       };
     }
-    const col = i % 3;
-    const row = Math.floor(i / 3);
     return {
       ...tape,
       x: cx + Math.round((Math.random() - 0.5) * 280),
       y: cy + Math.round((Math.random() - 0.5) * 200),
       angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
     };
-  });
+  // cx/cy/minX/maxX/minY/maxY read camera target refs; intentionally omitted
+  // from deps so the memo doesn't bust on every pan.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [tapes]);
 
-  console.log('[TapesTable] tapes:', tapes.length, 'positioned:', positionedTapes.length,
-    positionedTapes.slice(0, 2).map(t => ({ id: t.id.slice(0, 8), x: t.x, y: t.y })));
+  if (!mounted) return null;
 
   // Tapes on table = all except what's loaded in the deck
   const tableTapes = positionedTapes.filter(t => t.id !== loadedTape?.id);
@@ -1718,6 +1662,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           inspectTapeId={inspectTapeId}
           cameraTargetRef={cameraTargetRef}
           fadeInspectedTape={removingInspected}
+          isPlayingRef={isPlayingRef}
         />
       </Suspense>
 
@@ -2147,36 +2092,3 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   );
 }
 
-// Small React component that uses useEffect to manage the DOM overlay
-function MixtapeOverlayEffect({
-  mixtape,
-  currentIndex,
-  onSelectTrack,
-  elementId = 'mixtape-tracklist',
-}: {
-  mixtape: MixtapeData;
-  currentIndex: number;
-  onSelectTrack: (index: number, track: MixtapeTrack) => void;
-  elementId?: string;
-}) {
-  const elRef = React.useRef<HTMLElement | null>(null);
-
-  // Create element once on mount, remove on unmount
-  useEffect(() => {
-    let el = document.getElementById(elementId);
-    if (!el) { el = document.createElement('div'); el.id = elementId; document.body.appendChild(el); }
-    elRef.current = el;
-    return () => { el?.remove(); elRef.current = null; };
-  }, [elementId]);
-
-  // Update content when track changes — preserve opacity
-  useEffect(() => {
-    const el = elRef.current;
-    if (!el) return;
-    const prevOpacity = el.style.opacity;
-    mountMixtapeOverlay(el, mixtape, currentIndex, onSelectTrack);
-    if (prevOpacity) el.style.opacity = prevOpacity;
-  }, [mixtape, currentIndex, onSelectTrack]);
-
-  return null;
-}

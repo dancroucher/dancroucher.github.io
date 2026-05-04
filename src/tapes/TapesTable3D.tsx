@@ -73,7 +73,7 @@ interface TapesTable3DProps {
   tapes: Tape[];
   loadedTapeId: string | null;
   onDragStart: (tapeId: string) => void;
-  onDragEnd: (tapeId: string, x2d: number, y2d: number, droppedOnDeck: boolean) => void;
+  onDragEnd: (tapeId: string, x2d: number, y2d: number, droppedOnDeck: boolean, landedOnRecorder: boolean) => void;
   onDoubleTap: (tapeId: string, worldX?: number, worldZ?: number) => void;
   onMenuAction: (tapeId: string, action: 'link' | 'rewind' | 'remove') => void;
   menuId: string | null;
@@ -108,10 +108,13 @@ interface TapesTable3DProps {
   // When true, the inspected tape is faded out alongside the others (used
   // by the remove flow to dissolve the tape before the exit-inspect tween).
   fadeInspectedTape?: boolean;
+  // Shared YouTube-playing flag — passed through to each TapeBody to drive
+  // spool spin without polling a vanilla-JS global every frame.
+  isPlayingRef?: React.MutableRefObject<boolean>;
 }
 
 function SceneContents({
-  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId, fadeInspectedTape, cameraTargetRef,
+  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId, fadeInspectedTape, cameraTargetRef, isPlayingRef,
 }: TapesTable3DProps) {
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
@@ -239,7 +242,6 @@ function SceneContents({
   const lastTapRef = useRef<{ time: number; id: string }>({ time: 0, id: '' });
   // Full camera pose saved at drag start, restored on drag end so the view
   // returns to its pre-pickup zoom/pan instead of being yanked by the clamp.
-  const savedCamPoseRef = useRef<{ pos: THREE.Vector3; tgt: THREE.Vector3 } | null>(null);
   // Latest pointer position in client coords — read by the edge-pan useFrame
   // so the camera keeps drifting while the pointer hovers near a screen edge,
   // even with no pointermove event firing.
@@ -323,7 +325,6 @@ function SceneContents({
 
     function onDown(ev: PointerEvent) {
       const tapeId = raycastTape(ev.clientX, ev.clientY);
-      console.log('[TapeTable] pointerdown hit:', tapeId, 'at', ev.clientX, ev.clientY);
       if (!tapeId) {
         onClearMenu();
         return;
@@ -367,12 +368,6 @@ function SceneContents({
         ps.active = true;
         ps.offsetX = 0;
         ps.offsetZ = 0;
-        // Remember full pose so we can restore zoom + pan on drop.
-        const c0 = controlsRef.current;
-        savedCamPoseRef.current = {
-          pos: camera.position.clone(),
-          tgt: c0 ? c0.target.clone() : new THREE.Vector3(0, 0, 0),
-        };
         drag.tapeId = ps.downTapeId;
         if (controlsRef.current) controlsRef.current.enabled = false;
         onDragStart(ps.downTapeId);
@@ -413,7 +408,8 @@ function SceneContents({
 
         // If dropped over the recorder, set the snap target so TapeBody tweens
         // into the loaded pose instead of falling. Also hold the lid open briefly.
-        if (showRecorder && isOverRecorder(tx, tz)) {
+        const landedOnRecorder = !!showRecorder && isOverRecorder(tx, tz);
+        if (landedOnRecorder) {
           // Apply recorder yaw to the local offset to get a world-space nudge.
           const rc = Math.cos(RECORDER_ROT_Y);
           const rs = Math.sin(RECORDER_ROT_Y);
@@ -432,9 +428,7 @@ function SceneContents({
 
         const [x2d, y2d] = to2D(tx, tz);
         const deckDrop = isDeckDrop(ev.clientX, ev.clientY);
-        onDragEnd(tapeId, x2d, y2d, deckDrop);
-
-        savedCamPoseRef.current = null;
+        onDragEnd(tapeId, x2d, y2d, deckDrop, landedOnRecorder);
       } else if (tapeId && !wasDragging) {
         const now = Date.now();
         const last = lastTapRef.current;
@@ -532,7 +526,7 @@ function SceneContents({
       if (tapeId) {
         const [x2d, y2d] = to2D(tx, tz);
         const deckDrop = isDeckDrop(ev.clientX, ev.clientY);
-        onDragEnd(tapeId, x2d, y2d, deckDrop);
+        onDragEnd(tapeId, x2d, y2d, deckDrop, false);
       }
     }
 
@@ -796,7 +790,6 @@ function SceneContents({
       <Suspense fallback={null}>
         <Physics gravity={[0, -400, 0]} timeStep={1 / 60}>
           <TableSurface />
-          <YouTubeSurface />
           {/* Recorder — lower-left, partially running off the table edge */}
           <group visible={sceneReady}>
             {/* Always mounted so it can fade out via `hidden` when entering
@@ -817,6 +810,7 @@ function SceneContents({
                 inspecting={!!inspectTapeId && tape.id === inspectTapeId && !fadeInspectedTape}
                 onReady={handleTapeReady}
                 spawnAllowed={sceneReady}
+                isPlayingRef={isPlayingRef}
               />
             ))}
           </group>
