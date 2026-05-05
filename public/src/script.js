@@ -211,6 +211,7 @@ const Search = {
     _results: [],
     _searching: false,
     _dropdown: null,
+    _highlighted: -1,
 
     _getSource() {
         return 'youtube';
@@ -226,6 +227,7 @@ const Search = {
             const source = this._getSource();
             const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
             this._results = await res.json();
+            this._highlighted = -1;
         } catch (err) {
             console.error("Search failed:", err);
             this._results = [];
@@ -238,9 +240,42 @@ const Search = {
     close() {
         this._results = [];
         this._searching = false;
+        this._highlighted = -1;
         if (this._dropdown) {
             this._dropdown.style.display = "none";
         }
+    },
+
+    moveHighlight(delta) {
+        if (!this._results.length) return;
+        const n = this._results.length;
+        const next = this._highlighted < 0
+            ? (delta > 0 ? 0 : n - 1)
+            : (this._highlighted + delta + n) % n;
+        this._highlighted = next;
+        this._updateHighlight();
+    },
+
+    selectHighlighted() {
+        if (this._highlighted < 0 || this._highlighted >= this._results.length) return false;
+        const result = this._results[this._highlighted];
+        document.getElementById("idEntry").value = result.videoId;
+        this.close();
+        submitVideoName();
+        return true;
+    },
+
+    _updateHighlight() {
+        if (!this._dropdown) return;
+        const items = this._dropdown.querySelectorAll(".search-result");
+        items.forEach((el, i) => {
+            if (i === this._highlighted) {
+                el.classList.add("highlighted");
+                el.scrollIntoView({ block: "nearest" });
+            } else {
+                el.classList.remove("highlighted");
+            }
+        });
     },
 
     _ensureDropdown() {
@@ -445,7 +480,12 @@ document.addEventListener("DOMContentLoaded", () => {
             window.dispatchEvent(new CustomEvent('jeem-create-pending-tape'));
         });
     }
-    // Mixtape button is intentionally disabled for now.
+    const createMixtapeBtn = document.getElementById("create-mixtape-btn");
+    if (createMixtapeBtn) {
+        createMixtapeBtn.addEventListener("click", () => {
+            window.dispatchEvent(new CustomEvent('jeem-create-pending-mixtape'));
+        });
+    }
 
     // Grey out mixtape button when search bar is empty
     const mixtapeBtn = document.getElementById("mixtape-btn");
@@ -464,6 +504,20 @@ document.addEventListener("DOMContentLoaded", () => {
         input.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
                 Search.close();
+            } else if (e.key === "ArrowDown") {
+                if (Search._results.length) {
+                    e.preventDefault();
+                    Search.moveHighlight(1);
+                }
+            } else if (e.key === "ArrowUp") {
+                if (Search._results.length) {
+                    e.preventDefault();
+                    Search.moveHighlight(-1);
+                }
+            } else if (e.key === "Enter") {
+                if (Search.selectHighlighted()) {
+                    e.preventDefault();
+                }
             }
         });
 

@@ -909,3 +909,146 @@ visual styling is now in CSS.
     bundled — left for now.)
   - `TapesTable3D.tsx`: per-pointerdown `[TapeTable]` log. WebGL
     context lost/restored handlers kept (rare error events).
+
+## Recent Changes (2026-05, fifth batch)
+
+### "make a mixtape" flow
+
+The placeholder mixtape button on the start screen is live. Clicking
+`#create-mixtape-btn` dispatches `jeem-create-pending-mixtape` →
+`startPendingMixtape()` in `TapesTable.tsx` spawns a placeholder tape
+with `isPendingMixtape: true` and runs the inspect-entry tween
+(`tx - 8`, `tz + 3.5`).
+
+- `Tape.isPendingMixtape` flag added in `src/tapes/types.ts` —
+  excluded from `saveTapes` (filtered alongside `isPending`).
+- `inspectedIsPendingMixtape` is computed alongside the existing
+  `inspectedIsPending`. While true, a `.mixtape-creator-overlay`
+  element renders on top of the inspect view containing
+  `<MixtapeBuilder>` (new file `src/tapes/MixtapeBuilder.tsx`).
+  - Builder has its own search-bar input that calls `/api/search`
+    debounced 250ms, plus URL-paste support via `parseVideoId` +
+    youtube oembed for title/author resolution.
+  - Builder keyboard nav: `↑/↓` highlight, `Enter` adds. Mouse hover
+    also updates highlight.
+  - On `create`: builder's tracks become an `infiniteHistory` array,
+    placeholder tape is replaced in-place with a real `author:
+    'mixtape'` infinite tape (id changes — uses `crypto.randomUUID`),
+    and `newTapeIds` triggers a fall-in respawn.
+- Inspect-view title is now a click-to-edit `tape-inspect-title-display`
+  span with a pen icon (`fa-pen`); clicking switches to the existing
+  textarea. Same pattern in `Creator.tsx` for the legacy mixtape
+  creator's name input. Reused state: `editingTitle` (TapesTable),
+  `editingName` (Creator).
+- Standard rewind/share/remove buttons are suppressed when the
+  inspected tape `isPendingMixtape` (the create button on the
+  builder takes their place).
+
+### Search-bar keyboard nav
+
+`Search` module in `public/src/script.js` gained `↑/↓` highlight
+navigation and `Enter` to select the highlighted result. Tracks
+`_highlighted` index, scrolls items into view, applies `.highlighted`
+class.
+
+### Unified inspect view layout
+
+Single tapes, tracklist tapes (playlist/infinite/mixtape), and
+pending-mixtape placeholders now share one inspect layout. The
+`isSingle ? ... : ...` / `centred ? ... : ...` branches in the
+camera + style code are gone.
+
+- Camera (`handle3DDoubleTap`): `tapeOffset = -8`, `tzOffset = 3` for
+  every inspect entry (cassette centred on screen, projected high in
+  the frame). Pending-tape spawn uses the same offsets.
+- `centred = true` always — `colStyle` anchors at `left: 50%`.
+  Title `top: 12vh` (wide) / `13vh` (narrow). Buttons row `top:
+  94vh`, content-sized, `flexWrap: nowrap`, centred.
+- The wide tracklist panel previously sat at `right: 0` with the
+  tape on the left (`tapeOffset: -1`); now both panels share the
+  same centred-tape, panel-below-tape layout.
+
+### Tracklist styling unified across mixtape / playlist / infinite
+
+`TapesTable.tsx` always renders `<div className="mixtape-track-list">`
+for any tracklist (the old `tape-panel-tracks` branch is gone).
+Click-to-seek for non-mixtape tapes preserved via inline `cursor:
+pointer` + `onClick` — mixtapes stay non-interactive (read-only
+during playback).
+
+CSS in `public/player.css` (.mixtape-track-list .tape-track):
+
+- Display **grid** with `grid-template-areas: "num title" "num
+  author"`, so the track number sits left and is vertically
+  centred between the title row and the author row.
+- `.tape-track-top` uses `display: contents` so the existing JSX
+  (`<div class="tape-track-top"><span class="tape-track-num"/><span
+  class="tape-track-title"/></div><div class="tape-track-author-row"/>`)
+  participates directly in the grid.
+- Numbers: `1.4em`, opacity `0.55`, no trailing dot.
+- Titles + authors: `white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis` so every row is identical height
+  regardless of content length.
+- `min-height: 64px` per row, `padding: 12px 16px`. List padding
+  `2px 0 0` so the first row sits flush with the others.
+
+### Inspect tracklist panel (narrow + wide)
+
+Both `.tape-inspect-narrow-panel` and `.tape-inspect-wide-panel`
+anchor at `top: 48vh`. Narrow: `left/right: 16px`. Wide: centred
+with `width: min(50vw, 720px)`. The inner `.mixtape-track-list`
+caps at `max-height: min(495px, calc(100vh - 48vh - 130px))` with
+`overflow-y: auto` — fits 8 rows (8×64 = 512 minus a sliver to
+hint at scrollable overflow).
+
+- `max-height` lives on the **list** (not the panel) because the
+  flex chain through `.mixtape-track-list-frame` wasn't reliably
+  propagating panel `max-height` down to the scrollable child.
+- Panels themselves are `overflow: visible` so the triangle
+  indicator (below) isn't clipped.
+
+### `.mixtape-track-list-frame` wrapper + scroll-aware triangle
+
+The track-list is wrapped in a new `.mixtape-track-list-frame` div
+(JSX in TapesTable.tsx). The frame owns the visible black background
+(`rgba(0,0,0,0.45)`) + border-radius and the upward-pointing
+triangle indicator (`::before`, `border-bottom: 20px solid
+rgba(0,0,0,0.45)`, `top: -20px`). The inner `.mixtape-track-list`
+keeps its own `overflow-y: auto`. On iOS Safari overscroll, the
+scrolling element translates and the frame translates with it →
+triangle moves with the box rather than staying fixed. The panel
+`::before` triangles (`tape-inspect-*-panel::before`) are now
+`display: none`.
+
+### Playback panel mode
+
+When the panel is rendered for the *playing* tape (not inspect), it
+gets a `tape-playback-panel` class. CSS overrides:
+
+- `top: 18vh` (much higher than inspect's 48vh) so the tracklist
+  begins just below the song-name/author header.
+- Wide variant: `left: 16px; right: auto; transform: none;` (left-
+  aligned, same edge inset as narrow).
+- Inner list `max-height: 68vh` (taller than inspect's ~495px cap).
+
+`trackListScrollRef` + a `useEffect` keyed on `loadedTape?.infiniteIndex
+/ playlistIndex / id` auto-scrolls the active row to the vertical
+centre of the visible list (smooth). Ref only attaches in playback
+mode (`!inspectTapeId`) so user-initiated inspect-view scrolling is
+unaffected.
+
+### Inactivity reset on key navigation
+
+`window.addEventListener("keydown")` in `public/src/player.js` now
+calls `Inactivity.reset()` at the top of the handler (before the
+input/textarea early return). Belt-and-braces against any path
+where the existing `document.keydown` Inactivity listener doesn't
+fire — arrow-key navigation through the tracklist now reliably
+keeps the playback UI visible.
+
+### Logo click during inspect
+
+The title-link click handler in `TapesTable.tsx` now checks
+`inspectTapeIdRef.current` first and runs `exitInspect()` instead of
+falling through to `<a href=".">` (which reloaded the page mid-
+animation, killing the glitch-out).

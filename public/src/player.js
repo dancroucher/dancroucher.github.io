@@ -553,6 +553,7 @@ const Inactivity = {
 
 // ── Keyboard controls ──
 window.addEventListener("keydown", (event) => {
+    Inactivity.reset();
     if (event.target.tagName === "INPUT" || event.target.tagName === "TEXTAREA") return;
 
     switch (event.key.toLowerCase()) {

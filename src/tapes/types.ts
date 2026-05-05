@@ -35,6 +35,10 @@ export interface Tape {
   // user has provided a YouTube URL or search query. Cleaned up if the user
   // exits inspect view without populating it.
   isPending?: boolean;
+  // Pending placeholder for the "make a mixtape" flow. The tape sits in
+  // inspect view while the user types a name + adds tracks, then the flow
+  // either finalises the tape or discards it on exit.
+  isPendingMixtape?: boolean;
 }
 
 export const TAPE_STYLES: {
