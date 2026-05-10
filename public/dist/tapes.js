@@ -74761,36 +74761,42 @@ function stampTitle(baseColor, title, variant, tape) {
     ctx.save();
     ctx.translate(label.cx, label.cy);
     ctx.rotate(Math.PI / 2);
-    const stickerX = 0;
-    const stickerY = -300;
-    const stickerW = 280;
-    const stickerH = 90;
+    ctx.translate(360, 220);
+    ctx.rotate(-Math.PI / 4);
+    const stickerW = 260;
+    const stickerH = 120;
     const grad = ctx.createLinearGradient(
-      stickerX - stickerW / 2,
-      stickerY,
-      stickerX + stickerW / 2,
-      stickerY + stickerH
+      -stickerW / 2,
+      0,
+      stickerW / 2,
+      stickerH
     );
-    grad.addColorStop(0, "#f0d848");
-    grad.addColorStop(1, "#e8c830");
+    grad.addColorStop(0, "#ffe000");
+    grad.addColorStop(1, "#f5c800");
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.roundRect(stickerX - stickerW / 2, stickerY - stickerH / 2, stickerW, stickerH, 10);
+    ctx.roundRect(-stickerW / 2, -stickerH / 2, stickerW, stickerH, 10);
     ctx.fill();
     ctx.strokeStyle = "rgba(180,150,30,0.5)";
     ctx.lineWidth = 2;
     ctx.stroke();
-    const authorFontSize = 52;
     ctx.fillStyle = "#3a2a08";
-    ctx.font = `${authorFontSize}px 'Permanent Marker', 'Courier New', monospace`;
+    ctx.font = '600 18px "Helvetica Neue", Arial, sans-serif';
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+    ctx.fillText("Made by:", 0, -stickerH / 2 + 16);
+    const authorFontSize = 52;
+    ctx.fillStyle = "#3a2a08";
+    ctx.font = `bold ${authorFontSize}px "Courier New", monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const authorTextY = 16;
     if (authorTag) {
-      ctx.fillText(authorTag, stickerX, stickerY);
+      ctx.fillText(authorTag, 0, authorTextY);
     } else if (isPendingMix && caretField !== "author") {
       ctx.save();
       ctx.fillStyle = "rgba(58, 42, 8, 0.45)";
-      ctx.fillText("by\u2026", stickerX, stickerY);
+      ctx.fillText("\u2026", 0, authorTextY);
       ctx.restore();
     }
     if (caretIdx !== void 0 && caretField === "author") {
@@ -74802,13 +74808,13 @@ function stampTitle(baseColor, title, variant, tape) {
       const blockChar = charAtCaret || fallbackChar;
       const blockW = ctx.measureText(blockChar).width;
       const blockH = authorFontSize * 1.05;
-      const blockX = stickerX + prefixW - lineW / 2;
-      const blockY = stickerY;
+      const blockX = prefixW - lineW / 2;
+      const blockY = authorTextY;
       ctx.save();
       ctx.fillStyle = "#3a2a08";
       ctx.fillRect(blockX - 1, blockY - blockH / 2, blockW + 2, blockH);
       if (charAtCaret) {
-        ctx.fillStyle = "#f0d848";
+        ctx.fillStyle = "#ffe000";
         ctx.textAlign = "left";
         ctx.fillText(charAtCaret, blockX, blockY);
       }
@@ -74900,7 +74906,7 @@ function TapeBody({
   }, [meshName]);
   (0, import_react7.useEffect)(() => {
     if (!sceneData || !textures) return;
-    const hasSticker = tape.isInfinite || tape.isPlaylist || !!tape.authorTag;
+    const hasSticker = tape.isInfinite || tape.isPlaylist || !!tape.authorTag || !!tape.isPendingMixtape;
     const colorMap = tape.title || hasSticker ? stampTitle(textures.baseColor, tape.title, variant, tape) : textures.baseColor;
     const mats = [];
     sceneData.group.traverse((child) => {
@@ -80151,7 +80157,7 @@ async function resolveOembedTitle(videoId) {
     return { title: videoId, author: "" };
   }
 }
-function MixtapeBuilder({ className, name, tracks, onAddTrack, onRemoveTrack, onReplaceTrack, onReorderTracks, onCreate }) {
+function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange, onAddTrack, onRemoveTrack, onReplaceTrack, onReorderTracks, onCreate }) {
   const [query2, setQuery] = (0, import_react10.useState)("");
   const [results, setResults] = (0, import_react10.useState)([]);
   const [searching, setSearching] = (0, import_react10.useState)(false);
@@ -80437,20 +80443,38 @@ function MixtapeBuilder({ className, name, tracks, onAddTrack, onRemoveTrack, on
       tracks.map((t3, i4) => editingIndex === i4 ? /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(import_react10.default.Fragment, { children: activeRow }, `edit-${i4}`) : renderTrackRow(t3, i4)),
       editingIndex === null && activeRow
     ] }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
-      "button",
-      {
-        type: "button",
-        className: `tape-btn mixtape-create-btn${canCreate ? "" : " is-disabled"}`,
-        style: { fontSize: "1.1em", padding: "4px 10px", lineHeight: "1.5em" },
-        onClick: onCreate,
-        disabled: !canCreate,
-        children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("i", { className: "fas fa-check" }),
-          "\xA0create"
-        ]
-      }
-    )
+    /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "mixtape-builder-footer", children: [
+      onAuthorTagChange && /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("label", { className: "mixtape-author-input", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "mixtape-author-input-label", children: "by:" }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+          "input",
+          {
+            type: "text",
+            maxLength: 8,
+            value: authorTag ?? "",
+            placeholder: "you",
+            spellCheck: false,
+            autoCorrect: "off",
+            autoCapitalize: "off",
+            onChange: (e3) => onAuthorTagChange(e3.target.value.slice(0, 8))
+          }
+        )
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+        "button",
+        {
+          type: "button",
+          className: `tape-btn mixtape-create-btn${canCreate ? "" : " is-disabled"}`,
+          style: { fontSize: "1.1em", padding: "4px 10px", lineHeight: "1.5em" },
+          onClick: onCreate,
+          disabled: !canCreate,
+          children: [
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("i", { className: "fas fa-check" }),
+            "\xA0create"
+          ]
+        }
+      )
+    ] })
   ] });
 }
 
@@ -82171,45 +82195,12 @@ function TapesTable({ mixtape }) {
           }
         ),
         /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
-          "textarea",
-          {
-            className: "tape-author-on-cassette",
-            placeholder: "",
-            spellCheck: false,
-            autoCorrect: "off",
-            autoCapitalize: "off",
-            maxLength: 8,
-            value: tape.authorTag ?? "",
-            onChange: (e3) => {
-              const v2 = e3.target.value.slice(0, 8);
-              const pos = Math.min(e3.target.selectionStart ?? v2.length, v2.length);
-              setTapes((prev) => prev.map((t3) => t3.id === inspectTapeId ? { ...t3, authorTag: v2 } : t3));
-              setCaretBlinkOn(true);
-              setCaretPos(pos);
-            },
-            onFocus: (e3) => {
-              setFocusedField("author");
-              setCaretPos(e3.currentTarget.selectionStart ?? (tape.authorTag || "").length);
-            },
-            onBlur: () => setFocusedField((prev) => prev === "author" ? null : prev),
-            onSelect: (e3) => {
-              setCaretBlinkOn(true);
-              setCaretPos(e3.currentTarget.selectionStart ?? 0);
-            },
-            onKeyDown: (e3) => {
-              setCaretBlinkOn(true);
-              const el = e3.currentTarget;
-              requestAnimationFrame(() => setCaretPos(el.selectionStart ?? 0));
-            },
-            onClick: (e3) => setCaretPos(e3.currentTarget.selectionStart ?? 0),
-            rows: 1
-          }
-        ),
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
           MixtapeBuilder,
           {
             name: tape.title,
             tracks: mixtapeBuilderTracks,
+            authorTag: tape.authorTag ?? "",
+            onAuthorTagChange: (v2) => setTapes((prev) => prev.map((t3) => t3.id === inspectTapeId ? { ...t3, authorTag: v2 } : t3)),
             onAddTrack: (t3) => setMixtapeBuilderTracks((prev) => [...prev, t3]),
             onRemoveTrack: (i4) => setMixtapeBuilderTracks((prev) => prev.filter((_2, idx) => idx !== i4)),
             onReplaceTrack: (i4, t3) => setMixtapeBuilderTracks((prev) => prev.map((existing, idx) => idx === i4 ? t3 : existing)),

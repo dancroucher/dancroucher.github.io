@@ -2024,41 +2024,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               onClick={(e) => setCaretPos(e.currentTarget.selectionStart ?? 0)}
               rows={1}
             />
-            <textarea
-              className="tape-author-on-cassette"
-              placeholder=""
-              spellCheck={false}
-              autoCorrect="off"
-              autoCapitalize="off"
-              maxLength={8}
-              value={tape.authorTag ?? ''}
-              onChange={(e) => {
-                const v = e.target.value.slice(0, 8);
-                const pos = Math.min(e.target.selectionStart ?? v.length, v.length);
-                setTapes(prev => prev.map(t => t.id === inspectTapeId ? { ...t, authorTag: v } : t));
-                setCaretBlinkOn(true);
-                setCaretPos(pos);
-              }}
-              onFocus={(e) => {
-                setFocusedField('author');
-                setCaretPos(e.currentTarget.selectionStart ?? (tape.authorTag || '').length);
-              }}
-              onBlur={() => setFocusedField(prev => prev === 'author' ? null : prev)}
-              onSelect={(e) => {
-                setCaretBlinkOn(true);
-                setCaretPos(e.currentTarget.selectionStart ?? 0);
-              }}
-              onKeyDown={(e) => {
-                setCaretBlinkOn(true);
-                const el = e.currentTarget;
-                requestAnimationFrame(() => setCaretPos(el.selectionStart ?? 0));
-              }}
-              onClick={(e) => setCaretPos(e.currentTarget.selectionStart ?? 0)}
-              rows={1}
-            />
             <MixtapeBuilder
               name={tape.title}
               tracks={mixtapeBuilderTracks}
+              authorTag={tape.authorTag ?? ''}
+              onAuthorTagChange={(v) => setTapes(prev => prev.map(t => t.id === inspectTapeId ? { ...t, authorTag: v } : t))}
               onAddTrack={(t) => setMixtapeBuilderTracks(prev => [...prev, t])}
               onRemoveTrack={(i) => setMixtapeBuilderTracks(prev => prev.filter((_, idx) => idx !== i))}
               onReplaceTrack={(i, t) => setMixtapeBuilderTracks(prev => prev.map((existing, idx) => idx === i ? t : existing))}

@@ -899,6 +899,44 @@ a:hover {
   cursor: not-allowed;
 }
 
+/* Footer row: "by [name]" author tag input + create button, centred. */
+.mixtape-builder-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.mixtape-author-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--tape-font);
+  color: var(--tape-text);
+  font-size: 1em;
+}
+.mixtape-author-input-label {
+  opacity: 0.7;
+}
+.mixtape-author-input input {
+  width: 7em;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  color: var(--tape-text);
+  font-family: var(--tape-font);
+  font-size: 1em;
+  padding: 4px 8px;
+  outline: none;
+}
+.mixtape-author-input input:focus {
+  border-color: #ffffff;
+  background: transparent;
+}
+.mixtape-author-input input::placeholder {
+  color: var(--tape-text-dim);
+  opacity: 0.6;
+}
+
 /* Back-arrow swap for the title link while creating a mixtape. */
 .jfm-back-arrow {
   display: inline-block;

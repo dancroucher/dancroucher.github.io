@@ -302,6 +302,7 @@ Caret rendered into texture in 04b03 font: `nameInputFocused` toggles on focus/b
 - On create: tracks → `infiniteHistory`, placeholder replaced with real `author:'mixtape'` infinite tape (new uuid), `newTapeIds` triggers fall-in.
 - `.mixtape-track-list-frame` wrapper for dark bg + triangle indicator.
 - Search dropdown: `.search-dropdown.mixtape-search-dropdown` selector (beats generic `.search-dropdown{width:40vw}`); `left:0;right:0`; chain forced `overflow:visible`.
+- Footer (`.mixtape-builder-footer`): centred flex row with `by:` author input (`.mixtape-author-input`, `maxLength=8`, transparent bg + white border) and the create button. Props `authorTag` + `onAuthorTagChange` are wired from `TapesTable` so each keystroke updates `tape.authorTag`, which triggers a re-stamp and live-updates the cassette sticker.
 
 **Builder track row** — three hover regions (only `.mixtape-builder` — inspect tracklist unchanged):
 - `.track-handle` (56px col): number default, swap `fa-grip-vertical` on hover, `cursor:grab`.
@@ -363,11 +364,14 @@ at module init; on resolve it flushes `stampCache` and dispatches
 real font once it's available — no remount/respawn.
 
 ### Block-cursor caret (terminal-style, layout-stable)
-On the pending-mixtape inspect view, the cassette has two invisible
-in-canvas editors: title (label centre) and author tag (right-corner
-sticker). Both are `<textarea>` overlays with transparent text +
-transparent caret + transparent `::selection` so only the in-canvas
-cursor is visible.
+On the pending-mixtape inspect view, the cassette title is edited
+via an invisible in-canvas `<textarea>` overlay (`.tape-name-on-cassette`)
+with transparent text + transparent caret + transparent `::selection`
+so only the in-canvas cursor is visible. The author tag is edited
+through a separate visible input in the MixtapeBuilder footer (see
+"Author-tag sticker" below) — the cassette-overlay textarea for
+author was removed because aligning a fixed-position element with a
+rotated 3D-projected sticker proved too fragile.
 
 Cursor renders as an inverted block (filled `#222` rect width-of-character,
 height `fontSize × 1.05`) with the underlying glyph re-drawn in
@@ -384,12 +388,14 @@ Per-line `LineMeta = { text, startIdx, endIdx }` tracking lets the
 caret resolve `lineIdx + offset` for multi-line wrap.
 
 ### Caret state machine (TapesTable.tsx)
-- `focusedField: 'title' | 'author' | null` — single source of truth;
-  only one editor owns the cursor at a time.
+- `focusedField: 'title' | 'author' | null` — single source of truth.
+  In practice only `'title'` ever fires now (the author cassette-overlay
+  was removed); `'author'` remains in the type for the in-canvas caret
+  branch in `stampTitle` should we ever re-introduce direct editing.
 - `caretBlinkOn` — toggles every 500ms via interval gated on
   `focusedField && inspectedIsPendingMixtape`.
-- `caretPos: number` — tracked from `selectionStart` on each editor
-  via `onChange / onFocus / onSelect / onKeyDown / onClick`.
+- `caretPos: number` — tracked from `selectionStart` on the title
+  editor via `onChange / onFocus / onSelect / onKeyDown / onClick`.
   `onKeyDown` defers via `requestAnimationFrame` (selectionStart
   updates after the event).
 - `tapesWithCaret` useMemo injects transient `_caretField` +
@@ -398,19 +404,40 @@ caret resolve `lineIdx + offset` for multi-line wrap.
   blink flips re-stamps to a new cached texture.
 
 ### Author-tag sticker
-`Tape.authorTag?: string` — max 8 chars. Yellow corner sticker at
-local `(0, -300)` from label centre (opposite end from existing
-infinite/playlist/mixtape stickers). Marker font, dark-brown
-`#3a2a08` text on yellow `#f0d848 → #e8c830` gradient.
+`Tape.authorTag?: string` — max 8 chars. Yellow sticker stamped onto
+the cassette label, rotated **−45°** in the label plane so it sits
+diagonally like a hand-stuck price label.
 
+Drawn inside `stampTitle` after the standard `ctx.translate(label.cx,
+label.cy); ctx.rotate(π/2)` (the label-orientation rotation), then a
+nested transform: `ctx.translate(360, 220); ctx.rotate(-π/4)`.
+Coordinates land within the cassette face's mapped UV region — the
+original `(0, -300)` placement was on a part of the texture not mapped
+to the visible face, which is why early iterations rendered nothing.
+
+Sticker geometry (in the post-translate, post-rotate local frame —
+draw at origin):
+- `stickerW=260, stickerH=120`, rounded 10px corners
+- Gradient `#ffe000 → #f5c800` (saturated yellow)
+- Stroke `rgba(180,150,30,0.5)`
+- "Made by:" header in `600 18px Helvetica Neue` at `y = -stickerH/2 + 16`
+  for legibility against the bright yellow
+- Author text in `bold 52px "Courier New"` (matches the "Mixtape" badge
+  font for consistency) at `y = 16`
+- Empty + pending + unfocused → faint `"…"` placeholder at the same
+  position so the sticker is discoverable as editable
+
+Visibility gate (unchanged):
 `showAuthorSticker = !!authorTag || isPendingMixtape || (caretField === 'author' && caretIdx !== undefined)`.
-Faint `"by…"` placeholder rendered for empty authorTag while
-`isPendingMixtape && caretField !== 'author'` so the sticker is
-discoverable.
 
-Editor: `.tape-author-on-cassette` invisible textarea
-(`maxLength={8}`, `left:70vw top:32vh w:14vw h:36px`; narrow
-viewport variant `left:75vw top:35vh w:24vw`).
+`hasSticker` (in the stamp `useEffect`) **must** include
+`isPendingMixtape` — otherwise an empty-title pending mixtape skips
+`stampTitle` entirely and the sticker (with its `"…"` placeholder)
+never renders. This was the root cause of the "sticker not appearing"
+bug.
+
+Editor: visible `<input>` in the MixtapeBuilder footer (see below) —
+no longer an in-canvas overlay.
 
 `onCreate` (mixtape finalise) propagates
 `authorTag: (tape.authorTag ?? '').slice(0, 8) || undefined` onto

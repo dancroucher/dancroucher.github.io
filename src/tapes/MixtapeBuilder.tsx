@@ -19,6 +19,8 @@ interface Props {
   className?: string;
   name: string;
   tracks: MixtapeBuilderTrack[];
+  authorTag?: string;
+  onAuthorTagChange?: (value: string) => void;
   onAddTrack: (track: MixtapeBuilderTrack) => void;
   onRemoveTrack?: (index: number) => void;
   onReplaceTrack?: (index: number, track: MixtapeBuilderTrack) => void;
@@ -59,7 +61,7 @@ async function resolveOembedTitle(videoId: string): Promise<{ title: string; aut
   }
 }
 
-export function MixtapeBuilder({ className, name, tracks, onAddTrack, onRemoveTrack, onReplaceTrack, onReorderTracks, onCreate }: Props) {
+export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange, onAddTrack, onRemoveTrack, onReplaceTrack, onReorderTracks, onCreate }: Props) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -363,13 +365,30 @@ export function MixtapeBuilder({ className, name, tracks, onAddTrack, onRemoveTr
         {editingIndex === null && activeRow}
       </div>
       </div>
-      <button
-        type="button"
-        className={`tape-btn mixtape-create-btn${canCreate ? '' : ' is-disabled'}`}
-        style={{ fontSize: '1.1em', padding: '4px 10px', lineHeight: '1.5em' }}
-        onClick={onCreate}
-        disabled={!canCreate}
-      ><i className="fas fa-check" />&nbsp;create</button>
+      <div className="mixtape-builder-footer">
+        {onAuthorTagChange && (
+          <label className="mixtape-author-input">
+            <span className="mixtape-author-input-label">by:</span>
+            <input
+              type="text"
+              maxLength={8}
+              value={authorTag ?? ''}
+              placeholder="you"
+              spellCheck={false}
+              autoCorrect="off"
+              autoCapitalize="off"
+              onChange={(e) => onAuthorTagChange(e.target.value.slice(0, 8))}
+            />
+          </label>
+        )}
+        <button
+          type="button"
+          className={`tape-btn mixtape-create-btn${canCreate ? '' : ' is-disabled'}`}
+          style={{ fontSize: '1.1em', padding: '4px 10px', lineHeight: '1.5em' }}
+          onClick={onCreate}
+          disabled={!canCreate}
+        ><i className="fas fa-check" />&nbsp;create</button>
+      </div>
     </div>
   );
 }

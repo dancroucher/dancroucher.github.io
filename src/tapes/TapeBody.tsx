@@ -443,47 +443,54 @@ export function stampTitle(
     ctx.save();
     ctx.translate(label.cx, label.cy);
     ctx.rotate(Math.PI / 2);
-    // Local (0, -300) — opposite end of the label from the infinite/
-    // playlist/mixtape stickers. After the +PI/2 rotation that lands at
-    // texture (label.cx + 300, label.cy) — the right corner of the label
-    // strip in texture space.
-    const stickerX = 0;
-    const stickerY = -300;
-    const stickerW = 280;
-    const stickerH = 90;
+    // Translate to sticker centre, then rotate 45° in the label plane so
+    // the tag sits diagonally on the cassette.
+    ctx.translate(360, 220);
+    ctx.rotate(-Math.PI / 4);
+    const stickerW = 260;
+    const stickerH = 120;
     const grad = ctx.createLinearGradient(
-      stickerX - stickerW / 2,
-      stickerY,
-      stickerX + stickerW / 2,
-      stickerY + stickerH,
+      -stickerW / 2,
+      0,
+      stickerW / 2,
+      stickerH,
     );
-    grad.addColorStop(0, "#f0d848");
-    grad.addColorStop(1, "#e8c830");
+    grad.addColorStop(0, "#ffe000");
+    grad.addColorStop(1, "#f5c800");
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.roundRect(stickerX - stickerW / 2, stickerY - stickerH / 2, stickerW, stickerH, 10);
+    ctx.roundRect(-stickerW / 2, -stickerH / 2, stickerW, stickerH, 10);
     ctx.fill();
     ctx.strokeStyle = "rgba(180,150,30,0.5)";
     ctx.lineWidth = 2;
     ctx.stroke();
-    // Author text in marker font, dark on yellow.
-    const authorFontSize = 52;
+    // "Made by:" header on the top edge of the sticker, small sans-serif
+    // for legibility against the yellow.
     ctx.fillStyle = "#3a2a08";
-    ctx.font = `${authorFontSize}px 'Permanent Marker', 'Courier New', monospace`;
+    ctx.font = '600 18px "Helvetica Neue", Arial, sans-serif';
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+    ctx.fillText("Made by:", 0, -stickerH / 2 + 16);
+
+    // Author text — matches the "Mixtape" badge font for consistency.
+    const authorFontSize = 52;
+    ctx.fillStyle = "#3a2a08";
+    ctx.font = `bold ${authorFontSize}px "Courier New", monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const authorTextY = 16; // shift text down to clear the "Made by:" header
     if (authorTag) {
-      ctx.fillText(authorTag, stickerX, stickerY);
+      ctx.fillText(authorTag, 0, authorTextY);
     } else if (isPendingMix && caretField !== 'author') {
       // Faint placeholder so the empty yellow sticker is discoverable as
       // an editable area before the user has clicked it.
       ctx.save();
       ctx.fillStyle = "rgba(58, 42, 8, 0.45)";
-      ctx.fillText("by…", stickerX, stickerY);
+      ctx.fillText("…", 0, authorTextY);
       ctx.restore();
     }
     // Caret overlay for the author field — mirrors the title-caret logic
-    // but operates on a single-line string drawn at (stickerX, stickerY).
+    // but operates on a single-line string drawn at sticker centre.
     if (caretIdx !== undefined && caretField === 'author') {
       const offset = Math.max(0, Math.min(authorTag.length, caretIdx));
       const lineW = ctx.measureText(authorTag).width;
@@ -493,13 +500,13 @@ export function stampTitle(
       const blockChar = charAtCaret || fallbackChar;
       const blockW = ctx.measureText(blockChar).width;
       const blockH = authorFontSize * 1.05;
-      const blockX = stickerX + prefixW - lineW / 2;
-      const blockY = stickerY;
+      const blockX = prefixW - lineW / 2;
+      const blockY = authorTextY;
       ctx.save();
       ctx.fillStyle = "#3a2a08";
       ctx.fillRect(blockX - 1, blockY - blockH / 2, blockW + 2, blockH);
       if (charAtCaret) {
-        ctx.fillStyle = "#f0d848";
+        ctx.fillStyle = "#ffe000";
         ctx.textAlign = "left";
         ctx.fillText(charAtCaret, blockX, blockY);
       }
@@ -624,7 +631,7 @@ export function TapeBody({
     // mixtape) so the sticker stays visible even when the title is empty —
     // e.g. while the pending-mixtape name is still blank. Plain tapes with
     // an empty title can keep the bare baseColor.
-    const hasSticker = tape.isInfinite || tape.isPlaylist || !!tape.authorTag;
+    const hasSticker = tape.isInfinite || tape.isPlaylist || !!tape.authorTag || !!tape.isPendingMixtape;
     const colorMap = (tape.title || hasSticker)
       ? stampTitle(textures.baseColor, tape.title, variant, tape)
       : textures.baseColor;
