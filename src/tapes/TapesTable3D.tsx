@@ -75,6 +75,7 @@ interface TapesTable3DProps {
   onDragStart: (tapeId: string) => void;
   onDragEnd: (tapeId: string, x2d: number, y2d: number, droppedOnDeck: boolean, landedOnRecorder: boolean) => void;
   onDoubleTap: (tapeId: string, worldX?: number, worldZ?: number) => void;
+  onSingleTap?: (tapeId: string) => void;
   onMenuAction: (tapeId: string, action: 'link' | 'rewind' | 'remove') => void;
   menuId: string | null;
   onClearMenu: () => void;
@@ -114,7 +115,7 @@ interface TapesTable3DProps {
 }
 
 function SceneContents({
-  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId, fadeInspectedTape, cameraTargetRef, isPlayingRef,
+  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onSingleTap, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId, fadeInspectedTape, cameraTargetRef, isPlayingRef,
 }: TapesTable3DProps) {
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
@@ -430,21 +431,31 @@ function SceneContents({
         const deckDrop = isDeckDrop(ev.clientX, ev.clientY);
         onDragEnd(tapeId, x2d, y2d, deckDrop, landedOnRecorder);
       } else if (tapeId && !wasDragging) {
-        const now = Date.now();
-        const last = lastTapRef.current;
-        if (last.id === tapeId && now - last.time < 400) {
-          bounceTapeId.current = tapeId;
-          // Delay menu open slightly so bounce ref is consumed first
-          // Send the tape's current world XZ along — its stored 2D x/y in
-          // state can lag the rigid-body's actual position (physics
-          // settle, recent drops, etc.), and the inspect-camera math
-          // needs the live position to centre the tape correctly.
-          const live = getTapeWorldPos(tapeId);
-          setTimeout(() => onDoubleTap(tapeId, live?.x, live?.z), 50);
+        // Pending-mixtape: single click cycles the cassette texture variant
+        // (label area is shielded by the inline-edit textarea overlay so
+        // those clicks don't reach the canvas). Skip double-tap detection
+        // here — double-tap is disabled while in pending-mixtape mode.
+        const tappedTape = tapes.find(t => t.id === tapeId);
+        if (tappedTape?.isPendingMixtape && onSingleTap) {
+          onSingleTap(tapeId);
           lastTapRef.current = { time: 0, id: '' };
         } else {
-          lastTapRef.current = { time: now, id: tapeId };
-          onClearMenu();
+          const now = Date.now();
+          const last = lastTapRef.current;
+          if (last.id === tapeId && now - last.time < 400) {
+            bounceTapeId.current = tapeId;
+            // Delay menu open slightly so bounce ref is consumed first
+            // Send the tape's current world XZ along — its stored 2D x/y in
+            // state can lag the rigid-body's actual position (physics
+            // settle, recent drops, etc.), and the inspect-camera math
+            // needs the live position to centre the tape correctly.
+            const live = getTapeWorldPos(tapeId);
+            setTimeout(() => onDoubleTap(tapeId, live?.x, live?.z), 50);
+            lastTapRef.current = { time: 0, id: '' };
+          } else {
+            lastTapRef.current = { time: now, id: tapeId };
+            onClearMenu();
+          }
         }
       }
 
@@ -461,7 +472,7 @@ function SceneContents({
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
-  }, [gl, drag, snap, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, isOverRecorder, onDragStart, onDragEnd, onDoubleTap, onClearMenu, lockedTapeId, pickupBlockedTapeId, maxDragX, onRecorderLoad, showRecorder, inspectTapeId]);
+  }, [gl, drag, snap, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, isOverRecorder, onDragStart, onDragEnd, onDoubleTap, onSingleTap, onClearMenu, lockedTapeId, pickupBlockedTapeId, maxDragX, onRecorderLoad, showRecorder, inspectTapeId, tapes]);
 
   // Track mouse hover over the recorder footprint (for lid open on hover).
   useEffect(() => {

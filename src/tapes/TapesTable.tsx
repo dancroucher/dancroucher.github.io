@@ -255,6 +255,12 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const [removingInspected, setRemovingInspected] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [mixtapeBuilderTracks, setMixtapeBuilderTracks] = useState<MixtapeBuilderTrack[]>([]);
+  // Caret rendered in-canvas on the cassette label while editing the
+  // pending-mixtape name. nameInputFocused flips on focus/blur of the
+  // overlay textarea; caretBlinkOn toggles every 500ms while focused so
+  // the canvas-stamped title alternates between `title` and `title|`.
+  const [nameInputFocused, setNameInputFocused] = useState(false);
+  const [caretBlinkOn, setCaretBlinkOn] = useState(true);
   const trackListScrollRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!loadedTape) return;
@@ -299,6 +305,34 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const inspectedTape = inspectTapeId ? tapes.find(t => t.id === inspectTapeId) : undefined;
   const inspectedIsPending = !!inspectedTape?.isPending;
   const inspectedIsPendingMixtape = !!inspectedTape?.isPendingMixtape;
+
+  useEffect(() => {
+    if (!nameInputFocused || !inspectedIsPendingMixtape) {
+      setCaretBlinkOn(true);
+      return;
+    }
+    setCaretBlinkOn(true);
+    const id = setInterval(() => setCaretBlinkOn(v => !v), 500);
+    return () => clearInterval(id);
+  }, [nameInputFocused, inspectedIsPendingMixtape]);
+
+  // While a pending-mixtape inspect is active, swap the "// jeem-fm" title
+  // link for a back-arrow so the user can bail out of the create flow.
+  // The existing handleLogoClick handler runs exitInspect when inspecting,
+  // so the click behaviour is already correct — only the visible label
+  // needs swapping.
+  useEffect(() => {
+    const links = document.querySelectorAll<HTMLAnchorElement>('.start-title a, .title a');
+    links.forEach(a => {
+      if (inspectedIsPendingMixtape) {
+        if (a.dataset.jfmOriginal == null) a.dataset.jfmOriginal = a.innerHTML;
+        a.innerHTML = '// <span class="jfm-back-arrow">&lt;</span>';
+      } else if (a.dataset.jfmOriginal != null) {
+        a.innerHTML = a.dataset.jfmOriginal;
+        delete a.dataset.jfmOriginal;
+      }
+    });
+  }, [inspectedIsPendingMixtape]);
   useEffect(() => {
     const pendingActive = inspectedIsPending && inspectUiRendered;
     const creatorEl = document.getElementById('single-tape-creator');
@@ -1313,6 +1347,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     // Double-tap while inspecting → exit back to table view.
     if (viewRef.current === 'player' || showMixtapeCreator) return;
     if (inspectTapeIdRef.current != null) {
+      // Don't allow double-tap to exit while creating a mixtape — clicks on
+      // the tape's name area need to focus the inline name editor instead
+      // of bailing out of the flow.
+      const inspected = tapesRef.current.find(t => t.id === inspectTapeIdRef.current);
+      if (inspected?.isPendingMixtape) return;
       exitInspect();
       return;
     }
@@ -1439,7 +1478,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       videoId: '',
       isPlaylist: false,
       isInfinite: true,
-      title: '[mixtape name]',
+      title: '',
       author: 'mixtape',
       tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
       textureVariant: nextTextureVariant(),
@@ -1665,7 +1704,15 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // per-tape jitter / re-centering doesn't re-run (with fresh Math.random)
   // every render — previously this produced a new array + new positions on
   // every render, which cascaded through the whole 3D tree.
-  const positionedTapes = useMemo(() => tapes.map((tape) => {
+  // Inject a `|` at the end of the pending-mixtape title while the
+  // on-cassette name editor is focused — gives the in-canvas blinking
+  // caret in the same font as the rest of the label.
+  const tapesWithCaret = useMemo(() => {
+    if (!inspectedIsPendingMixtape || !nameInputFocused || !caretBlinkOn) return tapes;
+    return tapes.map(t => t.id === inspectTapeId ? { ...t, title: (t.title || '') + '|' } : t);
+  }, [tapes, inspectedIsPendingMixtape, nameInputFocused, caretBlinkOn, inspectTapeId]);
+
+  const positionedTapes = useMemo(() => tapesWithCaret.map((tape) => {
     if (tape.x !== undefined && tape.y !== undefined) {
       // If already inside the active area, keep as-is
       const inside = tape.x >= minX && tape.x <= maxX && tape.y >= minY && tape.y <= maxY;
@@ -1686,7 +1733,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // cx/cy/minX/maxX/minY/maxY read camera target refs; intentionally omitted
   // from deps so the memo doesn't bust on every pan.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [tapes]);
+  }), [tapesWithCaret]);
 
   if (!mounted) return null;
 
@@ -1725,6 +1772,16 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           onDragStart={handle3DDragStart}
           onDragEnd={handle3DDragEnd}
           onDoubleTap={handle3DDoubleTap}
+          onSingleTap={(tapeId) => {
+            // Pending mixtape: cycle through the 14 cassette texture variants
+            // so the user can pick a look before finalising.
+            setTapes(prev => prev.map(t => {
+              if (t.id !== tapeId || !t.isPendingMixtape) return t;
+              const cur = TEXTURE_VARIANTS.indexOf(t.textureVariant ?? 'a');
+              const next = TEXTURE_VARIANTS[(cur + 1) % TEXTURE_VARIANTS.length];
+              return { ...t, textureVariant: next };
+            }));
+          }}
           onMenuAction={handle3DMenuAction}
           menuId={menuId}
           onClearMenu={cancelMenu}
@@ -1792,12 +1849,20 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           zIndex: 99996, pointerEvents: 'auto',
           display: 'flex', justifyContent: 'center',
         };
+        // Pending-mixtape on wide: title sits in the LEFT callout position
+        // (textbook diagram style) — line + bullet drawn from the cassette.
+        const isWideMixtape = !!tape.isPendingMixtape && !isNarrow;
+        const titleColStyle: React.CSSProperties = isWideMixtape ? {
+          position: 'fixed', left: '4vw', width: '22vw',
+          zIndex: 99996, pointerEvents: 'auto',
+          display: 'flex', justifyContent: 'flex-start',
+        } : colStyle;
         // Title/top position based on viewport. Wide tracklist tapes get a
         // lower title (sits just above the cassette, which is also dropped
         // lower in the frame) so the title/cassette/buttons stack tightly.
         // Title vertical position. Narrow (single + tracklist) matches the
         // desktop pattern with the title above the cassette.
-        const titleTop = isNarrow ? '13vh' : '12vh';
+        const titleTop = isWideMixtape ? '14vh' : (isNarrow ? '13vh' : '12vh');
         // Buttons row position. Narrow (single + tracklist) uses the same
         // free-floating row at 75vh as desktop, content-sized + nowrap.
         const buttonsRowStyle: React.CSSProperties = {
@@ -1807,7 +1872,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         const btnClass = 'tape-btn';
         return (
           <div className={inspectUiClass}>
-            <div style={{ ...colStyle, top: titleTop }}>
+            {!tape.isPendingMixtape && <div style={{ ...titleColStyle, top: titleTop }}>
               {editingTitle ? (
                 <textarea
                   rows={1}
@@ -1837,20 +1902,20 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                     }
                   }}
                   className="tape-inspect-title"
-                  style={{ width: '100%', paddingRight: centred ? undefined : 20, boxSizing: 'border-box' }}
+                  style={{ width: '100%', paddingRight: centred ? undefined : 20, boxSizing: 'border-box', textAlign: isWideMixtape ? 'left' : undefined }}
                 />
               ) : (
                 <div
                   className="tape-inspect-title-display"
                   onClick={() => setEditingTitle(true)}
                   title="Click to edit"
-                  style={{ width: '100%', paddingRight: centred ? undefined : 20, boxSizing: 'border-box' }}
+                  style={{ width: '100%', paddingRight: centred ? undefined : 20, boxSizing: 'border-box', textAlign: isWideMixtape ? 'left' : undefined, justifyContent: isWideMixtape ? 'flex-start' : undefined }}
                 >
                   <span className="tape-inspect-title-text">{tape.title || (tape.isPending ? '' : 'Untitled')}</span>
                   <i className="fas fa-pen tape-inspect-title-pen" aria-hidden="true" />
                 </div>
               )}
-            </div>
+            </div>}
             {!tape.isPendingMixtape && (
               <div style={buttonsRowStyle}>
                 <button
@@ -1880,15 +1945,54 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       {inspectedIsPendingMixtape && inspectUiRendered && (() => {
         const tape = tapes.find(t => t.id === inspectTapeId);
         if (!tape) return null;
+        const nameAdded = tape.title.trim().length > 0;
+        const trackAdded = mixtapeBuilderTracks.length > 0;
+        const leftHidden = nameAdded ? ' is-callout-hidden' : '';
+        const rightHidden = trackAdded ? ' is-callout-hidden' : '';
         return (
-          <div className={`mixtape-creator-overlay ${inspectUiClass}`}>
-            <div className="single-tape-blurb">Create your mixtape by adding tracks via youtube url or search then click create.</div>
+          <div className={`mixtape-creator-overlay mixtape-creator-overlay--callout ${inspectUiClass}`}>
+            <div className={`single-tape-blurb mixtape-callout-blurb${rightHidden}`}>Create your mixtape by adding tracks via youtube url or search then click create.</div>
+            <svg className="mixtape-callout-svg" aria-hidden="true">
+              {/* LEFT callout: vertical-centre of left text box → bullet
+                  on cassette label. Right then down — one bend. */}
+              <g className={`mixtape-callout-leader${leftHidden}`}>
+                <line x1="26%" y1="20%" x2="40%" y2="20%" />
+                <line x1="40%" y1="20%" x2="40%" y2="25%" />
+                <circle cx="40%" cy="25%" r="7" />
+              </g>
+              {/* RIGHT callout: horizontal-centre of right text box →
+                  bullet on right edge of tracks box. Down then left. */}
+              <g className={`mixtape-callout-leader${rightHidden}`}>
+                <line x1="83%" y1="28%" x2="83%" y2="55%" />
+                <line x1="83%" y1="55%" x2="75%" y2="55%" />
+                <circle cx="75%" cy="55%" r="7" />
+              </g>
+            </svg>
+            <div className={`mixtape-callout-name single-tape-blurb${leftHidden}`}>Add a name for your mixtape.</div>
+            <textarea
+              className="tape-name-on-cassette"
+              placeholder=""
+              spellCheck={false}
+              autoCorrect="off"
+              autoCapitalize="off"
+              value={tape.title}
+              onChange={(e) => {
+                const v = e.target.value;
+                setTapes(prev => prev.map(t => t.id === inspectTapeId ? { ...t, title: v } : t));
+              }}
+              onFocus={() => setNameInputFocused(true)}
+              onBlur={() => setNameInputFocused(false)}
+              rows={1}
+            />
             <MixtapeBuilder
-              name={tape.title === '[mixtape name]' ? '' : tape.title}
+              name={tape.title}
               tracks={mixtapeBuilderTracks}
               onAddTrack={(t) => setMixtapeBuilderTracks(prev => [...prev, t])}
+              onRemoveTrack={(i) => setMixtapeBuilderTracks(prev => prev.filter((_, idx) => idx !== i))}
+              onReplaceTrack={(i, t) => setMixtapeBuilderTracks(prev => prev.map((existing, idx) => idx === i ? t : existing))}
+              onReorderTracks={(next) => setMixtapeBuilderTracks(next)}
               onCreate={() => {
-                const mixtapeName = tape.title === '[mixtape name]' ? '' : tape.title;
+                const mixtapeName = tape.title;
                 if (!mixtapeName.trim() || !mixtapeBuilderTracks.length) return;
                 const realId = crypto.randomUUID?.() ?? `${Date.now()}`;
                 const infiniteTracks: InfiniteTrack[] = mixtapeBuilderTracks.map(t => ({

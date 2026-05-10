@@ -1052,3 +1052,185 @@ The title-link click handler in `TapesTable.tsx` now checks
 `inspectTapeIdRef.current` first and runs `exitInspect()` instead of
 falling through to `<a href=".">` (which reloaded the page mid-
 animation, killing the glitch-out).
+
+## Recent Changes (2026-05, sixth batch)
+
+### Create-mixtape callout layout
+
+Replaced the stacked blurb-on-top layout with a textbook-diagram look:
+the cassette stays centred on screen, with two callouts pointing at
+it. Both callouts are SVG `<line>` + `<circle>` rendered into a
+fixed-position `.mixtape-callout-svg` overlay (`pointer-events:
+none`) so the geometry is decoupled from the React tree.
+
+- **Left callout** (`.mixtape-callout-name`): static text
+  "Add a name for your mixtape." anchored `left: 4vw, top: 14vh,
+  width: 22vw`. Reuses `.single-tape-blurb` styling so the font
+  matches the right blurb.
+- **Right callout** (`.mixtape-callout-blurb`): the existing
+  blurb anchored `right: 4vw, top: 14vh`.
+- **Leaders**: percent-coordinate SVG paths the user dialed in by
+  hand (current values in `TapesTable.tsx`, the `<svg
+  className="mixtape-callout-svg">` block). Both end in 7px filled
+  circles at `rgba(250, 249, 246, 1)`; lines are 2px stroke at
+  `rgba(250, 249, 246, 0.85)`.
+- **Glitch-hide on completion**: each callout group plus its text
+  label gets `is-callout-hidden` once its prompt is fulfilled —
+  `nameAdded = tape.title.trim().length > 0` for the LEFT,
+  `trackAdded = mixtapeBuilderTracks.length > 0` for the RIGHT.
+  CSS rule replays the existing `ui-glitch-out 0.45s steps(9, end)
+  forwards` animation so callouts flicker out and stay gone.
+- Layout is unified across narrow + wide (the `mixtape-creator-
+  overlay--callout` class is now applied unconditionally). Narrow
+  viewports (<= 960px) override the tracks builder to span
+  `left: 16px; right: 16px` like the inspect panel does.
+
+### Inline name editing on the cassette
+
+Replaced the off-cassette title input with an in-canvas editor:
+
+- `.tape-name-on-cassette` is a transparent `<textarea>` overlaid
+  on the cassette label area (`top: 24vh`, `width: 18vw`, `height:
+  28px`, `caret-color: transparent`, `color: transparent`,
+  `spellCheck=false`). It captures keystrokes and updates
+  `tape.title` directly; no autoFocus — the user must click the
+  label to start editing.
+- The blinking caret is rendered **into the cassette texture
+  itself** so it's in the same `04b03` font as the label.
+  Mechanism:
+  - `nameInputFocused` flips on textarea `onFocus`/`onBlur`.
+  - `caretBlinkOn` toggles every 500ms via `setInterval` while
+    `nameInputFocused && inspectedIsPendingMixtape`.
+  - A `useMemo` (`tapesWithCaret`) derives a list where the
+    pending tape's `title` becomes `title + '|'` when the caret
+    should be visible. Downstream (`positionedTapes` →
+    `TapesTable3D` → `TapeBody.stampTitle`) re-stamps the canvas.
+  - `stampTitle` LRU-caches by `variant:title:flags`, so blinking
+    just toggles between two cached textures.
+- `[mixtape name]` placeholder fully removed — `startPendingMixtape`
+  initialises `title: ''`. All `tape.title === '[mixtape name]' ?`
+  guards stripped.
+- `TapeBody` now always invokes `stampTitle` for tapes with
+  `isInfinite || isPlaylist` (covers mixtapes since they're
+  `author: 'mixtape', isInfinite: true`). Previously stamping was
+  gated on `tape.title` being truthy, so the mixtape sticker
+  flashed off whenever the name was cleared.
+
+### Click-cycle texture variants on the pending mixtape
+
+`TapesTable3D` got a new `onSingleTap?: (tapeId: string) => void`
+prop. In the pointer-up tap branch, if the tapped tape
+`isPendingMixtape`, `onSingleTap` fires immediately (skipping the
+double-tap-detector since double-tap-to-exit is already disabled
+for pending mixtape). `TapesTable.tsx` wires it to a setter that
+advances `tape.textureVariant` to the next entry in
+`TEXTURE_VARIANTS` (a–n, wrapping). The label area is shielded by
+the `.tape-name-on-cassette` textarea overlay (`pointer-events:
+auto`) so clicks there focus the editor and don't reach the canvas.
+
+### Title link → `// <` while creating a mixtape
+
+The `// jeem-fm` title in `.start-title a` and `.title a` is swapped
+to `// <span class="jfm-back-arrow">&lt;</span>` whenever
+`inspectedIsPendingMixtape` is true. The original text is stashed
+on `dataset.jfmOriginal` so the swap is reversible. The existing
+`handleLogoClick` already calls `exitInspect()` while inspecting,
+so the click behaviour is correct without a separate handler.
+
+### Tracks-list inspect-panel styling for the builder
+
+Wrapped the `MixtapeBuilder`'s `.mixtape-track-list` in a
+`.mixtape-track-list-frame` so it gets the same dark background +
+upward-pointing triangle indicator as the inspect-mode tracklist
+panel. Triangle is the `::before` of the frame so it sits above
+the box and animates with overscroll bounce.
+
+### Hover-region split + edit / remove / drag-reorder
+
+Restructured each completed track row in the builder into three
+hover regions (only inside `.mixtape-builder` — the inspect
+tracklist still uses the old single-area layout):
+
+- `.track-handle` (left, 56px column): number visible by default,
+  swaps to `fa-grip-vertical` on hover, cursor `grab`.
+- `.track-info` (centre, title + author): hovering shows the
+  actions column.
+- `.track-actions` (right, edit + remove icons): pinned shown
+  only when hovering info or itself, via `:has(.track-info:hover)`
+  / `:has(.track-actions:hover)`.
+
+**Edit flow** (`MixtapeBuilder` `editingIndex` state): clicking
+the pen icon swaps the row at `editingIndex` for the active-track
+input pre-populated with the current title. The trailing
+`activeRow` is hidden in this mode. Submit → `onReplaceTrack(i,
+track)` and `editingIndex = null`. Esc inside the input cancels;
+a `fa-xmark` cancel button shows beside the tick while editing.
+
+**Remove flow**: trash icon calls `onRemoveTrack(i)` →
+`setMixtapeBuilderTracks(prev.filter((_, idx) => idx !== i))`.
+Track numbers re-render automatically.
+
+**Drag-reorder** (custom mouse-based, no HTML5 drag):
+
+- `mousedown` on `.track-handle` calls `startDrag(i, e)` which
+  captures `clientY` + measured row height into `dragInfoRef`,
+  sets `draggingIndex`, and `dragDeltaY = 0`.
+- A `useEffect` keyed on `draggingIndex` attaches global
+  `mousemove` (updates `dragDeltaY`) and `mouseup` listeners.
+- `dragTargetIndex = clamp(0..len-1, draggingIndex +
+  round(dragDeltaY / rowHeight))` — recomputed each render.
+- `rowTransform(i)` returns inline styles per row: dragged row
+  gets `translateY(${dragDeltaY}px)` + `z-index: 10`; rows that
+  need to make room get `translateY(±rowHeight)` opposite to the
+  dragged direction.
+- Transition is **only** active while
+  `.mixtape-track-list.is-dragging`, so the post-drop transform
+  reset to zero (after the array commit) snaps instantly with no
+  redundant settle animation.
+- `mouseup` commits via `onReorderTracks(next)` — `splice` move
+  in the parent's `mixtapeBuilderTracks` state. Drag is disabled
+  while in edit mode.
+
+### Inspect / playback panel polish
+
+- Capped the inspect tracklist at `max-height: min(495px,
+  calc(100vh - 48vh - 130px))` (≈ 8 rows × 64px), with
+  `overflow-y: auto` on the list itself rather than the panel —
+  the panel chain's flex sizing wasn't propagating reliably to
+  the scrollable child.
+- Each tracklist row enforced to 64px min-height, single-line
+  ellipsis on title + author, so all rows are visually identical
+  regardless of content length.
+- Track-row grid switched to use a left-aligned **track number
+  column** spanning both content rows (`grid-template-areas:
+  "num title" "num author"` + `display: contents` on
+  `.tape-track-top`); number font bumped to 1.4em opacity 0.55.
+  Trailing `.` removed from the number rendering.
+- Wrapped the panel tracks in a new `.mixtape-track-list-frame`
+  div: frame owns the dark bg + upward triangle indicator, inner
+  list owns the scroll. iOS rubber-band overscroll moves the
+  scrolling element, so the triangle now bounces with the box.
+- Playback-mode panel (`.tape-playback-panel` class) anchors at
+  `top: 18vh` with tracklist `max-height: 68vh`. Wide variant
+  left-aligned via `left: 16px; right: auto; transform: none`.
+- New `trackListScrollRef` + `useEffect` in `TapesTable.tsx`
+  auto-scrolls the active track to the visible centre of the
+  playback list when `loadedTape.infiniteIndex / playlistIndex /
+  id` changes (smooth scroll). Inspect-view scrolling is
+  user-controlled — the ref only attaches when `!inspectTapeId`.
+- Search dropdown inside the MixtapeBuilder: previous inline
+  styles on the dropdown removed, CSS specificity bumped to
+  `.search-dropdown.mixtape-search-dropdown` so the rule beats
+  the generic `.search-dropdown { width: 40vw }` further down
+  the file. Offsets now `left: 0; right: 0` (matches input wrap
+  width exactly so they scale in lockstep with the window).
+- Forced `overflow: visible` explicit on the active-track chain
+  inside `.mixtape-creator-overlay` so the dropdown isn't clipped
+  by any overflow rule along the way.
+
+### Pending-mixtape double-tap
+
+`handle3DDoubleTap` in `TapesTable.tsx` no-ops when the inspected
+tape `isPendingMixtape` (instead of running `exitInspect`) — the
+tape's label area needs to absorb clicks for the inline name
+editor without the user accidentally bailing out of the flow.

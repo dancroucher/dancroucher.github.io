@@ -466,7 +466,12 @@ export function TapeBody({
   // (title/textures change) or on unmount.
   useEffect(() => {
     if (!sceneData || !textures) return;
-    const colorMap = tape.title
+    // Always run stampTitle for tapes that have a sticker (infinite/playlist/
+    // mixtape) so the sticker stays visible even when the title is empty —
+    // e.g. while the pending-mixtape name is still blank. Plain tapes with
+    // an empty title can keep the bare baseColor.
+    const hasSticker = tape.isInfinite || tape.isPlaylist;
+    const colorMap = (tape.title || hasSticker)
       ? stampTitle(textures.baseColor, tape.title, variant, tape)
       : textures.baseColor;
     const mats: THREE.Material[] = [];
