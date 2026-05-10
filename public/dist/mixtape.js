@@ -28708,6 +28708,17 @@ var import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
 
 // src/tapes/TapeBody.tsx
 var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
+var stampCache = /* @__PURE__ */ new Map();
+var stampCacheOrder = [];
+if (typeof document !== "undefined" && document.fonts) {
+  document.fonts.load("64px 'Permanent Marker'").then(() => {
+    for (const tex of stampCache.values()) tex.dispose();
+    stampCache.clear();
+    stampCacheOrder.length = 0;
+    window.dispatchEvent(new CustomEvent("jeem-fonts-ready"));
+  }).catch(() => {
+  });
+}
 
 // src/mixtape/Creator.tsx
 var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);

@@ -74512,7 +74512,12 @@ function stampTitle(baseColor, title, variant, tape) {
   const isInfinite = tape?.isInfinite ?? false;
   const isPlaylist = tape?.isPlaylist ?? false;
   const isMixtape = tape?.author === "mixtape" && !!tape?.isInfinite;
-  const cacheKey = `${variant}:${title}:${isInfinite ? "inf" : ""}${isPlaylist ? "pl" : ""}${isMixtape ? "mx" : ""}`;
+  const caretIdx = tape?._caretIndex;
+  const caretField = tape?._caretField ?? "title";
+  const authorTag = (tape?.authorTag ?? "").slice(0, 8);
+  const isPendingMix = tape?.isPendingMixtape ?? false;
+  const caretKey = caretIdx !== void 0 ? `:c${caretField}${caretIdx}` : "";
+  const cacheKey = `${variant}:${title}:${authorTag}:${isInfinite ? "inf" : ""}${isPlaylist ? "pl" : ""}${isMixtape ? "mx" : ""}${isPendingMix ? "pm" : ""}${caretKey}`;
   const cached = stampCache.get(cacheKey);
   if (cached) {
     const idx = stampCacheOrder.indexOf(cacheKey);
@@ -74559,37 +74564,80 @@ function stampTitle(baseColor, title, variant, tape) {
   ctx.textBaseline = "middle";
   for (const label of labels) {
     const labelW = label.labelLen;
-    const fontSize = 55;
-    ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
+    const fontSize = 64;
+    ctx.font = `${fontSize}px 'Permanent Marker', 'Courier New', monospace`;
     const words = title.split(" ");
-    const lines = [];
+    let runningIdx = 0;
+    const wordStarts = words.map((w3) => {
+      const start = runningIdx;
+      runningIdx += w3.length + 1;
+      return start;
+    });
+    const lineMetas = [];
     let currentLine = "";
-    for (const word of words) {
+    let currentStart = 0;
+    let currentEnd = 0;
+    for (let wi = 0; wi < words.length; wi++) {
+      const word = words[wi];
       const test = currentLine ? `${currentLine} ${word}` : word;
       if (ctx.measureText(test).width > labelW && currentLine) {
-        lines.push(currentLine);
+        lineMetas.push({ text: currentLine, startIdx: currentStart, endIdx: currentEnd });
         currentLine = word;
+        currentStart = wordStarts[wi];
+        currentEnd = currentStart + word.length;
       } else {
+        if (!currentLine) currentStart = wordStarts[wi];
         currentLine = test;
+        currentEnd = wordStarts[wi] + word.length;
       }
     }
-    if (currentLine) lines.push(currentLine);
-    if (lines.length > 2) {
-      lines.length = 2;
-      let line2 = lines[1];
+    if (currentLine) lineMetas.push({ text: currentLine, startIdx: currentStart, endIdx: currentEnd });
+    if (lineMetas.length === 0) lineMetas.push({ text: "", startIdx: 0, endIdx: 0 });
+    if (lineMetas.length > 2) {
+      lineMetas.length = 2;
+      let line2 = lineMetas[1].text;
       while (ctx.measureText(line2 + "\u2026").width > labelW && line2.length > 1) {
         line2 = line2.slice(0, -1);
       }
-      lines[1] = line2 + "\u2026";
+      lineMetas[1] = { ...lineMetas[1], text: line2 + "\u2026" };
     }
-    const lineHeight = fontSize * 1.15;
-    const totalHeight = lines.length * lineHeight;
+    const lineHeight = fontSize * 1;
+    const totalHeight = lineMetas.length * lineHeight;
     const startY = -totalHeight / 2 + lineHeight / 2;
     ctx.save();
     ctx.translate(label.cx, label.cy);
     ctx.rotate(Math.PI / 2);
-    for (let i4 = 0; i4 < lines.length; i4++) {
-      ctx.fillText(lines[i4], 0, startY + i4 * lineHeight);
+    for (let i4 = 0; i4 < lineMetas.length; i4++) {
+      ctx.fillText(lineMetas[i4].text, 0, startY + i4 * lineHeight);
+    }
+    if (caretIdx !== void 0 && caretField === "title" && lineMetas.length > 0) {
+      let lineIdx = 0;
+      for (let i4 = lineMetas.length - 1; i4 >= 0; i4--) {
+        if (caretIdx >= lineMetas[i4].startIdx) {
+          lineIdx = i4;
+          break;
+        }
+      }
+      const meta = lineMetas[lineIdx];
+      const offset = Math.max(0, Math.min(meta.text.length, caretIdx - meta.startIdx));
+      const lineW = ctx.measureText(meta.text).width;
+      const prefixW = ctx.measureText(meta.text.slice(0, offset)).width;
+      const charAtCaret = meta.text.charAt(offset);
+      const fallbackChar = meta.text.charAt(Math.max(0, offset - 1)) || "a";
+      const blockChar = charAtCaret || fallbackChar;
+      const blockW = ctx.measureText(blockChar).width;
+      const blockH = fontSize * 1.05;
+      const blockX = prefixW - lineW / 2;
+      const blockY = startY + lineIdx * lineHeight;
+      ctx.save();
+      ctx.fillStyle = "#222";
+      ctx.fillRect(blockX - 1, blockY - blockH / 2, blockW + 2, blockH);
+      if (charAtCaret) {
+        ctx.fillStyle = "#f5f1e0";
+        ctx.textAlign = "left";
+        ctx.fillText(charAtCaret, blockX, blockY);
+      }
+      ctx.restore();
     }
     ctx.restore();
   }
@@ -74707,6 +74755,67 @@ function stampTitle(baseColor, title, variant, tape) {
     ctx.fillText("Mixtape", stickerX, stickerY);
     ctx.restore();
   }
+  const showAuthorSticker = !!authorTag || isPendingMix || caretField === "author" && caretIdx !== void 0;
+  if (showAuthorSticker) {
+    const label = labels[0];
+    ctx.save();
+    ctx.translate(label.cx, label.cy);
+    ctx.rotate(Math.PI / 2);
+    const stickerX = 0;
+    const stickerY = -300;
+    const stickerW = 280;
+    const stickerH = 90;
+    const grad = ctx.createLinearGradient(
+      stickerX - stickerW / 2,
+      stickerY,
+      stickerX + stickerW / 2,
+      stickerY + stickerH
+    );
+    grad.addColorStop(0, "#f0d848");
+    grad.addColorStop(1, "#e8c830");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(stickerX - stickerW / 2, stickerY - stickerH / 2, stickerW, stickerH, 10);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(180,150,30,0.5)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    const authorFontSize = 52;
+    ctx.fillStyle = "#3a2a08";
+    ctx.font = `${authorFontSize}px 'Permanent Marker', 'Courier New', monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    if (authorTag) {
+      ctx.fillText(authorTag, stickerX, stickerY);
+    } else if (isPendingMix && caretField !== "author") {
+      ctx.save();
+      ctx.fillStyle = "rgba(58, 42, 8, 0.45)";
+      ctx.fillText("by\u2026", stickerX, stickerY);
+      ctx.restore();
+    }
+    if (caretIdx !== void 0 && caretField === "author") {
+      const offset = Math.max(0, Math.min(authorTag.length, caretIdx));
+      const lineW = ctx.measureText(authorTag).width;
+      const prefixW = ctx.measureText(authorTag.slice(0, offset)).width;
+      const charAtCaret = authorTag.charAt(offset);
+      const fallbackChar = authorTag.charAt(Math.max(0, offset - 1)) || "a";
+      const blockChar = charAtCaret || fallbackChar;
+      const blockW = ctx.measureText(blockChar).width;
+      const blockH = authorFontSize * 1.05;
+      const blockX = stickerX + prefixW - lineW / 2;
+      const blockY = stickerY;
+      ctx.save();
+      ctx.fillStyle = "#3a2a08";
+      ctx.fillRect(blockX - 1, blockY - blockH / 2, blockW + 2, blockH);
+      if (charAtCaret) {
+        ctx.fillStyle = "#f0d848";
+        ctx.textAlign = "left";
+        ctx.fillText(charAtCaret, blockX, blockY);
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+  }
   const tex = new CanvasTexture(canvas);
   tex.colorSpace = SRGBColorSpace;
   tex.flipY = baseColor.flipY;
@@ -74737,6 +74846,14 @@ function TapeBody({
 }) {
   const bodyRef = (0, import_react7.useRef)(null);
   const groupRef = (0, import_react7.useRef)(null);
+  const [fontsTick, setFontsTick] = (0, import_react7.useState)(0);
+  (0, import_react7.useEffect)(() => {
+    function bump() {
+      setFontsTick((t3) => t3 + 1);
+    }
+    window.addEventListener("jeem-fonts-ready", bump);
+    return () => window.removeEventListener("jeem-fonts-ready", bump);
+  }, []);
   const [sceneData, setSceneData] = (0, import_react7.useState)(null);
   const wasDragging = (0, import_react7.useRef)(false);
   const falling = (0, import_react7.useRef)(isNew ? true : false);
@@ -74783,7 +74900,7 @@ function TapeBody({
   }, [meshName]);
   (0, import_react7.useEffect)(() => {
     if (!sceneData || !textures) return;
-    const hasSticker = tape.isInfinite || tape.isPlaylist;
+    const hasSticker = tape.isInfinite || tape.isPlaylist || !!tape.authorTag;
     const colorMap = tape.title || hasSticker ? stampTitle(textures.baseColor, tape.title, variant, tape) : textures.baseColor;
     const mats = [];
     sceneData.group.traverse((child) => {
@@ -74812,7 +74929,7 @@ function TapeBody({
     return () => {
       for (const m3 of mats) m3.dispose();
     };
-  }, [sceneData, textures, tape.title, tape.id, onReady]);
+  }, [sceneData, textures, tape.title, tape.id, onReady, fontsTick, tape._caretIndex, tape._caretField, tape.authorTag, tape.isPendingMixtape]);
   const initialPos = (0, import_react7.useRef)(null);
   const halfY = sceneData?.geo.halfY ?? 0.8;
   if (!initialPos.current) {
@@ -75157,6 +75274,15 @@ var init_TapeBody = __esm({
     MAX_STAMP_CACHE = 100;
     stampCache = /* @__PURE__ */ new Map();
     stampCacheOrder = [];
+    if (typeof document !== "undefined" && document.fonts) {
+      document.fonts.load("64px 'Permanent Marker'").then(() => {
+        for (const tex of stampCache.values()) tex.dispose();
+        stampCache.clear();
+        stampCacheOrder.length = 0;
+        window.dispatchEvent(new CustomEvent("jeem-fonts-ready"));
+      }).catch(() => {
+      });
+    }
     STAMP_DEBUG = false;
   }
 });
@@ -78435,6 +78561,8 @@ function SceneContents({
     const HALF_H = TAPE_H / 2;
     scene.traverse((obj) => {
       if (!obj.name?.startsWith("tape-")) return;
+      const id = obj.name.replace("tape-", "");
+      if (inspectTapeId && id !== inspectTapeId) return;
       obj.getWorldPosition(_worldVec);
       const dx = Math.abs(hit.x - _worldVec.x);
       const dz = Math.abs(hit.z - _worldVec.z);
@@ -78443,12 +78571,12 @@ function SceneContents({
         if (_worldVec.y > bestY + 0.05 || Math.abs(_worldVec.y - bestY) <= 0.05 && dist < bestDist) {
           bestY = _worldVec.y;
           bestDist = dist;
-          bestId = obj.name.replace("tape-", "");
+          bestId = id;
         }
       }
     });
     return bestId;
-  }, [scene, raycastToPlane]);
+  }, [scene, raycastToPlane, inspectTapeId]);
   const getTapeWorldPos = (0, import_react12.useCallback)((tapeId) => {
     let result = null;
     scene.traverse((obj) => {
@@ -80527,8 +80655,10 @@ function TapesTable({ mixtape }) {
   const [removingInspected, setRemovingInspected] = (0, import_react13.useState)(false);
   const [editingTitle, setEditingTitle] = (0, import_react13.useState)(false);
   const [mixtapeBuilderTracks, setMixtapeBuilderTracks] = (0, import_react13.useState)([]);
-  const [nameInputFocused, setNameInputFocused] = (0, import_react13.useState)(false);
+  const [focusedField, setFocusedField] = (0, import_react13.useState)(null);
   const [caretBlinkOn, setCaretBlinkOn] = (0, import_react13.useState)(true);
+  const [caretPos, setCaretPos] = (0, import_react13.useState)(0);
+  const [styleChanged, setStyleChanged] = (0, import_react13.useState)(false);
   const trackListScrollRef = (0, import_react13.useRef)(null);
   (0, import_react13.useEffect)(() => {
     if (!loadedTape) return;
@@ -80562,14 +80692,14 @@ function TapesTable({ mixtape }) {
   const inspectedIsPending = !!inspectedTape?.isPending;
   const inspectedIsPendingMixtape = !!inspectedTape?.isPendingMixtape;
   (0, import_react13.useEffect)(() => {
-    if (!nameInputFocused || !inspectedIsPendingMixtape) {
+    if (!focusedField || !inspectedIsPendingMixtape) {
       setCaretBlinkOn(true);
       return;
     }
     setCaretBlinkOn(true);
     const id = setInterval(() => setCaretBlinkOn((v2) => !v2), 500);
     return () => clearInterval(id);
-  }, [nameInputFocused, inspectedIsPendingMixtape]);
+  }, [focusedField, inspectedIsPendingMixtape]);
   (0, import_react13.useEffect)(() => {
     const links = document.querySelectorAll(".start-title a, .title a");
     links.forEach((a3) => {
@@ -81540,6 +81670,7 @@ function TapesTable({ mixtape }) {
     if (inspectTapeIdRef.current != null) return;
     if (tapesRef.current.some((t3) => t3.isPending || t3.isPendingMixtape)) return;
     setMixtapeBuilderTracks([]);
+    setStyleChanged(false);
     const px2 = spawnCX();
     const py2 = spawnCY();
     const placeholderId = crypto.randomUUID?.() ?? `pending-mix-${Date.now()}`;
@@ -81556,7 +81687,10 @@ function TapesTable({ mixtape }) {
       timestamp: Date.now(),
       x: px2,
       y: py2,
-      angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
+      // Pending mixtape: tighter spawn-yaw range than regular tapes (±5°
+      // instead of ±20°) so the cassette lands roughly square-on to the
+      // camera and the in-canvas name editor lines up cleanly.
+      angle: Math.round((Math.random() * 10 - 5) * 10) / 10,
       isPendingMixtape: true
     };
     setTapes((prev) => [placeholder, ...prev]);
@@ -81754,9 +81888,14 @@ function TapesTable({ mixtape }) {
   const minY = cy - halfAZ + 100;
   const maxY = cy + halfAZ - 100;
   const tapesWithCaret = (0, import_react13.useMemo)(() => {
-    if (!inspectedIsPendingMixtape || !nameInputFocused || !caretBlinkOn) return tapes;
-    return tapes.map((t3) => t3.id === inspectTapeId ? { ...t3, title: (t3.title || "") + "|" } : t3);
-  }, [tapes, inspectedIsPendingMixtape, nameInputFocused, caretBlinkOn, inspectTapeId]);
+    if (!inspectedIsPendingMixtape || !focusedField || !caretBlinkOn) return tapes;
+    return tapes.map((t3) => {
+      if (t3.id !== inspectTapeId) return t3;
+      const s2 = focusedField === "title" ? t3.title || "" : t3.authorTag || "";
+      const i4 = Math.max(0, Math.min(caretPos, s2.length));
+      return { ...t3, _caretIndex: i4, _caretField: focusedField };
+    });
+  }, [tapes, inspectedIsPendingMixtape, focusedField, caretBlinkOn, inspectTapeId, caretPos]);
   const positionedTapes = (0, import_react13.useMemo)(() => tapesWithCaret.map((tape) => {
     if (tape.x !== void 0 && tape.y !== void 0) {
       const inside = tape.x >= minX && tape.x <= maxX && tape.y >= minY && tape.y <= maxY;
@@ -81813,6 +81952,7 @@ function TapesTable({ mixtape }) {
             const next = TEXTURE_VARIANTS[(cur + 1) % TEXTURE_VARIANTS.length];
             return { ...t3, textureVariant: next };
           }));
+          setStyleChanged(true);
         },
         onMenuAction: handle3DMenuAction,
         menuId,
@@ -81974,6 +82114,7 @@ function TapesTable({ mixtape }) {
       const trackAdded = mixtapeBuilderTracks.length > 0;
       const leftHidden = nameAdded ? " is-callout-hidden" : "";
       const rightHidden = trackAdded ? " is-callout-hidden" : "";
+      const styleHidden = styleChanged ? " is-callout-hidden" : "";
       return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: `mixtape-creator-overlay mixtape-creator-overlay--callout ${inspectUiClass}`, children: [
         /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: `single-tape-blurb mixtape-callout-blurb${rightHidden}`, children: "Create your mixtape by adding tracks via youtube url or search then click create." }),
         /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("svg", { className: "mixtape-callout-svg", "aria-hidden": "true", children: [
@@ -81986,9 +82127,15 @@ function TapesTable({ mixtape }) {
             /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("line", { x1: "83%", y1: "28%", x2: "83%", y2: "55%" }),
             /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("line", { x1: "83%", y1: "55%", x2: "75%", y2: "55%" }),
             /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("circle", { cx: "75%", cy: "55%", r: "7" })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("g", { className: `mixtape-callout-leader${styleHidden}`, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("line", { x1: "26%", y1: "42%", x2: "42%", y2: "42%" }),
+            /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("line", { x1: "42%", y1: "42%", x2: "42%", y2: "35%" }),
+            /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("circle", { cx: "42%", cy: "35%", r: "7" })
           ] })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: `mixtape-callout-name single-tape-blurb${leftHidden}`, children: "Add a name for your mixtape." }),
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: `mixtape-callout-style single-tape-blurb${styleHidden}`, children: "Click the mixtape to change style." }),
         /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
           "textarea",
           {
@@ -82000,10 +82147,61 @@ function TapesTable({ mixtape }) {
             value: tape.title,
             onChange: (e3) => {
               const v2 = e3.target.value;
+              const pos = e3.target.selectionStart ?? v2.length;
               setTapes((prev) => prev.map((t3) => t3.id === inspectTapeId ? { ...t3, title: v2 } : t3));
+              setCaretBlinkOn(true);
+              setCaretPos(pos);
             },
-            onFocus: () => setNameInputFocused(true),
-            onBlur: () => setNameInputFocused(false),
+            onFocus: (e3) => {
+              setFocusedField("title");
+              setCaretPos(e3.currentTarget.selectionStart ?? (tape.title || "").length);
+            },
+            onBlur: () => setFocusedField((prev) => prev === "title" ? null : prev),
+            onSelect: (e3) => {
+              setCaretBlinkOn(true);
+              setCaretPos(e3.currentTarget.selectionStart ?? 0);
+            },
+            onKeyDown: (e3) => {
+              setCaretBlinkOn(true);
+              const el = e3.currentTarget;
+              requestAnimationFrame(() => setCaretPos(el.selectionStart ?? 0));
+            },
+            onClick: (e3) => setCaretPos(e3.currentTarget.selectionStart ?? 0),
+            rows: 1
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+          "textarea",
+          {
+            className: "tape-author-on-cassette",
+            placeholder: "",
+            spellCheck: false,
+            autoCorrect: "off",
+            autoCapitalize: "off",
+            maxLength: 8,
+            value: tape.authorTag ?? "",
+            onChange: (e3) => {
+              const v2 = e3.target.value.slice(0, 8);
+              const pos = Math.min(e3.target.selectionStart ?? v2.length, v2.length);
+              setTapes((prev) => prev.map((t3) => t3.id === inspectTapeId ? { ...t3, authorTag: v2 } : t3));
+              setCaretBlinkOn(true);
+              setCaretPos(pos);
+            },
+            onFocus: (e3) => {
+              setFocusedField("author");
+              setCaretPos(e3.currentTarget.selectionStart ?? (tape.authorTag || "").length);
+            },
+            onBlur: () => setFocusedField((prev) => prev === "author" ? null : prev),
+            onSelect: (e3) => {
+              setCaretBlinkOn(true);
+              setCaretPos(e3.currentTarget.selectionStart ?? 0);
+            },
+            onKeyDown: (e3) => {
+              setCaretBlinkOn(true);
+              const el = e3.currentTarget;
+              requestAnimationFrame(() => setCaretPos(el.selectionStart ?? 0));
+            },
+            onClick: (e3) => setCaretPos(e3.currentTarget.selectionStart ?? 0),
             rows: 1
           }
         ),
@@ -82035,6 +82233,7 @@ function TapesTable({ mixtape }) {
                 infiniteIndex: 0,
                 title: mixtapeName.trim(),
                 author: "mixtape",
+                authorTag: (tape.authorTag ?? "").slice(0, 8) || void 0,
                 tapeStyle: tape.tapeStyle,
                 textureVariant: tape.textureVariant,
                 progress: 0,

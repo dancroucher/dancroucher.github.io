@@ -281,6 +281,11 @@ function SceneContents({
 
     scene.traverse((obj) => {
       if (!obj.name?.startsWith('tape-')) return;
+      // Inspect mode (incl. pending single / pending mixtape): only the
+      // focused tape is clickable — other tapes' AABBs are ignored so
+      // their stacking doesn't steal taps from the focused subject.
+      const id = obj.name.replace('tape-', '');
+      if (inspectTapeId && id !== inspectTapeId) return;
       obj.getWorldPosition(_worldVec);
       const dx = Math.abs(hit.x - _worldVec.x);
       const dz = Math.abs(hit.z - _worldVec.z);
@@ -292,12 +297,12 @@ function SceneContents({
         if (_worldVec.y > bestY + 0.05 || (Math.abs(_worldVec.y - bestY) <= 0.05 && dist < bestDist)) {
           bestY = _worldVec.y;
           bestDist = dist;
-          bestId = obj.name.replace('tape-', '');
+          bestId = id;
         }
       }
     });
     return bestId;
-  }, [scene, raycastToPlane]);
+  }, [scene, raycastToPlane, inspectTapeId]);
 
   const getTapeWorldPos = useCallback((tapeId: string): { x: number; z: number } | null => {
     let result: { x: number; z: number } | null = null;

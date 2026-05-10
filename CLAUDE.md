@@ -1,1236 +1,458 @@
-# jeem-fm Codebase Documentation
+# jeem-fm
 
-## Overview
+YouTube player with a 3D cassette-tape table. Browse videos as tapes, drag to deck to play, with MP4/anime/vintage backgrounds.
 
-jeem-fm is a YouTube video player with an interactive 3D tape table interface. Users browse videos as physical cassette tapes on a virtual table, drag them to a deck/recorder to play, and watch MP4/anime backgrounds during playback.
+**Split:**
+- Vanilla JS (`public/src/player.js`, `script.js`): 2D player, video playback, backgrounds, YouTube
+- React/Three.js (`src/tapes/`, `src/mixtape/`): 3D table, physics, drag/drop, tape rendering
 
-**Key architectural split:**
-- **Vanilla JS** (`public/src/player.js`, `public/src/script.js`): Original 2D player, video playback, backgrounds, YouTube integration
-- **React/Three.js** (`src/tapes/`, `src/mixtape/`): 3D tape table, physics, drag-and-drop, tape rendering
-
----
-
-## Project Structure
+## Layout
 
 ```
-jeem-fm/
-├── public/
-│   ├── index.html          # Entry point, loads player.css + JS bundles
-│   ├── player.css          # Global styles (CRT effects, UI, backgrounds)
-│   ├── font.css            # 04b03 pixel font
-│   ├── src/
-│   │   ├── player.js       # Main vanilla player, video playback, backgrounds
-│   │   ├── script.js       # UI logic, start screen, search, events
-│   │   └── youtube_iframe_api.js
-│   ├── dist/
-│   │   ├── tapes.js        # Bundled React 3D tapes (esbuild output)
-│   │   └── mixtape.js      # Bundled React mixtape creator
-│   ├── assets/
-│   │   ├── favicon/
-│   │   ├── font/
-│   │   ├── recorder/gltf/  # Cassette recorder 3D model (.glb)
-│   │   └── textures/       # Texture variants for tapes
-│   ├── video/              # MP4 background videos
-│   ├── anime/              # Anime background videos
-│   └── vintage/             # Vintage background videos
-│
-├── src/
-│   ├── tapes/              # 3D tape table React components
-│   │   ├── index.tsx       # Entry: mounts TapesTable into #tapes-root
-│   │   ├── TapesTable.tsx  # Main orchestrator: state, bridge to vanilla JS
-│   │   ├── TapesTable3D.tsx # React-Three-Fiber canvas, scene contents
-│   │   ├── TableSurface.tsx # Wood table + optional video surface plane
-│   │   ├── TapeBody.tsx    # Physics body, FBX mesh, drag/snap logic
-│   │   ├── Tape3D.tsx      # FBX loading, texture variants
-│   │   ├── Recorder3D.tsx  # 3D cassette recorder with animated lid
-│   │   ├── Spool.tsx       # Cassette spool visualization
-│   │   ├── CassetteTape.tsx # 2D tape for deck (legacy)
-│   │   ├── DeckTape3D.tsx  # 3D tape in deck slot
-│   │   ├── TapeOverlayHybrid.tsx
-│   │   ├── coords.ts       # 2D↔3D coordinate math + constants
-│   │   ├── types.ts        # TypeScript interfaces (Tape, etc.)
-│   │   ├── db.ts           # IndexedDB persistence
-│   │   └── textureCache.ts # Texture variant caching
-│   │
-│   └── mixtape/            # Mixtape creator React components
-│       ├── index.tsx       # Entry
-│       ├── Tape.tsx
-│       ├── TrackList.tsx
-│       ├── Playback.tsx
-│       └── Creator.tsx     # AI-powered mixtape generation UI
-│
-├── api/                    # Express server routes
-│   ├── list-files.js       # GET /api/list-files — returns shuffled video filenames
-│   ├── search.js           # GET /api/search?q= — YouTube search
-│   ├── playlist-tracks.js  # GET /api/playlist-tracks?list=ID — playlist metadata
-│   ├── random.js
-│   ├── random-playlist.js
-│   ├── mixtape/save.js
-│   ├── mixtape/generate.js
-│   ├── mixtape/[id].js
-│   └── utils/youtube.js
-│
-├── server.js               # Express server (port 3000 default, PORT env var)
-├── build-tapes.js          # esbuild: compiles src/tapes/, src/mixtape/ → public/dist/
-├── build-lists.js          # Indexes video/anime/vintage folders → file-index.json
-└── package.json
+public/
+  index.html, player.css, font.css
+  src/      player.js, script.js, youtube_iframe_api.js, demo.js
+  dist/     tapes.js, mixtape.js  (esbuild bundles)
+  assets/   favicon, font, recorder/gltf (.glb), textures (FBX + variants)
+  video/, anime/, vintage/   bg MP4s
+src/
+  tapes/    index, TapesTable, TapesTable3D, TableSurface, TapeBody, Tape3D,
+            Recorder3D, Spool, CassetteTape, DeckTape3D, TapeOverlayHybrid,
+            MixtapeBuilder, coords.ts, types.ts, db.ts, textureCache.ts, share.ts
+  mixtape/  index, Tape, TrackList, Playback, Creator
+api/        list-files, search, playlist-tracks, random[-playlist],
+            mixtape/{save,generate,[id]}, tape-share, utils/youtube
+server.js, build-tapes.js, build-lists.js
 ```
 
----
+## Coordinates (`src/tapes/coords.ts`)
 
-## Core Concepts
-
-### 2D ↔ 3D Coordinate System
-
-Defined in `src/tapes/coords.ts`:
-
-```typescript
-CANVAS_W = 4000, CANVAS_H = 2400  // 2D canvas dimensions
-SCALE = 50                         // 50 2D pixels = 1 3D unit
-MAP_SCALE = SCALE                  // 1:1 mapping
-
-// Convert 2D (top-left origin) → 3D (center origin, Y-up)
-to3D(x2d, y2d) → [x3d, z3d]
-
-// Convert 3D → 2D
-to2D(x3d, z3d) → [x2d, y2d]
+```
+CANVAS_W=4000, CANVAS_H=2400; SCALE=MAP_SCALE=50
+to3D(x,y)→[x3d,z3d]   to2D(x3d,z3d)→[x,y]
+TILE_W=15.27 TILE_H=10  ACTIVE 3×3 (45.8×30)  TABLE 5×5 (76.4×50)
+TAPE_W=7.02 TAPE_H=4.29  DRAG_HEIGHT=5  DRAG_BOUND_X=22.9  DRAG_BOUND_Z=15
 ```
 
-**Tile system:**
-- Active area: 3×3 tiles
-- Table: 5×5 tiles (active + border)
-- Tiles sized to fit ~9 tapes in active area
+## Video surface
 
-### Coordinate Constants
+When BG video plays (MP4 modes), `TableSurface` renders the video as `THREE.VideoTexture` on a plane so the recorder remains interactive. `player.js` dispatches `jeem-bg-change {bgTypeIndex, videoEl}`; `TableSurface` listens. The plane gates rendering on `hasLoadedVideo` (`currentSrc && readyState>=2`) — falls back to dark overlay until ready.
 
-```typescript
-TILE_W = 15.27   // ~15.3 3D units wide
-TILE_H = 10      // 10 3D units tall
-ACTIVE_W = 45.8  // 3 tiles wide
-ACTIVE_H = 30    // 3 tiles tall
-TABLE_W = 76.4   // 5 tiles wide
-TABLE_H = 50     // 5 tiles tall
-TAPE_W = 7.02    // ~7 3D units
-TAPE_H = 4.29    // ~4.3 3D units
-DRAG_HEIGHT = 5  // How high tapes float when dragged
-DRAG_BOUND_X = 22.9  // Max drag X
-DRAG_BOUND_Z = 15    // Max drag Z
+In-scene CRT overlay on the 3D plane: chromatic RGB stripes + radial vignette only (no scanlines). `NearestFilter` (linear smeared 1px stripes invisible). DOM `.crt::before/::after` hidden under `.tapes-active`.
+
+## TapesTable.tsx state
+
+```
+tapes Tape[]        loadedTape Tape|null    view 'table'|'player'
+playerTapeId        recorderSourced         showMixtapeCreator
+inspectTapeId       inspectUiPhase 'hidden'|'showing'|'visible'|'hiding'
+removingInspected   newTapeIds              respawnVersions
 ```
 
-### Video Surface (TableSurface.tsx)
+View transition: "wipe" brightness flare (`wipeTransition(onCovered, onUncovered)` swaps at 270ms, ends at 600ms).
 
-When a background video plays (MP4 mode, indices 0-2), the table surface renders the video as a `THREE.VideoTexture` on a plane. This lets users still interact with the 3D recorder while a video plays.
+### `window.TapesBridge`
+`onTapePlay, updateProgress, updatePlaylistIndex, addTapeFromSearch, addInfiniteTape, addMixtapeTape, notifyPlayState, onTrackEnded, loadNextInfiniteTrack, loadPrevInfiniteTrack`.
 
-Communication: `player.js` dispatches a `jeem-bg-change` CustomEvent with `{ bgTypeIndex, videoEl }`. `TableSurface` listens and renders the video texture accordingly.
-
----
-
-## TapesTable.tsx — Main State Machine
-
-This is the central orchestrator. Key state:
-
-```typescript
-const [tapes, setTapes] = useState<Tape[]>([])           // All tapes
-const [loadedTape, setLoadedTape] = useState<Tape|null>(null)  // Currently in deck
-const [view, setView] = useState<'table'|'player'>('table')   // View mode
-const [playerTapeId, setPlayerTapeId] = useState<string|null>(null)
-const [recorderSourced, setRecorderSourced] = useState(false)  // True if playing via 3D recorder
-const [showMixtapeCreator, setShowMixtapeCreator] = useState(false)
-```
-
-### View Transitions
-
-- **table view**: Shows 3D table with all tapes, camera can pan
-- **player view**: Single tape focused, camera locked, deck/recorder active, info panel shown
-
-Transition uses a "wipe" animation (brightness glitch flare).
-
-### Bridge to Vanilla JS
-
-`window.TapesBridge` exposes methods for vanilla JS to communicate with React:
-
-```typescript
-interface TapesBridge {
-  onTapePlay: (tape: Tape) => void
-  updateProgress: (videoId, progress) => void
-  updatePlaylistIndex: (videoId, index) => void
-  addTapeFromSearch: (videoId, title, author, isPlaylist, playlistId?) => void
-  addInfiniteTape: (config, title) => void
-  addMixtapeTape: (name, tracks[]) => void
-  notifyPlayState: (playing) => void
-  onTrackEnded: () => void
-  loadNextInfiniteTrack: () => void
-  loadPrevInfiniteTrack: () => void
-}
-```
-
-### Infinite Tapes
-
-Infinite tapes use YouTube search to auto-generate playlists:
-- `isInfinite: true` + `infiniteConfig: InfiniteConfig`
-- Config types: `decade`, `genre`, `year`, `artist`, `playlist`
-- Fetches tracks via `/api/search` with varied query suffixes
-- Tracks stored in `infiniteHistory[]`, current index in `infiniteIndex`
-- On track end, auto-loads next track (infinite) or ejects (single)
+### Infinite tapes
+`isInfinite + infiniteConfig` (decade/genre/year/artist/playlist). Pulls via `/api/search` with varied suffixes; `infiniteHistory[]`, `infiniteIndex`. Auto-advance on track end (or eject if single).
 
 ### Mixtapes
+Special infinite tape: `author:'mixtape'`, pre-generated `infiniteHistory`. AI flow via `MixtapeCreator` (`jeem-create-mixtape` from vanilla JS). Manual flow: `MixtapeBuilder` (see below).
 
-Special infinite tape with `author: 'mixtape'` and pre-generated tracklist. Triggered by `jeem-create-mixtape` event from vanilla JS. Uses `MixtapeCreator` component for AI-powered generation.
+## TapesTable3D.tsx — scene
 
----
+Camera: perspective fov=45, y=30–45, MapControls (table view only). Zoom clamp 35–45.
 
-## TapesTable3D.tsx — 3D Scene
+### Drag
+Pointer + raycast to plane. `onDown` captures offset; `onMove` updates `drag.targetX/Y` (clamped, controls disabled); `onUp` snaps to recorder OR saves position. Mutable refs `drag/snap` avoid re-renders. `REC_COS/REC_SIN`, `_raycaster/_ndcVec/_hitVec/_worldVec/_plane` are module-scope/`useMemo` to avoid alloc churn.
 
-### Camera
+Pointer is clamped to a 24px border inside canvas before raycast/edge-pan so dragged tape can't fly off.
 
-- Orthographic-ish perspective (position y=30-45, fov=45)
-- Pan via MapControls (enabled in table view, locked in player view)
-- Zoom clamped to 35-45
-- Pan bounds prevent seeing outside active area
+### Edge-pan while dragging
+useFrame after cam-tween: pointer near canvas edge drifts camera+target. Top margin 0.28, others 0.15 (top wider so tapes can't slip behind search/start UI). Edge-pan bounds match active-area clamp (`CAM_BOUND - halfView`) so release doesn't snap back.
 
-### Drag System
+Extended drag bounds: `DRAG_X_EXT`, `DRAG_Z_TOP=DRAG_BOUND_Z`, `DRAG_Z_BOT` (+6 left/right/bottom; top stays so tapes can't reach search UI).
 
-Uses pointer events + raycasting to plane:
-1. `onDown` → raycast finds tape, capture pointer offset
-2. `onMove` → update `drag.targetX/Y`, clamp to bounds, disable controls
-3. `onUp` → snap to recorder OR save position, re-enable controls
-
-Shared mutable objects (no React re-renders during drag):
-- `drag: DragState` — current drag target
-- `snap: SnapState` — snap-to-target when dropped on recorder
-
-### Recorder Integration
-
-Recorder at `[-20, -0.5, 4]` with rotation `PI/6`. When tape hovers over footprint:
-1. Lid opens (tween animation)
-2. Tape tips its leading edge down to match lid angle
-3. Tape hovers higher to clear the open lid
-4. On drop → snap animation tweens tape into loaded pose
-5. Tape becomes kinematic (no physics), plays via YouTube
-
-Recorder loading: `handleRecorderLoad` → `loadIntoPlayer` → YouTube playback
-Recorder eject: `handleRecorderEject` → `autoEject` → tape falls back to table
-
----
-
-## TapeBody.tsx — Physics + Animation
-
-### FBX Mesh Loading
-
-- Loads `/assets/textures/CassetteTape.fbx` once, caches
-- Extracts variant mesh (always 'a' variant), bakes transforms, scales to TAPE_W
-- Measures half-extents for collider (95% of actual size)
-
-### Title Stamping
-
-Canvas 2D draws title text onto baseColor texture:
-- Label region: rotated 90° CW (compensates for UV rotation on model)
-- Word-wrap up to 2 lines, truncate with ellipsis
-- Stickers: yellow ∞ for infinite, red "Playlist", blue "Mixtape"
-
-Cached by `variant:title:inf:pl:mx` key.
-
-### Physics States
+### Recorder integration
+Pos `[-20,-0.5,4]`, rot `π/6`. Hover footprint → lid opens, tape tips leading edge to lid angle, hovers higher. Drop → snap tween → kinematic → YouTube playback. Eject → fall back.
 
 ```
-idle → falling → idle
-     → dragged → idle
-                → snapping → loaded
-     → snapped → loading (kinematic)
-     → loaded  → dragged (on pickup)
+RECORDER_HALF_W=4, RECORDER_HALF_D=5            (lid trigger)
+RECORDER_SNAP_HALF_W=7, RECORDER_SNAP_HALF_D=8  (snap zone)
+RECORDER_LID_OPEN_ANGLE=π/8                      (tape held-over pose, flatter)
+RECORDER_HOVER_LIFT=1
+RECORDER_LOAD_Y=1.8  RECORDER_LOAD_LOCAL_X=0.4  RECORDER_LOAD_LOCAL_Z=2.15
+LID_CLOSE_DELAY=800ms   SNAP_DURATION=0.4s
 ```
 
-### Snap Animation
+Lid only opens on `tapeOverRecorder || recentlyLoaded` (no hover/click toggles; debug onClick removed).
 
-Post-drop tween: ease-out cubic over 0.4s, then switch to kinematic body type.
+### Camera locks
+`lockCamera = showMixtapeCreator || view==='player'` (controls fully disabled).
+- Pickup: tween `y=40` (matches maxDistance) so users always pick up at most-zoomed pose.
+- No tween on drop (no pose-restore, no recorder-load `jeem-centre-camera`); camera stays where edge-panned.
+- Mobile (`innerWidth<=745`): force `y=45`, `enableZoom=false`, `min=max=45`. Inspect drops `minDistance=20`.
 
----
+### External drag init
+Eject from deck: `externalDrag.current = {tapeId, targetX,Y, screenX,Y}`. `useFrame` detects and starts drag.
+
+## TapeBody.tsx
+
+FBX `/assets/textures/CassetteTape.fbx` loaded once+cached. Variant 'a' mesh, baked transforms, scaled to TAPE_W. Collider 95% half-extents.
+
+### Title stamping
+Canvas 2D draws title onto baseColor texture. Label region rotated 90° CW (compensates UV). Word-wrap up to 2 lines, ellipsis. Stickers: yellow ∞ (infinite), red Playlist, blue Mixtape. LRU cache `MAX_STAMP_CACHE=100`, key `variant:title:inf:pl:mx`. Always stamps for `isInfinite || isPlaylist` (so mixtape sticker stays even when name is empty).
+
+### States
+`idle ↔ falling ↔ dragged ↔ snapping → loaded ↔ snapped → loading (kinematic)`. Snap tween: ease-out cubic 0.4s → kinematic.
+
+### Inspect flatten
+`inspecting?: boolean` prop. When true and not dragged/loaded/snapping: kinematic, captures `(x,y,z)` + yaw into `inspectPin`, slerps to `Euler(0,yaw,0)` over ~0.17s. Wipes resting tilt. On exit → dynamic unless another state owns it.
+
+### Sub-mesh transparency
+Materials toggle `depthWrite=false` when `opacity<0.995` to kill z-fight cutouts between shell and spool sub-meshes during fades.
+
+### 2D spool overlays (`SpoolDisc`, from DeckTape3D.tsx)
+Radius `0.765 * geo.scale`. Left x `-1.9*geo.scale - 0.325`, right x `1.9*geo.scale`. `yOffset` prop default `0.01`; TapeBody passes `-0.04` (flush with top face: thickness 0.08 → lands at `halfY`).
+
+### isPlayingRef
+Shared `MutableRefObject<boolean>` threaded TapesTable→3D→TapeBody. Replaces old `window.AppState?.playing` polling. No re-renders on play/pause.
 
 ## Recorder3D.tsx
 
-- Loads GLB from `/assets/recorder/gltf/cassetterecorder.glb`
-- Wraps lid mesh (`tapelid_low`) in a pivot Group at its hinge edge
-- Animates lid open/closed with smooth tween (rate 8 → ~0.4s)
-- Click toggles lid for debugging
-- Collider at centre, args = half-extents of scaled model
+Loads `/assets/recorder/gltf/cassetterecorder.glb`. Lid mesh `tapelid_low` wrapped in pivot Group at hinge edge. Smooth tween (rate 8, ~0.4s). Collider half-extents of scaled model. `castShadow` threshold 0.05. Listens `jeem-ui-fade {hidden}`. GLB mesh names logged once on load.
 
----
+## TableSurface.tsx
+
+Wood table + optional video plane. Mirrors `jeem-ui-fade` to tween `ShadowMaterial` opacity. Dispatches `jeem-table-ready` after wood texture resolves.
 
 ## Persistence (db.ts)
 
-IndexedDB via `idb` library:
-- `tapes` store: array of Tape objects
-- `loadTapes()` / `saveTapes()` helpers
+`idb` IndexedDB; `tapes` store. `loadTapes`/`saveTapes` wrapped in try/catch w/ logging. Migration: imports from localStorage `jeem_tapes`, `userVideoHistory` first run. Tapes with `isPending`/`isPendingMixtape` excluded from save. Migration: tapes whose saved (x,y) lands in recorder zone (centre 1000,1400; ±380,±420 in 2D) reposition at canvas centre + jitter.
 
-Migration: on first run, imports from localStorage `jeem_tapes`, `userVideoHistory`.
+## Build
 
----
-
-## Build System
-
-```bash
-npm run build  # build-lists.js + build-tapes.js
-npm start      # build + node server.js
 ```
-
-`build-lists.js`: Scans video/anime/vintage folders, indexes filenames → `file-index.json`
-
-`build-tapes.js`: esbuild bundles `src/tapes/index.tsx` → `public/dist/tapes.js`, `src/mixtape/index.tsx` → `public/dist/mixtape.js`
-
----
-
-## CSS Architecture (player.css)
-
-Key classes:
-- `.crt` / `.crt::before` / `.crt::after` — CRT scanline + vignette effects
-- `.vignette::before` — box-shadow vignette
-- `.bg`, `#bg-mp4`, `#bg-none`, `#bg-youtube` — background layers
-- `.tapes-active` — added by script.js to hide CRT when tapes view active
-
-CSS z-index stack:
-- Background videos: z=-21 to -23
-- Table/3D canvas: z=3
-- CRT overlay: z=99998-99999
-- UI: z=10000+
-
----
-
-## API Routes
-
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/api/list-files` | GET | Returns shuffled video filenames (for backgrounds) |
-| `/api/search` | GET | YouTube search: `/api/search?q=query` |
-| `/api/playlist-tracks` | GET | Playlist metadata: `/api/playlist-tracks?list=PLAYLIST_ID` |
-| `/api/mixtape/generate` | POST | AI-powered mixtape generation |
-
----
-
-## Key Constants
-
-```typescript
-// TapesTable3D
-RECORDER_POS = [-20, -0.5, 4]
-RECORDER_ROT_Y = Math.PI / 6
-RECORDER_HALF_W = 4, RECORDER_HALF_D = 5     // Lid open trigger
-RECORDER_SNAP_HALF_W = 7, RECORDER_SNAP_HALF_D = 8  // Snap zone (wider)
-RECORDER_LID_OPEN_ANGLE = Math.PI / 4       // Lid animation
-RECORDER_HOVER_LIFT = 3                      // Extra hover height over recorder
-RECORDER_LOAD_Y = 1.8                        // Y when loaded in recorder
-RECORDER_LOAD_LOCAL_X = 0.4, RECORDER_LOAD_LOCAL_Z = 2.15  // Snap offset
-LID_CLOSE_DELAY = 800                        // ms before lid closes after drop
-
-// TapeBody
-SNAP_DURATION = 0.4                          // Seconds to tween into recorder
-
-// coords.ts
-DRAG_HEIGHT = 5                              // Hover height while dragging
+npm run build   # build-lists.js + build-tapes.js
+npm start       # build + node server.js
 ```
+`build-tapes-watch.js` (untracked) runs esbuild watch for both bundles during dev.
 
----
-
-## Known Patterns
-
-### External Drag Initiation
-
-When tape is ejected from deck, `startDeckDrag` sets:
-```typescript
-externalDrag.current = { tapeId, targetX: 0, targetZ: 0, screenX, screenY }
-```
-TapesTable3D's `useFrame` detects `externalDrag.tapeId` and starts a drag.
-
-### Texture Variants
-
-11 variants (a-k) cycling for visual variety. `nextTextureVariant()` increments a global counter for new tapes. Legacy tapes use `seed % VARIANTS.length`.
-
-### View Wipe Transition
-
-```typescript
-wipeTransition(onCovered, onUncovered)
-// At 270ms: swap views behind the wipe
-// At 600ms: end animation, call onUncovered
-```
-
----
-
-## Recent Changes (2024)
-
-- Unify tape info + tracklist into single panel
-- Open recorder lid when dragging tape over it
-- Animate cassette recorder lid on click
-- Video surface on table when MP4 mode active
-- 3D cassette recorder on tape table
-- IndexedDB persistence (replaces localStorage)
-
-## Recent Changes (2026)
-
-- **Black-canvas fix on initial load**: `TableSurface` now gates the video
-  plane behind `hasLoadedVideo` (`currentSrc && readyState >= 2`). Before the
-  video element has data it falls back to the dark overlay instead of
-  rendering a black `VideoTexture`.
-- **Recorder + shadow UI fade**: `Recorder3D` already listened to the
-  `jeem-ui-fade` CustomEvent; `TableSurface` now mirrors the same signal to
-  tween the `ShadowMaterial` opacity, and `Recorder3D`'s `castShadow`
-  threshold dropped to 0.05 so the cast shadow on the wood tracks the body
-  fade almost all the way down instead of snapping off.
-- **In-scene CRT overlay** (on the 3D video plane): chromatic RGB stripes +
-  radial vignette only — scanlines removed. Texture uses `NearestFilter`
-  (linear filtering was smearing the 1px stripes to invisible when
-  downsampled onto the plane). Source lives in the `crtMaterial` useMemo in
-  `TableSurface.tsx`. The DOM `.crt::before/::after` CRT is still hidden
-  under `.tapes-active` — only the 3D overlay is visible in tapes mode.
-- **Video-change blowout restored in tapes mode**: `player.js` `_crossfade`
-  now toggles the `glitching` class on `#tapes-root` in addition to
-  `#bg-mp4`. CSS reuses the existing `@keyframes bg-glitch` (same curve as
-  `view-flare`) so the 3D canvas gets the brightness/contrast/translate
-  filter blowout during background video swaps. Without this the flash was
-  invisible because `.tapes-active` hides the `#bg-mp4` element the CSS was
-  originally attached to.
-
-### Key wiring (as of 2026-04)
-
-- `jeem-bg-change` (player.js → TableSurface): `{ bgTypeIndex, videoEl }`.
-  Drives `isMediaMode` + `VideoTexture` creation.
-- `jeem-ui-fade` (IdleWatcher in player.js → Recorder3D + TableSurface):
-  `{ hidden: boolean }`. Fades recorder body, its cast shadow, and the
-  shadow plane on the video.
-- `#tapes-root.glitching` (player.js class toggle, 0.6s CSS animation):
-  Blowout filter applied to the entire 3D canvas during `_crossfade`.
-- `jeem-centre-camera` (TapesTable.tsx → TapesTable3D.tsx): tweens the
-  perspective camera + MapControls target. Detail accepts either legacy
-  `{ x, camY }` or `{ tx, tz, animate, camY }`. The `tx/tz` form lands the
-  target at `(tx+8, 0, tz)` so the right-side tracklist UI doesn't overlap
-  the focused subject.
-
-## Recent Changes (2026-04, late)
-
-### 3D table UX polish
-
-- **Pickup zoom = 40**: picking up a tape tweens the camera to `y=40`
-  (matches `maxDistance`), so users always pick up at the most zoomed-in
-  pose regardless of their prior zoom.
-- **Edge-pan while dragging** (`TapesTable3D.tsx` useFrame after the
-  cam-tween useFrame): when a tape is held and the pointer enters a
-  margin near the canvas edge, the camera + controls target drift in that
-  direction. Top margin is wider (0.28) than the others (0.15) so dragged
-  tapes can't slip behind the search/start UI overlay. Edge-pan bounds
-  match the active-area clamp's effective bound (`CAM_BOUND - halfView`)
-  so releasing the tape doesn't trigger a pull-back.
-- **Pointer border clamp during drag**: pointer coords are clamped to a
-  24px border inside the canvas before raycast / edge-pan, so the held
-  tape can't be flung off-screen past the pan zone.
-- **Extended drag bounds** (`TapesTable3D.tsx` constants `DRAG_X_EXT`,
-  `DRAG_Z_TOP`, `DRAG_Z_BOT`): left/right/bottom drag clamps extended by
-  +6 units beyond `DRAG_BOUND_X/Z`. Top stays at `DRAG_BOUND_Z` so tapes
-  can't reach the search UI.
-- **Held-over-recorder pose flatter**: `RECORDER_LID_OPEN_ANGLE = π/8`
-  (was π/4) and `RECORDER_HOVER_LIFT = 1` (was 3) — held tape tilts less
-  and hovers lower over the open lid.
-- **Lid open trigger tightened**: the recorder lid opens on
-  `tapeOverRecorder || recentlyLoaded` only — mouse hover and click no
-  longer toggle it (the debug `onClick` in `Recorder3D.tsx` was removed).
-- **Camera locked in player view**: `lockCamera` is now
-  `showMixtapeCreator || view === 'player'`, fully disabling MapControls
-  pan/zoom while a tape is playing.
-- **No camera tween on drop**: removed both the on-drop pose-restore
-  tween (`savedCamPoseRef` no longer drives `camTweenRef`) and the
-  recorder-load `jeem-centre-camera` dispatch — the camera now stays
-  wherever the user edge-panned it.
-
-### Tape visuals
-
-- **2D spool overlays** (`SpoolDisc` from `DeckTape3D.tsx`, used in
-  `TapeBody.tsx`): tuned to sit flush over the 3D hubs.
-  - radius `0.765 * geo.scale` (10% smaller than the 0.85 iteration)
-  - left x `-1.9 * geo.scale - 0.325`, right x `1.9 * geo.scale`
-  - new `yOffset` prop (default `0.01`); `TapeBody` passes `-0.1` to
-    drop the discs flush with / just inside the tape's top surface.
-- **Player-view rewind/remove buttons removed**: deleted the buttons
-  block in `TapesTable.tsx` and the in-scene `Html` context-menu in
-  `TapeBody.tsx`. `handle3DMenuAction`, `rewindTape`, and the
-  `onMenuAction` plumbing are still wired but currently unused.
-
-### Background mode list
-
-- `BG_TYPES` in `public/src/player.js` trimmed to
-  `["vintage", "anime", "video", "original"]` — removed `"none"` and
-  `"tapes"`. The "open the tape table" button is the sole way to enter
-  table view now.
-- `setType` no longer touches `DOM.tapesRoot.style.display` — that's
-  owned exclusively by `toggleTableView`. Previously both branches
-  forced `display = "flex"`, which meant cycling backgrounds with `X`
-  yanked the user back to the table.
-- `loadSavedType` clamps the saved index against the new
-  `BG_TYPES.length` so old localStorage values don't crash.
-
-### Tape sharing
-
-- **Share button** in the tape inspect view (`ShareButton` in
-  `TapesTable.tsx`) calls `buildShareUrl(tape)` and copies the resulting
-  URL to clipboard.
-- **`src/tapes/share.ts`**:
-  - `WirePayload` uses 1-letter keys (`i`, `t`, `a`, `s`, `v`, `p`, `pl`,
-    `n`, `c`, `h`, `x`) to keep payloads compact.
-  - `buildShareUrl` is async — POSTs the wire payload to
-    `/api/tape-share`, returns `?t=<id>`. On any error (server down,
-    non-OK response) it falls back to inline base64url:
-    `?tape=<encoded>`.
-  - `fetchShareById` GETs `/api/tape-share/:id` and converts the wire
-    payload back to `SharePayload`.
-- **Server routes** (`server.js` + `api/tape-share.js`):
-  - `POST /api/tape-share { payload }` → `{ id }` (8-char alphanumeric).
-  - `GET /api/tape-share/:id` → `{ payload }`.
-  - File-backed at `data/tape-shares.json` (read-modify-write). The
-    `data/` dir is auto-created and is NOT checked in. This local-disk
-    store will not work on Vercel — swap for `@vercel/kv` (or similar)
-    on deploy.
-- **Spawn flow** in `TapesTable.tsx`:
-  - URL effect parses `?t=<id>` first, then `?tape=<encoded>` as
-    fallback. Strips both params via `history.replaceState` so reloads
-    don't re-spawn.
-  - Auto-calls `window.toggleTableView()` if the tape table is hidden
-    when the link is opened.
-  - The async resolution lives in `sharedTapePromiseRef`. The IndexedDB
-    `init()` effect awaits this promise before its final `setTapes`,
-    ensuring the shared tape is prepended even when the network round-
-    trip outlasts the local DB load.
-- **`public/index.html` mixtape-bundle gate**: the inline script that
-  loads `dist/mixtape.js` previously triggered on `params.has('tape')`
-  too. That caused the mixtape bundle's `useEffect` to redirect to `/`
-  (since `create_mixtape` was unset), stripping the share param before
-  React saw it. The condition is now `create_mixtape === '1'` only.
-
-## Recent Changes (2026-05)
-
-### Inspect-view transition (double-tap a tape)
-
-Multi-stage fade + pan + zoom on entry, mirrored on exit. Implemented
-in `handle3DDoubleTap` / `exitInspect` (TapesTable.tsx) coordinating
-with the `jeem-centre-camera` handler in TapesTable3D.tsx.
-
-- Entry timeline (relative to double-tap):
-  - 0ms: `inspectTapeId` set → other tapes + recorder fade out via
-    their `hidden` prop (no longer filtered out — they stay mounted so
-    the fade can play). Easing rate bumped to 4.5 (TapeBody +
-    Recorder3D) so ~0.5s reaches near-fully faded.
-  - 200ms: pan tween starts (1000ms). Camera target lands at
-    `(tx + 8, 0, tz)` — pass `tx - 2` from the parent so the tape
-    sits ~6 units left of camera centre (left half of screen).
-  - 400ms: zoom tween starts (1000ms) to camY = 24, runs in parallel
-    via a separate `camYTweenRef` so it can be offset in time without
-    overwriting the position tween.
-  - 1650ms: inspect-view UI appears with `ui-glitching-in` class.
-- Exit (double-tap focused tape, or remove flow):
-  - UI hides immediately (`ui-glitching-out` then unmount after 450ms
-    via `inspectUiPhase` state machine: `hidden|showing|visible|hiding`).
-  - Pan + zoom-out reverse tweens.
-  - `inspectTapeId` cleared at the end → other tapes/recorder fade in.
-- `jeem-centre-camera` event detail extensions:
-  - `dur`: pan tween duration (default 600).
-  - `zoomTo`: optional Y target → spawns a parallel `camYTween`.
-  - `zoomDelay` / `zoomDur`: timing for the Y tween.
-  - `saveCurrentPose` / `restoreSaved`: capture pre-entry pose on the
-    way in, restore exact pose on the way out so the post-tween clamp
-    can't snap the camera somewhere else.
-- Remove button (in inspect view): sets `removingInspected` → the
-  inspected tape gets `hidden=true` and fades over 600ms. Then
-  `deleteTape(target)` runs first (so the tape is gone from `tapes`),
-  then `exitInspect()` runs the standard zoom-out + pan-back.
-- `minDistance` drops to 20 during inspect so the y=24 zoom isn't
-  clamped back up. Zoom controls disabled during inspect.
-
-### Sub-mesh transparency artifact
-
-Tape materials now toggle `depthWrite` off when `opacity < 0.995` to
-kill stencil-like z-fight cutouts that appeared between body shell
-and spool sub-meshes at low opacity (`TapeBody.tsx` per-frame fade).
-
-### Inactivity glitch + reveal animations
-
-Inactivity hide replaced with a glitch-out flicker. Reveal of the
-search/start UI on initial load is also a glitch-in.
-
-- `@keyframes ui-glitch-out` and `ui-glitch-in` in `player.css` —
-  flicker via opacity + filter (`brightness/contrast/saturate/
-  hue-rotate`) over 0.45s with `steps(9, end)` for digital cadence.
-  **Keyframes intentionally do not touch `transform`** — some targets
-  (notably `.tape-info-panel`, which uses `translateY(-50%)` to centre)
-  would yank across the screen if mid-animation `transform` overrode
-  their static centring transform.
-- `Inactivity` module in `public/src/player.js`:
-  - `_hide()` adds class `ui-glitching-out` to each target (forces
-    reflow first so re-adding restarts the animation). `forwards`
-    fill-mode keeps opacity:0 after end.
-  - `_show()` removes the class and sets `style.opacity = "1"`. The
-    inline opacity overrides the animation's persisted final state.
-  - `_glitchTargets()` includes `titleContainer` now (was previously
-    held at 0.25 separately — now glitches with the rest).
-- Initial-load reveal:
-  - `<body class="scene-not-ready">` in `index.html`. CSS hides
-    `#start-container` via opacity:0 + pointer-events:none while the
-    class is present.
-  - `TapesTable.tsx` has a useEffect on `sceneReady` that, after a
-    500ms beat, removes `scene-not-ready` from body and adds
-    `ui-glitching-in` to `#start-container` for ~600ms.
-
-### Loading-spinner staging
-
-The full-screen loading overlay no longer hides the table the entire
-time. `TableSurface.tsx` dispatches `jeem-table-ready` once the wood
-texture has resolved (after the Suspense fallback). `TapesTable.tsx`
-listens, sets `tableReady`, and drops the overlay's opaque background
-(`#0a0805` → transparent) — the wood is visible behind the spinner
-while tapes/recorder finish loading. The overlay disappears entirely
-when `sceneReady` fires.
-
-### Tape-info / tracklist panel during interaction
-
-- `tape-info-panel` opacity drops to 0 while `dragging3D` (200ms
-  transition). Restores when drag ends. Inspect view + idle playback
-  unaffected.
-- During playback, the panel waits for `isPlaying === true` (set via
-  `notifyPlayState`) before mounting — so it doesn't flash empty
-  state during YouTube load.
-- Inspect-view UI mount/unmount goes through `inspectUiPhase` state
-  machine so the glitch-out animation plays before unmount.
-  Apply via `className={inspectUiClass}` on the panel wrapper (only
-  when in inspect mode — playback path doesn't get the class).
-
-### Recorder-pose-persistence bug
-
-When a tape was loaded into the recorder via drag, `handle3DDragEnd`
-saved the drop coords (= recorder pose) as the tape's `x/y`. On
-refresh the tape would spawn under the recorder and stay stuck.
-Fixed in two places:
-
-- `handle3DDragEnd` in `TapesTable.tsx` skips the `setTapes({ x, y })`
-  update if `recorderLoadedDuringDragRef.current` is true.
-- `init()` migration: any tape whose saved (x, y) lands within the
-  recorder zone (centre 1000, 1400; box ±380, ±420 in 2D) gets
-  re-positioned at canvas centre with the standard random jitter.
-
-### 2D spool overlay tuning
-
-`SpoolDisc` parameters in `TapeBody.tsx`:
-
-- `yOffset = -0.04` — flush with the tape's top face (was -0.1 which
-  was inside the body). Position is `halfY + thickness/2 + yOffset`
-  with thickness = 0.08, so -0.04 lands the disc exactly at `halfY`.
-- Per-tape positions are tweaked manually — see the live values in
-  `TapeBody.tsx` near the SpoolDisc invocations. Default symmetry is
-  `±1.9 * geo.scale`; nudges are added inline.
-
-### Build watch script
-
-`build-tapes-watch.js` (untracked at repo root) runs esbuild in watch
-mode for both `tapes.js` and `mixtape.js` bundles. Use during dev so
-edits to `src/tapes/**` and `src/mixtape/**` auto-rebuild on save —
-the regular `npm start` build is one-shot.
-
-## Recent Changes (2026-05, second batch)
-
-### "make a single tape" creator flow
-
-Replaced the old start-screen search/lucky bar with two action buttons
-(`#create-tape-btn` "make a single tape" + a disabled `#create-mixtape-btn`)
-in `public/index.html`. The mixtape button is reserved for a future
-flow.
-
-- Click `#create-tape-btn` → dispatches `jeem-create-pending-tape`.
-  `TapesTable.tsx` listens, spawns a placeholder tape (`isPending: true`,
-  fresh uuid each time) at canvas centre, and runs the inspect-entry
-  sequence. The standard inspect-view title textarea / remove buttons
-  are skipped for pending tapes (`if (tape.isPending) return null`).
-- Search overlay = `#single-tape-creator` in HTML, holding the blurb
-  + the existing `#video-form`. CSS makes it a full-screen flex column
-  with `justify-content: space-between` so the blurb sits above the
-  centred 3D tape and the search bar sits below — works at any width.
-  Search dropdown is now appended inside `#single-tape-search` so its
-  width tracks the search bar.
-- The pending tape is excluded from `saveTapes` so a half-completed
-  flow doesn't persist across refreshes.
-- Submission hand-off: `addTapeFromSearch` detects `tape.isPending`
-  upfront and forwards the metadata to `finishPendingTape` (without
-  touching `tapes` state itself). `finishPendingTape` orchestrates:
-  - t=0:    glitch the search overlay out (`setInspectUiVisible(false)`),
-            fade the placeholder tape (`setRemovingInspected(true)`).
-  - t=600:  populate the placeholder in place (id stays the same so
-            `restoreSaved` pose still resolves), call `exitInspect()`.
-  - t=1800: re-position the now-real tape at canvas centre + jitter,
-            bump `respawnVersions` and add to `newTapeIds` so TapeBody
-            remounts and falls in from `SPAWN_HEIGHT`. Clear the
-            `removingInspected` flag.
-- Creator-overlay visibility uses `inspectedIsPending && inspectUiRendered`
-  (derived from `tapes.find(t => t.id === inspectTapeId)?.isPending`),
-  so the overlay glitches in/out with the rest of the inspect UI.
-
-### Inspect view layout: single tapes vs. tracklist tapes
-
-- `handle3DDoubleTap` and `startPendingSingleTape` pick a camera offset
-  based on whether the focus tape has a tracklist:
-  - Single tapes (no playlist / no infinite / no mixtape): pass
-    `tx - 8` so the tape lands at the camera centre (centred on screen).
-  - Playlist / infinite / mixtape: pass `tx - 2` so the tape sits in
-    the left half, leaving room for the tracklist on the right.
-- Inspect-mode title + button row uses `left: 50%` for single tapes,
-  `left: 32%` for tracklist tapes.
-- The unified info / tracklist panel returns `null` for single-tape
-  inspect (no tracklist to show — keeps the view clean).
-
-### Tracklist UX during playback
-
-- `tape-info-panel` and each track row become click-through
-  (`pointerEvents: 'none'`) for mixtape AND playlist playback — drag
-  events fall through to the 3D canvas so users can still move tapes
-  around without leaving playback. Infinite (non-mixtape) tapes keep
-  the existing click-to-seek behaviour.
-- Header above the tracklist now shows `MIXTAPE /` or `PLAYLIST /`
-  (faint, uppercase, letter-spaced) followed by the tape's title in
-  bold white with a soft text-shadow.
-- Playing-track highlight: white text + 14% white background, 3px
-  white left border, soft glow `0 0 8px rgba(255,255,255,0.4)`, bold
-  title. Track-number column uses 04b03 (parent font) — kept inline
-  with the rest of the row.
-- New `playbackPanelGlitching` state flips true when `isPlaying`
-  transitions false → true; the panel gets `ui-glitching-in` for
-  500ms so title, author, tracklist all flicker in together.
-
-### Mobile / responsive
-
-- `body` ≤ 745px viewport: padinfo bar is now horizontal across the
-  full width (instead of stacking right-side); `padinfo-row:last-child`
-  uses `margin-left: auto` to push the fullscreen / info pair to the
-  right edge. Reflects the removal of the 2D deck.
-- Title `.start-title` uses `font-size: clamp(1.6em, 7vw, 3em)` plus
-  `white-space: nowrap` so it shrinks instead of wrapping.
-- 3D canvas mobile heuristic (`window.innerWidth <= 745`) in
-  `TapesTable3D.tsx`: forces `camera.position.y = 45` on mount, sets
-  `enableZoom={false}` and `minDistance = maxDistance = 45` so pinch
-  / scroll zoom can't tighten the view. Inspect view still drops to
-  `minDistance: 20` so the inspect zoom-in keeps working.
-
-### Background-tab playback
-
-`public/src/demo.js` `state_change` handler now calls
-`TapesBridge.loadNextInfiniteTrack()` when state=0 for any infinite
-tape — not just single videos. The previous implementation relied on
-a 3-second `setInterval` poll that browsers throttle to ~1 minute on
-hidden tabs, so auto-advance stalled. The iframe's `state_change`
-event isn't a timer, so it fires reasonably even when backgrounded.
-
-### Other small changes
-
-- `z` keybind in `public/src/player.js` toggles between table and
-  video views (mirrors `x` for bg cycle). Gated on `AppState.playing`
-  — disabled when no tape is playing.
-- `BG_LABELS = { video: "stock" }` in `Backgrounds.setType` — the
-  user-facing label is now "stock" while the underlying folder name
-  stays `/video`.
-- `Recorder3D.tsx` logs all GLB mesh names once on load (`[Recorder3D]
-  mesh parts: [...]`) so future animations can reference them.
-- `.videobox-ok` no longer overrides text colour (was a green tint);
-  the `.videobox-notok` red error styling is unchanged.
-
-## Recent Changes (2026-05, third batch)
-
-### Inspect view layout — full pass
-
-The inspect-view UI (title row + buttons row + tracklist panel) was
-restructured around four cases: wide single, wide tracklist, narrow
-single, narrow tracklist. Anchors and camera offsets are tuned per
-case so each lays out cleanly.
-
-**Breakpoint:** `isNarrow` in `TapesTable.tsx` bumped 745 → 960. The
-`TapesTable3D.tsx` `isMobile` heuristic stays at 745 (it gates touch /
-zoom behaviour, distinct from layout choice).
-
-**Camera offsets** (in `handle3DDoubleTap`):
-
-- `tapeOffset = (isSingle || narrowNow) ? -8 : -1` — single + narrow
-  centre the tape on screen; wide tracklist nudges -1 so the cassette
-  sits a touch right of centre, opening room for the tracklist.
-- `tzOffset = narrowNow ? (isSingle ? 0 : 3.5) : (isSingle ? 0 : 2)` —
-  narrow tracklist bumps tz so the cassette projects higher in the
-  frame (panel sits at the bottom of the screen below it).
-- Pending-tape (`startPendingSingleTape`) uses `tx: tx - 8, tz: tz`
-  to match wide single inspect.
-
-**Wide single (≥960px, no tracklist):**
-- Title at `top: 12vh, width: 25vw`, anchored `left: 50%` centred.
-- Buttons at `bottom: 18vh, gap: 12, justifyContent: center`.
-
-**Wide tracklist (≥960px, playlist/infinite/mixtape):**
-- Title at `top: 12vh, width: 25vw, paddingRight: 20px`, anchored
-  `left: 25%` (middle of the left half — fixed anchor that doesn't
-  drift with viewport).
-- Buttons at `top: 68vh, width: auto, flexWrap: nowrap` — same 25%
-  anchor, content-sized so the three buttons stay on one line.
-- Tracklist panel `.tape-inspect-wide-panel` anchored `top: 10vh`
-  (was `top: 50%; transform: translateY(-50%)`) so the first track
-  is at a fixed position regardless of list length and aligns with
-  the title.
-
-**Narrow single (<960px, no tracklist):**
-- Title at `top: 20vh, width: 50vw`, centred. Multi-line wrap via
-  the existing `.tape-inspect-title` CSS.
-- Buttons at `top: 75vh, width: auto, flexWrap: nowrap`, centred.
-  No bottom bar.
-
-**Narrow tracklist (<960px, playlist/infinite/mixtape):**
-- Title at `top: 13vh, width: 50vw`, centred.
-- Buttons at `top: 94vh, width: auto, flexWrap: nowrap`, centred.
-- Tracklist panel `.tape-inspect-narrow-panel`: `bottom: 70px`
-  (was 60px), `padding: 16px 18px 12px` (extra 2px on left/right),
-  `max-height: 46vh`. So at max height the panel top is around
-  `100vh − 70px − 46vh ≈ 54vh − 70px`. Buttons at 94vh sit above
-  the bottom bar but can collide with the panel on very short
-  viewports — flag for future iteration.
-
-### Inspect-mode tape flatten
-
-New `inspecting?: boolean` prop on `TapeBody`. When true (and the
-tape isn't dragged / loaded / snapping):
-
-- Body switches to kinematic (`setBodyType(2)`).
-- Captures current `(x, y, z)` and yaw on entry into `inspectPin`
-  ref, then holds position and slerps rotation toward
-  `Euler(0, savedYaw, 0)` over ~0.17s (`1 - exp(-delta * 6)`).
-- Resting tilt from stacking / physics settling is therefore wiped
-  out the moment a tape enters inspect view.
-
-On exit (`inspecting → false`) the body switches back to dynamic
-unless another state (loaded/snapping/dragged) now owns it.
-
-Wired in `TapesTable3D.tsx` via
-`inspecting={!!inspectTapeId && tape.id === inspectTapeId && !fadeInspectedTape}`.
-
-### Font + style polish
-
-- `.tape-inspect-title`, `.tape-panel-title`, and
-  `.single-tape-blurb` bumped from 19px → 21px for legibility.
-- `.tape-btn` gets `white-space: nowrap` + `flex-shrink: 0` so
-  button labels don't wrap and the buttons don't get squashed when
-  the row is constrained.
-- `ShareButton` — `narrow` prop retained for API compat but ignored;
-  both narrow and desktop use the same inline style now.
-- `.single-tape-creator` blurb size updated alongside the title.
-
-### CSS architecture refactor
-
-Inline styles for inspect/playback UI extracted into reusable
-classes in `player.css`:
-
-- `:root` design tokens: `--tape-text`, `--tape-text-dim`,
-  `--tape-text-strong`, `--tape-bg`, `--tape-accent`, `--tape-font`,
-  `--tape-border`, `--tape-shadow`, etc.
-- `.tape-ui`, `.tape-btn`, `.tape-panel`, `.tape-panel-header`,
-  `.tape-panel-label`, `.tape-panel-title`, `.tape-panel-author`,
-  `.tape-panel-tracks`, `.tape-track`, `.tape-track-num`,
-  `.tape-track-title`, `.tape-track-author`, `.tape-track-time`,
-  `.tape-spinner` — used across inspect + playback panels.
-- `.tape-inspect-wide-panel` / `.tape-inspect-narrow-panel` for the
-  two tracklist panel anchors.
-- `.tape-inspect-wide-title` / `.tape-inspect-wide-buttons` for
-  desktop title + buttons row positioning.
-
-`TapesTable.tsx` still sets a few inline styles for case-specific
-overrides (titleTop, paddingRight, width) but the bulk of the
-visual styling is now in CSS.
-
-### Sanity-check fixes (round 1)
-
-- Removed `FADE_MS` reference from inspect remove-button onClick
-  (the constant was scoped to `finishPendingTape`, would have
-  thrown `ReferenceError` on remove). Now uses the literal `600`.
-- Removed an over-eager unmount cleanup in `TapeBody` that was
-  disposing the shared `stampCache` whenever any tape unmounted —
-  it was wiping textures still in use by every other tape. The
-  LRU eviction in `stampTitle` already handles cache growth.
-- `db.ts`: dropped a misleading comment claiming `deleteAll+put`
-  semantics (the code used `clear()`); also dropped the per-put
-  `.catch` since the surrounding transaction would still abort on
-  any error. Added trailing newline.
-- `TapesTable3D.tsx`: hoisted `REC_COS`/`REC_SIN` to module scope
-  (they were declared inside the component, recomputed every
-  render). Pre-allocated `_raycaster`, `_ndcVec`, `_hitVec`,
-  `_worldVec`, `_plane` via `useMemo` so pointer events don't
-  churn `THREE.Vector3` and `THREE.Plane` allocations.
-- `TapesTable.tsx`: cleanup `useEffect` for `inspectUiTimerRef` and
-  `recorderLoadingTimerRef` on unmount, plus a matching cleanup for
-  `lidCloseTimer` in `TapesTable3D.tsx`.
-- `player.js` `History._load()` wrapped in try/catch.
-- `db.ts` `loadTapes` / `saveTapes` wrapped in try/catch with error
-  logging instead of throwing.
-- `stampCache` in `TapeBody.tsx` got LRU eviction via a
-  `stampCacheOrder` array — caps at `MAX_STAMP_CACHE = 100` entries,
-  oldest disposed when full.
-- Removed duplicate `.tape-inspect-wide-title` / `.tape-inspect-wide-buttons`
-  rules in `player.css`; fixed `gap: 8` (invalid — unitless) → `gap: 8px`.
-- `Creator.tsx` + `TapesTable3D.tsx` `Canvas`: changed shadow map
-  from `PCFSoftShadowMap` → `PCFShadowMap` (intentional —
-  `PCFSoftShadowMap` is deprecated).
-## Recent Changes (2026-05, fourth batch)
-
-### Sanity-check fixes (round 2)
-
-- **TapeBody hooks bug fixed**: `positionedTapes` `useMemo` was placed
-  *after* the `if (!mounted) return null;` early return, so the hook
-  count changed between the first (mounted=false) and subsequent
-  (mounted=true) renders → React error #310. Moved the `useMemo`
-  above the early return.
-- **`window.AppState?.playing` polling removed** (`TapeBody.tsx` per-
-  frame): replaced with a shared `isPlayingRef: MutableRefObject<boolean>`
-  prop. `TapesTable.tsx` owns the ref, syncs it from `isPlaying` state
-  via a useEffect, and threads it through `TapesTable3D` → `TapeBody`.
-  `TapeBody`'s useFrame reads `isPlayingRef.current` instead of the
-  vanilla-JS global. No re-renders on play/pause toggle.
-- **Recorder-load drag-end flag**: replaced `recorderLoadedDuringDragRef`
-  (set inside `handleRecorderLoad` *after* `loadIntoPlayer`, so a throw
-  in between would leave the flag false and exit player view) with a
-  new `landedOnRecorder` boolean parameter on `onDragEnd`. Set at the
-  actual drop site in `TapesTable3D.tsx`'s `onUp` handler — same
-  moment `snap.tapeId` is assigned. `handle3DDragEnd` reads the
-  parameter directly.
-- **Dead code removed**:
-  - `savedCamPoseRef` in `TapesTable3D.tsx` — written on drag start
-    and cleared on drag end, never read. Removed declaration + both
-    assignments.
-  - `MixtapeOverlayEffect` component + its only-caller helper
-    `mountMixtapeOverlay` (~95 lines of inline-styled DOM template
-    string) in `TapesTable.tsx`.
-- **Debug log strip**:
-  - `Recorder3D.tsx`: GLB load progress, raw bbox, mesh part list,
-    lid pivot coords, scale summary, and the now-unused load progress
-    callback.
-  - `TapeBody.tsx`: full FBX hierarchy dump (`fbxDumped` flag) and
-    per-variant collider-size logs.
-  - `Tape3D.tsx`: FBX bbox + mesh dumps in both `TapeFBX` and
-    `NewTapeFBXTest`. (Components themselves are dead but still
-    bundled — left for now.)
-  - `TapesTable3D.tsx`: per-pointerdown `[TapeTable]` log. WebGL
-    context lost/restored handlers kept (rare error events).
-
-## Recent Changes (2026-05, fifth batch)
-
-### "make a mixtape" flow
-
-The placeholder mixtape button on the start screen is live. Clicking
-`#create-mixtape-btn` dispatches `jeem-create-pending-mixtape` →
-`startPendingMixtape()` in `TapesTable.tsx` spawns a placeholder tape
-with `isPendingMixtape: true` and runs the inspect-entry tween
-(`tx - 8`, `tz + 3.5`).
-
-- `Tape.isPendingMixtape` flag added in `src/tapes/types.ts` —
-  excluded from `saveTapes` (filtered alongside `isPending`).
-- `inspectedIsPendingMixtape` is computed alongside the existing
-  `inspectedIsPending`. While true, a `.mixtape-creator-overlay`
-  element renders on top of the inspect view containing
-  `<MixtapeBuilder>` (new file `src/tapes/MixtapeBuilder.tsx`).
-  - Builder has its own search-bar input that calls `/api/search`
-    debounced 250ms, plus URL-paste support via `parseVideoId` +
-    youtube oembed for title/author resolution.
-  - Builder keyboard nav: `↑/↓` highlight, `Enter` adds. Mouse hover
-    also updates highlight.
-  - On `create`: builder's tracks become an `infiniteHistory` array,
-    placeholder tape is replaced in-place with a real `author:
-    'mixtape'` infinite tape (id changes — uses `crypto.randomUUID`),
-    and `newTapeIds` triggers a fall-in respawn.
-- Inspect-view title is now a click-to-edit `tape-inspect-title-display`
-  span with a pen icon (`fa-pen`); clicking switches to the existing
-  textarea. Same pattern in `Creator.tsx` for the legacy mixtape
-  creator's name input. Reused state: `editingTitle` (TapesTable),
-  `editingName` (Creator).
-- Standard rewind/share/remove buttons are suppressed when the
-  inspected tape `isPendingMixtape` (the create button on the
-  builder takes their place).
-
-### Search-bar keyboard nav
-
-`Search` module in `public/src/script.js` gained `↑/↓` highlight
-navigation and `Enter` to select the highlighted result. Tracks
-`_highlighted` index, scrolls items into view, applies `.highlighted`
-class.
-
-### Unified inspect view layout
-
-Single tapes, tracklist tapes (playlist/infinite/mixtape), and
-pending-mixtape placeholders now share one inspect layout. The
-`isSingle ? ... : ...` / `centred ? ... : ...` branches in the
-camera + style code are gone.
-
-- Camera (`handle3DDoubleTap`): `tapeOffset = -8`, `tzOffset = 3` for
-  every inspect entry (cassette centred on screen, projected high in
-  the frame). Pending-tape spawn uses the same offsets.
-- `centred = true` always — `colStyle` anchors at `left: 50%`.
-  Title `top: 12vh` (wide) / `13vh` (narrow). Buttons row `top:
-  94vh`, content-sized, `flexWrap: nowrap`, centred.
-- The wide tracklist panel previously sat at `right: 0` with the
-  tape on the left (`tapeOffset: -1`); now both panels share the
-  same centred-tape, panel-below-tape layout.
-
-### Tracklist styling unified across mixtape / playlist / infinite
-
-`TapesTable.tsx` always renders `<div className="mixtape-track-list">`
-for any tracklist (the old `tape-panel-tracks` branch is gone).
-Click-to-seek for non-mixtape tapes preserved via inline `cursor:
-pointer` + `onClick` — mixtapes stay non-interactive (read-only
-during playback).
-
-CSS in `public/player.css` (.mixtape-track-list .tape-track):
-
-- Display **grid** with `grid-template-areas: "num title" "num
-  author"`, so the track number sits left and is vertically
-  centred between the title row and the author row.
-- `.tape-track-top` uses `display: contents` so the existing JSX
-  (`<div class="tape-track-top"><span class="tape-track-num"/><span
-  class="tape-track-title"/></div><div class="tape-track-author-row"/>`)
-  participates directly in the grid.
-- Numbers: `1.4em`, opacity `0.55`, no trailing dot.
-- Titles + authors: `white-space: nowrap; overflow: hidden;
-  text-overflow: ellipsis` so every row is identical height
-  regardless of content length.
-- `min-height: 64px` per row, `padding: 12px 16px`. List padding
-  `2px 0 0` so the first row sits flush with the others.
-
-### Inspect tracklist panel (narrow + wide)
-
-Both `.tape-inspect-narrow-panel` and `.tape-inspect-wide-panel`
-anchor at `top: 48vh`. Narrow: `left/right: 16px`. Wide: centred
-with `width: min(50vw, 720px)`. The inner `.mixtape-track-list`
-caps at `max-height: min(495px, calc(100vh - 48vh - 130px))` with
-`overflow-y: auto` — fits 8 rows (8×64 = 512 minus a sliver to
-hint at scrollable overflow).
-
-- `max-height` lives on the **list** (not the panel) because the
-  flex chain through `.mixtape-track-list-frame` wasn't reliably
-  propagating panel `max-height` down to the scrollable child.
-- Panels themselves are `overflow: visible` so the triangle
-  indicator (below) isn't clipped.
-
-### `.mixtape-track-list-frame` wrapper + scroll-aware triangle
-
-The track-list is wrapped in a new `.mixtape-track-list-frame` div
-(JSX in TapesTable.tsx). The frame owns the visible black background
-(`rgba(0,0,0,0.45)`) + border-radius and the upward-pointing
-triangle indicator (`::before`, `border-bottom: 20px solid
-rgba(0,0,0,0.45)`, `top: -20px`). The inner `.mixtape-track-list`
-keeps its own `overflow-y: auto`. On iOS Safari overscroll, the
-scrolling element translates and the frame translates with it →
-triangle moves with the box rather than staying fixed. The panel
-`::before` triangles (`tape-inspect-*-panel::before`) are now
-`display: none`.
-
-### Playback panel mode
-
-When the panel is rendered for the *playing* tape (not inspect), it
-gets a `tape-playback-panel` class. CSS overrides:
-
-- `top: 18vh` (much higher than inspect's 48vh) so the tracklist
-  begins just below the song-name/author header.
-- Wide variant: `left: 16px; right: auto; transform: none;` (left-
-  aligned, same edge inset as narrow).
-- Inner list `max-height: 68vh` (taller than inspect's ~495px cap).
-
-`trackListScrollRef` + a `useEffect` keyed on `loadedTape?.infiniteIndex
-/ playlistIndex / id` auto-scrolls the active row to the vertical
-centre of the visible list (smooth). Ref only attaches in playback
-mode (`!inspectTapeId`) so user-initiated inspect-view scrolling is
-unaffected.
-
-### Inactivity reset on key navigation
-
-`window.addEventListener("keydown")` in `public/src/player.js` now
-calls `Inactivity.reset()` at the top of the handler (before the
-input/textarea early return). Belt-and-braces against any path
-where the existing `document.keydown` Inactivity listener doesn't
-fire — arrow-key navigation through the tracklist now reliably
-keeps the playback UI visible.
-
-### Logo click during inspect
-
-The title-link click handler in `TapesTable.tsx` now checks
-`inspectTapeIdRef.current` first and runs `exitInspect()` instead of
-falling through to `<a href=".">` (which reloaded the page mid-
-animation, killing the glitch-out).
-
-## Recent Changes (2026-05, sixth batch)
-
-### Create-mixtape callout layout
-
-Replaced the stacked blurb-on-top layout with a textbook-diagram look:
-the cassette stays centred on screen, with two callouts pointing at
-it. Both callouts are SVG `<line>` + `<circle>` rendered into a
-fixed-position `.mixtape-callout-svg` overlay (`pointer-events:
-none`) so the geometry is decoupled from the React tree.
-
-- **Left callout** (`.mixtape-callout-name`): static text
-  "Add a name for your mixtape." anchored `left: 4vw, top: 14vh,
-  width: 22vw`. Reuses `.single-tape-blurb` styling so the font
-  matches the right blurb.
-- **Right callout** (`.mixtape-callout-blurb`): the existing
-  blurb anchored `right: 4vw, top: 14vh`.
-- **Leaders**: percent-coordinate SVG paths the user dialed in by
-  hand (current values in `TapesTable.tsx`, the `<svg
-  className="mixtape-callout-svg">` block). Both end in 7px filled
-  circles at `rgba(250, 249, 246, 1)`; lines are 2px stroke at
-  `rgba(250, 249, 246, 0.85)`.
-- **Glitch-hide on completion**: each callout group plus its text
-  label gets `is-callout-hidden` once its prompt is fulfilled —
-  `nameAdded = tape.title.trim().length > 0` for the LEFT,
-  `trackAdded = mixtapeBuilderTracks.length > 0` for the RIGHT.
-  CSS rule replays the existing `ui-glitch-out 0.45s steps(9, end)
-  forwards` animation so callouts flicker out and stay gone.
-- Layout is unified across narrow + wide (the `mixtape-creator-
-  overlay--callout` class is now applied unconditionally). Narrow
-  viewports (<= 960px) override the tracks builder to span
-  `left: 16px; right: 16px` like the inspect panel does.
-
-### Inline name editing on the cassette
-
-Replaced the off-cassette title input with an in-canvas editor:
-
-- `.tape-name-on-cassette` is a transparent `<textarea>` overlaid
-  on the cassette label area (`top: 24vh`, `width: 18vw`, `height:
-  28px`, `caret-color: transparent`, `color: transparent`,
-  `spellCheck=false`). It captures keystrokes and updates
-  `tape.title` directly; no autoFocus — the user must click the
-  label to start editing.
-- The blinking caret is rendered **into the cassette texture
-  itself** so it's in the same `04b03` font as the label.
-  Mechanism:
-  - `nameInputFocused` flips on textarea `onFocus`/`onBlur`.
-  - `caretBlinkOn` toggles every 500ms via `setInterval` while
-    `nameInputFocused && inspectedIsPendingMixtape`.
-  - A `useMemo` (`tapesWithCaret`) derives a list where the
-    pending tape's `title` becomes `title + '|'` when the caret
-    should be visible. Downstream (`positionedTapes` →
-    `TapesTable3D` → `TapeBody.stampTitle`) re-stamps the canvas.
-  - `stampTitle` LRU-caches by `variant:title:flags`, so blinking
-    just toggles between two cached textures.
-- `[mixtape name]` placeholder fully removed — `startPendingMixtape`
-  initialises `title: ''`. All `tape.title === '[mixtape name]' ?`
-  guards stripped.
-- `TapeBody` now always invokes `stampTitle` for tapes with
-  `isInfinite || isPlaylist` (covers mixtapes since they're
-  `author: 'mixtape', isInfinite: true`). Previously stamping was
-  gated on `tape.title` being truthy, so the mixtape sticker
-  flashed off whenever the name was cleared.
-
-### Click-cycle texture variants on the pending mixtape
-
-`TapesTable3D` got a new `onSingleTap?: (tapeId: string) => void`
-prop. In the pointer-up tap branch, if the tapped tape
-`isPendingMixtape`, `onSingleTap` fires immediately (skipping the
-double-tap-detector since double-tap-to-exit is already disabled
-for pending mixtape). `TapesTable.tsx` wires it to a setter that
-advances `tape.textureVariant` to the next entry in
-`TEXTURE_VARIANTS` (a–n, wrapping). The label area is shielded by
-the `.tape-name-on-cassette` textarea overlay (`pointer-events:
-auto`) so clicks there focus the editor and don't reach the canvas.
-
-### Title link → `// <` while creating a mixtape
-
-The `// jeem-fm` title in `.start-title a` and `.title a` is swapped
-to `// <span class="jfm-back-arrow">&lt;</span>` whenever
-`inspectedIsPendingMixtape` is true. The original text is stashed
-on `dataset.jfmOriginal` so the swap is reversible. The existing
-`handleLogoClick` already calls `exitInspect()` while inspecting,
-so the click behaviour is correct without a separate handler.
-
-### Tracks-list inspect-panel styling for the builder
-
-Wrapped the `MixtapeBuilder`'s `.mixtape-track-list` in a
-`.mixtape-track-list-frame` so it gets the same dark background +
-upward-pointing triangle indicator as the inspect-mode tracklist
-panel. Triangle is the `::before` of the frame so it sits above
-the box and animates with overscroll bounce.
-
-### Hover-region split + edit / remove / drag-reorder
-
-Restructured each completed track row in the builder into three
-hover regions (only inside `.mixtape-builder` — the inspect
-tracklist still uses the old single-area layout):
-
-- `.track-handle` (left, 56px column): number visible by default,
-  swaps to `fa-grip-vertical` on hover, cursor `grab`.
-- `.track-info` (centre, title + author): hovering shows the
-  actions column.
-- `.track-actions` (right, edit + remove icons): pinned shown
-  only when hovering info or itself, via `:has(.track-info:hover)`
-  / `:has(.track-actions:hover)`.
-
-**Edit flow** (`MixtapeBuilder` `editingIndex` state): clicking
-the pen icon swaps the row at `editingIndex` for the active-track
-input pre-populated with the current title. The trailing
-`activeRow` is hidden in this mode. Submit → `onReplaceTrack(i,
-track)` and `editingIndex = null`. Esc inside the input cancels;
-a `fa-xmark` cancel button shows beside the tick while editing.
-
-**Remove flow**: trash icon calls `onRemoveTrack(i)` →
-`setMixtapeBuilderTracks(prev.filter((_, idx) => idx !== i))`.
-Track numbers re-render automatically.
-
-**Drag-reorder** (custom mouse-based, no HTML5 drag):
-
-- `mousedown` on `.track-handle` calls `startDrag(i, e)` which
-  captures `clientY` + measured row height into `dragInfoRef`,
-  sets `draggingIndex`, and `dragDeltaY = 0`.
-- A `useEffect` keyed on `draggingIndex` attaches global
-  `mousemove` (updates `dragDeltaY`) and `mouseup` listeners.
-- `dragTargetIndex = clamp(0..len-1, draggingIndex +
-  round(dragDeltaY / rowHeight))` — recomputed each render.
-- `rowTransform(i)` returns inline styles per row: dragged row
-  gets `translateY(${dragDeltaY}px)` + `z-index: 10`; rows that
-  need to make room get `translateY(±rowHeight)` opposite to the
-  dragged direction.
-- Transition is **only** active while
-  `.mixtape-track-list.is-dragging`, so the post-drop transform
-  reset to zero (after the array commit) snaps instantly with no
-  redundant settle animation.
-- `mouseup` commits via `onReorderTracks(next)` — `splice` move
-  in the parent's `mixtapeBuilderTracks` state. Drag is disabled
-  while in edit mode.
-
-### Inspect / playback panel polish
-
-- Capped the inspect tracklist at `max-height: min(495px,
-  calc(100vh - 48vh - 130px))` (≈ 8 rows × 64px), with
-  `overflow-y: auto` on the list itself rather than the panel —
-  the panel chain's flex sizing wasn't propagating reliably to
-  the scrollable child.
-- Each tracklist row enforced to 64px min-height, single-line
-  ellipsis on title + author, so all rows are visually identical
-  regardless of content length.
-- Track-row grid switched to use a left-aligned **track number
-  column** spanning both content rows (`grid-template-areas:
-  "num title" "num author"` + `display: contents` on
-  `.tape-track-top`); number font bumped to 1.4em opacity 0.55.
-  Trailing `.` removed from the number rendering.
-- Wrapped the panel tracks in a new `.mixtape-track-list-frame`
-  div: frame owns the dark bg + upward triangle indicator, inner
-  list owns the scroll. iOS rubber-band overscroll moves the
-  scrolling element, so the triangle now bounces with the box.
-- Playback-mode panel (`.tape-playback-panel` class) anchors at
-  `top: 18vh` with tracklist `max-height: 68vh`. Wide variant
-  left-aligned via `left: 16px; right: auto; transform: none`.
-- New `trackListScrollRef` + `useEffect` in `TapesTable.tsx`
-  auto-scrolls the active track to the visible centre of the
-  playback list when `loadedTape.infiniteIndex / playlistIndex /
-  id` changes (smooth scroll). Inspect-view scrolling is
-  user-controlled — the ref only attaches when `!inspectTapeId`.
-- Search dropdown inside the MixtapeBuilder: previous inline
-  styles on the dropdown removed, CSS specificity bumped to
-  `.search-dropdown.mixtape-search-dropdown` so the rule beats
-  the generic `.search-dropdown { width: 40vw }` further down
-  the file. Offsets now `left: 0; right: 0` (matches input wrap
-  width exactly so they scale in lockstep with the window).
-- Forced `overflow: visible` explicit on the active-track chain
-  inside `.mixtape-creator-overlay` so the dropdown isn't clipped
-  by any overflow rule along the way.
-
-### Pending-mixtape double-tap
-
-`handle3DDoubleTap` in `TapesTable.tsx` no-ops when the inspected
-tape `isPendingMixtape` (instead of running `exitInspect`) — the
-tape's label area needs to absorb clicks for the inline name
-editor without the user accidentally bailing out of the flow.
+## CSS (player.css)
+
+Classes: `.crt`, `.crt::before/::after`, `.vignette::before`, `.bg`, `#bg-mp4`, `#bg-none`, `#bg-youtube`, `.tapes-active` (hides CRT in tapes view).
+
+z-index: bg videos -21..-23; 3D canvas 3; CRT overlay 99998–99999; UI 10000+.
+
+Design tokens (`:root`): `--tape-text`, `--tape-text-dim`, `--tape-text-strong`, `--tape-bg`, `--tape-accent`, `--tape-font`, `--tape-border`, `--tape-shadow`.
+
+Reusable classes: `.tape-ui`, `.tape-btn`, `.tape-panel`, `.tape-panel-header`, `.tape-panel-label`, `.tape-panel-title`, `.tape-panel-author`, `.tape-panel-tracks`, `.tape-track`, `.tape-track-num`, `.tape-track-title`, `.tape-track-author`, `.tape-track-time`, `.tape-spinner`. `.tape-inspect-wide-panel` / `.tape-inspect-narrow-panel`. `.tape-inspect-wide-title` / `.tape-inspect-wide-buttons`.
+
+Note: `gap` units required (e.g. `gap:8px`). Shadow map: `PCFShadowMap` (Soft is deprecated).
+
+## Events / wiring
+
+| Event | Source → Listener | Detail |
+|-------|---|---|
+| `jeem-bg-change` | player.js → TableSurface | `{bgTypeIndex, videoEl}` |
+| `jeem-ui-fade` | IdleWatcher → Recorder3D + TableSurface | `{hidden}` (fades body, cast shadow, shadow plane) |
+| `#tapes-root.glitching` | player.js class toggle (0.6s CSS) | blowout filter on canvas during `_crossfade` |
+| `jeem-centre-camera` | TapesTable → TapesTable3D | `{tx,tz,animate,camY}` legacy `{x,camY}`. Target lands at `(tx+8, 0, tz)`. Extras: `dur`, `zoomTo`, `zoomDelay`, `zoomDur`, `saveCurrentPose`, `restoreSaved` |
+| `jeem-create-mixtape` | vanilla → TapesTable | trigger AI MixtapeCreator |
+| `jeem-create-pending-tape` | `#create-tape-btn` → TapesTable | spawn pending single tape |
+| `jeem-create-pending-mixtape` | `#create-mixtape-btn` → TapesTable | spawn pending mixtape placeholder |
+| `jeem-table-ready` | TableSurface → TapesTable | wood texture loaded |
+
+## API
+
+| Route | Description |
+|-------|---|
+| GET `/api/list-files` | shuffled video filenames |
+| GET `/api/search?q=` | YouTube search |
+| GET `/api/playlist-tracks?list=` | playlist metadata |
+| POST `/api/mixtape/generate` | AI mixtape gen |
+| POST `/api/tape-share {payload}` | → `{id}` (8-char alnum) |
+| GET `/api/tape-share/:id` | → `{payload}` |
+
+`tape-share` is file-backed at `data/tape-shares.json` (auto-created, not checked in). Won't work on Vercel — swap for `@vercel/kv`.
+
+## Tape sharing (share.ts)
+
+`WirePayload` 1-letter keys (`i,t,a,s,v,p,pl,n,c,h,x`). `buildShareUrl(tape)` async — POSTs payload, returns `?t=<id>`. Falls back to inline base64url `?tape=<encoded>` on error. `fetchShareById(id)` GETs and converts back.
+
+Spawn flow (TapesTable.tsx): URL effect parses `?t` then `?tape`, strips via `replaceState`. Auto-calls `window.toggleTableView()` if hidden. `sharedTapePromiseRef` awaited by IndexedDB init effect so shared tape prepends even if network outlasts local load.
+
+`public/index.html` mixtape-bundle gate: `create_mixtape === '1'` only (was `params.has('tape')` which stripped share param).
+
+## Background modes (`BG_TYPES`)
+`["vintage","anime","video","original"]` (no `none`/`tapes`). Open table is the only entry to table view. `setType` doesn't touch `tapesRoot.style.display` (owned by `toggleTableView`). `loadSavedType` clamps saved index against `BG_TYPES.length`. `BG_LABELS = {video:"stock"}`.
+
+`z` keybind toggles table↔video views (gated on `AppState.playing`). `x` cycles bg.
+
+`public/src/demo.js` `state_change` calls `loadNextInfiniteTrack()` for any infinite tape on state=0 (was 3s `setInterval` poll, throttled on hidden tabs).
+
+`window.addEventListener("keydown")` calls `Inactivity.reset()` at top (before input/textarea early return).
+
+## Texture variants
+
+11 variants (a-k) cycle. `nextTextureVariant()` increments global counter. Legacy: `seed % VARIANTS.length`. Pending mixtape tap cycles via `onSingleTap` → advance `tape.textureVariant` through `TEXTURE_VARIANTS` (a–n wrap).
+
+## Inspect view
+
+Multi-stage entry/exit timeline (`handle3DDoubleTap` / `exitInspect`):
+
+- 0ms: `inspectTapeId` set; other tapes + recorder fade via `hidden` prop (rate 4.5 → ~0.5s).
+- 200ms: pan tween (1000ms) → target `(tx+8, 0, tz)`.
+- 400ms: zoom tween (1000ms) → `camY=24`, separate `camYTweenRef`.
+- 1650ms: inspect UI mounts with `ui-glitching-in`.
+
+Exit: UI hides immediately (`ui-glitching-out` then unmount @ 450ms via `inspectUiPhase`). Pan+zoom reverse. `inspectTapeId` cleared at end.
+
+Camera offsets in `handle3DDoubleTap` — unified: `tapeOffset=-8`, `tzOffset=3` for every inspect entry (cassette centred, projected high). Pending pre-fill spawn matches.
+
+`minDistance` drops to 20 during inspect; zoom controls disabled.
+
+Remove button: `removingInspected` → tape `hidden=true`, fades 600ms → `deleteTape` → `exitInspect`.
+
+Pending-mixtape double-tap is a no-op (label area absorbs taps for inline name editor).
+
+### Inspect layout
+
+Title row + buttons row + tracklist panel. Breakpoint `isNarrow` = 960 (in TapesTable.tsx). `isMobile`=745 in TapesTable3D.tsx (gates touch/zoom).
+
+Unified single+tracklist layout: `colStyle` anchors `left:50%`. Title `top:12vh` (wide) / `13vh` (narrow). Buttons row `top:94vh`, content-sized, `flexWrap:nowrap`, centred. (Old per-case branching gone.)
+
+Title is click-to-edit (`tape-inspect-title-display` span + pen icon → textarea). Same in `Creator.tsx`. State: `editingTitle`, `editingName`.
+
+Standard rewind/share/remove suppressed when `isPendingMixtape` (builder's create button replaces them).
+
+## Tracklist
+
+`<div className="mixtape-track-list">` for any tracklist (mixtape/playlist/infinite). Click-to-seek for non-mixtape via inline `cursor:pointer` + `onClick`. Mixtapes read-only during playback.
+
+CSS: grid `"num title" / "num author"`; `.tape-track-top` uses `display:contents`. Numbers 1.4em opacity 0.55, no trailing dot. Title+author single-line ellipsis. `min-height:64px`, `padding:12px 16px`.
+
+Wrapped in `.mixtape-track-list-frame` div: frame owns dark bg + upward-pointing triangle indicator (`::before`, `border-bottom:20px solid rgba(0,0,0,0.45)`, `top:-20px`). Inner list owns `overflow-y:auto` so iOS rubber-band moves the triangle with it. Per-panel `::before` triangles set `display:none`.
+
+Tracklist panel anchor `top:48vh`. Narrow `left/right:16px`. Wide centred `width: min(50vw, 720px)`. List `max-height: min(495px, calc(100vh - 48vh - 130px))` (~8 rows × 64px). Panels `overflow:visible` so triangle isn't clipped.
+
+`tape-info-panel` opacity drops to 0 while `dragging3D` (200ms). During playback, panel waits for `isPlaying` (via `notifyPlayState`) before mounting. Inspect mount/unmount via `inspectUiPhase`.
+
+Playback panel mode (`tape-playback-panel` class): `top:18vh`; wide variant `left:16px;right:auto;transform:none`; list `max-height:68vh`. `trackListScrollRef` + useEffect (key: `infiniteIndex/playlistIndex/id`) auto-scrolls active row to centre (smooth). Ref only attaches when `!inspectTapeId`.
+
+Header label: `MIXTAPE /` or `PLAYLIST /` faint uppercase + bold white tape title.
+
+Active-row highlight: white text + 14% white bg, 3px white left border, glow `0 0 8px rgba(255,255,255,0.4)`, bold title. Number col uses 04b03 (parent font).
+
+`playbackPanelGlitching` flips true on `isPlaying` false→true; panel gets `ui-glitching-in` 500ms.
+
+Click-through during mixtape AND playlist playback (`pointerEvents:'none'`). Infinite (non-mixtape) keeps click-to-seek.
+
+## Inactivity glitch + reveal
+
+`@keyframes ui-glitch-out` / `ui-glitch-in` in player.css: opacity + filter (brightness/contrast/saturate/hue-rotate) over 0.45s, `steps(9, end)`. **Don't touch `transform`** — would yank `.tape-info-panel` (uses `translateY(-50%)`).
+
+`Inactivity._hide()` adds `ui-glitching-out` (force reflow first to restart). `_show()` removes class + sets inline `opacity:1`. `_glitchTargets()` includes `titleContainer`.
+
+Initial reveal: `<body class="scene-not-ready">` hides `#start-container` (opacity:0, pointer-events:none). On `sceneReady` + 500ms beat, body class removed, `#start-container` gets `ui-glitching-in` ~600ms.
+
+## Loading overlay
+
+Drops opaque bg (`#0a0805`→transparent) once `tableReady` (from `jeem-table-ready`); wood visible behind spinner. Disappears entirely when `sceneReady`.
+
+## Start screen
+
+`#create-tape-btn` "make a single tape" + `#create-mixtape-btn` "make a mixtape". Replace old search/lucky bar.
+
+### Pending single (`isPending`)
+Click → `jeem-create-pending-tape` → spawn placeholder at canvas centre + inspect-entry. Excluded from save. Standard inspect title/remove skipped (`if (tape.isPending) return null`).
+
+`#single-tape-creator` overlay: blurb + `#video-form`. Full-screen flex column `justify-content:space-between` so blurb above 3D tape, search bar below. Search dropdown appended inside `#single-tape-search` (width tracks bar).
+
+Submission: `addTapeFromSearch` detects `isPending`, forwards to `finishPendingTape`:
+- t=0: glitch overlay out, fade placeholder.
+- t=600: populate placeholder in place (id stable so `restoreSaved` resolves), `exitInspect`.
+- t=1800: reposition at canvas centre + jitter, bump `respawnVersions`, add to `newTapeIds` → fall-in from `SPAWN_HEIGHT`. Clear flag.
+
+### Pending mixtape (`isPendingMixtape`)
+Click → `jeem-create-pending-mixtape` → `startPendingMixtape` spawns placeholder + inspect entry. Excluded from save.
+
+`mixtape-creator-overlay--callout` always-on (narrow + wide). Narrow (≤960): builder spans `left:16px;right:16px`.
+
+**Callouts** — SVG `<line>+<circle>` in fixed `.mixtape-callout-svg` (`pointer-events:none`):
+- Left `.mixtape-callout-name` ("Add a name…"): `left:4vw;top:14vh;width:22vw`. Reuses `.single-tape-blurb`.
+- Right `.mixtape-callout-blurb`: `right:4vw;top:14vh`.
+- Leaders: percent-coord SVG paths, 7px filled circles `rgba(250,249,246,1)`, lines 2px `rgba(250,249,246,0.85)`.
+- Glitch-hide: `is-callout-hidden` class replays `ui-glitch-out 0.45s steps(9,end) forwards`. Triggers: `nameAdded = title.trim().length>0` (left); `trackAdded = mixtapeBuilderTracks.length>0` (right).
+
+**Inline name on cassette** — `.tape-name-on-cassette` transparent `<textarea>` over label area (`top:24vh; width:18vw; height:28px; caret-color:transparent; color:transparent; spellCheck=false`). Updates `tape.title` directly. No autoFocus.
+
+Caret rendered into texture in 04b03 font: `nameInputFocused` toggles on focus/blur; `caretBlinkOn` interval 500ms while focused+pending; `tapesWithCaret` useMemo derives `title + '|'`. `stampTitle` LRU caches both, blink toggles between cached textures.
+
+`startPendingMixtape` initialises `title:''`. All `'[mixtape name]'` guards stripped.
+
+**Click-cycle texture** — pending mixtape tap cycles `textureVariant` via `onSingleTap`. Label shielded by textarea overlay (`pointer-events:auto`).
+
+**Title link** — while pending mixtape, `// jeem-fm` swapped to `// <` (stash original on `dataset.jfmOriginal`). `handleLogoClick` runs `exitInspect()` while inspecting (instead of `<a href=".">` reload).
+
+**MixtapeBuilder** (`src/tapes/MixtapeBuilder.tsx`):
+- Search input: debounced 250ms `/api/search`. URL-paste via `parseVideoId` + youtube oembed for title/author.
+- Keys: ↑/↓ highlight, Enter add. Hover updates highlight.
+- On create: tracks → `infiniteHistory`, placeholder replaced with real `author:'mixtape'` infinite tape (new uuid), `newTapeIds` triggers fall-in.
+- `.mixtape-track-list-frame` wrapper for dark bg + triangle indicator.
+- Search dropdown: `.search-dropdown.mixtape-search-dropdown` selector (beats generic `.search-dropdown{width:40vw}`); `left:0;right:0`; chain forced `overflow:visible`.
+
+**Builder track row** — three hover regions (only `.mixtape-builder` — inspect tracklist unchanged):
+- `.track-handle` (56px col): number default, swap `fa-grip-vertical` on hover, `cursor:grab`.
+- `.track-info`: hover shows actions.
+- `.track-actions` (edit + remove): pinned shown via `:has(.track-info:hover)` / `:has(.track-actions:hover)`.
+
+Edit (`editingIndex`): pen → row swaps to input pre-filled. `activeRow` hidden. Submit → `onReplaceTrack(i,track)`, `editingIndex=null`. Esc cancels; `fa-xmark` cancel button beside tick.
+
+Remove: trash → `onRemoveTrack(i)` → `setMixtapeBuilderTracks(prev.filter(...))`. Numbers re-render.
+
+Drag-reorder (custom, no HTML5):
+- `mousedown` on handle → `startDrag(i,e)` (capture clientY + measured rowHeight in `dragInfoRef`, set `draggingIndex`, `dragDeltaY=0`).
+- useEffect attaches global `mousemove` (updates delta) + `mouseup`.
+- `dragTargetIndex = clamp(0..len-1, draggingIndex + round(delta/rowHeight))`.
+- `rowTransform(i)`: dragged row `translateY(${delta}px)+z:10`; displaced rows `translateY(±rowHeight)`.
+- Transition only when `.mixtape-track-list.is-dragging` — post-drop reset snaps instantly.
+- `mouseup` → `onReorderTracks(next)` (splice in parent state). Disabled in edit mode.
+
+## Search bar (script.js)
+
+`Search` module: ↑/↓ highlight nav, Enter selects highlighted. Tracks `_highlighted`, scrolls items, applies `.highlighted`.
+
+## Mobile (≤745)
+
+- padinfo bar horizontal full-width; `padinfo-row:last-child` `margin-left:auto` (fullscreen/info pair right).
+- `.start-title` `font-size: clamp(1.6em, 7vw, 3em); white-space: nowrap`.
+- Canvas mobile heuristic: `y=45`, `enableZoom={false}`, `min=max=45`. Inspect drops `minDistance:20`.
+
+## Sanity / robustness
+
+- TapeBody: hooks before any early return (was bug: `useMemo` after `if (!mounted) return null`).
+- `isPlayingRef` shared ref instead of polling `window.AppState?.playing`.
+- `landedOnRecorder` boolean param on `onDragEnd` (set at drop site in `onUp`); replaces `recorderLoadedDuringDragRef` (which had ordering bug). `handle3DDragEnd` skips position save when true.
+- `handle3DDragEnd` recorder-load skips `setTapes({x,y})`.
+- IndexedDB init migration: tapes in recorder zone → repositioned at canvas centre.
+- Cleanup useEffects unmount: `inspectUiTimerRef`, `recorderLoadingTimerRef`, `lidCloseTimer`.
+- `History._load()` in player.js wrapped try/catch.
+- `db.ts` `loadTapes`/`saveTapes` try/catch w/ logging.
+- `stampCache` LRU `MAX_STAMP_CACHE=100` w/ `stampCacheOrder`. **Don't dispose on TapeBody unmount** — shared with other tapes.
+- `db.ts` uses `clear()` (not `deleteAll+put`); rely on transaction abort, not per-put `.catch`.
+- TapesTable3D: `REC_COS/REC_SIN` module scope; `_raycaster/_ndcVec/_hitVec/_worldVec/_plane` `useMemo`d.
+- Logo click checks `inspectTapeIdRef.current` first → `exitInspect()` (was reloading mid-animation).
+- Title size 21px (`.tape-inspect-title`, `.tape-panel-title`, `.single-tape-blurb`).
+- `.tape-btn` `white-space:nowrap; flex-shrink:0`.
+- `ShareButton` `narrow` prop kept for API compat, ignored.
+- Dead removed: `savedCamPoseRef`, `MixtapeOverlayEffect`+`mountMixtapeOverlay`, debug logs in Recorder3D/TapeBody/Tape3D/TapesTable3D, GLB load progress callback, fbxDumped flag, per-variant collider logs.
+- `.videobox-ok` no longer overrides text colour.
+
+## Tape label font + caret + author sticker
+
+### Permanent Marker label font
+Title text on the cassette label uses Google Fonts **Permanent Marker** at
+`64px`, line-height `× 1.0`. Loaded via `<link>` in `public/index.html`.
+
+`TapeBody.tsx` kicks off `document.fonts.load("64px 'Permanent Marker'")`
+at module init; on resolve it flushes `stampCache` and dispatches
+`jeem-fonts-ready`. Each `TapeBody` listens, bumps a `fontsTick` state
+(included in stamp `useEffect` deps) so existing tapes re-stamp with the
+real font once it's available — no remount/respawn.
+
+### Block-cursor caret (terminal-style, layout-stable)
+On the pending-mixtape inspect view, the cassette has two invisible
+in-canvas editors: title (label centre) and author tag (right-corner
+sticker). Both are `<textarea>` overlays with transparent text +
+transparent caret + transparent `::selection` so only the in-canvas
+cursor is visible.
+
+Cursor renders as an inverted block (filled `#222` rect width-of-character,
+height `fontSize × 1.05`) with the underlying glyph re-drawn in
+`#f5f1e0`. End-of-line / empty-string fallback width = previous char
+(or `"a"`). Block matches "block cursor" terminal behaviour.
+
+`stampTitle` lays out title text **without** the caret glyph, then
+overlays the block at the measured offset — so the rest of the title
+doesn't shift as the cursor blinks. Empty-title case seeds a single
+`{ text: '', startIdx: 0, endIdx: 0 }` line so the cursor renders at
+offset 0 immediately on focus (before any keystroke).
+
+Per-line `LineMeta = { text, startIdx, endIdx }` tracking lets the
+caret resolve `lineIdx + offset` for multi-line wrap.
+
+### Caret state machine (TapesTable.tsx)
+- `focusedField: 'title' | 'author' | null` — single source of truth;
+  only one editor owns the cursor at a time.
+- `caretBlinkOn` — toggles every 500ms via interval gated on
+  `focusedField && inspectedIsPendingMixtape`.
+- `caretPos: number` — tracked from `selectionStart` on each editor
+  via `onChange / onFocus / onSelect / onKeyDown / onClick`.
+  `onKeyDown` defers via `requestAnimationFrame` (selectionStart
+  updates after the event).
+- `tapesWithCaret` useMemo injects transient `_caretField` +
+  `_caretIndex` onto the inspected tape (only while focusedField is
+  set and blink is on). Stamp `useEffect` deps include both, so each
+  blink flips re-stamps to a new cached texture.
+
+### Author-tag sticker
+`Tape.authorTag?: string` — max 8 chars. Yellow corner sticker at
+local `(0, -300)` from label centre (opposite end from existing
+infinite/playlist/mixtape stickers). Marker font, dark-brown
+`#3a2a08` text on yellow `#f0d848 → #e8c830` gradient.
+
+`showAuthorSticker = !!authorTag || isPendingMixtape || (caretField === 'author' && caretIdx !== undefined)`.
+Faint `"by…"` placeholder rendered for empty authorTag while
+`isPendingMixtape && caretField !== 'author'` so the sticker is
+discoverable.
+
+Editor: `.tape-author-on-cassette` invisible textarea
+(`maxLength={8}`, `left:70vw top:32vh w:14vw h:36px`; narrow
+viewport variant `left:75vw top:35vh w:24vw`).
+
+`onCreate` (mixtape finalise) propagates
+`authorTag: (tape.authorTag ?? '').slice(0, 8) || undefined` onto
+the real tape.
+
+`stampCache` cacheKey now includes `authorTag` and `isPendingMix`
+so the sticker cycles correctly between empty-placeholder, focused-
+empty, and populated states.
+
+## Pending-mixtape additions
+
+### Style-hint callout (3rd callout)
+`.mixtape-callout-style` — third left-side callout below the name
+prompt: "Click the mixtape to change style." Anchored
+`left:4vw top:36vh w:22vw`. Leader: `S start (26%, 42%)` →
+`S bend (42%, 42%)` → `S tip (42%, 35%)` (one bend, right then up).
+
+Hide trigger: `styleChanged` state. Set true in
+`onSingleTap` when `tape.isPendingMixtape` (which cycles
+`textureVariant` through `TEXTURE_VARIANTS`). Reset false in
+`startPendingMixtape`. Glitches out via `is-callout-hidden` class
+(replays `ui-glitch-out 0.45s steps(9, end) forwards`).
+
+### Pending-mixtape spawn rotation
+`startPendingMixtape` uses `±5°` random angle (was `±20°`) so the
+cassette lands roughly square-on to the camera and the in-canvas
+name/author editors line up cleanly. Other spawn sites unchanged.
+
+### Inspect-mode hit-test isolation
+`raycastTape` early-rejects every tape whose id != `inspectTapeId`
+when inspect mode is active. Stops table tapes underneath the
+focused subject from stealing taps (matters most during the
+pending-mixtape texture-style cycling click). `inspectTapeId`
+added to the `useCallback` deps.
+
+### Pending-mixtape inspect double-tap
+`handle3DDoubleTap` no-ops when `isPendingMixtape` (don't bail out
+of the flow if the user double-taps the cassette label).
+
+### Inline-name editor positioning
+`.tape-name-on-cassette`: `left:50% top:24vh w:40vw h:48px
+translateX(-50%)`. Selection highlight suppressed via
+`::selection { background: transparent; color: transparent }`.
+selectionStart still drives the in-canvas cursor — only the
+visible blue/grey selection bar is hidden.

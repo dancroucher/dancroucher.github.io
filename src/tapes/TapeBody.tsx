@@ -120,6 +120,19 @@ const MAX_STAMP_CACHE = 100;
 const stampCache = new Map<string, THREE.CanvasTexture>();
 const stampCacheOrder: string[] = [];
 
+// Permanent Marker is loaded async via Google Fonts. Until it's ready
+// stampTitle falls back to the next font in the stack ('Courier New'),
+// which would get cached and never refresh. Kick off a load + once ready,
+// flush the cache and ping every TapeBody to re-stamp with the real font.
+if (typeof document !== 'undefined' && (document as any).fonts) {
+  (document as any).fonts.load("64px 'Permanent Marker'").then(() => {
+    for (const tex of stampCache.values()) tex.dispose();
+    stampCache.clear();
+    stampCacheOrder.length = 0;
+    window.dispatchEvent(new CustomEvent('jeem-fonts-ready'));
+  }).catch(() => { /* font failed; keep fallback */ });
+}
+
 // Set to true to draw debug rectangles showing label regions
 const STAMP_DEBUG = false;
 
@@ -132,7 +145,12 @@ export function stampTitle(
   const isInfinite = tape?.isInfinite ?? false;
   const isPlaylist = tape?.isPlaylist ?? false;
   const isMixtape = tape?.author === "mixtape" && !!tape?.isInfinite;
-  const cacheKey = `${variant}:${title}:${isInfinite ? "inf" : ""}${isPlaylist ? "pl" : ""}${isMixtape ? "mx" : ""}`;
+  const caretIdx = tape?._caretIndex;
+  const caretField = tape?._caretField ?? 'title';
+  const authorTag = (tape?.authorTag ?? '').slice(0, 8);
+  const isPendingMix = tape?.isPendingMixtape ?? false;
+  const caretKey = caretIdx !== undefined ? `:c${caretField}${caretIdx}` : '';
+  const cacheKey = `${variant}:${title}:${authorTag}:${isInfinite ? "inf" : ""}${isPlaylist ? "pl" : ""}${isMixtape ? "mx" : ""}${isPendingMix ? "pm" : ""}${caretKey}`;
   const cached = stampCache.get(cacheKey);
   if (cached) {
     // Move to end (most recently used)
@@ -190,44 +208,97 @@ export function stampTitle(
 
   for (const label of labels) {
     const labelW = label.labelLen;
-    const fontSize = 55;
-    ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
+    const fontSize = 64;
+    ctx.font = `${fontSize}px 'Permanent Marker', 'Courier New', monospace`;
 
-    // Word-wrap into lines that fit labelW
+    // Word-wrap into lines that fit labelW. Track each line's start index
+    // in the original title so we can position the blinking caret without
+    // injecting a `|` into the laid-out text (which would shift letters as
+    // the caret toggles).
     const words = title.split(" ");
-    const lines: string[] = [];
+    let runningIdx = 0;
+    const wordStarts = words.map((w) => {
+      const start = runningIdx;
+      runningIdx += w.length + 1; // +1 for the space separator
+      return start;
+    });
+    type LineMeta = { text: string; startIdx: number; endIdx: number };
+    const lineMetas: LineMeta[] = [];
     let currentLine = "";
-    for (const word of words) {
+    let currentStart = 0;
+    let currentEnd = 0;
+    for (let wi = 0; wi < words.length; wi++) {
+      const word = words[wi];
       const test = currentLine ? `${currentLine} ${word}` : word;
       if (ctx.measureText(test).width > labelW && currentLine) {
-        lines.push(currentLine);
+        lineMetas.push({ text: currentLine, startIdx: currentStart, endIdx: currentEnd });
         currentLine = word;
+        currentStart = wordStarts[wi];
+        currentEnd = currentStart + word.length;
       } else {
+        if (!currentLine) currentStart = wordStarts[wi];
         currentLine = test;
+        currentEnd = wordStarts[wi] + word.length;
       }
     }
-    if (currentLine) lines.push(currentLine);
+    if (currentLine) lineMetas.push({ text: currentLine, startIdx: currentStart, endIdx: currentEnd });
+    // Ensure there's always at least one line — needed for empty/whitespace
+    // titles so the blinking caret has somewhere to anchor.
+    if (lineMetas.length === 0) lineMetas.push({ text: "", startIdx: 0, endIdx: 0 });
 
     // Cap at 2 lines, truncate second line if needed
-    if (lines.length > 2) {
-      lines.length = 2;
-      let line2 = lines[1];
+    if (lineMetas.length > 2) {
+      lineMetas.length = 2;
+      let line2 = lineMetas[1].text;
       while (ctx.measureText(line2 + "…").width > labelW && line2.length > 1) {
         line2 = line2.slice(0, -1);
       }
-      lines[1] = line2 + "…";
+      lineMetas[1] = { ...lineMetas[1], text: line2 + "…" };
     }
 
     // Draw rotated 90° CW around label center
-    const lineHeight = fontSize * 1.15;
-    const totalHeight = lines.length * lineHeight;
+    const lineHeight = fontSize * 1.0;
+    const totalHeight = lineMetas.length * lineHeight;
     const startY = -totalHeight / 2 + lineHeight / 2;
 
     ctx.save();
     ctx.translate(label.cx, label.cy);
     ctx.rotate(Math.PI / 2);
-    for (let i = 0; i < lines.length; i++) {
-      ctx.fillText(lines[i], 0, startY + i * lineHeight);
+    for (let i = 0; i < lineMetas.length; i++) {
+      ctx.fillText(lineMetas[i].text, 0, startY + i * lineHeight);
+    }
+    // Caret overlay — terminal-style inverted block. Draws a filled
+    // rectangle over the caret position and re-renders the underlying
+    // character in the inverse colour. textAlign=center maps each line
+    // to be centred around x=0, so block x = prefixWidth - lineW/2.
+    if (caretIdx !== undefined && caretField === 'title' && lineMetas.length > 0) {
+      let lineIdx = 0;
+      for (let i = lineMetas.length - 1; i >= 0; i--) {
+        if (caretIdx >= lineMetas[i].startIdx) { lineIdx = i; break; }
+      }
+      const meta = lineMetas[lineIdx];
+      const offset = Math.max(0, Math.min(meta.text.length, caretIdx - meta.startIdx));
+      const lineW = ctx.measureText(meta.text).width;
+      const prefixW = ctx.measureText(meta.text.slice(0, offset)).width;
+      const charAtCaret = meta.text.charAt(offset); // empty if caret at end
+      // End-of-line / empty title: match the width of the previous character
+      // so the cursor doesn't suddenly balloon. Fall back to a typical
+      // letter ("a") when there's nothing before it either.
+      const fallbackChar = meta.text.charAt(Math.max(0, offset - 1)) || "a";
+      const blockChar = charAtCaret || fallbackChar;
+      const blockW = ctx.measureText(blockChar).width;
+      const blockH = fontSize * 1.05;
+      const blockX = prefixW - lineW / 2;
+      const blockY = startY + lineIdx * lineHeight;
+      ctx.save();
+      ctx.fillStyle = "#222";
+      ctx.fillRect(blockX - 1, blockY - blockH / 2, blockW + 2, blockH);
+      if (charAtCaret) {
+        ctx.fillStyle = "#f5f1e0";
+        ctx.textAlign = "left";
+        ctx.fillText(charAtCaret, blockX, blockY);
+      }
+      ctx.restore();
     }
     ctx.restore();
   }
@@ -362,6 +433,81 @@ export function stampTitle(
     ctx.restore();
   }
 
+  // Yellow author-tag sticker on the right corner of the cassette label.
+  // Always rendered when the user is editing it (caretField === 'author')
+  // even if empty, so the cursor has somewhere to sit. Otherwise drawn
+  // only when there's text to show.
+  const showAuthorSticker = !!authorTag || isPendingMix || (caretField === 'author' && caretIdx !== undefined);
+  if (showAuthorSticker) {
+    const label = labels[0];
+    ctx.save();
+    ctx.translate(label.cx, label.cy);
+    ctx.rotate(Math.PI / 2);
+    // Local (0, -300) — opposite end of the label from the infinite/
+    // playlist/mixtape stickers. After the +PI/2 rotation that lands at
+    // texture (label.cx + 300, label.cy) — the right corner of the label
+    // strip in texture space.
+    const stickerX = 0;
+    const stickerY = -300;
+    const stickerW = 280;
+    const stickerH = 90;
+    const grad = ctx.createLinearGradient(
+      stickerX - stickerW / 2,
+      stickerY,
+      stickerX + stickerW / 2,
+      stickerY + stickerH,
+    );
+    grad.addColorStop(0, "#f0d848");
+    grad.addColorStop(1, "#e8c830");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(stickerX - stickerW / 2, stickerY - stickerH / 2, stickerW, stickerH, 10);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(180,150,30,0.5)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Author text in marker font, dark on yellow.
+    const authorFontSize = 52;
+    ctx.fillStyle = "#3a2a08";
+    ctx.font = `${authorFontSize}px 'Permanent Marker', 'Courier New', monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    if (authorTag) {
+      ctx.fillText(authorTag, stickerX, stickerY);
+    } else if (isPendingMix && caretField !== 'author') {
+      // Faint placeholder so the empty yellow sticker is discoverable as
+      // an editable area before the user has clicked it.
+      ctx.save();
+      ctx.fillStyle = "rgba(58, 42, 8, 0.45)";
+      ctx.fillText("by…", stickerX, stickerY);
+      ctx.restore();
+    }
+    // Caret overlay for the author field — mirrors the title-caret logic
+    // but operates on a single-line string drawn at (stickerX, stickerY).
+    if (caretIdx !== undefined && caretField === 'author') {
+      const offset = Math.max(0, Math.min(authorTag.length, caretIdx));
+      const lineW = ctx.measureText(authorTag).width;
+      const prefixW = ctx.measureText(authorTag.slice(0, offset)).width;
+      const charAtCaret = authorTag.charAt(offset);
+      const fallbackChar = authorTag.charAt(Math.max(0, offset - 1)) || "a";
+      const blockChar = charAtCaret || fallbackChar;
+      const blockW = ctx.measureText(blockChar).width;
+      const blockH = authorFontSize * 1.05;
+      const blockX = stickerX + prefixW - lineW / 2;
+      const blockY = stickerY;
+      ctx.save();
+      ctx.fillStyle = "#3a2a08";
+      ctx.fillRect(blockX - 1, blockY - blockH / 2, blockW + 2, blockH);
+      if (charAtCaret) {
+        ctx.fillStyle = "#f0d848";
+        ctx.textAlign = "left";
+        ctx.fillText(charAtCaret, blockX, blockY);
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.flipY = baseColor.flipY;
@@ -394,6 +540,14 @@ export function TapeBody({
 }: TapeBodyProps) {
   const bodyRef = useRef<RapierRigidBody>(null);
   const groupRef = useRef<THREE.Group>(null);
+  // Bumped when Permanent Marker finishes loading so the texture-stamp
+  // useEffect re-runs and replaces the fallback-font cache entry.
+  const [fontsTick, setFontsTick] = useState(0);
+  useEffect(() => {
+    function bump() { setFontsTick(t => t + 1); }
+    window.addEventListener('jeem-fonts-ready', bump);
+    return () => window.removeEventListener('jeem-fonts-ready', bump);
+  }, []);
   const [sceneData, setSceneData] = useState<{
     group: THREE.Group;
     geo: VariantGeo;
@@ -470,7 +624,7 @@ export function TapeBody({
     // mixtape) so the sticker stays visible even when the title is empty —
     // e.g. while the pending-mixtape name is still blank. Plain tapes with
     // an empty title can keep the bare baseColor.
-    const hasSticker = tape.isInfinite || tape.isPlaylist;
+    const hasSticker = tape.isInfinite || tape.isPlaylist || !!tape.authorTag;
     const colorMap = (tape.title || hasSticker)
       ? stampTitle(textures.baseColor, tape.title, variant, tape)
       : textures.baseColor;
@@ -501,7 +655,7 @@ export function TapeBody({
     return () => {
       for (const m of mats) m.dispose();
     };
-  }, [sceneData, textures, tape.title, tape.id, onReady]);
+  }, [sceneData, textures, tape.title, tape.id, onReady, fontsTick, tape._caretIndex, tape._caretField, tape.authorTag, tape.isPendingMixtape]);
 
   // Initial position from 2D coords — only used on first mount, not on prop updates
   // (drag-end updates tape.x/y in React state but the physics body is already positioned)

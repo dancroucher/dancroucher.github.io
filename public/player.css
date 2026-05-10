@@ -759,6 +759,7 @@ a:hover {
    as the rest of the UI and stays at opacity 0 via `forwards` fill mode. */
 .mixtape-callout-name.is-callout-hidden,
 .mixtape-callout-blurb.is-callout-hidden,
+.mixtape-callout-style.is-callout-hidden,
 .mixtape-callout-svg .mixtape-callout-leader.is-callout-hidden {
   animation: ui-glitch-out 0.45s steps(9, end) forwards;
 }
@@ -775,8 +776,8 @@ a:hover {
   left: 50%;
   top: 24vh;
   transform: translateX(-50%);
-  width: 18vw;
-  height: 28px;
+  width: 40vw;
+  height: 48px;
   z-index: 99996;
   background: transparent;
   border: none;
@@ -791,6 +792,15 @@ a:hover {
   caret-color: transparent;
   text-align: center;
   font-family: var(--tape-font);
+}
+/* Hide the browser's text-selection highlight (e.g. on double-click /
+   shift+arrow). selectionStart is still tracked and drives the in-canvas
+   block cursor — only the visible blue/grey selection bar is suppressed. */
+.tape-name-on-cassette::selection {
+  background: transparent;
+  color: transparent;
+}
+.tape-name-on-cassette {
   font-size: 18px;
   line-height: 28px;
   cursor: text;
@@ -805,12 +815,67 @@ a:hover {
   }
 }
 
+/* Author-tag editor — invisible textarea overlaid on the right-corner
+   yellow sticker. Same transparent-text + transparent-caret pattern as
+   .tape-name-on-cassette so the in-canvas block cursor is the only
+   visible affordance. */
+.tape-author-on-cassette {
+  position: fixed;
+  left: 70vw;
+  top: 32vh;
+  transform: translateX(-50%);
+  width: 14vw;
+  height: 36px;
+  z-index: 99996;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 0;
+  margin: 0;
+  color: transparent;
+  caret-color: transparent;
+  text-align: center;
+  font-family: var(--tape-font);
+  font-size: 16px;
+  line-height: 36px;
+  cursor: text;
+  pointer-events: auto;
+  overflow: hidden;
+}
+.tape-author-on-cassette::selection {
+  background: transparent;
+  color: transparent;
+}
+.tape-author-on-cassette::placeholder { color: transparent; }
+@media (max-width: 960px) {
+  .tape-author-on-cassette {
+    top: 35vh;
+    width: 24vw;
+    left: 75vw;
+  }
+}
+
 /* Static "Add a name for your mixtape." callout on the left side.
    Re-uses .single-tape-blurb base styling for font/size/colour. */
 .mixtape-callout-name {
   position: fixed;
   left: 4vw;
   top: 14vh;
+  width: 22vw;
+  margin: 0;
+  text-align: left;
+  pointer-events: none;
+  z-index: 99996;
+  max-width: none;
+}
+
+/* Static "Click the mixtape to change style." callout, sits below
+   the name callout on the left. Same styling family. */
+.mixtape-callout-style {
+  position: fixed;
+  left: 4vw;
+  top: 36vh;
   width: 22vw;
   margin: 0;
   text-align: left;

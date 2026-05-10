@@ -39,6 +39,16 @@ export interface Tape {
   // inspect view while the user types a name + adds tracks, then the flow
   // either finalises the tape or discards it on exit.
   isPendingMixtape?: boolean;
+  // Editable user "by" tag rendered as a yellow corner sticker on the
+  // cassette face. Capped at 8 chars at the input layer.
+  authorTag?: string;
+  // Transient: when set on the inspected pending-mixtape tape, stampTitle
+  // overlays an inverted block caret at this character index without
+  // injecting a glyph into the laid-out text (so the rest doesn't reflow
+  // as the caret blinks). _caretField selects which editable area the
+  // caret applies to. Not persisted.
+  _caretIndex?: number;
+  _caretField?: 'title' | 'author';
 }
 
 export const TAPE_STYLES: {

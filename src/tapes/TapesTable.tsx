@@ -259,8 +259,12 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // pending-mixtape name. nameInputFocused flips on focus/blur of the
   // overlay textarea; caretBlinkOn toggles every 500ms while focused so
   // the canvas-stamped title alternates between `title` and `title|`.
-  const [nameInputFocused, setNameInputFocused] = useState(false);
+  // Which on-cassette editor (if any) currently owns the in-canvas caret.
+  // Mutually exclusive — only one textarea can be focused at a time.
+  const [focusedField, setFocusedField] = useState<'title' | 'author' | null>(null);
   const [caretBlinkOn, setCaretBlinkOn] = useState(true);
+  const [caretPos, setCaretPos] = useState<number>(0);
+  const [styleChanged, setStyleChanged] = useState(false);
   const trackListScrollRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!loadedTape) return;
@@ -307,14 +311,14 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const inspectedIsPendingMixtape = !!inspectedTape?.isPendingMixtape;
 
   useEffect(() => {
-    if (!nameInputFocused || !inspectedIsPendingMixtape) {
+    if (!focusedField || !inspectedIsPendingMixtape) {
       setCaretBlinkOn(true);
       return;
     }
     setCaretBlinkOn(true);
     const id = setInterval(() => setCaretBlinkOn(v => !v), 500);
     return () => clearInterval(id);
-  }, [nameInputFocused, inspectedIsPendingMixtape]);
+  }, [focusedField, inspectedIsPendingMixtape]);
 
   // While a pending-mixtape inspect is active, swap the "// jeem-fm" title
   // link for a back-arrow so the user can bail out of the create flow.
@@ -1469,6 +1473,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     if (inspectTapeIdRef.current != null) return;
     if (tapesRef.current.some(t => t.isPending || t.isPendingMixtape)) return;
     setMixtapeBuilderTracks([]);
+    setStyleChanged(false);
 
     const px = spawnCX();
     const py = spawnCY();
@@ -1485,7 +1490,10 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       progress: 0,
       timestamp: Date.now(),
       x: px, y: py,
-      angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
+      // Pending mixtape: tighter spawn-yaw range than regular tapes (±5°
+      // instead of ±20°) so the cassette lands roughly square-on to the
+      // camera and the in-canvas name editor lines up cleanly.
+      angle: Math.round((Math.random() * 10 - 5) * 10) / 10,
       isPendingMixtape: true,
     };
     setTapes(prev => [placeholder, ...prev]);
@@ -1708,9 +1716,14 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // on-cassette name editor is focused — gives the in-canvas blinking
   // caret in the same font as the rest of the label.
   const tapesWithCaret = useMemo(() => {
-    if (!inspectedIsPendingMixtape || !nameInputFocused || !caretBlinkOn) return tapes;
-    return tapes.map(t => t.id === inspectTapeId ? { ...t, title: (t.title || '') + '|' } : t);
-  }, [tapes, inspectedIsPendingMixtape, nameInputFocused, caretBlinkOn, inspectTapeId]);
+    if (!inspectedIsPendingMixtape || !focusedField || !caretBlinkOn) return tapes;
+    return tapes.map(t => {
+      if (t.id !== inspectTapeId) return t;
+      const s = focusedField === 'title' ? (t.title || '') : (t.authorTag || '');
+      const i = Math.max(0, Math.min(caretPos, s.length));
+      return { ...t, _caretIndex: i, _caretField: focusedField };
+    });
+  }, [tapes, inspectedIsPendingMixtape, focusedField, caretBlinkOn, inspectTapeId, caretPos]);
 
   const positionedTapes = useMemo(() => tapesWithCaret.map((tape) => {
     if (tape.x !== undefined && tape.y !== undefined) {
@@ -1781,6 +1794,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               const next = TEXTURE_VARIANTS[(cur + 1) % TEXTURE_VARIANTS.length];
               return { ...t, textureVariant: next };
             }));
+            setStyleChanged(true);
           }}
           onMenuAction={handle3DMenuAction}
           menuId={menuId}
@@ -1949,6 +1963,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         const trackAdded = mixtapeBuilderTracks.length > 0;
         const leftHidden = nameAdded ? ' is-callout-hidden' : '';
         const rightHidden = trackAdded ? ' is-callout-hidden' : '';
+        const styleHidden = styleChanged ? ' is-callout-hidden' : '';
         return (
           <div className={`mixtape-creator-overlay mixtape-creator-overlay--callout ${inspectUiClass}`}>
             <div className={`single-tape-blurb mixtape-callout-blurb${rightHidden}`}>Create your mixtape by adding tracks via youtube url or search then click create.</div>
@@ -1967,8 +1982,16 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 <line x1="83%" y1="55%" x2="75%" y2="55%" />
                 <circle cx="75%" cy="55%" r="7" />
               </g>
+              {/* LEFT-LOWER callout: style hint → bullet on lower
+                  cassette body. Right then up — one bend. */}
+              <g className={`mixtape-callout-leader${styleHidden}`}>
+                <line x1="26%" y1="42%" x2="42%" y2="42%" />
+                <line x1="42%" y1="42%" x2="42%" y2="35%" />
+                <circle cx="42%" cy="35%" r="7" />
+              </g>
             </svg>
             <div className={`mixtape-callout-name single-tape-blurb${leftHidden}`}>Add a name for your mixtape.</div>
+            <div className={`mixtape-callout-style single-tape-blurb${styleHidden}`}>Click the mixtape to change style.</div>
             <textarea
               className="tape-name-on-cassette"
               placeholder=""
@@ -1978,10 +2001,59 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               value={tape.title}
               onChange={(e) => {
                 const v = e.target.value;
+                const pos = e.target.selectionStart ?? v.length;
                 setTapes(prev => prev.map(t => t.id === inspectTapeId ? { ...t, title: v } : t));
+                setCaretBlinkOn(true);
+                setCaretPos(pos);
               }}
-              onFocus={() => setNameInputFocused(true)}
-              onBlur={() => setNameInputFocused(false)}
+              onFocus={(e) => {
+                setFocusedField('title');
+                setCaretPos(e.currentTarget.selectionStart ?? (tape.title || '').length);
+              }}
+              onBlur={() => setFocusedField(prev => prev === 'title' ? null : prev)}
+              onSelect={(e) => {
+                setCaretBlinkOn(true);
+                setCaretPos(e.currentTarget.selectionStart ?? 0);
+              }}
+              onKeyDown={(e) => {
+                setCaretBlinkOn(true);
+                // selectionStart updates after the event; defer one tick
+                const el = e.currentTarget;
+                requestAnimationFrame(() => setCaretPos(el.selectionStart ?? 0));
+              }}
+              onClick={(e) => setCaretPos(e.currentTarget.selectionStart ?? 0)}
+              rows={1}
+            />
+            <textarea
+              className="tape-author-on-cassette"
+              placeholder=""
+              spellCheck={false}
+              autoCorrect="off"
+              autoCapitalize="off"
+              maxLength={8}
+              value={tape.authorTag ?? ''}
+              onChange={(e) => {
+                const v = e.target.value.slice(0, 8);
+                const pos = Math.min(e.target.selectionStart ?? v.length, v.length);
+                setTapes(prev => prev.map(t => t.id === inspectTapeId ? { ...t, authorTag: v } : t));
+                setCaretBlinkOn(true);
+                setCaretPos(pos);
+              }}
+              onFocus={(e) => {
+                setFocusedField('author');
+                setCaretPos(e.currentTarget.selectionStart ?? (tape.authorTag || '').length);
+              }}
+              onBlur={() => setFocusedField(prev => prev === 'author' ? null : prev)}
+              onSelect={(e) => {
+                setCaretBlinkOn(true);
+                setCaretPos(e.currentTarget.selectionStart ?? 0);
+              }}
+              onKeyDown={(e) => {
+                setCaretBlinkOn(true);
+                const el = e.currentTarget;
+                requestAnimationFrame(() => setCaretPos(el.selectionStart ?? 0));
+              }}
+              onClick={(e) => setCaretPos(e.currentTarget.selectionStart ?? 0)}
               rows={1}
             />
             <MixtapeBuilder
@@ -2010,6 +2082,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                   infiniteIndex: 0,
                   title: mixtapeName.trim(),
                   author: 'mixtape',
+                  authorTag: (tape.authorTag ?? '').slice(0, 8) || undefined,
                   tapeStyle: tape.tapeStyle,
                   textureVariant: tape.textureVariant,
                   progress: 0,
