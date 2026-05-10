@@ -309,16 +309,28 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const inspectedTape = inspectTapeId ? tapes.find(t => t.id === inspectTapeId) : undefined;
   const inspectedIsPending = !!inspectedTape?.isPending;
   const inspectedIsPendingMixtape = !!inspectedTape?.isPendingMixtape;
+  const inspectedIsMixtape = !!inspectedTape && inspectedTape.author === 'mixtape' && !!inspectedTape.isInfinite && !inspectedTape.isPendingMixtape;
+  // Mixtape-inspect edit mode: starts off, toggled by the "edit" / "confirm"
+  // button. While off, the inspect view is read-only (no drag/edit/remove/
+  // texture-swap/name-edit). While on, the rewind/share/remove buttons hide,
+  // double-tap exit is suppressed, and edit affordances unlock.
+  const [mixtapeEditMode, setMixtapeEditMode] = useState(false);
+  const mixtapeEditModeRef = useRef(false);
+  mixtapeEditModeRef.current = mixtapeEditMode;
+  useEffect(() => { setMixtapeEditMode(false); }, [inspectTapeId]);
+  // Either pending-creation or existing mixtape inspect (in edit mode):
+  // in-canvas name editor + caret blink use the same flow.
+  const mixtapeNameEditing = inspectedIsPendingMixtape || (inspectedIsMixtape && mixtapeEditMode);
 
   useEffect(() => {
-    if (!focusedField || !inspectedIsPendingMixtape) {
+    if (!focusedField || !mixtapeNameEditing) {
       setCaretBlinkOn(true);
       return;
     }
     setCaretBlinkOn(true);
     const id = setInterval(() => setCaretBlinkOn(v => !v), 500);
     return () => clearInterval(id);
-  }, [focusedField, inspectedIsPendingMixtape]);
+  }, [focusedField, mixtapeNameEditing]);
 
   // While a pending-mixtape inspect is active, swap the "// jeem-fm" title
   // link for a back-arrow so the user can bail out of the create flow.
@@ -328,15 +340,70 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   useEffect(() => {
     const links = document.querySelectorAll<HTMLAnchorElement>('.start-title a, .title a');
     links.forEach(a => {
-      if (inspectedIsPendingMixtape) {
-        if (a.dataset.jfmOriginal == null) a.dataset.jfmOriginal = a.innerHTML;
-        a.innerHTML = '// <span class="jfm-back-arrow">&lt;</span>';
-      } else if (a.dataset.jfmOriginal != null) {
-        a.innerHTML = a.dataset.jfmOriginal;
-        delete a.dataset.jfmOriginal;
+      // Cancel any in-flight type animation so rapid inspect-on/off doesn't
+      // leave the title mid-animation.
+      const prevTimer = (a as any)._jfmTypeTimer as number | undefined;
+      if (prevTimer) { clearTimeout(prevTimer); (a as any)._jfmTypeTimer = undefined; }
+
+      // First-run: split the static "// " prefix from the animated suffix
+      // ("jeem-fm" by default). The prefix lives as a plain text node; the
+      // suffix is owned by a dedicated <span> we mutate.
+      if (!a.dataset.jfmInit) {
+        const original = (a.textContent || '').trim();
+        const m = original.match(/^(\/\/\s*)(.*)$/);
+        const prefix = m ? m[1] : '// ';
+        const suffix = (m ? m[2] : original) || 'jeem-fm';
+        a.dataset.jfmSuffix = suffix;
+        a.dataset.jfmInit = '1';
+        a.textContent = '';
+        a.appendChild(document.createTextNode(prefix));
+        const span = document.createElement('span');
+        span.className = 'jfm-suffix';
+        a.appendChild(span);
+        // Seed without animation on first paint.
+        if (inspectTapeId) span.innerHTML = '<span class="jfm-back-arrow">&lt;</span>';
+        else span.textContent = suffix;
+        return;
+      }
+
+      const suffixEl = a.querySelector<HTMLSpanElement>('.jfm-suffix');
+      if (!suffixEl) return;
+      const targetSuffix = a.dataset.jfmSuffix || 'jeem-fm';
+      const arrowHtml = '<span class="jfm-back-arrow">&lt;</span>';
+      const STEP_MS = 70;
+
+      if (inspectTapeId) {
+        // Reverse type-out: peel "jeem-fm" right-to-left, then show "<".
+        if (suffixEl.innerHTML === arrowHtml) return;
+        let s = suffixEl.textContent || '';
+        const tick = () => {
+          if (s.length === 0) {
+            suffixEl.innerHTML = arrowHtml;
+            (a as any)._jfmTypeTimer = undefined;
+            return;
+          }
+          s = s.slice(0, -1);
+          suffixEl.textContent = s;
+          (a as any)._jfmTypeTimer = window.setTimeout(tick, STEP_MS);
+        };
+        tick();
+      } else {
+        // Forward type-in: clear arrow, then add "jeem-fm" left-to-right.
+        suffixEl.textContent = '';
+        let i = 0;
+        const step = () => {
+          i++;
+          suffixEl.textContent = targetSuffix.slice(0, i);
+          if (i < targetSuffix.length) {
+            (a as any)._jfmTypeTimer = window.setTimeout(step, STEP_MS);
+          } else {
+            (a as any)._jfmTypeTimer = undefined;
+          }
+        };
+        (a as any)._jfmTypeTimer = window.setTimeout(step, STEP_MS);
       }
     });
-  }, [inspectedIsPendingMixtape]);
+  }, [inspectTapeId]);
   useEffect(() => {
     const pendingActive = inspectedIsPending && inspectUiRendered;
     const creatorEl = document.getElementById('single-tape-creator');
@@ -1353,9 +1420,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     if (inspectTapeIdRef.current != null) {
       // Don't allow double-tap to exit while creating a mixtape — clicks on
       // the tape's name area need to focus the inline name editor instead
-      // of bailing out of the flow.
+      // of bailing out of the flow. Same lock applies while in mixtape
+      // edit mode (use the explicit "confirm" button to leave).
       const inspected = tapesRef.current.find(t => t.id === inspectTapeIdRef.current);
       if (inspected?.isPendingMixtape) return;
+      if (inspected?.author === 'mixtape' && inspected.isInfinite && mixtapeEditModeRef.current) return;
       exitInspect();
       return;
     }
@@ -1716,14 +1785,14 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // on-cassette name editor is focused — gives the in-canvas blinking
   // caret in the same font as the rest of the label.
   const tapesWithCaret = useMemo(() => {
-    if (!inspectedIsPendingMixtape || !focusedField || !caretBlinkOn) return tapes;
+    if (!mixtapeNameEditing || !focusedField || !caretBlinkOn) return tapes;
     return tapes.map(t => {
       if (t.id !== inspectTapeId) return t;
       const s = focusedField === 'title' ? (t.title || '') : (t.authorTag || '');
       const i = Math.max(0, Math.min(caretPos, s.length));
       return { ...t, _caretIndex: i, _caretField: focusedField };
     });
-  }, [tapes, inspectedIsPendingMixtape, focusedField, caretBlinkOn, inspectTapeId, caretPos]);
+  }, [tapes, mixtapeNameEditing, focusedField, caretBlinkOn, inspectTapeId, caretPos]);
 
   const positionedTapes = useMemo(() => tapesWithCaret.map((tape) => {
     if (tape.x !== undefined && tape.y !== undefined) {
@@ -1786,10 +1855,15 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           onDragEnd={handle3DDragEnd}
           onDoubleTap={handle3DDoubleTap}
           onSingleTap={(tapeId) => {
-            // Pending mixtape: cycle through the 14 cassette texture variants
-            // so the user can pick a look before finalising.
+            // Cycle cassette texture variants on tap when:
+            //   • the tape is a pending mixtape (creation flow), or
+            //   • the inspected tape is a mixtape AND edit mode is on.
+            const inspecting = inspectTapeIdRef.current;
+            const editMode = mixtapeEditModeRef.current;
             setTapes(prev => prev.map(t => {
-              if (t.id !== tapeId || !t.isPendingMixtape) return t;
+              if (t.id !== tapeId) return t;
+              const inspectedMixtape = t.id === inspecting && t.author === 'mixtape' && !!t.isInfinite;
+              if (!t.isPendingMixtape && !(inspectedMixtape && editMode)) return t;
               const cur = TEXTURE_VARIANTS.indexOf(t.textureVariant ?? 'a');
               const next = TEXTURE_VARIANTS[(cur + 1) % TEXTURE_VARIANTS.length];
               return { ...t, textureVariant: next };
@@ -1886,73 +1960,77 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         const btnClass = 'tape-btn';
         return (
           <div className={inspectUiClass}>
-            {!tape.isPendingMixtape && <div style={{ ...titleColStyle, top: titleTop }}>
-              {editingTitle ? (
-                <textarea
-                  rows={1}
-                  autoFocus
-                  value={tape.title}
-                  onChange={(e) => {
-                    const newTitle = e.target.value;
-                    setTapes(prev => prev.map(t => t.id === inspectTapeId ? { ...t, title: newTitle } : t));
-                    const ta = e.target as HTMLTextAreaElement;
-                    ta.style.height = 'auto';
-                    ta.style.height = ta.scrollHeight + 'px';
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      setEditingTitle(false);
-                    } else if (e.key === 'Escape') {
-                      setEditingTitle(false);
-                    }
-                  }}
-                  onBlur={() => setEditingTitle(false)}
-                  ref={(el) => {
-                    if (el) {
-                      el.style.height = 'auto';
-                      el.style.height = el.scrollHeight + 'px';
-                      el.setSelectionRange(el.value.length, el.value.length);
-                    }
-                  }}
-                  className="tape-inspect-title"
-                  style={{ width: '100%', paddingRight: centred ? undefined : 20, boxSizing: 'border-box', textAlign: isWideMixtape ? 'left' : undefined }}
-                />
-              ) : (
-                <div
-                  className="tape-inspect-title-display"
-                  onClick={() => setEditingTitle(true)}
-                  title="Click to edit"
-                  style={{ width: '100%', paddingRight: centred ? undefined : 20, boxSizing: 'border-box', textAlign: isWideMixtape ? 'left' : undefined, justifyContent: isWideMixtape ? 'flex-start' : undefined }}
-                >
-                  <span className="tape-inspect-title-text">{tape.title || (tape.isPending ? '' : 'Untitled')}</span>
-                  <i className="fas fa-pen tape-inspect-title-pen" aria-hidden="true" />
-                </div>
-              )}
-            </div>}
             {!tape.isPendingMixtape && (
               <div style={buttonsRowStyle}>
-                <button
-                  className={btnClass}
-                  onClick={() => rewindTape(inspectTapeId)}
-                ><i className="fa fa-fast-backward" />&nbsp;rewind</button>
-                <ShareButton tape={tape} narrow={isNarrow} />
+                {!(inspectedIsMixtape && mixtapeEditMode) && (
+                  <>
+                    <ShareButton tape={tape} narrow={isNarrow} />
 
-                <button
-                  className={btnClass}
-                  onClick={() => {
-                    const target = inspectTapeId;
-                    if (!target) return;
-                    setRemovingInspected(true);
-                    setTimeout(() => {
-                      deleteTape(target);
-                      exitInspect();
-                    }, 600);
-                  }}
-                ><i className="fas fa-trash" />&nbsp;remove</button>
+                    <button
+                      className={btnClass}
+                      onClick={() => {
+                        const target = inspectTapeId;
+                        if (!target) return;
+                        setRemovingInspected(true);
+                        setTimeout(() => {
+                          deleteTape(target);
+                          exitInspect();
+                        }, 600);
+                      }}
+                    ><i className="fas fa-trash" />&nbsp;remove</button>
+                  </>
+                )}
+                {inspectedIsMixtape && (
+                  <button
+                    className={btnClass}
+                    onClick={() => setMixtapeEditMode(v => !v)}
+                  >
+                    {mixtapeEditMode
+                      ? <><i className="fas fa-check" />&nbsp;confirm</>
+                      : <><i className="fas fa-pen" />&nbsp;edit</>}
+                  </button>
+                )}
               </div>
             )}
           </div>
+        );
+      })()}
+
+      {inspectedIsMixtape && inspectUiRendered && mixtapeEditMode && (() => {
+        const tape = tapes.find(t => t.id === inspectTapeId);
+        if (!tape) return null;
+        return (
+          <textarea
+            className="tape-name-on-cassette"
+            placeholder=""
+            spellCheck={false}
+            autoCorrect="off"
+            autoCapitalize="off"
+            value={tape.title}
+            onChange={(e) => {
+              const v = e.target.value;
+              const pos = e.target.selectionStart ?? v.length;
+              setTapes(prev => prev.map(t => t.id === inspectTapeId ? { ...t, title: v } : t));
+              setCaretBlinkOn(true);
+              setCaretPos(pos);
+            }}
+            onFocus={(e) => {
+              setFocusedField('title');
+              setCaretPos(e.currentTarget.selectionStart ?? (tape.title || '').length);
+            }}
+            onBlur={() => setFocusedField(prev => prev === 'title' ? null : prev)}
+            onSelect={(e) => {
+              setCaretBlinkOn(true);
+              setCaretPos(e.currentTarget.selectionStart ?? 0);
+            }}
+            onKeyDown={(e) => {
+              setCaretBlinkOn(true);
+              const el = e.currentTarget;
+              requestAnimationFrame(() => setCaretPos(el.selectionStart ?? 0));
+            }}
+            onClick={(e) => setCaretPos(e.currentTarget.selectionStart ?? 0)}
+            rows={1}
+          />
         );
       })()}
 
@@ -2171,13 +2249,23 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               // — total 38px from the screen edge.
               padding: '16px 16px 12px 38px',
             };
-        const widePanel: React.CSSProperties = {
-          top: '50%', left: 'calc(50% - 70px)', transform: 'translateY(-50%)',
-          width: 'min(56vw, 720px)', maxHeight: '70vh',
-          padding: '24px 24px 20px',
-        };
+        // Inspect (mixtape or playlist) matches the creator overlay's
+        // geometry exactly — top:48vh, centred, min(50vw,720px), no
+        // padding — so the tracklist box has identical width across
+        // mixtape-create, mixtape-inspect and playlist-inspect.
+        const widePanel: React.CSSProperties = inspectTapeId && (isMixtape || isPlaylistTape)
+          ? {
+              top: '48vh', left: '50%', transform: 'translateX(-50%)',
+              width: 'min(50vw, 720px)', bottom: 60,
+              padding: 0,
+            }
+          : {
+              top: '50%', left: 'calc(50% - 70px)', transform: 'translateY(-50%)',
+              width: 'min(56vw, 720px)', maxHeight: '70vh',
+              padding: '24px 24px 20px',
+            };
         return createPortal(
-          <div className={`tape-info-panel tape-panel${isNarrow ? ' tape-inspect-narrow-panel' : ' tape-inspect-wide-panel'}${!inspectTapeId ? ' tape-playback-panel' : ''}${panelGlitchClass ? ` ${panelGlitchClass}` : ''}`} style={{
+          <div className={`tape-info-panel tape-panel${isNarrow ? ' tape-inspect-narrow-panel' : ' tape-inspect-wide-panel'}${!inspectTapeId ? ' tape-playback-panel' : ''}${inspectTapeId && isMixtape ? ' tape-mixtape-inspect' : ''}${panelGlitchClass ? ` ${panelGlitchClass}` : ''}`} style={{
             pointerEvents: panelClickThrough ? 'none' : 'auto', zIndex: 200,
             opacity: dragging3D ? 0 : 1,
             transition: 'opacity 0.2s ease',
@@ -2202,7 +2290,34 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 {tape.author}
               </div>
             )}
-            {hasTracklist && (
+            {hasTracklist && inspectTapeId && isMixtape && (() => {
+              // Mixtape inspect: full builder UX (search/add, edit, remove, drag-reorder, author tag).
+              // Edits flow straight to `tape.infiniteHistory` so changes persist.
+              const tapeId = tape.id;
+              const builderTracks: MixtapeBuilderTrack[] = (tape.infiniteHistory || []).map((t, i) => ({
+                videoId: t.videoId,
+                title: t.title,
+                author: t.author,
+                durationText: mixtapeData?.tracks[i]?.durationText,
+              }));
+              const writeHistory = (next: MixtapeBuilderTrack[]) => {
+                const history: InfiniteTrack[] = next.map(t => ({ videoId: t.videoId, title: t.title, author: t.author }));
+                setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, infiniteHistory: history } : t));
+                setLoadedTape(prev => prev && prev.id === tapeId ? { ...prev, infiniteHistory: history } : prev);
+              };
+              return (
+                <MixtapeBuilder
+                  name={tape.title || ''}
+                  tracks={builderTracks}
+                  readOnly={!mixtapeEditMode}
+                  onAddTrack={(t) => writeHistory([...builderTracks, t])}
+                  onRemoveTrack={(i) => writeHistory(builderTracks.filter((_, idx) => idx !== i))}
+                  onReplaceTrack={(i, t) => writeHistory(builderTracks.map((existing, idx) => idx === i ? t : existing))}
+                  onReorderTracks={(next) => writeHistory(next)}
+                />
+              );
+            })()}
+            {hasTracklist && !(inspectTapeId && isMixtape) && (
               <div className="mixtape-track-list-frame">
               <div className="mixtape-track-list" ref={!inspectTapeId ? trackListScrollRef : undefined}>
                 {tracklistItems.map((track, i) => {

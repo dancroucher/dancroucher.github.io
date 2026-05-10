@@ -483,3 +483,118 @@ translateX(-50%)`. Selection highlight suppressed via
 `::selection { background: transparent; color: transparent }`.
 selectionStart still drives the in-canvas cursor — only the
 visible blue/grey selection bar is hidden.
+
+## Mixtape inspect (existing mixtapes)
+
+The inspect view of a finalised mixtape reuses `MixtapeBuilder` directly
+inside the inspect panel — same component, same UX as the creation
+flow. Edits are wired straight to `tape.infiniteHistory` /
+`tape.authorTag` (and `loadedTape` if it matches), so changes persist
+without a separate "save" step.
+
+`inspectedIsMixtape` derived flag = `inspectedTape.author === 'mixtape'
+&& isInfinite && !isPendingMixtape`. Used alongside `inspectedIsPendingMixtape`
+to switch on inspect-of-existing-mixtape behaviour.
+
+### Edit-mode gate (`mixtapeEditMode`)
+Read-only by default; toggled by an "edit" → "confirm" button that
+sits as the 4th item in the inspect buttons row (mixtape inspect only).
+`mixtapeEditModeRef` mirrors state for use inside refs/closures
+(`onSingleTap`, `handle3DDoubleTap`). Auto-resets to `false` whenever
+`inspectTapeId` changes.
+
+While **off** (view mode):
+- `MixtapeBuilder` receives `readOnly={true}` → hides the `+` add row
+  and `.track-actions` (pen/trash) via `.mixtape-builder--readonly`
+  CSS, drag handle inert (`startDrag` early-returns; `cursor:default`,
+  no grip swap on hover).
+- `.tape-name-on-cassette` textarea is not rendered.
+- `onSingleTap` texture cycle is suppressed.
+- Buttons row shows: share, remove, edit.
+
+While **on** (edit mode):
+- All edit affordances unlock.
+- `handle3DDoubleTap` blocks the inspect-exit branch (must use the
+  explicit "confirm" button to leave).
+- Buttons row shows: confirm only.
+
+`startDrag` `useCallback` deps must include `readOnly` — otherwise the
+closure captures the stale value and the drag handle silently no-ops
+on the first attempt after entering edit mode (until any other
+re-render refreshes the closure).
+
+### Logo `// <` swap + type-out animation
+Triggered for **any** inspect (`inspectTapeId != null`), not just
+mixtape. The title link is split once on first run into a static
+`// ` text node + a `<span class="jfm-suffix">` that owns the
+animated suffix. `dataset.jfmSuffix` stashes the original suffix
+("jeem-fm") for replay; `dataset.jfmInit` flags the rewrite.
+
+Transitions:
+- Entering inspect: peel current suffix right-to-left at 70ms/char,
+  then swap to `<span class="jfm-back-arrow">&lt;</span>`.
+- Exiting inspect: clear arrow, type suffix left-to-right at 70ms/char.
+- First mount seeds the suffix without animation (no flash).
+- `_jfmTypeTimer` stored on the element; cleared on every effect run
+  so rapid toggling doesn't leave the title mid-animation.
+
+`.jfm-back-arrow { line-height: 0; vertical-align: baseline }` — the
+1.2em glyph would otherwise expand the parent line-box and shift
+the title down vs. the home/tapes screen's plain `// jeem-fm`.
+
+### Title row removed
+The inspect-title `<div>` (with edit textarea + pen icon) is gone for
+every inspect type. Inline name editing for mixtapes happens via the
+in-canvas `.tape-name-on-cassette` textarea (same overlay used in the
+pending-mixtape flow); single/playlist inspect have no name editor.
+
+### Texture cycle
+`onSingleTap` cycles `textureVariant` only when:
+- `tape.isPendingMixtape` (creation flow), **or**
+- `tape.id === inspectTapeId && author === 'mixtape' && isInfinite
+  && mixtapeEditMode`.
+
+Other inspect types (single, playlist) no longer cycle on tap.
+
+### Panel geometry (mixtape-create + mixtape-inspect + playlist-inspect)
+All three wide-viewport tracklist boxes use **identical** geometry so
+they line up across screens:
+```
+top: 48vh; left: 50%; transform: translateX(-50%);
+width: min(50vw, 720px); padding: 0; bottom: 60
+```
+Inline `widePanel` style applies the override when
+`inspectTapeId && (isMixtape || isPlaylistTape)`. Other inspect /
+playback panels keep the legacy 56vw / `calc(50% - 70px)` layout.
+
+`.tape-mixtape-inspect` class on the inspect panel:
+- Forces `overflow:visible` through `.mixtape-builder →
+  .mixtape-track-list-frame → .mixtape-track-list` so the search
+  dropdown can escape the box.
+- Forces `.mixtape-builder { width: 100% !important }` to defeat the
+  default `min(620px, 86vw)` cap that would shrink the builder
+  inside a 720px panel.
+- Lifts `max-height` on the list (mirrors the creator overlay).
+
+Narrow viewports (`≤960`) already aligned via `left:16px;right:16px`.
+
+### MixtapeBuilder `+` add row
+Default state: blank row sized like a track row (transparent
+background, dashed bottom border `rgba(250,249,246,0.15)` matching
+neighbours), centred grey `+` glyph. Glyph is a literal `+` character
+in Helvetica Neue at `font-weight:200; font-size:22px` (FontAwesome
+`fa-plus` was too chunky). Hover/focus brightens text colour.
+
+Click → `addOpen=true` → row swaps in for `activeRow` (search input
++ tick). After `addAndReset` (successful add), `addOpen` resets to
+`false` so the user clicks `+` again to add the next track. No
+explicit cancel control on the open state.
+
+`readOnly` prop hides the `+` row entirely.
+
+### Rewind button removed
+The "rewind" inspect-row button is gone for every inspect type.
+`rewindTape` callback is still defined (used elsewhere if needed) but
+no UI surfaces it. The `<i class="fa fa-fast-backward">` in
+`public/index.html` is the playback prev-track button — distinct
+from inspect rewind, kept.

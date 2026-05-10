@@ -25,7 +25,10 @@ interface Props {
   onRemoveTrack?: (index: number) => void;
   onReplaceTrack?: (index: number, track: MixtapeBuilderTrack) => void;
   onReorderTracks?: (next: MixtapeBuilderTrack[]) => void;
-  onCreate: () => void;
+  onCreate?: () => void;
+  // When true the tracklist is fully read-only: the "+" add row is hidden,
+  // per-track edit/remove actions are hidden, and the drag handle is inert.
+  readOnly?: boolean;
 }
 
 // Strip URL → videoId. Returns null for non-URL or unrecognised links.
@@ -61,7 +64,7 @@ async function resolveOembedTitle(videoId: string): Promise<{ title: string; aut
   }
 }
 
-export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange, onAddTrack, onRemoveTrack, onReplaceTrack, onReorderTracks, onCreate }: Props) {
+export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange, onAddTrack, onRemoveTrack, onReplaceTrack, onReorderTracks, onCreate, readOnly }: Props) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -77,6 +80,21 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dragDeltaY, setDragDeltaY] = useState(0);
   const dragInfoRef = useRef<{ startY: number; rowHeight: number } | null>(null);
+
+  // The search/add row is hidden behind a black "+" row by default. Click
+  // the + row to reveal the input + add button. The cancel button on the
+  // input collapses it back.
+  const [addOpen, setAddOpen] = useState(false);
+  const closeAdd = useCallback(() => {
+    setAddOpen(false);
+    setQuery('');
+    setResults([]);
+    setHighlighted(-1);
+  }, []);
+  const openAdd = useCallback(() => {
+    setAddOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }, []);
 
   const canCreate = tracks.length >= 1 && name.trim().length > 0 && editingIndex === null;
 
@@ -116,7 +134,9 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
     setQuery('');
     setResults([]);
     setHighlighted(-1);
-    setTimeout(() => inputRef.current?.focus(), 0);
+    // Collapse back to the "+" placeholder after a successful add — the
+    // user clicks again to add another track.
+    setAddOpen(false);
   }, [onAddTrack, onReplaceTrack, editingIndex]);
 
   const startEdit = useCallback((index: number) => {
@@ -140,13 +160,14 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
   // ── Drag-and-drop reorder ──
   const startDrag = useCallback((index: number, e: React.MouseEvent<HTMLDivElement>) => {
     if (editingIndex !== null) return;
+    if (readOnly) return;
     e.preventDefault();
     const rowEl = (e.currentTarget as HTMLElement).closest('.tape-track') as HTMLElement | null;
     const rowHeight = rowEl?.getBoundingClientRect().height ?? 64;
     dragInfoRef.current = { startY: e.clientY, rowHeight };
     setDraggingIndex(index);
     setDragDeltaY(0);
-  }, [editingIndex]);
+  }, [editingIndex, readOnly]);
 
   // Where the dragged row would land if released right now.
   const dragTargetIndex = (() => {
@@ -294,14 +315,6 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
           </div>
         )}
       </div>
-      {editingIndex !== null && (
-        <button
-          type="button"
-          className="mixtape-track-tick mixtape-track-cancel"
-          onClick={cancelEdit}
-          aria-label="Cancel edit"
-        ><i className="fas fa-xmark" /></button>
-      )}
       <button
         type="button"
         className="mixtape-track-tick"
@@ -354,7 +367,7 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
   };
 
   return (
-    <div className={`mixtape-builder${className ? ' ' + className : ''}`}>
+    <div className={`mixtape-builder${className ? ' ' + className : ''}${readOnly ? ' mixtape-builder--readonly' : ''}`}>
       <div className="mixtape-track-list-frame">
       <div className={`mixtape-track-list${draggingIndex !== null ? ' is-dragging' : ''}`}>
         {tracks.map((t, i) => (
@@ -362,7 +375,20 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
             ? <React.Fragment key={`edit-${i}`}>{activeRow}</React.Fragment>
             : renderTrackRow(t, i)
         ))}
-        {editingIndex === null && activeRow}
+        {!readOnly && editingIndex === null && (
+          addOpen
+            ? activeRow
+            : (
+              <div
+                className="mixtape-add-row"
+                role="button"
+                tabIndex={0}
+                onClick={openAdd}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAdd(); } }}
+                aria-label="Add track"
+              ><span className="mixtape-add-glyph" aria-hidden="true">+</span></div>
+            )
+        )}
       </div>
       </div>
       <div className="mixtape-builder-footer">
@@ -373,7 +399,7 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
               type="text"
               maxLength={8}
               value={authorTag ?? ''}
-              placeholder="you"
+              placeholder="..."
               spellCheck={false}
               autoCorrect="off"
               autoCapitalize="off"
@@ -381,13 +407,15 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
             />
           </label>
         )}
-        <button
-          type="button"
-          className={`tape-btn mixtape-create-btn${canCreate ? '' : ' is-disabled'}`}
-          style={{ fontSize: '1.1em', padding: '4px 10px', lineHeight: '1.5em' }}
-          onClick={onCreate}
-          disabled={!canCreate}
-        ><i className="fas fa-check" />&nbsp;create</button>
+        {onCreate && (
+          <button
+            type="button"
+            className={`tape-btn mixtape-create-btn${canCreate ? '' : ' is-disabled'}`}
+            style={{ fontSize: '1.1em', padding: '4px 10px', lineHeight: '1.5em' }}
+            onClick={onCreate}
+            disabled={!canCreate}
+          ><i className="fas fa-check" />&nbsp;create</button>
+        )}
       </div>
     </div>
   );

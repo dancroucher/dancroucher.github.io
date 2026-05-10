@@ -80157,7 +80157,7 @@ async function resolveOembedTitle(videoId) {
     return { title: videoId, author: "" };
   }
 }
-function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange, onAddTrack, onRemoveTrack, onReplaceTrack, onReorderTracks, onCreate }) {
+function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange, onAddTrack, onRemoveTrack, onReplaceTrack, onReorderTracks, onCreate, readOnly }) {
   const [query2, setQuery] = (0, import_react10.useState)("");
   const [results, setResults] = (0, import_react10.useState)([]);
   const [searching, setSearching] = (0, import_react10.useState)(false);
@@ -80168,6 +80168,17 @@ function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange,
   const [draggingIndex, setDraggingIndex] = (0, import_react10.useState)(null);
   const [dragDeltaY, setDragDeltaY] = (0, import_react10.useState)(0);
   const dragInfoRef = (0, import_react10.useRef)(null);
+  const [addOpen, setAddOpen] = (0, import_react10.useState)(false);
+  const closeAdd = (0, import_react10.useCallback)(() => {
+    setAddOpen(false);
+    setQuery("");
+    setResults([]);
+    setHighlighted(-1);
+  }, []);
+  const openAdd = (0, import_react10.useCallback)(() => {
+    setAddOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }, []);
   const canCreate = tracks.length >= 1 && name.trim().length > 0 && editingIndex === null;
   (0, import_react10.useEffect)(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
@@ -80205,7 +80216,7 @@ function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange,
     setQuery("");
     setResults([]);
     setHighlighted(-1);
-    setTimeout(() => inputRef.current?.focus(), 0);
+    setAddOpen(false);
   }, [onAddTrack, onReplaceTrack, editingIndex]);
   const startEdit = (0, import_react10.useCallback)((index) => {
     setEditingIndex(index);
@@ -80225,13 +80236,14 @@ function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange,
   }, []);
   const startDrag = (0, import_react10.useCallback)((index, e3) => {
     if (editingIndex !== null) return;
+    if (readOnly) return;
     e3.preventDefault();
     const rowEl = e3.currentTarget.closest(".tape-track");
     const rowHeight = rowEl?.getBoundingClientRect().height ?? 64;
     dragInfoRef.current = { startY: e3.clientY, rowHeight };
     setDraggingIndex(index);
     setDragDeltaY(0);
-  }, [editingIndex]);
+  }, [editingIndex, readOnly]);
   const dragTargetIndex = (() => {
     if (draggingIndex === null || !dragInfoRef.current) return null;
     const { rowHeight } = dragInfoRef.current;
@@ -80362,16 +80374,6 @@ function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange,
       )) }),
       searching && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "search-dropdown mixtape-search-dropdown", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "search-message", children: "Searching..." }) })
     ] }),
-    editingIndex !== null && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
-      "button",
-      {
-        type: "button",
-        className: "mixtape-track-tick mixtape-track-cancel",
-        onClick: cancelEdit,
-        "aria-label": "Cancel edit",
-        children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("i", { className: "fas fa-xmark" })
-      }
-    ),
     /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
       "button",
       {
@@ -80438,10 +80440,26 @@ function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange,
       `t-${i4}`
     );
   };
-  return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: `mixtape-builder${className ? " " + className : ""}`, children: [
+  return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: `mixtape-builder${className ? " " + className : ""}${readOnly ? " mixtape-builder--readonly" : ""}`, children: [
     /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "mixtape-track-list-frame", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: `mixtape-track-list${draggingIndex !== null ? " is-dragging" : ""}`, children: [
       tracks.map((t3, i4) => editingIndex === i4 ? /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(import_react10.default.Fragment, { children: activeRow }, `edit-${i4}`) : renderTrackRow(t3, i4)),
-      editingIndex === null && activeRow
+      !readOnly && editingIndex === null && (addOpen ? activeRow : /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+        "div",
+        {
+          className: "mixtape-add-row",
+          role: "button",
+          tabIndex: 0,
+          onClick: openAdd,
+          onKeyDown: (e3) => {
+            if (e3.key === "Enter" || e3.key === " ") {
+              e3.preventDefault();
+              openAdd();
+            }
+          },
+          "aria-label": "Add track",
+          children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "mixtape-add-glyph", "aria-hidden": "true", children: "+" })
+        }
+      ))
     ] }) }),
     /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "mixtape-builder-footer", children: [
       onAuthorTagChange && /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("label", { className: "mixtape-author-input", children: [
@@ -80452,7 +80470,7 @@ function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange,
             type: "text",
             maxLength: 8,
             value: authorTag ?? "",
-            placeholder: "you",
+            placeholder: "...",
             spellCheck: false,
             autoCorrect: "off",
             autoCapitalize: "off",
@@ -80460,7 +80478,7 @@ function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange,
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+      onCreate && /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
         "button",
         {
           type: "button",
@@ -80715,27 +80733,82 @@ function TapesTable({ mixtape }) {
   const inspectedTape = inspectTapeId ? tapes.find((t3) => t3.id === inspectTapeId) : void 0;
   const inspectedIsPending = !!inspectedTape?.isPending;
   const inspectedIsPendingMixtape = !!inspectedTape?.isPendingMixtape;
+  const inspectedIsMixtape = !!inspectedTape && inspectedTape.author === "mixtape" && !!inspectedTape.isInfinite && !inspectedTape.isPendingMixtape;
+  const [mixtapeEditMode, setMixtapeEditMode] = (0, import_react13.useState)(false);
+  const mixtapeEditModeRef = (0, import_react13.useRef)(false);
+  mixtapeEditModeRef.current = mixtapeEditMode;
   (0, import_react13.useEffect)(() => {
-    if (!focusedField || !inspectedIsPendingMixtape) {
+    setMixtapeEditMode(false);
+  }, [inspectTapeId]);
+  const mixtapeNameEditing = inspectedIsPendingMixtape || inspectedIsMixtape && mixtapeEditMode;
+  (0, import_react13.useEffect)(() => {
+    if (!focusedField || !mixtapeNameEditing) {
       setCaretBlinkOn(true);
       return;
     }
     setCaretBlinkOn(true);
     const id = setInterval(() => setCaretBlinkOn((v2) => !v2), 500);
     return () => clearInterval(id);
-  }, [focusedField, inspectedIsPendingMixtape]);
+  }, [focusedField, mixtapeNameEditing]);
   (0, import_react13.useEffect)(() => {
     const links = document.querySelectorAll(".start-title a, .title a");
     links.forEach((a3) => {
-      if (inspectedIsPendingMixtape) {
-        if (a3.dataset.jfmOriginal == null) a3.dataset.jfmOriginal = a3.innerHTML;
-        a3.innerHTML = '// <span class="jfm-back-arrow">&lt;</span>';
-      } else if (a3.dataset.jfmOriginal != null) {
-        a3.innerHTML = a3.dataset.jfmOriginal;
-        delete a3.dataset.jfmOriginal;
+      const prevTimer = a3._jfmTypeTimer;
+      if (prevTimer) {
+        clearTimeout(prevTimer);
+        a3._jfmTypeTimer = void 0;
+      }
+      if (!a3.dataset.jfmInit) {
+        const original = (a3.textContent || "").trim();
+        const m3 = original.match(/^(\/\/\s*)(.*)$/);
+        const prefix = m3 ? m3[1] : "// ";
+        const suffix = (m3 ? m3[2] : original) || "jeem-fm";
+        a3.dataset.jfmSuffix = suffix;
+        a3.dataset.jfmInit = "1";
+        a3.textContent = "";
+        a3.appendChild(document.createTextNode(prefix));
+        const span = document.createElement("span");
+        span.className = "jfm-suffix";
+        a3.appendChild(span);
+        if (inspectTapeId) span.innerHTML = '<span class="jfm-back-arrow">&lt;</span>';
+        else span.textContent = suffix;
+        return;
+      }
+      const suffixEl = a3.querySelector(".jfm-suffix");
+      if (!suffixEl) return;
+      const targetSuffix = a3.dataset.jfmSuffix || "jeem-fm";
+      const arrowHtml = '<span class="jfm-back-arrow">&lt;</span>';
+      const STEP_MS = 70;
+      if (inspectTapeId) {
+        if (suffixEl.innerHTML === arrowHtml) return;
+        let s2 = suffixEl.textContent || "";
+        const tick = () => {
+          if (s2.length === 0) {
+            suffixEl.innerHTML = arrowHtml;
+            a3._jfmTypeTimer = void 0;
+            return;
+          }
+          s2 = s2.slice(0, -1);
+          suffixEl.textContent = s2;
+          a3._jfmTypeTimer = window.setTimeout(tick, STEP_MS);
+        };
+        tick();
+      } else {
+        suffixEl.textContent = "";
+        let i4 = 0;
+        const step = () => {
+          i4++;
+          suffixEl.textContent = targetSuffix.slice(0, i4);
+          if (i4 < targetSuffix.length) {
+            a3._jfmTypeTimer = window.setTimeout(step, STEP_MS);
+          } else {
+            a3._jfmTypeTimer = void 0;
+          }
+        };
+        a3._jfmTypeTimer = window.setTimeout(step, STEP_MS);
       }
     });
-  }, [inspectedIsPendingMixtape]);
+  }, [inspectTapeId]);
   (0, import_react13.useEffect)(() => {
     const pendingActive = inspectedIsPending && inspectUiRendered;
     const creatorEl = document.getElementById("single-tape-creator");
@@ -81602,6 +81675,7 @@ function TapesTable({ mixtape }) {
     if (inspectTapeIdRef.current != null) {
       const inspected = tapesRef.current.find((t3) => t3.id === inspectTapeIdRef.current);
       if (inspected?.isPendingMixtape) return;
+      if (inspected?.author === "mixtape" && inspected.isInfinite && mixtapeEditModeRef.current) return;
       exitInspect();
       return;
     }
@@ -81912,14 +81986,14 @@ function TapesTable({ mixtape }) {
   const minY = cy - halfAZ + 100;
   const maxY = cy + halfAZ - 100;
   const tapesWithCaret = (0, import_react13.useMemo)(() => {
-    if (!inspectedIsPendingMixtape || !focusedField || !caretBlinkOn) return tapes;
+    if (!mixtapeNameEditing || !focusedField || !caretBlinkOn) return tapes;
     return tapes.map((t3) => {
       if (t3.id !== inspectTapeId) return t3;
       const s2 = focusedField === "title" ? t3.title || "" : t3.authorTag || "";
       const i4 = Math.max(0, Math.min(caretPos, s2.length));
       return { ...t3, _caretIndex: i4, _caretField: focusedField };
     });
-  }, [tapes, inspectedIsPendingMixtape, focusedField, caretBlinkOn, inspectTapeId, caretPos]);
+  }, [tapes, mixtapeNameEditing, focusedField, caretBlinkOn, inspectTapeId, caretPos]);
   const positionedTapes = (0, import_react13.useMemo)(() => tapesWithCaret.map((tape) => {
     if (tape.x !== void 0 && tape.y !== void 0) {
       const inside = tape.x >= minX && tape.x <= maxX && tape.y >= minY && tape.y <= maxY;
@@ -81970,8 +82044,12 @@ function TapesTable({ mixtape }) {
         onDragEnd: handle3DDragEnd,
         onDoubleTap: handle3DDoubleTap,
         onSingleTap: (tapeId) => {
+          const inspecting = inspectTapeIdRef.current;
+          const editMode = mixtapeEditModeRef.current;
           setTapes((prev) => prev.map((t3) => {
-            if (t3.id !== tapeId || !t3.isPendingMixtape) return t3;
+            if (t3.id !== tapeId) return t3;
+            const inspectedMixtape = t3.id === inspecting && t3.author === "mixtape" && !!t3.isInfinite;
+            if (!t3.isPendingMixtape && !(inspectedMixtape && editMode)) return t3;
             const cur = TEXTURE_VARIANTS.indexOf(t3.textureVariant ?? "a");
             const next = TEXTURE_VARIANTS[(cur + 1) % TEXTURE_VARIANTS.length];
             return { ...t3, textureVariant: next };
@@ -82050,64 +82128,8 @@ function TapesTable({ mixtape }) {
         flexWrap: "nowrap"
       };
       const btnClass = "tape-btn";
-      return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: inspectUiClass, children: [
-        !tape.isPendingMixtape && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { ...titleColStyle, top: titleTop }, children: editingTitle ? /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
-          "textarea",
-          {
-            rows: 1,
-            autoFocus: true,
-            value: tape.title,
-            onChange: (e3) => {
-              const newTitle = e3.target.value;
-              setTapes((prev) => prev.map((t3) => t3.id === inspectTapeId ? { ...t3, title: newTitle } : t3));
-              const ta = e3.target;
-              ta.style.height = "auto";
-              ta.style.height = ta.scrollHeight + "px";
-            },
-            onKeyDown: (e3) => {
-              if (e3.key === "Enter" && !e3.shiftKey) {
-                e3.preventDefault();
-                setEditingTitle(false);
-              } else if (e3.key === "Escape") {
-                setEditingTitle(false);
-              }
-            },
-            onBlur: () => setEditingTitle(false),
-            ref: (el) => {
-              if (el) {
-                el.style.height = "auto";
-                el.style.height = el.scrollHeight + "px";
-                el.setSelectionRange(el.value.length, el.value.length);
-              }
-            },
-            className: "tape-inspect-title",
-            style: { width: "100%", paddingRight: centred ? void 0 : 20, boxSizing: "border-box", textAlign: isWideMixtape ? "left" : void 0 }
-          }
-        ) : /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
-          "div",
-          {
-            className: "tape-inspect-title-display",
-            onClick: () => setEditingTitle(true),
-            title: "Click to edit",
-            style: { width: "100%", paddingRight: centred ? void 0 : 20, boxSizing: "border-box", textAlign: isWideMixtape ? "left" : void 0, justifyContent: isWideMixtape ? "flex-start" : void 0 },
-            children: [
-              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { className: "tape-inspect-title-text", children: tape.title || (tape.isPending ? "" : "Untitled") }),
-              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("i", { className: "fas fa-pen tape-inspect-title-pen", "aria-hidden": "true" })
-            ]
-          }
-        ) }),
-        !tape.isPendingMixtape && /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { style: buttonsRowStyle, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
-            "button",
-            {
-              className: btnClass,
-              onClick: () => rewindTape(inspectTapeId),
-              children: [
-                /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("i", { className: "fa fa-fast-backward" }),
-                "\xA0rewind"
-              ]
-            }
-          ),
+      return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: inspectUiClass, children: !tape.isPendingMixtape && /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { style: buttonsRowStyle, children: [
+        !(inspectedIsMixtape && mixtapeEditMode) && /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(import_jsx_runtime11.Fragment, { children: [
           /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(ShareButton, { tape, narrow: isNarrow }),
           /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
             "button",
@@ -82128,8 +82150,60 @@ function TapesTable({ mixtape }) {
               ]
             }
           )
-        ] })
-      ] });
+        ] }),
+        inspectedIsMixtape && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+          "button",
+          {
+            className: btnClass,
+            onClick: () => setMixtapeEditMode((v2) => !v2),
+            children: mixtapeEditMode ? /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(import_jsx_runtime11.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("i", { className: "fas fa-check" }),
+              "\xA0confirm"
+            ] }) : /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(import_jsx_runtime11.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("i", { className: "fas fa-pen" }),
+              "\xA0edit"
+            ] })
+          }
+        )
+      ] }) });
+    })(),
+    inspectedIsMixtape && inspectUiRendered && mixtapeEditMode && (() => {
+      const tape = tapes.find((t3) => t3.id === inspectTapeId);
+      if (!tape) return null;
+      return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+        "textarea",
+        {
+          className: "tape-name-on-cassette",
+          placeholder: "",
+          spellCheck: false,
+          autoCorrect: "off",
+          autoCapitalize: "off",
+          value: tape.title,
+          onChange: (e3) => {
+            const v2 = e3.target.value;
+            const pos = e3.target.selectionStart ?? v2.length;
+            setTapes((prev) => prev.map((t3) => t3.id === inspectTapeId ? { ...t3, title: v2 } : t3));
+            setCaretBlinkOn(true);
+            setCaretPos(pos);
+          },
+          onFocus: (e3) => {
+            setFocusedField("title");
+            setCaretPos(e3.currentTarget.selectionStart ?? (tape.title || "").length);
+          },
+          onBlur: () => setFocusedField((prev) => prev === "title" ? null : prev),
+          onSelect: (e3) => {
+            setCaretBlinkOn(true);
+            setCaretPos(e3.currentTarget.selectionStart ?? 0);
+          },
+          onKeyDown: (e3) => {
+            setCaretBlinkOn(true);
+            const el = e3.currentTarget;
+            requestAnimationFrame(() => setCaretPos(el.selectionStart ?? 0));
+          },
+          onClick: (e3) => setCaretPos(e3.currentTarget.selectionStart ?? 0),
+          rows: 1
+        }
+      );
     })(),
     inspectedIsPendingMixtape && inspectUiRendered && (() => {
       const tape = tapes.find((t3) => t3.id === inspectTapeId);
@@ -82313,7 +82387,14 @@ function TapesTable({ mixtape }) {
         // — total 38px from the screen edge.
         padding: "16px 16px 12px 38px"
       };
-      const widePanel = {
+      const widePanel = inspectTapeId && (isMixtape || isPlaylistTape) ? {
+        top: "48vh",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "min(50vw, 720px)",
+        bottom: 60,
+        padding: 0
+      } : {
         top: "50%",
         left: "calc(50% - 70px)",
         transform: "translateY(-50%)",
@@ -82322,7 +82403,7 @@ function TapesTable({ mixtape }) {
         padding: "24px 24px 20px"
       };
       return (0, import_react_dom.createPortal)(
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: `tape-info-panel tape-panel${isNarrow ? " tape-inspect-narrow-panel" : " tape-inspect-wide-panel"}${!inspectTapeId ? " tape-playback-panel" : ""}${panelGlitchClass ? ` ${panelGlitchClass}` : ""}`, style: {
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: `tape-info-panel tape-panel${isNarrow ? " tape-inspect-narrow-panel" : " tape-inspect-wide-panel"}${!inspectTapeId ? " tape-playback-panel" : ""}${inspectTapeId && isMixtape ? " tape-mixtape-inspect" : ""}${panelGlitchClass ? ` ${panelGlitchClass}` : ""}`, style: {
           pointerEvents: panelClickThrough ? "none" : "auto",
           zIndex: 200,
           opacity: dragging3D ? 0 : 1,
@@ -82339,7 +82420,33 @@ function TapesTable({ mixtape }) {
             pointerEvents: interactive ? "auto" : "none",
             userSelect: interactive ? "auto" : "none"
           }, children: tape.author }),
-          hasTracklist && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "mixtape-track-list-frame", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "mixtape-track-list", ref: !inspectTapeId ? trackListScrollRef : void 0, children: tracklistItems.map((track, i4) => {
+          hasTracklist && inspectTapeId && isMixtape && (() => {
+            const tapeId = tape.id;
+            const builderTracks = (tape.infiniteHistory || []).map((t3, i4) => ({
+              videoId: t3.videoId,
+              title: t3.title,
+              author: t3.author,
+              durationText: mixtapeData?.tracks[i4]?.durationText
+            }));
+            const writeHistory = (next) => {
+              const history = next.map((t3) => ({ videoId: t3.videoId, title: t3.title, author: t3.author }));
+              setTapes((prev) => prev.map((t3) => t3.id === tapeId ? { ...t3, infiniteHistory: history } : t3));
+              setLoadedTape((prev) => prev && prev.id === tapeId ? { ...prev, infiniteHistory: history } : prev);
+            };
+            return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+              MixtapeBuilder,
+              {
+                name: tape.title || "",
+                tracks: builderTracks,
+                readOnly: !mixtapeEditMode,
+                onAddTrack: (t3) => writeHistory([...builderTracks, t3]),
+                onRemoveTrack: (i4) => writeHistory(builderTracks.filter((_2, idx) => idx !== i4)),
+                onReplaceTrack: (i4, t3) => writeHistory(builderTracks.map((existing, idx) => idx === i4 ? t3 : existing)),
+                onReorderTracks: (next) => writeHistory(next)
+              }
+            );
+          })(),
+          hasTracklist && !(inspectTapeId && isMixtape) && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "mixtape-track-list-frame", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "mixtape-track-list", ref: !inspectTapeId ? trackListScrollRef : void 0, children: tracklistItems.map((track, i4) => {
             const isCurrent = i4 === currentIndex && interactive;
             const clickable = tracklistInteractive && !isMixtape;
             return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
