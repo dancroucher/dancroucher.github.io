@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface MixtapeBuilderTrack {
   videoId: string;
@@ -71,6 +72,7 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
   const [highlighted, setHighlighted] = useState(-1);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Drag-to-reorder state ──
@@ -274,6 +276,75 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
     }
   }, [results.length, submit, editingIndex, cancelEdit]);
 
+  // When readOnly flips on (e.g. "confirm" pressed in mixtape inspect),
+  // close any open add/edit row and clear the in-flight search so the
+  // dropdown disappears immediately.
+  useEffect(() => {
+    if (!readOnly) return;
+    setAddOpen(false);
+    setEditingIndex(null);
+    setQuery('');
+    setResults([]);
+    setSearching(false);
+    setHighlighted(-1);
+  }, [readOnly]);
+
+  // Dropdown is portalled to <body> so it can extend past the
+  // scrollable .mixtape-track-list and the inspect panel. Position
+  // (x/y/width) is measured from the input's bounding rect; direction
+  // (up/down) picked based on space below the input inside the list.
+  const [dropdownPos, setDropdownPos] = useState<{
+    left: number; inputTop: number; inputBottom: number; width: number; flip: 'up' | 'down'; maxHeight: number;
+  } | null>(null);
+  const dropdownOpen = results.length > 0 || searching;
+  useEffect(() => {
+    if (!dropdownOpen) { setDropdownPos(null); return; }
+    const measure = () => {
+      const input = inputRef.current;
+      if (!input) return;
+      const wrap = input.parentElement; // .mixtape-active-track-input-wrap
+      const list = input.closest('.mixtape-track-list') as HTMLElement | null;
+      const rect = (wrap ?? input).getBoundingClientRect();
+      const listBottom = list ? list.getBoundingClientRect().bottom : window.innerHeight;
+      // Visual viewport shrinks when the mobile soft keyboard is open;
+      // use its bottom edge as the real "floor" instead of the list /
+      // window. Falls back to window.innerHeight on desktop.
+      const vv = window.visualViewport;
+      const viewBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+      const effectiveBottom = Math.min(listBottom, viewBottom);
+      const spaceBelow = effectiveBottom - rect.bottom;
+      const spaceAbove = rect.top - (vv ? vv.offsetTop : 0);
+      // Force flip-up when the keyboard would obscure the dropdown
+      // (very little space below). Otherwise use the larger side.
+      const flip: 'up' | 'down' = spaceBelow < 160 ? 'up' : (spaceBelow >= spaceAbove ? 'down' : 'up');
+      const maxHeight = Math.max(120, Math.min(
+        flip === 'up' ? spaceAbove - 8 : spaceBelow - 8,
+        window.innerHeight * 0.5,
+      ));
+      setDropdownPos({
+        left: rect.left,
+        inputTop: rect.top,
+        inputBottom: rect.bottom,
+        width: rect.width,
+        flip,
+        maxHeight,
+      });
+    };
+    measure();
+    const onScroll = () => measure();
+    window.addEventListener('resize', measure);
+    window.addEventListener('scroll', onScroll, true);
+    // visualViewport fires on keyboard show/hide on iOS/Android.
+    window.visualViewport?.addEventListener('resize', measure);
+    window.visualViewport?.addEventListener('scroll', measure);
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', onScroll, true);
+      window.visualViewport?.removeEventListener('resize', measure);
+      window.visualViewport?.removeEventListener('scroll', measure);
+    };
+  }, [dropdownOpen, results.length, searching]);
+
   const activeRow = (
     <div className="mixtape-active-track">
       <div className="mixtape-active-track-input-wrap">
@@ -286,9 +357,23 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
           onChange={e => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
         />
-        {results.length > 0 && (
-          <div className="search-dropdown mixtape-search-dropdown">
-            {results.map((r, i) => (
+        {dropdownOpen && dropdownPos && createPortal(
+          <div
+            ref={dropdownRef}
+            className="search-dropdown mixtape-search-dropdown"
+            data-flip={dropdownPos.flip}
+            style={{
+              position: 'fixed',
+              left: dropdownPos.left,
+              width: dropdownPos.width,
+              maxHeight: dropdownPos.maxHeight,
+              overflowY: 'auto',
+              ...(dropdownPos.flip === 'up'
+                ? { bottom: window.innerHeight - dropdownPos.inputTop + 4 }
+                : { top: dropdownPos.inputBottom + 4 }),
+            }}
+          >
+            {results.length > 0 ? results.map((r, i) => (
               <button
                 key={r.videoId + ':' + i}
                 type="button"
@@ -306,13 +391,11 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
                   {[r.author, r.year, r.durationText].filter(Boolean).join('  //  ')}
                 </div>
               </button>
-            ))}
-          </div>
-        )}
-        {searching && (
-          <div className="search-dropdown mixtape-search-dropdown">
-            <div className="search-message">Searching...</div>
-          </div>
+            )) : (
+              <div className="search-message">Searching...</div>
+            )}
+          </div>,
+          document.body
         )}
       </div>
       <button

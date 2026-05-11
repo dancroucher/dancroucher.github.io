@@ -1934,7 +1934,12 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           pointerEvents: tableReady ? 'none' : 'auto',
           transition: 'background 0.25s ease',
         }}>
-          <div className="tape-spinner" />
+          <div className="tape-title-loader" aria-label="loading">
+            <div className="tape-title-loader-text">
+              <span className="tape-title-loader-word">jeem-fm</span>
+              <span className="tape-title-loader-caret">_</span>
+            </div>
+          </div>
         </div>
       )}
 

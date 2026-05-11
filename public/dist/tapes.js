@@ -74982,11 +74982,12 @@ function TapeBody({
         wasInspecting.current = true;
         const t3 = body.translation();
         const r4 = body.rotation();
-        const euler = new Euler().setFromQuaternion(
-          new Quaternion(r4.x, r4.y, r4.z, r4.w),
-          "YXZ"
-        );
-        inspectPin.current = { x: t3.x, y: t3.y, z: t3.z, yaw: euler.y };
+        const q2 = new Quaternion(r4.x, r4.y, r4.z, r4.w);
+        const euler = new Euler().setFromQuaternion(q2, "YXZ");
+        const up = new Vector3(0, 1, 0).applyQuaternion(q2);
+        let yaw = euler.y;
+        if (up.y < 0) yaw += Math.PI;
+        inspectPin.current = { x: t3.x, y: t3.y, z: t3.z, yaw };
         body.setBodyType(2, true);
         body.setLinvel({ x: 0, y: 0, z: 0 }, true);
         body.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -75042,7 +75043,16 @@ function TapeBody({
           new Quaternion(r3.x, r3.y, r3.z, r3.w),
           "YXZ"
         );
-        savedYRot.current = wasInRecorder ? angleRad : euler.y;
+        if (wasInRecorder) {
+          savedYRot.current = angleRad;
+        } else {
+          const TILT_LIMIT2 = 20 * Math.PI / 180;
+          let diff = euler.y - angleRad;
+          while (diff > Math.PI) diff -= 2 * Math.PI;
+          while (diff < -Math.PI) diff += 2 * Math.PI;
+          const clamped = Math.max(-TILT_LIMIT2, Math.min(TILT_LIMIT2, diff));
+          savedYRot.current = angleRad + clamped;
+        }
         currentYaw.current = euler.y;
         currentPitch.current = 0;
       }
@@ -79107,7 +79117,7 @@ var import_client = __toESM(require_client(), 1);
 
 // src/tapes/TapesTable.tsx
 var import_react13 = __toESM(require_react(), 1);
-var import_react_dom = __toESM(require_react_dom(), 1);
+var import_react_dom2 = __toESM(require_react_dom(), 1);
 
 // src/tapes/types.ts
 var TAPE_STYLES = [
@@ -80144,6 +80154,7 @@ var styles = {
 
 // src/tapes/MixtapeBuilder.tsx
 var import_react10 = __toESM(require_react(), 1);
+var import_react_dom = __toESM(require_react_dom(), 1);
 var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
 function parseVideoId(input) {
   const v2 = input.trim();
@@ -80181,6 +80192,7 @@ function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange,
   const [highlighted, setHighlighted] = (0, import_react10.useState)(-1);
   const [editingIndex, setEditingIndex] = (0, import_react10.useState)(null);
   const inputRef = (0, import_react10.useRef)(null);
+  const dropdownRef = (0, import_react10.useRef)(null);
   const searchTimer = (0, import_react10.useRef)(null);
   const [draggingIndex, setDraggingIndex] = (0, import_react10.useState)(null);
   const [dragDeltaY, setDragDeltaY] = (0, import_react10.useState)(0);
@@ -80356,6 +80368,61 @@ function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange,
       }
     }
   }, [results.length, submit, editingIndex, cancelEdit]);
+  (0, import_react10.useEffect)(() => {
+    if (!readOnly) return;
+    setAddOpen(false);
+    setEditingIndex(null);
+    setQuery("");
+    setResults([]);
+    setSearching(false);
+    setHighlighted(-1);
+  }, [readOnly]);
+  const [dropdownPos, setDropdownPos] = (0, import_react10.useState)(null);
+  const dropdownOpen = results.length > 0 || searching;
+  (0, import_react10.useEffect)(() => {
+    if (!dropdownOpen) {
+      setDropdownPos(null);
+      return;
+    }
+    const measure = () => {
+      const input = inputRef.current;
+      if (!input) return;
+      const wrap2 = input.parentElement;
+      const list = input.closest(".mixtape-track-list");
+      const rect = (wrap2 ?? input).getBoundingClientRect();
+      const listBottom = list ? list.getBoundingClientRect().bottom : window.innerHeight;
+      const vv = window.visualViewport;
+      const viewBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+      const effectiveBottom = Math.min(listBottom, viewBottom);
+      const spaceBelow = effectiveBottom - rect.bottom;
+      const spaceAbove = rect.top - (vv ? vv.offsetTop : 0);
+      const flip = spaceBelow < 160 ? "up" : spaceBelow >= spaceAbove ? "down" : "up";
+      const maxHeight = Math.max(120, Math.min(
+        flip === "up" ? spaceAbove - 8 : spaceBelow - 8,
+        window.innerHeight * 0.5
+      ));
+      setDropdownPos({
+        left: rect.left,
+        inputTop: rect.top,
+        inputBottom: rect.bottom,
+        width: rect.width,
+        flip,
+        maxHeight
+      });
+    };
+    measure();
+    const onScroll = () => measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", onScroll, true);
+    window.visualViewport?.addEventListener("resize", measure);
+    window.visualViewport?.addEventListener("scroll", measure);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", onScroll, true);
+      window.visualViewport?.removeEventListener("resize", measure);
+      window.visualViewport?.removeEventListener("scroll", measure);
+    };
+  }, [dropdownOpen, results.length, searching]);
   const activeRow = /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "mixtape-active-track", children: [
     /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "mixtape-active-track-input-wrap", children: [
       /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
@@ -80370,26 +80437,44 @@ function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTagChange,
           onKeyDown
         }
       ),
-      results.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "search-dropdown mixtape-search-dropdown", children: results.map((r3, i4) => /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
-        "button",
-        {
-          type: "button",
-          className: `search-result${i4 === highlighted ? " highlighted" : ""}`,
-          onMouseEnter: () => setHighlighted(i4),
-          onClick: () => addAndReset({
-            videoId: r3.videoId,
-            title: r3.title,
-            author: r3.author || "",
-            durationText: r3.durationText
-          }),
-          children: [
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "search-result-title", children: r3.title }),
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "search-result-meta", children: [r3.author, r3.year, r3.durationText].filter(Boolean).join("  //  ") })
-          ]
-        },
-        r3.videoId + ":" + i4
-      )) }),
-      searching && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "search-dropdown mixtape-search-dropdown", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "search-message", children: "Searching..." }) })
+      dropdownOpen && dropdownPos && (0, import_react_dom.createPortal)(
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+          "div",
+          {
+            ref: dropdownRef,
+            className: "search-dropdown mixtape-search-dropdown",
+            "data-flip": dropdownPos.flip,
+            style: {
+              position: "fixed",
+              left: dropdownPos.left,
+              width: dropdownPos.width,
+              maxHeight: dropdownPos.maxHeight,
+              overflowY: "auto",
+              ...dropdownPos.flip === "up" ? { bottom: window.innerHeight - dropdownPos.inputTop + 4 } : { top: dropdownPos.inputBottom + 4 }
+            },
+            children: results.length > 0 ? results.map((r3, i4) => /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+              "button",
+              {
+                type: "button",
+                className: `search-result${i4 === highlighted ? " highlighted" : ""}`,
+                onMouseEnter: () => setHighlighted(i4),
+                onClick: () => addAndReset({
+                  videoId: r3.videoId,
+                  title: r3.title,
+                  author: r3.author || "",
+                  durationText: r3.durationText
+                }),
+                children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "search-result-title", children: r3.title }),
+                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "search-result-meta", children: [r3.author, r3.year, r3.durationText].filter(Boolean).join("  //  ") })
+                ]
+              },
+              r3.videoId + ":" + i4
+            )) : /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "search-message", children: "Searching..." })
+          }
+        ),
+        document.body
+      )
     ] }),
     /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
       "button",
@@ -82146,7 +82231,10 @@ function TapesTable({ mixtape }) {
       background: tableReady ? "transparent" : "#0a0805",
       pointerEvents: tableReady ? "none" : "auto",
       transition: "background 0.25s ease"
-    }, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "tape-spinner" }) }),
+    }, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "tape-title-loader", "aria-label": "loading", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "tape-title-loader-text", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { className: "tape-title-loader-word", children: "jeem-fm" }),
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { className: "tape-title-loader-caret", children: "_" })
+    ] }) }) }),
     inspectTapeId && inspectUiRendered && (() => {
       const tape = tapes.find((t3) => t3.id === inspectTapeId);
       if (!tape) return null;
@@ -82490,7 +82578,7 @@ function TapesTable({ mixtape }) {
         maxHeight: "70vh",
         padding: "24px 24px 20px"
       };
-      return (0, import_react_dom.createPortal)(
+      return (0, import_react_dom2.createPortal)(
         /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: `tape-info-panel tape-panel${isNarrow ? " tape-inspect-narrow-panel" : " tape-inspect-wide-panel"}${!inspectTapeId ? " tape-playback-panel" : ""}${inspectTapeId && isMixtape ? " tape-mixtape-inspect" : ""}${panelGlitchClass ? ` ${panelGlitchClass}` : ""}`, style: {
           pointerEvents: panelClickThrough ? "none" : "auto",
           zIndex: 200,
@@ -82575,7 +82663,7 @@ function TapesTable({ mixtape }) {
         document.body
       );
     })(),
-    deckPortal && (0, import_react_dom.createPortal)(
+    deckPortal && (0, import_react_dom2.createPortal)(
       /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
         "div",
         {

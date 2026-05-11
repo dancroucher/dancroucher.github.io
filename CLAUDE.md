@@ -598,3 +598,76 @@ The "rewind" inspect-row button is gone for every inspect type.
 no UI surfaces it. The `<i class="fa fa-fast-backward">` in
 `public/index.html` is the playback prev-track button — distinct
 from inspect rewind, kept.
+
+## Search dropdown portal (MixtapeBuilder)
+
+The active-row search dropdown is rendered via `createPortal` to
+`document.body` so it can extend past the scrollable
+`.mixtape-track-list` and the inspect panel without being clipped.
+Position is computed from the input wrap's `getBoundingClientRect()`
+and applied as `position: fixed` (`left`, `width`, plus `top` or
+`bottom`). Flip direction picks the side with more space; forced up
+when `spaceBelow < 160px` (mobile soft keyboard case).
+
+Floor used for space-below is `min(listBottom, visualViewport.bottom)`
+— `visualViewport` shrinks when the iOS/Android keyboard is open so
+the dropdown flips above the input instead of being hidden behind the
+keyboard. Listens for `resize` / `scroll` (capture) on `window` plus
+`resize` / `scroll` on `window.visualViewport` to re-measure.
+
+`z-index: 99998` (above the inspect panel and tracklist triangle).
+`.mixtape-track-list` CSS overflow rules reverted to default
+(`overflow-y: auto`, `max-height: min(495px, calc(100vh - 48vh - 130px))`)
+since the dropdown no longer needs the list to be unclipped — only
+the frame + active-row wraps stay `overflow: visible`.
+
+When `readOnly` flips on (mixtape inspect "confirm"), a `useEffect`
+resets `addOpen`, `editingIndex`, `query`, `results`, `searching`,
+and `highlighted` so the dropdown disappears immediately along with
+the edit affordances.
+
+## Pickup yaw clamp + face-down flip
+
+### Pickup yaw clamp (TapeBody.tsx)
+On drag pickup, `savedYRot.current` (the yaw the tape tweens toward
+during drag) was previously set to `euler.y` directly, so heavily
+tilted resting tapes kept their slanted yaw the whole drag. Now
+clamped to `angleRad ± 20°` (where `angleRad` is the original tape
+angle). Tapes within ±20° keep their exact yaw; tapes beyond are
+straightened toward angleRad. Recorder-sourced pickups still target
+`angleRad` exactly (existing behaviour).
+
+Diff normalised into [-π, π] before clamping so wrap-around doesn't
+flip the result.
+
+### Face-down inspect flip
+`inspectPin.current.yaw` is captured at inspect entry from
+`Euler.setFromQuaternion(q, "YXZ").y`. If the tape was resting
+upside-down (label facing the table), the YXZ-extracted yaw
+flattened to `Euler(0, yaw, 0)` would leave the label facing down.
+
+Detect by rotating local `+Y` into world space via the body
+quaternion and checking `up.y`. If negative, add `π` to yaw so the
+flattened tape ends up label-side up toward the camera.
+
+## Title-style loading screen
+
+The initial loading overlay's `<div class="tape-spinner" />` was
+replaced with a chunky pixel `// jeem-fm` title in the 04b03 font,
+matching `.start-title`'s look:
+
+```
+<div class="tape-title-loader">
+  <div class="tape-title-loader-text">
+    <span class="tape-title-loader-word">jeem-fm</span>
+    <span class="tape-title-loader-caret">_</span>
+  </div>
+</div>
+```
+
+`.tape-title-loader-text` reuses the existing `textShadow` keyframe
+animation for the chromatic RGB glitch. `.tape-title-loader-word`
+adds a `tape-loader-flicker` opacity/translateX jitter
+(`steps(12, end)` over 2.4s). `.tape-title-loader-caret` blinks at
+0.85s `steps(2, end)`. Spinner CSS classes are kept for any other
+uses.

@@ -449,16 +449,17 @@ a:hover {
   box-shadow: none;
 }
 
-/* Mixtape-inspect panel: let the search dropdown escape the tracklist
-   (mirrors .mixtape-creator-overlay--callout chain). */
+/* Mixtape-inspect panel: let the search dropdown escape the panel
+   (mirrors .mixtape-creator-overlay--callout chain) — but the
+   tracklist itself must scroll & cap so it doesn't run under the
+   buttons row. Same geometry as playlist-inspect.
+   `.mixtape-track-list` overflow is set inline by
+   `.tape-inspect-wide-panel .mixtape-track-list-frame .mixtape-track-list`
+   (max-height: min(495px, calc(100vh - 48vh - 130px)); overflow-y: auto). */
 .tape-mixtape-inspect,
 .tape-mixtape-inspect .mixtape-builder,
-.tape-mixtape-inspect .mixtape-track-list-frame,
-.tape-mixtape-inspect .mixtape-track-list {
+.tape-mixtape-inspect .mixtape-track-list-frame {
   overflow: visible !important;
-}
-.tape-mixtape-inspect .mixtape-track-list {
-  max-height: none !important;
 }
 /* The default .mixtape-builder is capped at 620px — inside the inspect
    panel that's narrower than the panel (720px) and off-centre. Force
@@ -534,6 +535,54 @@ a:hover {
   border-radius: 50%;
   animation: tape-loading-spin 0.9s linear infinite;
 }
+
+/* Title-style loader: chunky pixel 04b03 "// jeem-fm" with chromatic
+   RGB shadow (reuses the same textShadow keyframes as .start-title)
+   plus a blinking caret and a glitchy under-bar progress sweep. */
+.tape-title-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: rgba(250, 249, 246, 0.92);
+  font-family: '04b03', monospace;
+  user-select: none;
+}
+.tape-title-loader-text {
+  font-size: clamp(1.6em, 7vw, 3em);
+  line-height: 1;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  /* Chromatic RGB glitch — same animation the start title uses. */
+  animation: textShadow 3.6s infinite;
+}
+.tape-title-loader-word {
+  /* Glitch flicker: pulse opacity + horizontal jitter for a "booting"
+     feel without changing layout. */
+  display: inline-block;
+  animation: tape-loader-flicker 2.4s steps(12, end) infinite;
+}
+.tape-title-loader-caret {
+  display: inline-block;
+  margin-left: 0.15em;
+  animation: tape-loader-caret-blink 0.85s steps(2, end) infinite;
+}
+@keyframes tape-loader-flicker {
+  0%, 100% { opacity: 1; transform: translateX(0); }
+  4%  { opacity: 0.85; transform: translateX(-0.5px); }
+  8%  { opacity: 1; transform: translateX(0.5px); }
+  16% { opacity: 0.95; transform: translateX(0); }
+  32% { opacity: 1; transform: translateX(-0.5px); }
+  48% { opacity: 0.75; transform: translateX(0.5px); }
+  56% { opacity: 1; transform: translateX(0); }
+  72% { opacity: 0.9;  transform: translateX(0); }
+  84% { opacity: 1; transform: translateX(-0.5px); }
+}
+@keyframes tape-loader-caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
 
 /* Layout containers */
 
@@ -1056,11 +1105,12 @@ a:hover {
 .mixtape-active-track-input-wrap {
   flex: 1;
 }
-/* Make sure nothing in the active-row chain clips the search dropdown
-   horizontally OR vertically when results overflow past the tracklist
-   box. Triple-targeted to beat any inherited rule. */
+/* Search dropdown escape: keep the frame + active-row wraps unclipped
+   so the dropdown can extend past the input's bounds, but let the
+   tracklist itself scroll (capped by parent flex height). The dropdown
+   itself opens upward (bottom:100%) so a scrolled list doesn't push it
+   offscreen below. */
 .mixtape-creator-overlay .mixtape-track-list-frame,
-.mixtape-creator-overlay .mixtape-track-list-frame .mixtape-track-list,
 .mixtape-creator-overlay .mixtape-active-track,
 .mixtape-creator-overlay .mixtape-active-track-input-wrap {
   overflow: visible;
@@ -1082,20 +1132,17 @@ a:hover {
 }
 /* Doubled-up class selector boosts specificity so this beats the generic
    .search-dropdown (width: 40vw) rule that appears later in the file. */
+/* Dropdown is portalled to <body> and positioned with inline
+   position:fixed (left/width from the input rect, top OR bottom from
+   the flip direction). Just override the size caps from the generic
+   .search-dropdown rule. */
 .search-dropdown.mixtape-search-dropdown {
-  position: absolute;
-  top: 100%;
-  /* Both offsets are vw-based and identical, so the dropdown's left/right
-     edges scale at exactly the same rate as the input wrap when the
-     window is resized. -2vw extends ~30px past each side of the input on
-     a 1500px screen, plenty to clear the box's own border-radius. */
-  left: 0;
-  right: 0;
-  width: auto;
   max-width: none;
   max-height: 50vh;
   margin: 0;
-  z-index: 100;
+  /* Above the inspect panel (z-index:200) and the tracklist frame
+     triangle (z-index:99997). */
+  z-index: 99998;
   box-sizing: border-box;
 }
 .search-dropdown.mixtape-search-dropdown .search-result {

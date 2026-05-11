@@ -731,11 +731,16 @@ export function TapeBody({
         wasInspecting.current = true;
         const t = body.translation();
         const r = body.rotation();
-        const euler = new THREE.Euler().setFromQuaternion(
-          new THREE.Quaternion(r.x, r.y, r.z, r.w),
-          "YXZ",
-        );
-        inspectPin.current = { x: t.x, y: t.y, z: t.z, yaw: euler.y };
+        const q = new THREE.Quaternion(r.x, r.y, r.z, r.w);
+        const euler = new THREE.Euler().setFromQuaternion(q, "YXZ");
+        // Face-down detection: rotate local +Y into world space and check
+        // its Y component. If negative, the label is currently facing the
+        // table — flatten-to-Y(yaw) would leave it upside-down. Add π
+        // to yaw so the label ends up facing the camera right-way-up.
+        const up = new THREE.Vector3(0, 1, 0).applyQuaternion(q);
+        let yaw = euler.y;
+        if (up.y < 0) yaw += Math.PI;
+        inspectPin.current = { x: t.x, y: t.y, z: t.z, yaw };
         body.setBodyType(2, true); // kinematic
         body.setLinvel({ x: 0, y: 0, z: 0 }, true);
         body.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -801,8 +806,19 @@ export function TapeBody({
         );
         // If picked up from the recorder, target the tape's original yaw so
         // leaving the trigger zone tweens back to its pre-load rotation.
-        // Otherwise preserve the tape's current table-rest yaw.
-        savedYRot.current = wasInRecorder ? angleRad : euler.y;
+        // Otherwise preserve the tape's current table-rest yaw, but clamp to
+        // angleRad ± 20° so heavily-tilted resting tapes straighten up on
+        // pickup. Tapes already within ±20° keep their exact yaw.
+        if (wasInRecorder) {
+          savedYRot.current = angleRad;
+        } else {
+          const TILT_LIMIT = (20 * Math.PI) / 180;
+          let diff = euler.y - angleRad;
+          while (diff > Math.PI) diff -= 2 * Math.PI;
+          while (diff < -Math.PI) diff += 2 * Math.PI;
+          const clamped = Math.max(-TILT_LIMIT, Math.min(TILT_LIMIT, diff));
+          savedYRot.current = angleRad + clamped;
+        }
         currentYaw.current = euler.y;
         currentPitch.current = 0;
       }
