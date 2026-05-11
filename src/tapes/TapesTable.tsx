@@ -265,6 +265,10 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const [caretBlinkOn, setCaretBlinkOn] = useState(true);
   const [caretPos, setCaretPos] = useState<number>(0);
   const [styleChanged, setStyleChanged] = useState(false);
+  // Callouts (pending-mixtape + mixtape-edit-mode) dismiss on any
+  // pointerdown anywhere on the page. Reset when the surfaces that
+  // own them become active again.
+  const [calloutsDismissed, setCalloutsDismissed] = useState(false);
   const trackListScrollRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!loadedTape) return;
@@ -318,6 +322,23 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const mixtapeEditModeRef = useRef(false);
   mixtapeEditModeRef.current = mixtapeEditMode;
   useEffect(() => { setMixtapeEditMode(false); }, [inspectTapeId]);
+
+  // While callouts are showable, listen for the first pointerdown on the
+  // page and dismiss them all. Attach with a small delay so the click that
+  // opened the surface doesn't immediately dismiss them.
+  const calloutsShowable = inspectedIsPendingMixtape || (inspectedIsMixtape && mixtapeEditMode);
+  useEffect(() => {
+    if (!calloutsShowable) { setCalloutsDismissed(false); return; }
+    setCalloutsDismissed(false);
+    const onDown = () => setCalloutsDismissed(true);
+    const t = window.setTimeout(() => {
+      window.addEventListener('pointerdown', onDown, true);
+    }, 150);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('pointerdown', onDown, true);
+    };
+  }, [calloutsShowable]);
   // Either pending-creation or existing mixtape inspect (in edit mode):
   // in-canvas name editor + caret blink use the same flow.
   const mixtapeNameEditing = inspectedIsPendingMixtape || (inspectedIsMixtape && mixtapeEditMode);
@@ -1854,10 +1875,21 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           onDragStart={handle3DDragStart}
           onDragEnd={handle3DDragEnd}
           onDoubleTap={handle3DDoubleTap}
-          onSingleTap={(tapeId) => {
-            // Cycle cassette texture variants on tap when:
-            //   • the tape is a pending mixtape (creation flow), or
-            //   • the inspected tape is a mixtape AND edit mode is on.
+          editTapeId={inspectedIsMixtape && mixtapeEditMode ? inspectTapeId : null}
+          onSingleTap={(tapeId, info) => {
+            // Upper-half-of-canvas hit → focus the inline cassette name
+            // editor (whole top half of the tape FBX acts as the hit zone,
+            // not just a fixed 2D overlay). Lower half → cycle texture
+            // variant. Only fires for pending mixtape + edit-mode mixtape.
+            if (info?.isLabel) {
+              const el = document.querySelector('.tape-name-on-cassette') as HTMLTextAreaElement | null;
+              if (el) {
+                el.focus();
+                const len = el.value.length;
+                el.setSelectionRange(len, len);
+              }
+              return;
+            }
             const inspecting = inspectTapeIdRef.current;
             const editMode = mixtapeEditModeRef.current;
             setTapes(prev => prev.map(t => {
@@ -2039,9 +2071,10 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         if (!tape) return null;
         const nameAdded = tape.title.trim().length > 0;
         const trackAdded = mixtapeBuilderTracks.length > 0;
-        const leftHidden = nameAdded ? ' is-callout-hidden' : '';
-        const rightHidden = trackAdded ? ' is-callout-hidden' : '';
-        const styleHidden = styleChanged ? ' is-callout-hidden' : '';
+        const dismissed = calloutsDismissed;
+        const leftHidden = (nameAdded || dismissed) ? ' is-callout-hidden' : '';
+        const rightHidden = (trackAdded || dismissed) ? ' is-callout-hidden' : '';
+        const styleHidden = (styleChanged || dismissed) ? ' is-callout-hidden' : '';
         return (
           <div className={`mixtape-creator-overlay mixtape-creator-overlay--callout ${inspectUiClass}`}>
             <div className={`single-tape-blurb mixtape-callout-blurb${rightHidden}`}>Create your mixtape by adding tracks via youtube url or search then click create.</div>
@@ -2147,6 +2180,42 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                 setInspectTapeId(null);
               }}
             />
+          </div>
+        );
+      })()}
+
+      {inspectedIsMixtape && mixtapeEditMode && inspectUiRendered && (() => {
+        const tape = tapes.find(t => t.id === inspectTapeId);
+        if (!tape) return null;
+        // In edit mode the callouts are pure hints — they aren't tied to
+        // "you still need to add a name / a track". Only the global
+        // pointer-down dismiss closes them.
+        const hidden = calloutsDismissed ? ' is-callout-hidden' : '';
+        const leftHidden = hidden;
+        const rightHidden = hidden;
+        const styleHidden = hidden;
+        return (
+          <div className={`mixtape-creator-overlay mixtape-creator-overlay--callout ${inspectUiClass}`} style={{ pointerEvents: 'none' }}>
+            <div className={`single-tape-blurb mixtape-callout-blurb${rightHidden}`}>Edit your mixtape — add, reorder, edit or remove tracks.</div>
+            <svg className="mixtape-callout-svg" aria-hidden="true">
+              <g className={`mixtape-callout-leader${leftHidden}`}>
+                <line x1="26%" y1="20%" x2="40%" y2="20%" />
+                <line x1="40%" y1="20%" x2="40%" y2="25%" />
+                <circle cx="40%" cy="25%" r="7" />
+              </g>
+              <g className={`mixtape-callout-leader${rightHidden}`}>
+                <line x1="83%" y1="28%" x2="83%" y2="55%" />
+                <line x1="83%" y1="55%" x2="75%" y2="55%" />
+                <circle cx="75%" cy="55%" r="7" />
+              </g>
+              <g className={`mixtape-callout-leader${styleHidden}`}>
+                <line x1="26%" y1="42%" x2="42%" y2="42%" />
+                <line x1="42%" y1="42%" x2="42%" y2="35%" />
+                <circle cx="42%" cy="35%" r="7" />
+              </g>
+            </svg>
+            <div className={`mixtape-callout-name single-tape-blurb${leftHidden}`}>Click the name to edit it.</div>
+            <div className={`mixtape-callout-style single-tape-blurb${styleHidden}`}>Click the mixtape to change style.</div>
           </div>
         );
       })()}
@@ -2339,6 +2408,19 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
                         <span className="tape-track-title">{track.title}</span>
                       </div>
                       <div className="tape-track-author-row">{track.author}</div>
+                      {inspectTapeId && track.videoId && (
+                        <div className="track-actions" style={{ pointerEvents: 'auto' }}>
+                          <a
+                            className="track-action-btn track-action-link"
+                            href={`https://www.youtube.com/watch?v=${track.videoId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label="Open in YouTube"
+                            title="Open in YouTube"
+                          ><i className="fas fa-link" /></a>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

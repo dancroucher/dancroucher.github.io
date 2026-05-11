@@ -75,7 +75,15 @@ interface TapesTable3DProps {
   onDragStart: (tapeId: string) => void;
   onDragEnd: (tapeId: string, x2d: number, y2d: number, droppedOnDeck: boolean, landedOnRecorder: boolean) => void;
   onDoubleTap: (tapeId: string, worldX?: number, worldZ?: number) => void;
-  onSingleTap?: (tapeId: string) => void;
+  // `info.isLabel` is true when the click landed in the upper half of the
+   // canvas above the tape's projected centre — i.e. the cassette's label
+   // region in inspect/edit views. Used by callers to route label taps to
+   // the name editor instead of the texture-cycle handler.
+  onSingleTap?: (tapeId: string, info?: { isLabel: boolean }) => void;
+  // When set, single-taps on this tape fire `onSingleTap` (with label-hit
+   // info) instead of being absorbed by the double-tap detector. Used to
+   // arm the cassette for in-place editing on an existing mixtape inspect.
+  editTapeId?: string | null;
   onMenuAction: (tapeId: string, action: 'link' | 'rewind' | 'remove') => void;
   menuId: string | null;
   onClearMenu: () => void;
@@ -115,7 +123,7 @@ interface TapesTable3DProps {
 }
 
 function SceneContents({
-  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onSingleTap, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId, fadeInspectedTape, cameraTargetRef, isPlayingRef,
+  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onSingleTap, editTapeId, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId, fadeInspectedTape, cameraTargetRef, isPlayingRef,
 }: TapesTable3DProps) {
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
@@ -436,13 +444,37 @@ function SceneContents({
         const deckDrop = isDeckDrop(ev.clientX, ev.clientY);
         onDragEnd(tapeId, x2d, y2d, deckDrop, landedOnRecorder);
       } else if (tapeId && !wasDragging) {
-        // Pending-mixtape: single click cycles the cassette texture variant
-        // (label area is shielded by the inline-edit textarea overlay so
-        // those clicks don't reach the canvas). Skip double-tap detection
-        // here — double-tap is disabled while in pending-mixtape mode.
+        // Single-tap routing for "editable" cassettes (pending-mixtape
+        // creation flow OR an existing mixtape that's currently in
+        // edit mode, identified via `editTapeId`):
+        //   • upper-half-of-canvas hit → label tap → route via `isLabel`
+        //     so the caller can focus the inline name editor.
+        //   • lower-half hit → texture-variant cycle (existing behaviour).
+        // For everything else we fall through to the double-tap detector.
         const tappedTape = tapes.find(t => t.id === tapeId);
-        if (tappedTape?.isPendingMixtape && onSingleTap) {
-          onSingleTap(tapeId);
+        const isEditable = !!tappedTape?.isPendingMixtape || (editTapeId != null && tapeId === editTapeId);
+        if (isEditable && onSingleTap) {
+          // Project the tape's two length-axis endpoints into screen
+          // space so the "label" hit zone tracks the FBX itself —
+          // upper third of the cassette's projected vertical span,
+          // not a fixed canvas slab. Robust to camera angle, tape yaw,
+          // and viewport size (fixes label-zone-too-low on narrow).
+          const r = el.getBoundingClientRect();
+          let isLabel = (ev.clientY - r.top) / r.height < 0.5; // safe fallback
+          const obj = scene.getObjectByName(`tape-${tapeId}`);
+          if (obj) {
+            const a = obj.localToWorld(new THREE.Vector3(0, 0, -TAPE_H / 2));
+            const b = obj.localToWorld(new THREE.Vector3(0, 0,  TAPE_H / 2));
+            a.project(camera);
+            b.project(camera);
+            const aY = (1 - a.y) / 2 * r.height;
+            const bY = (1 - b.y) / 2 * r.height;
+            const minY = Math.min(aY, bY);
+            const maxY = Math.max(aY, bY);
+            const clickY = ev.clientY - r.top;
+            isLabel = clickY < minY + (maxY - minY) / 3;
+          }
+          onSingleTap(tapeId, { isLabel });
           lastTapRef.current = { time: 0, id: '' };
         } else {
           const now = Date.now();
@@ -477,7 +509,7 @@ function SceneContents({
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
-  }, [gl, drag, snap, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, isOverRecorder, onDragStart, onDragEnd, onDoubleTap, onSingleTap, onClearMenu, lockedTapeId, pickupBlockedTapeId, maxDragX, onRecorderLoad, showRecorder, inspectTapeId, tapes]);
+  }, [gl, drag, snap, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, isOverRecorder, onDragStart, onDragEnd, onDoubleTap, onSingleTap, editTapeId, onClearMenu, lockedTapeId, pickupBlockedTapeId, maxDragX, onRecorderLoad, showRecorder, inspectTapeId, tapes]);
 
   // Track mouse hover over the recorder footprint (for lid open on hover).
   useEffect(() => {

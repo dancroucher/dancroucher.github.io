@@ -497,12 +497,32 @@ a:hover {
   display: inline-block;
 }
 
-/* Read-only MixtapeBuilder: no per-track edit/remove actions, no
-   drag affordance on the handle. */
-.mixtape-builder--readonly .track-actions { display: none !important; }
+/* Read-only MixtapeBuilder: edit/remove buttons aren't rendered (per
+   readOnly prop); only the link icon remains, and the drag handle is
+   inert. */
 .mixtape-builder--readonly .track-handle { cursor: default; }
 .mixtape-builder--readonly .track-handle:hover .tape-track-num { opacity: 1; }
 .mixtape-builder--readonly .track-handle:hover .track-drag-icon { opacity: 0; }
+/* When the actions container only holds the link icon (read-only mixtape
+   inspect, playlist inspect), keep it visible without requiring a row
+   hover — there's no other affordance to wait for. */
+.mixtape-track-list .tape-track .track-actions:has(> .track-action-link:only-child) {
+  opacity: 1 !important;
+}
+
+/* Link icon styling — applies in mixtape create, mixtape inspect (both
+   read-only and edit modes), and playlist inspect. */
+.mixtape-track-list .track-action-link {
+  opacity: 0.55;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  color: rgba(250, 249, 246, 0.55);
+}
+.mixtape-track-list .track-action-link:hover {
+  opacity: 1;
+  color: rgba(250, 249, 246, 1);
+}
 
 /* Loading spinner */
 
@@ -859,7 +879,11 @@ a:hover {
   font-size: 18px;
   line-height: 28px;
   cursor: text;
-  pointer-events: auto;
+  /* Clicks must fall through to the 3D canvas so the FBX-hit code can
+     decide whether a tap landed in the label region. The textarea is
+     only focused programmatically (from `onSingleTap` with isLabel),
+     then it captures the user's keystrokes normally. */
+  pointer-events: none;
   overflow: hidden;
 }
 .tape-name-on-cassette::placeholder { color: transparent; }
@@ -1101,7 +1125,10 @@ a:hover {
 .single-tape-blurb {
   color: rgba(250, 249, 246, 0.85);
   font-family: '04b03', monospace;
-  font-size: 21px;
+  /* Scale callout/blurb text with viewport: ~1.6vw centre with clamp
+     so it stays legible on small phones and doesn't explode on
+     ultrawide displays. */
+  font-size: clamp(14px, 1.6vw, 22px);
   text-align: center;
   line-height: 1.4;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);

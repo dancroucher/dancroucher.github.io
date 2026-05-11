@@ -347,20 +347,29 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
           <div className="tape-track-author-row">{t.author}</div>
         </div>
         <div className="track-actions">
-          <button
+          <a
+            className="track-action-btn track-action-link"
+            href={`https://www.youtube.com/watch?v=${t.videoId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Open in YouTube"
+            title="Open in YouTube"
+          ><i className="fas fa-link" /></a>
+          {!readOnly && <button
             type="button"
             className="track-action-btn"
             onClick={() => startEdit(i)}
             aria-label="Edit track"
             title="Edit"
-          ><i className="fas fa-pen" /></button>
-          <button
+          ><i className="fas fa-pen" /></button>}
+          {!readOnly && <button
             type="button"
             className="track-action-btn"
             onClick={() => onRemoveTrack && onRemoveTrack(i)}
             aria-label="Remove track"
             title="Remove"
-          ><i className="fas fa-trash" /></button>
+          ><i className="fas fa-trash" /></button>}
         </div>
       </div>
     );
