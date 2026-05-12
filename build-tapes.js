@@ -18,8 +18,9 @@ await Promise.all(
       bundle: true,
       format: 'esm',
       target: 'es2020',
-      minify: false,
-      sourcemap: false,
+      minify: true,
+      sourcemap: 'external',
+      legalComments: 'none',
       jsx: 'automatic',
       jsxImportSource: 'react',
       define: {

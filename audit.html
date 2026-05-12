@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>jeem-fm — codebase audit</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#0e0c08; --fg:#f5f1e0; --dim:#b9b09a; --muted:#7c7560;
+    --accent:#ffd24d; --warn:#ff8a4d; --bad:#ff5a5a; --ok:#7ddf8a;
+    --rule:rgba(245,241,224,0.12); --panel:rgba(255,255,255,0.03);
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+    font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+  a:hover{color:#fff;border-color:#fff}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 28px 96px}
+  header{border-bottom:1px solid var(--rule);padding-bottom:22px;margin-bottom:28px}
+  h1{font-size:28px;margin:0 0 6px;letter-spacing:.5px}
+  header p{color:var(--dim);margin:0}
+  nav{display:flex;flex-wrap:wrap;gap:6px 14px;margin:18px 0 0;font-size:13px}
+  nav a{border:none;color:var(--dim)}
+  nav a:hover{color:var(--fg)}
+  section{margin:36px 0 0;padding-top:18px;border-top:1px solid var(--rule)}
+  h2{font-size:18px;margin:0 0 14px;letter-spacing:.4px}
+  h2 .tag{font-size:11px;font-weight:500;color:var(--bg);background:var(--accent);
+    padding:2px 8px;border-radius:10px;margin-left:8px;vertical-align:middle;letter-spacing:.4px}
+  h2 .tag.bad{background:var(--bad);color:#fff}
+  h2 .tag.warn{background:var(--warn);color:#1a140a}
+  h2 .tag.ok{background:var(--ok);color:#0d2110}
+  .item{padding:12px 14px;margin:8px 0;background:var(--panel);
+    border-left:3px solid var(--rule);border-radius:0 4px 4px 0}
+  .item.hi{border-left-color:var(--bad)}
+  .item.md{border-left-color:var(--warn)}
+  .item.lo{border-left-color:var(--accent)}
+  .item h3{margin:0 0 4px;font-size:14px;font-weight:600;color:var(--fg)}
+  .item p{margin:4px 0 0;color:var(--dim);font-size:13px}
+  .item code,code{font-family:var(--mono);font-size:12.5px;background:rgba(255,255,255,.05);
+    padding:1px 5px;border-radius:3px;color:var(--fg)}
+  .pill{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:9px;
+    background:rgba(255,255,255,.06);color:var(--dim);margin-right:6px;letter-spacing:.4px;
+    text-transform:uppercase;font-weight:600}
+  .pill.hi{background:rgba(255,90,90,.18);color:#ff9a9a}
+  .pill.md{background:rgba(255,138,77,.18);color:#ffb38a}
+  .pill.lo{background:rgba(255,210,77,.18);color:#ffe09a}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:10px 0}
+  .stat{padding:12px 14px;background:var(--panel);border-radius:6px;border:1px solid var(--rule)}
+  .stat .n{font-size:22px;font-weight:600;color:var(--fg)}
+  .stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:2px}
+  .diff{font-size:12px;color:var(--ok);margin-left:8px}
+  footer{margin-top:54px;padding-top:18px;border-top:1px solid var(--rule);color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>jeem-fm — codebase audit</h1>
+  <p>Remaining open issues. <strong>Session fixes in green section below.</strong></p>
+  <nav>
+    <a href="#snapshot">Snapshot</a>
+    <a href="#done">Done this session</a>
+    <a href="#bugs">Bugs</a>
+    <a href="#perf">Performance</a>
+    <a href="#assets">Assets</a>
+    <a href="#code">Code health</a>
+    <a href="#sec">Security</a>
+  </nav>
+</header>
+
+<section id="snapshot">
+  <h2>Snapshot</h2>
+  <div class="grid">
+    <div class="stat"><div class="n">~10.7k</div><div class="l">lines of app code</div></div>
+    <div class="stat"><div class="n">~2.5k</div><div class="l">lines in <code>TapesTable.tsx</code> + 8 hook files</div></div>
+    <div class="stat"><div class="n">3.4 MB <span class="diff">↓ 36%</span></div><div class="l"><code>tapes.js</code> minified (was 5.3 MB)</div></div>
+    <div class="stat"><div class="n">2.6 MB</div><div class="l"><code>mixtape.js</code></div></div>
+    <div class="stat"><div class="n">8 <span class="diff">new</span></div><div class="l">standalone hooks in <code>src/tapes/hooks/</code></div></div>
+    <div class="stat"><div class="n">2 <span class="diff">↓ 67%</span></div><div class="l">active <code>setInterval</code>s (was 3)</div></div>
+  </div>
+</section>
+
+<section id="done">
+  <h2>Fixed this session <span class="tag" style="background:var(--ok);color:#0d2110;padding:2px 8px;border-radius:10px;margin-left:8px">done</span></h2>
+
+  <div class="item" style="border-left-color:var(--ok)">
+    <strong>8 custom hooks extracted</strong> from <code>TapesTable.tsx</code> into <code>src/tapes/hooks/</code>:
+    <code>useTopBlockerMeasurement</code>, <code>useIsNarrow</code>, <code>usePlaybackPanelGlitch</code>,
+    <code>useCalloutsDismissed</code>, <code>useCaretBlink</code>, <code>useLogoTypewriter</code>,
+    <code>useShareUrl</code>, <code>usePlaylistTracks</code>.
+    <code>MixtapeData</code>/<code>MixtapeTrack</code> moved to <code>src/tapes/types.ts</code> to break cross-imports.
+  </div>
+
+  <div class="item" style="border-left-color:var(--ok)">
+    <strong>3 TDZ ReferenceError bugs fixed</strong> — esbuild minification exposed hooks
+    called before their state deps were declared (<code>usePlaylistTracks</code> →
+    <code>inspectTapeId</code>; <code>useCalloutsDismissed</code> →
+    <code>calloutsShowable</code>; <code>useCaretBlink</code> → <code>focusedField</code>).
+    All hook calls must come <em>after</em> every variable they reference in the
+    component body.
+  </div>
+
+  <div class="item" style="border-left-color:var(--ok)">
+    <strong>Tracklist panel positioning fixed</strong> — <code>narrowPanel</code>/<code>widePanel</code>
+    computed but never applied to the portal <code>style</code> prop. Added
+    <code>{...(isNarrow ? narrowPanel : widePanel)}</code>. Also: left-aligned
+    wide playback panel, scrollbar suppressed, auto-scroll on panel open.
+  </div>
+
+  <div class="item" style="border-left-color:var(--ok)">
+    <strong>Minification restored</strong> — <code>build-tapes.js</code> now
+    <code>minify: true, sourcemap: 'external'</code>. Tapes: 5.3 MB → 3.4 MB.
+    <code>texturesVariants.ts</code> extracted as a standalone module to avoid
+    circular import with hooks.
+  </div>
+
+  <div class="item" style="border-left-color:var(--ok)">
+    <strong>API body size cap</strong> — <code>server.js</code> now
+    <code>express.json({ limit: '32kb' })</code>. <code>api/tape-share.js</code>
+    validates wire payload shape (known keys only, title ≤ 500 chars,
+    infiniteHistory capped at 2000 entries).
+  </div>
+
+  <div class="item" style="border-left-color:var(--ok)">
+    <strong>Texture stamp cache properly disposed</strong> — the
+    audit flagged this in error; the LRU already calls <code>tex.dispose()</code>
+    on eviction.
+  </div>
+</section>
+
+<section id="bugs">
+  <h2>Bugs &amp; correctness</h2>
+
+  <div class="item hi">
+    <span class="pill hi">high</span>
+    <h3>Event-listener imbalance: 64 add vs 32 remove</h3>
+    <p>Many are fine (static window listeners on the main module), but several handlers in <code>Inactivity</code>, <code>Search</code>, <code>player.js</code>, and the YouTube iframe shim fire during view transitions when their work is wasted. Audit each <code>addEventListener</code> that lacks a matching teardown and gate them behind the view state that needs them.</p>
+  </div>
+
+  <div class="item md">
+    <span class="pill md">med</span>
+    <h3><code>tape-share</code> file store is racy, Vercel-hostile</h3>
+    <p><code>api/utils/share-store.js</code> falls back to a JSON file read/written synchronously on every request with no locking. Two concurrent <code>POST /api/tape-share</code> calls can corrupt each other. On Vercel (read-only FS) it silently no-ops unless Upstash is configured. Add a startup warning when Redis env vars are absent.</p>
+  </div>
+
+  <div class="item md">
+    <span class="pill md">med</span>
+    <h3>Dynamic <code>import()</code> per request in <code>server.js</code></h3>
+    <p>Every API route does <code>await import('./api/...')</code> inside the handler. Module cache means subsequent requests are fast, but the first hit on each route pays the import cost and error stacks are harder to trace. Import once at boot instead.</p>
+  </div>
+
+  <div class="item md">
+    <span class="pill md">med</span>
+    <h3><code>innerHTML</code> for the <code>// &lt;</code> title swap</h3>
+    <p>The logo typewriter now lives in <code>useLogoTypewriter.ts</code>. It still uses <code>innerHTML</code> to write the back-arrow — safe because the string is a constant, but a one-copy-paste XSS vulnerability if a tape title ever gets interpolated. Replace with <code>textContent</code> + a styled element.</p>
+  </div>
+
+  <div class="item md">
+    <span class="pill md">med</span>
+    <h3>Stale <code>console.log</code> in shipped bundles</h3>
+    <p><code>TapesTable3D.tsx:900</code> logs on WebGL context restore. <code>demo.js:189</code> logs when polling infinite tape state. Bundles are minified so the noise is reduced, but stripping all <code>console.*</code> calls via esbuild's <code>drop: ['console']</code> is the clean fix.</p>
+  </div>
+</section>
+
+<section id="perf">
+  <h2>Performance</h2>
+
+  <div class="item hi">
+    <span class="pill hi">high</span>
+    <h3>Recorder GLB: compress + remove dead texture folder</h3>
+    <p><code>cassetterecorder.glb</code> is 1.7 MB on disk. Run it through <a href="https://gltf.report/">gltf-transform</a> (Draco + KTX2 textures) — expect 80&ndash;90% size drop with no visible quality loss. Once optimised, delete the 94 MB <code>unity/</code> texture folder (tracked in git, never loaded at runtime) and <code>recorder.fbx</code> (240 kB, also unused).</p>
+  </div>
+
+  <div class="item md">
+    <span class="pill md">med</span>
+    <h3>Background MP4s: 264 MB served as raw files</h3>
+    <p>140 MB <code>video/</code> + 45 MB <code>anime/</code> + 79 MB <code>vintage/</code>. Re-encode at lower bitrate, serve via CDN with <code>Cache-Control: immutable</code>, add <code>preload="none"</code> so only the active video is fetched.</p>
+  </div>
+
+  <div class="item md">
+    <span class="pill md">med</span>
+    <h3>Strip <code>console.*</code> in production build</h3>
+    <p><code>build-tapes.js</code> has <code>process.env.NODE_ENV</code> defined but not <code>drop: ['console']</code>. Add it to esbuild config to remove all <code>console.log/error/warn</code> from shipped bundles.</p>
+  </div>
+
+  <div class="item lo">
+    <span class="pill lo">low</span>
+    <h3>No HTTP cache headers for static assets locally</h3>
+    <p>Add <code>express.static(..., { maxAge: '1y', immutable: true })</code> to <code>server.js</code> so local dev doesn't re-fetch bundles and assets every load.</p>
+  </div>
+</section>
+
+<section id="assets">
+  <h2>Assets</h2>
+  <div class="item md">
+    <span class="pill md">med</span>
+    <h3>Dead 94 MB <code>unity/</code> texture folder</h3>
+    <p><code>public/assets/recorder/unity/</code> (35 files) is tracked in git and occupies ~94 MB but is never loaded. Safe to delete once the optimised GLB is in. Prune from git history if you want to reduce the repo footprint.</p>
+  </div>
+  <div class="item md">
+    <span class="pill md">med</span>
+    <h3>Committed <code>.DS_Store</code></h3>
+    <p>6 kB macOS metadata file in the repo root. Add to <code>.gitignore</code> globally.</p>
+  </div>
+  <div class="item lo">
+    <span class="pill lo">low</span>
+    <h3>FBX recorder model (unused)</h3>
+    <p><code>recorder.fbx</code> (240 kB) is tracked and never loaded. Delete it.</p>
+  </div>
+</section>
+
+<section id="code">
+  <h2>Code health</h2>
+
+  <div class="item md">
+    <span class="pill md">med</span>
+    <h3>8 custom hooks extracted; ~25 state declarations remain</h3>
+    <p><code>src/tapes/hooks/</code> holds 8 standalone hooks. <code>TapesTable.tsx</code> still owns ~25 <code>useState</code> + ~12 <code>useRef</code> + ~12 <code>useCallback</code> + ~22 <code>useEffect</code> calls. Candidates to extract further: <code>inspectTapeId</code> state machine (4 effects + 2 refs), <code>wipeTransition</code>, <code>autoEject</code>, <code>autoScroll</code>. Each would cut the component's cognitive surface further.</p>
+  </div>
+
+  <div class="item md">
+    <span class="pill md">med</span>
+    <h3>24 untyped <code>any</code>s</h3>
+    <p>Most are <code>window.TapesBridge</code> / <code>window.myApp</code> fields. A single <code>src/globals.d.ts</code> covering the bridge surface kills most of them and documents the vanilla&#8209;&#62;React contract.</p>
+  </div>
+  <div class="item lo">
+    <span class="pill lo">low</span>
+    <h3>No test suite</h3>
+    <p>No test runner in <code>package.json</code>. The <code>share.ts</code> wire encoder, <code>db.ts</code> IndexedDB migration, and the 8 standalone hooks are all high-leverage targets for Vitest cases.</p>
+  </div>
+</section>
+
+<section id="sec">
+  <h2>Security</h2>
+  <div class="item md">
+    <span class="pill md">med</span>
+    <h3>No API rate limiting</h3>
+    <p><code>/api/search</code>, <code>/api/mixtape/generate</code>, and <code>/api/tape-share</code> have no per-IP throttle. On Vercel add <code>@upstash/ratelimit</code>; locally an in-memory token bucket is fine for dev.</p>
+  </div>
+  <div class="item lo">
+    <span class="pill lo">low</span>
+    <h3><code>.env.local</code> exposure surface</h3>
+    <p>Ignored by git, but confirm nothing in <code>build-*.js</code> ever logs <code>process.env</code> wholesale.</p>
+  </div>
+</section>
+
+<footer>
+  Generated 2026-05-12 &middot; remaining open issues only
+</footer>
+
+</div>
+</body>
+</html>

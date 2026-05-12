@@ -10,6 +10,20 @@ export interface InfiniteTrack {
   author: string;
 }
 
+export interface MixtapeTrack {
+  videoId: string;
+  title: string;
+  author: string;
+  duration: number;
+  durationText: string;
+}
+
+export interface MixtapeData {
+  name: string;
+  description: string;
+  tracks: MixtapeTrack[];
+}
+
 export interface Tape {
   id: string;
   videoId: string;

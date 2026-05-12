@@ -3,10 +3,19 @@ import { createPortal } from 'react-dom';
 import { Tape, TAPE_STYLES, InfiniteConfig, InfiniteTrack } from './types';
 import { to3D, to2D } from './coords';
 import { loadTapes, saveTapes } from './db';
-import { buildShareUrl, decodeTapeShare, fetchShareById, type SharePayload } from './share';
+import { buildShareUrl, fetchShareById, decodeTapeShare, type SharePayload } from './share';
 import { DeckTape3D } from './DeckTape3D';
 import { MixtapeCreator, MIXTAPE_PANEL_STYLES, MIXTAPE_TRACK_LIST, MIXTAPE_TRACK_ROW, MIXTAPE_TRACK_NUM, MIXTAPE_TRACK_TITLE, MIXTAPE_TRACK_AUTHOR, MIXTAPE_TRACK_DURATION } from '../mixtape/Creator';
 import { MixtapeBuilder, MixtapeBuilderTrack } from './MixtapeBuilder';
+import { useTopBlockerMeasurement } from './hooks/useTopBlockerMeasurement';
+import { useIsNarrow } from './hooks/useIsNarrow';
+import { usePlaybackPanelGlitch } from './hooks/usePlaybackPanelGlitch';
+import { useCalloutsDismissed } from './hooks/useCalloutsDismissed';
+import { useCaretBlink } from './hooks/useCaretBlink';
+import { useLogoTypewriter } from './hooks/useLogoTypewriter';
+import { useShareUrl } from './hooks/useShareUrl';
+import { usePlaylistTracks } from './hooks/usePlaylistTracks';
+import { TEXTURE_VARIANTS, randomTextureVariant } from './textureVariants';
 const TapesTable3D = lazy(() => import('./TapesTable3D').then(m => ({ default: m.TapesTable3D })));
 
 // ── Mixtape data type (passed in from mixtape creator) ──
@@ -24,10 +33,8 @@ export interface MixtapeData {
 }
 
 // ── Texture variant selection (always random) ──
-const TEXTURE_VARIANTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'];
-function randomTextureVariant(): string {
-  return TEXTURE_VARIANTS[Math.floor(Math.random() * TEXTURE_VARIANTS.length)];
-}
+// Re-exported from textureVariants.ts for callers in this file.
+export { TEXTURE_VARIANTS, randomTextureVariant };
 const nextTextureVariant = randomTextureVariant;
 
 // ── Tape sounds (real samples) ──
@@ -196,6 +203,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const spawnCX = () => Math.round(to2D(cameraTargetRef.current.x, cameraTargetRef.current.z)[0]);
   const spawnCY = () => Math.round(to2D(cameraTargetRef.current.x, cameraTargetRef.current.z)[1]);
   const [isPanning, setIsPanning] = useState(false);
+  const isNarrow = useIsNarrow();
   const [loadedTape, setLoadedTape] = useState<Tape | null>(null);
   // True when the current loadedTape is playing via the 3D recorder rather than
   // the 2D deck — suppresses the deck-side filter so the 3D tape stays visible.
@@ -218,7 +226,6 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const mixtapeLoadedRef = useRef(false);
   const [showMixtapeCreator, setShowMixtapeCreator] = useState(false);
   const [mixtapeData, setMixtapeData] = useState<MixtapeData | null>(mixtape ?? null);
-  const [playlistTracks, setPlaylistTracks] = useState<MixtapeData | null>(null);
   // View system: 'table' = many tapes overview, 'player' = single tape focused
   const [view, setView] = useState<'table' | 'player'>('table');
   const [playerTapeId, setPlayerTapeId] = useState<string | null>(null);
@@ -270,40 +277,29 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // own them become active again.
   const [calloutsDismissed, setCalloutsDismissed] = useState(false);
   const trackListScrollRef = useRef<HTMLDivElement | null>(null);
+  // Auto-scroll the playback tracklist to centre the active track on open.
+  // RAF retry needed because the list may not have rendered its .active row yet
+  // on the very first frame (React renders the tracklist before the DOM is painted).
   useEffect(() => {
-    if (!loadedTape) return;
-    const list = trackListScrollRef.current;
-    if (!list) return;
-    const active = list.querySelector('.tape-track.active') as HTMLElement | null;
-    if (!active) return;
-    const targetTop = active.offsetTop - (list.clientHeight / 2) + (active.offsetHeight / 2);
-    list.scrollTo({ top: targetTop, behavior: 'smooth' });
+    if (!loadedTape || inspectTapeId) return;
+    let frame = 0;
+    const scroll = () => {
+      const list = trackListScrollRef.current;
+      if (!list) return;
+      const active = list.querySelector('.tape-track.active') as HTMLElement | null;
+      if (active) {
+        list.scrollTo({ top: active.offsetTop - (list.clientHeight / 2) + (active.offsetHeight / 2), behavior: 'smooth' });
+        return;
+      }
+      if (++frame < 8) requestAnimationFrame(scroll);
+    };
+    requestAnimationFrame(scroll);
   }, [loadedTape?.infiniteIndex, loadedTape?.playlistIndex, loadedTape?.id]);
 
-  // Track narrow viewports so the tracklist panel + inspect layout can
-  // collapse to a full-width / bottom-anchored layout on phones.
-  const [isNarrow, setIsNarrow] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth <= 960
-  );
-  useEffect(() => {
-    const handler = () => setIsNarrow(window.innerWidth <= 960);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, []);
+  // isNarrow is called at line 206 (from useIsNarrow hook)
 
-  // Brief glitch-in flicker on the playback info panel each time the panel
-  // appears (i.e. each time `isPlaying` transitions from false to true).
-  const [playbackPanelGlitching, setPlaybackPanelGlitching] = useState(false);
-  const wasPlayingRef = useRef(false);
-  useEffect(() => {
-    if (isPlaying && !wasPlayingRef.current) {
-      setPlaybackPanelGlitching(true);
-      const t = setTimeout(() => setPlaybackPanelGlitching(false), 500);
-      wasPlayingRef.current = true;
-      return () => clearTimeout(t);
-    }
-    if (!isPlaying) wasPlayingRef.current = false;
-  }, [isPlaying]);
+  const playbackPanelGlitching = usePlaybackPanelGlitch(isPlaying);
+  const topBlockerBottom = useTopBlockerMeasurement();
 
   // While a pending placeholder tape is in inspect view, show the
   // search-creator overlay (#single-tape-creator) with the same glitch
@@ -322,109 +318,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   const mixtapeEditModeRef = useRef(false);
   mixtapeEditModeRef.current = mixtapeEditMode;
   useEffect(() => { setMixtapeEditMode(false); }, [inspectTapeId]);
-
-  // While callouts are showable, listen for the first pointerdown on the
-  // page and dismiss them all. Attach with a small delay so the click that
-  // opened the surface doesn't immediately dismiss them.
-  const calloutsShowable = inspectedIsPendingMixtape || (inspectedIsMixtape && mixtapeEditMode);
-  useEffect(() => {
-    if (!calloutsShowable) { setCalloutsDismissed(false); return; }
-    setCalloutsDismissed(false);
-    const onDown = () => setCalloutsDismissed(true);
-    const t = window.setTimeout(() => {
-      window.addEventListener('pointerdown', onDown, true);
-    }, 150);
-    return () => {
-      clearTimeout(t);
-      window.removeEventListener('pointerdown', onDown, true);
-    };
-  }, [calloutsShowable]);
   // Either pending-creation or existing mixtape inspect (in edit mode):
   // in-canvas name editor + caret blink use the same flow.
   const mixtapeNameEditing = inspectedIsPendingMixtape || (inspectedIsMixtape && mixtapeEditMode);
 
-  useEffect(() => {
-    if (!focusedField || !mixtapeNameEditing) {
-      setCaretBlinkOn(true);
-      return;
-    }
-    setCaretBlinkOn(true);
-    const id = setInterval(() => setCaretBlinkOn(v => !v), 500);
-    return () => clearInterval(id);
-  }, [focusedField, mixtapeNameEditing]);
 
-  // While a pending-mixtape inspect is active, swap the "// jeem-fm" title
-  // link for a back-arrow so the user can bail out of the create flow.
-  // The existing handleLogoClick handler runs exitInspect when inspecting,
-  // so the click behaviour is already correct — only the visible label
-  // needs swapping.
-  useEffect(() => {
-    const links = document.querySelectorAll<HTMLAnchorElement>('.start-title a, .title a');
-    links.forEach(a => {
-      // Cancel any in-flight type animation so rapid inspect-on/off doesn't
-      // leave the title mid-animation.
-      const prevTimer = (a as any)._jfmTypeTimer as number | undefined;
-      if (prevTimer) { clearTimeout(prevTimer); (a as any)._jfmTypeTimer = undefined; }
-
-      // First-run: split the static "// " prefix from the animated suffix
-      // ("jeem-fm" by default). The prefix lives as a plain text node; the
-      // suffix is owned by a dedicated <span> we mutate.
-      if (!a.dataset.jfmInit) {
-        const original = (a.textContent || '').trim();
-        const m = original.match(/^(\/\/\s*)(.*)$/);
-        const prefix = m ? m[1] : '// ';
-        const suffix = (m ? m[2] : original) || 'jeem-fm';
-        a.dataset.jfmSuffix = suffix;
-        a.dataset.jfmInit = '1';
-        a.textContent = '';
-        a.appendChild(document.createTextNode(prefix));
-        const span = document.createElement('span');
-        span.className = 'jfm-suffix';
-        a.appendChild(span);
-        // Seed without animation on first paint.
-        if (inspectTapeId) span.innerHTML = '<span class="jfm-back-arrow">&lt;</span>';
-        else span.textContent = suffix;
-        return;
-      }
-
-      const suffixEl = a.querySelector<HTMLSpanElement>('.jfm-suffix');
-      if (!suffixEl) return;
-      const targetSuffix = a.dataset.jfmSuffix || 'jeem-fm';
-      const arrowHtml = '<span class="jfm-back-arrow">&lt;</span>';
-      const STEP_MS = 70;
-
-      if (inspectTapeId) {
-        // Reverse type-out: peel "jeem-fm" right-to-left, then show "<".
-        if (suffixEl.innerHTML === arrowHtml) return;
-        let s = suffixEl.textContent || '';
-        const tick = () => {
-          if (s.length === 0) {
-            suffixEl.innerHTML = arrowHtml;
-            (a as any)._jfmTypeTimer = undefined;
-            return;
-          }
-          s = s.slice(0, -1);
-          suffixEl.textContent = s;
-          (a as any)._jfmTypeTimer = window.setTimeout(tick, STEP_MS);
-        };
-        tick();
-      } else {
-        // Forward type-in: clear arrow, then add "jeem-fm" left-to-right.
-        suffixEl.textContent = '';
-        let i = 0;
-        const step = () => {
-          i++;
-          suffixEl.textContent = targetSuffix.slice(0, i);
-          if (i < targetSuffix.length) {
-            (a as any)._jfmTypeTimer = window.setTimeout(step, STEP_MS);
-          } else {
-            (a as any)._jfmTypeTimer = undefined;
-          }
-        };
-        (a as any)._jfmTypeTimer = window.setTimeout(step, STEP_MS);
-      }
-    });
-  }, [inspectTapeId]);
   useEffect(() => {
     const pendingActive = inspectedIsPending && inspectUiRendered;
     const creatorEl = document.getElementById('single-tape-creator');
@@ -449,22 +347,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   }, [inspectedIsPending, inspectUiRendered, inspectUiClass, inspectUiPhase]);
 
 
-  // Fetch playlist tracks when inspecting a playlist tape (so tracklist UI shows).
-  useEffect(() => {
-    if (!inspectTapeId) return;
-    const tape = tapesRef.current.find(t => t.id === inspectTapeId);
-    if (!tape?.isPlaylist || !tape.playlistId) return;
-    if (playlistTracks && playlistTracks.name === (tape.title || 'Playlist')) return;
-    setPlaylistTracks(null);
-    fetch(`/api/playlist-tracks?list=${encodeURIComponent(tape.playlistId)}`)
-      .then(r => r.ok ? r.json() : [])
-      .then((tracks: MixtapeTrack[]) => {
-        if (tracks.length > 0) {
-          setPlaylistTracks({ name: tape.title || 'Playlist', description: '', tracks });
-        }
-      })
-      .catch(() => {});
-  }, [inspectTapeId]);
+  // usePlaylistTracks hook (replaces inline effect above)
+  const [playlistTracks, setPlaylistTracks] = usePlaylistTracks(inspectTapeId, tapes);
 
   // Hide vanilla search/mixtape/lucky UI while inspecting a tape.
   useEffect(() => {
@@ -885,45 +769,9 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
 
   // ── Parse ?t=<id> or ?tape=<encoded> on mount; init() awaits the promise. ──
   const sharedTapePromiseRef = useRef<Promise<Tape | null>>(Promise.resolve(null));
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('t');
-    const enc = params.get('tape');
-    if (!id && !enc) return;
-    params.delete('t'); params.delete('tape');
-    const newSearch = params.toString();
-    window.history.replaceState({}, '', window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash);
-    const root = document.getElementById('tapes-root') as HTMLElement | null;
-    if (root && root.style.display === 'none' && typeof (window as any).toggleTableView === 'function') {
-      (window as any).toggleTableView();
-    }
-    sharedTapePromiseRef.current = (async () => {
-      let p: SharePayload | null = null;
-      if (id) p = await fetchShareById(id);
-      if (!p && enc) p = decodeTapeShare(enc);
-      if (!p) return null;
-      return {
-        id: crypto.randomUUID?.() ?? `${Date.now()}`,
-        videoId: p.videoId,
-        playlistId: p.playlistId,
-        isPlaylist: !!p.isPlaylist,
-        isInfinite: p.isInfinite,
-        infiniteConfig: p.infiniteConfig,
-        infiniteHistory: p.infiniteHistory,
-        infiniteIndex: p.infiniteIndex,
-        title: p.title,
-        author: p.author,
-        tapeStyle: typeof p.tapeStyle === 'number' ? p.tapeStyle : Math.floor(Math.random() * TAPE_STYLES.length),
-        textureVariant: p.textureVariant ?? randomTextureVariant(),
-        progress: 0,
-        timestamp: Date.now(),
-        x: spawnX(),
-        y: spawnY(),
-        angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
-      } as Tape;
-    })();
-  }, []);
-
+  // useShareUrl hook — parses ?t= or ?tape= from URL, strips params, writes
+  // resolved tape into sharedTapePromiseRef. Replaces inline effect below.
+  useShareUrl(spawnCX(), spawnCY(), sharedTapePromiseRef);
   // ── Load mixtape on mount ──
   // Reads mixtape from sessionStorage (set by mixtape creator before navigation)
   useEffect(() => {
@@ -2334,12 +2182,20 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               padding: 0,
             }
           : {
-              top: '50%', left: 'calc(50% - 70px)', transform: 'translateY(-50%)',
-              width: 'min(56vw, 720px)', maxHeight: '70vh',
-              padding: '24px 24px 20px',
+              // Anchor below the song/title container (measured by
+              // useTopBlockerMeasurement) — not a fixed vh estimate.
+              top: topBlockerBottom ? `${topBlockerBottom + 16}px` : '22vh',
+              // Left-align with the song-name/song-author container edge.
+              // Their .padsong has padding-left: 32px inside a 6px-padded
+              // container → 38px from the screen edge.
+              left: 0, right: 0,
+              width: 'auto', maxHeight: 'calc(100vh - 60px)',
+              padding: '16px 16px 12px 38px',
+              overflow: 'hidden', scrollbarWidth: 'none' as const,
             };
         return createPortal(
           <div className={`tape-info-panel tape-panel${isNarrow ? ' tape-inspect-narrow-panel' : ' tape-inspect-wide-panel'}${!inspectTapeId ? ' tape-playback-panel' : ''}${inspectTapeId && isMixtape ? ' tape-mixtape-inspect' : ''}${panelGlitchClass ? ` ${panelGlitchClass}` : ''}`} style={{
+            ...(isNarrow ? narrowPanel : widePanel),
             pointerEvents: panelClickThrough ? 'none' : 'auto', zIndex: 200,
             opacity: dragging3D ? 0 : 1,
             transition: 'opacity 0.2s ease',

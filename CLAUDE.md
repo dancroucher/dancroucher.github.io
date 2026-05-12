@@ -18,7 +18,11 @@ public/
 src/
   tapes/    index, TapesTable, TapesTable3D, TableSurface, TapeBody, Tape3D,
             Recorder3D, Spool, CassetteTape, DeckTape3D, TapeOverlayHybrid,
-            MixtapeBuilder, coords.ts, types.ts, db.ts, textureCache.ts, share.ts
+            MixtapeBuilder, coords.ts, types.ts, db.ts, textureCache.ts, share.ts,
+            textureVariants.ts, hooks/
+  hooks/    useTopBlockerMeasurement, useIsNarrow, usePlaybackPanelGlitch,
+            useCalloutsDismissed, useCaretBlink, useLogoTypewriter,
+            useShareUrl, usePlaylistTracks
   mixtape/  index, Tape, TrackList, Playback, Creator
 api/        list-files, search, playlist-tracks, random[-playlist],
             mixtape/{save,generate,[id]}, tape-share, utils/youtube
@@ -43,11 +47,26 @@ In-scene CRT overlay on the 3D plane: chromatic RGB stripes + radial vignette on
 ## TapesTable.tsx state
 
 ```
-tapes Tape[]        loadedTape Tape|null    view 'table'|'player'
-playerTapeId        recorderSourced         showMixtapeCreator
-inspectTapeId       inspectUiPhase 'hidden'|'showing'|'visible'|'hiding'
-removingInspected   newTapeIds              respawnVersions
+Tape[]        loadedTape  playerTapeId    recorderSourced
+view 'table'|'player'    showMixtapeCreator
+inspectTapeId    inspectUiPhase 'hidden'|'showing'|'visible'|'hiding'
+removingInspected    newTapeIds    respawnVersions
+inspectUiVisible    mixtapeEditMode    mixtapeNameEditing
+mixtapeBuilderTracks    focusedField    caretBlinkOn    caretPos
+calloutsDismissed    styleChanged    playlistTracks
+infiniteLoading    currentVideoId    deckEjecting    isPlaying
 ```
+
+**Extracted hooks** — each owns a slice of previously inline state/effects:
+- `useTopBlockerMeasurement()` → `topBlockerBottom` (ResizeObserver/MutationObserver, replaces 500ms poll)
+- `useIsNarrow()` → `isNarrow` (resize listener, ≤960 breakpoint)
+- `usePlaybackPanelGlitch(isPlaying)` → `playbackPanelGlitching` (glitch-in on play start)
+- `useCalloutsDismissed(calloutsShowable)` → `[calloutsDismissed, setCalloutsDismissed]`
+- `useCaretBlink(focusedField, mixtapeNameEditing)` → `caretBlinkOn`
+- `useLogoTypewriter(inspectTapeId)` → void (swap `// jeem-fm` ↔ `// <`)
+- `useShareUrl(spawnCX, spawnCY, sharedTapePromiseRef)` → void (parse `?t=`/`?tape=`)
+- `usePlaylistTracks(inspectTapeId, tapes)` → `[playlistTracks, setPlaylistTracks]`
+- `MixtapeData` / `MixtapeTrack` types moved to `types.ts`
 
 View transition: "wipe" brightness flare (`wipeTransition(onCovered, onUncovered)` swaps at 270ms, ends at 600ms).
 
@@ -239,7 +258,7 @@ Tracklist panel anchor `top:48vh`. Narrow `left/right:16px`. Wide centred `width
 
 `tape-info-panel` opacity drops to 0 while `dragging3D` (200ms). During playback, panel waits for `isPlaying` (via `notifyPlayState`) before mounting. Inspect mount/unmount via `inspectUiPhase`.
 
-Playback panel mode (`tape-playback-panel` class): `top:18vh`; wide variant `left:16px;right:auto;transform:none`; list `max-height:68vh`. `trackListScrollRef` + useEffect (key: `infiniteIndex/playlistIndex/id`) auto-scrolls active row to centre (smooth). Ref only attaches when `!inspectTapeId`.
+Playback panel mode (`tape-playback-panel` class): anchored below song/title container via `topBlockerBottom` (ResizeObserver + MutationObserver, replaces 500ms poll). Wide layout: `left:0;right:0;width:auto;overflow:hidden;scrollbar-width:none` (left-aligned to song container edge at 38px padding). `trackListScrollRef` uses RAF retry loop (up to 8 frames) to centre the active row on open — needed because the `.active` row may not exist on the first render frame. Ref only attaches when `!inspectTapeId`.
 
 Header label: `MIXTAPE /` or `PLAYLIST /` faint uppercase + bold white tape title.
 
