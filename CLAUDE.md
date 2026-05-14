@@ -690,3 +690,35 @@ adds a `tape-loader-flicker` opacity/translateX jitter
 (`steps(12, end)` over 2.4s). `.tape-title-loader-caret` blinks at
 0.85s `steps(2, end)`. Spinner CSS classes are kept for any other
 uses.
+
+## Padinfo button layout
+
+HTML order in `.padinfo`: `#table-toggle`, `.padinfo-row` (prev/next/track-number), `#background-type`, `#background-auto`, `.padinfo-row` (fullscreen/info). `flex-wrap: wrap-reverse` so overflow items (bg buttons) wrap **above** the main row.
+
+In table view, `#background-type` and `#background-auto` are `display: none`, so the layout is: table-toggle → playlist controls → fullscreen/info. In video view, bg buttons appear after the fullscreen/info pair (DOM order) but wrap upward on narrow screens.
+
+## Mixtape track number
+
+`playVideoById` accepts optional `trackInfo: { index, total }`. When provided, shows `#track-number` element with `index + 1 / total`. All mixtape callers (`loadNextInfiniteTrack`, `loadPrevInfiniteTrack`, initial load, tracklist click) pass `trackInfo`.
+
+`player.js` `state_change` handler: when `AppState.infiniteTape`, calls `TapesBridge.getInfiniteTrackInfo()` to update the track number text (same pattern as playlists). Previously unconditionally hid track number for all infinite tapes.
+
+`TapesBridge.getInfiniteTrackInfo()` returns `{ index, total }` from `loadedRef.current.infiniteHistory` and `infiniteIndex`.
+
+`player.js` `_handlePlayingState()` (fires on play start): for mixtapes, shows track number and sets text via `getInfiniteTrackInfo()` instead of hiding.
+
+## Playback tracklist scroll
+
+`useEffect` with deps `[loadedTape?.infiniteIndex, loadedTape?.playlistIndex, loadedTape?.id, isPlaying]`. Retries up to 8 RAF frames to find `.tape-track.active` row and scroll it to centre. `isPlaying` in deps is required because `.active` class needs `interactive` which depends on `isPlaying`.
+
+## Pause → force tracklist visible
+
+On pause (state 2 in `state_change`, or `togglePlayback` pause branch): `Inactivity.reset()` + direct `classList.remove('ui-glitching-out')` on `.tape-info-panel`. Inactivity `_hide()` already gates on `AppState.playing` so it won't re-hide while paused.
+
+## Playback panel padding
+
+Narrow playback panel inline style: `padding: 16px 16px 42px 38px` (bottom 42px for track number space). Inspect narrow: `16px 16px 12px`.
+
+## Playback mode tracklist triangle
+
+`.tape-playback-panel .mixtape-track-list-frame::before { display: none }` — triangle indicator hidden in playback mode (kept in inspect/creator views).
