@@ -446,8 +446,15 @@ function doStart() {
 
     if (AppState.infiniteTape) {
         DOM.playlistPrev.style.display = "";
-        DOM.trackNumber.style.display = "none";
         DOM.playlistNext.style.display = "";
+        // Show track number for mixtapes, hide for other infinite tapes
+        const infiniteInfo = window.TapesBridge?.getInfiniteTrackInfo?.();
+        if (infiniteInfo && infiniteInfo.total > 0) {
+            DOM.trackNumber.style.display = "";
+            DOM.trackNumber.innerHTML = `${infiniteInfo.index + 1}&nbsp;/&nbsp;${infiniteInfo.total}`;
+        } else {
+            DOM.trackNumber.style.display = "none";
+        }
     } else if (AppState.singleVideo) {
         DOM.playlistPrev.style.display = "none";
         DOM.trackNumber.style.display = "none";

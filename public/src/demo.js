@@ -79,12 +79,22 @@ var Demo = (function () {
                 if (playlist) {
                     AppState.playlistIndex = this.player.get_playlist_index();
                     DOM.trackNumber.innerHTML = `${AppState.playlistIndex + 1}&nbsp;/&nbsp;${playlist.length}`;
+                } else if (AppState.infiniteTape && window.TapesBridge?.getInfiniteTrackInfo) {
+                    const info = window.TapesBridge.getInfiniteTrackInfo();
+                    if (info && info.total > 0) {
+                        DOM.trackNumber.innerHTML = `${info.index + 1}&nbsp;/&nbsp;${info.total}`;
+                    }
                 }
 
                 const state = this.player.get_player_state();
                 const nowPlaying = state === 1;
                 AppState.playing = nowPlaying;
                 if (window.TapesBridge) window.TapesBridge.notifyPlayState(nowPlaying);
+                // On pause, force UI visible so tracklist stays on
+                if (state === 2) {
+                    if (window.Inactivity) window.Inactivity.reset();
+                    document.querySelector('.tape-info-panel')?.classList.remove('ui-glitching-out');
+                }
                 if (state === 0) {
                     // Track ended. Single videos rewind/eject; infinite tapes
                     // auto-advance. Handling this on the iframe event makes
@@ -127,6 +137,9 @@ var Demo = (function () {
                 AppState.playing = false;
                 if (window.TapesBridge) window.TapesBridge.notifyPlayState(false);
                 this._saveProgress();
+                // Force UI visible so tracklist stays on during pause
+                if (window.Inactivity) window.Inactivity.reset();
+                document.querySelector('.tape-info-panel')?.classList.remove('ui-glitching-out');
             } else if (isMedia && bgVideo) {
                 // YT player not in play/pause state (e.g. start screen,
                 // unstarted, cued) — still toggle the background video so

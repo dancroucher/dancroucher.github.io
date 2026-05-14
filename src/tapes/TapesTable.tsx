@@ -104,6 +104,7 @@ declare global {
       onTrackEnded: () => void;
       loadNextInfiniteTrack: () => void;
       loadPrevInfiniteTrack: () => void;
+      getInfiniteTrackInfo: () => { index: number; total: number } | null;
     };
   }
 }
@@ -294,7 +295,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       if (++frame < 8) requestAnimationFrame(scroll);
     };
     requestAnimationFrame(scroll);
-  }, [loadedTape?.infiniteIndex, loadedTape?.playlistIndex, loadedTape?.id]);
+  }, [loadedTape?.infiniteIndex, loadedTape?.playlistIndex, loadedTape?.id, isPlaying]);
 
   // isNarrow is called at line 206 (from useIsNarrow hook)
 
@@ -659,6 +660,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       loadPrevInfiniteTrack: () => {
         loadPrevRef.current();
       },
+      getInfiniteTrackInfo: () => {
+        const tape = loadedRef.current;
+        if (!tape?.isInfinite || !tape.infiniteHistory) return null;
+        return { index: tape.infiniteIndex ?? 0, total: tape.infiniteHistory.length };
+      },
       addInfiniteTape: (config: InfiniteConfig, title: string) => {
         setTapes(prev => {
           const col = prev.length % 3;
@@ -852,7 +858,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   }, []);
 
   // ── Play a single video by ID (used for infinite tape tracks) ──
-  const playVideoById = useCallback((videoId: string, title: string, author: string, seekProgress = 0) => {
+  const playVideoById = useCallback((videoId: string, title: string, author: string, seekProgress = 0, trackInfo?: { index: number; total: number }) => {
     if (!window.myApp || !window.AppState) return;
     const AppState = window.AppState;
     AppState.starting = true;
@@ -871,16 +877,15 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     const trackEl = document.getElementById('track-number');
     if (prevEl) prevEl.style.display = '';
     if (nextEl) nextEl.style.display = '';
-    if (trackEl) trackEl.style.display = 'none';
+    if (trackInfo && trackEl) {
+      trackEl.innerHTML = `${trackInfo.index + 1}&nbsp;/&nbsp;${trackInfo.total}`;
+      trackEl.style.display = '';
+    } else if (trackEl) {
+      trackEl.style.display = 'none';
+    }
 
     window.myApp.submitVideoNameFromSaved(videoId, 0, seekProgress);
     setCurrentVideoId(videoId);
-
-    // Hide vanilla padinfo if mixtape is active
-    if (loadedRef.current?.isInfinite && loadedRef.current?.author === 'mixtape') {
-      const padinfo = document.getElementById('padinfo');
-      if (padinfo) padinfo.style.display = 'none';
-    }
 
     // Re-show UI on track change (fade back in if hidden by inactivity)
     if ((window as any).Inactivity) (window as any).Inactivity.reset();
@@ -900,7 +905,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
       const track = history[nextIdx];
       setLoadedTape(prev => prev ? { ...prev, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : prev);
       setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : t));
-      playVideoById(track.videoId, track.title, track.author);
+      const trackInfo = tape.author === 'mixtape' ? { index: nextIdx, total: history.length } : undefined;
+      playVideoById(track.videoId, track.title, track.author, 0, trackInfo);
       return;
     }
 
@@ -929,7 +935,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
     setInfiniteLoading(false);
     setLoadedTape(prev => prev ? { ...prev, infiniteHistory: updatedHistory, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : prev);
     setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, infiniteHistory: updatedHistory, infiniteIndex: nextIdx, videoId: track.videoId, progress: 0 } : t));
-    playVideoById(track.videoId, track.title, track.author);
+    const trackInfo = tape.author === 'mixtape' ? { index: nextIdx, total: updatedHistory.length } : undefined;
+    playVideoById(track.videoId, track.title, track.author, 0, trackInfo);
   }, [playVideoById]);
 
   // ── Load previous track for infinite tape ──
@@ -946,7 +953,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
 
     setLoadedTape(prev => prev ? { ...prev, infiniteIndex: prevIdx, videoId: track.videoId, progress: 0 } : prev);
     setTapes(prev => prev.map(t => t.id === tape.id ? { ...t, infiniteIndex: prevIdx, videoId: track.videoId, progress: 0 } : t));
-    playVideoById(track.videoId, track.title, track.author);
+    const trackInfo = tape.author === 'mixtape' ? { index: prevIdx, total: history.length } : undefined;
+    playVideoById(track.videoId, track.title, track.author, 0, trackInfo);
   }, [playVideoById]);
 
   const loadNextRef = useRef(loadNextInfiniteTrack);
@@ -1018,7 +1026,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         // Resume from saved position
         const track = tape.infiniteHistory[tape.infiniteIndex];
         if (track) {
-          playVideoById(track.videoId, track.title, track.author, tape.progress ?? 0);
+          const trackInfo = tape.author === 'mixtape' ? { index: tape.infiniteIndex, total: tape.infiniteHistory.length } : undefined;
+          playVideoById(track.videoId, track.title, track.author, tape.progress ?? 0, trackInfo);
           return;
         }
       }
@@ -1031,7 +1040,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         const updatedTape = { ...tape, infiniteHistory: tracks, infiniteIndex: 0, videoId: tracks[0].videoId };
         setLoadedTape(updatedTape);
         setTapes(prev => prev.map(t => t.id === tape.id ? updatedTape : t));
-        playVideoById(tracks[0].videoId, tracks[0].title, tracks[0].author);
+        const trackInfo = tape.author === 'mixtape' ? { index: 0, total: tracks.length } : undefined;
+        playVideoById(tracks[0].videoId, tracks[0].title, tracks[0].author, 0, trackInfo);
       });
       return;
     }
@@ -2126,7 +2136,8 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
             const tapeId = tape.id;
             setLoadedTape(prev => prev && prev.id === tapeId ? { ...prev, infiniteIndex: i, videoId: item.videoId, progress: 0 } : prev);
             setTapes(prev => prev.map(t => t.id === tapeId ? { ...t, infiniteIndex: i, videoId: item.videoId, progress: 0 } : t));
-            playVideoById(item.videoId, item.title, item.author);
+            const trackInfo = tape.author === 'mixtape' ? { index: i, total: tracklistItems.length } : undefined;
+            playVideoById(item.videoId, item.title, item.author, 0, trackInfo);
           } else if (hasPlaylistTracklist) {
             if (!window.myApp?.player) return;
             window.myApp.player.goto_at(i);
@@ -2169,7 +2180,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
               // Match the song-name/song-author left edge: their containers
               // have padding-left: 6px, and .padsong inside adds another 32px
               // — total 38px from the screen edge.
-              padding: '16px 16px 12px 38px',
+              padding: '16px 16px 42px 38px',
             };
         // Inspect (mixtape or playlist) matches the creator overlay's
         // geometry exactly — top:48vh, centred, min(50vw,720px), no

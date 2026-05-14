@@ -656,6 +656,11 @@ a:hover {
   right: auto;
   transform: none;
 }
+.tape-playback-panel.tape-inspect-narrow-panel .mixtape-track-list-frame::before,
+.tape-playback-panel.tape-inspect-wide-panel .mixtape-track-list-frame::before {
+  display: none;
+}
+
 .tape-playback-panel.tape-inspect-narrow-panel .mixtape-track-list-frame .mixtape-track-list,
 .tape-playback-panel.tape-inspect-wide-panel .mixtape-track-list-frame .mixtape-track-list,
 .tape-playback-panel.tape-inspect-narrow-panel .tape-panel-tracks,
@@ -1283,7 +1288,7 @@ a:hover {
     left: 0;
     right: 0;
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: wrap-reverse;
     align-items: center;
     justify-content: flex-start;
     gap: 6px;
