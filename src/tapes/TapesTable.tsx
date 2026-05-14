@@ -301,6 +301,7 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
 
   const playbackPanelGlitching = usePlaybackPanelGlitch(isPlaying);
   const topBlockerBottom = useTopBlockerMeasurement();
+  useLogoTypewriter(inspectTapeId);
 
   // While a pending placeholder tape is in inspect view, show the
   // search-creator overlay (#single-tape-creator) with the same glitch
@@ -1779,6 +1780,12 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           cameraTargetRef={cameraTargetRef}
           fadeInspectedTape={removingInspected}
           isPlayingRef={isPlayingRef}
+          // Hide the opposite-flow sticker during a pending create; hide
+          // both stickers during any non-pending inspect. The matching
+          // sticker stays visible during its own create flow.
+          hideMixtapeSticker={inspectedIsPending || (!!inspectTapeId && !inspectedIsPendingMixtape)}
+          hideSingleSticker={inspectedIsPendingMixtape || (!!inspectTapeId && !inspectedIsPending)}
+          stickersInert={dragging3D}
         />
       </Suspense>
 

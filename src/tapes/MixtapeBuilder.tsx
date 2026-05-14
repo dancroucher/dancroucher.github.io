@@ -302,30 +302,40 @@ export function MixtapeBuilder({ className, name, tracks, authorTag, onAuthorTag
     const measure = () => {
       const input = inputRef.current;
       if (!input) return;
-      const wrap = input.parentElement; // .mixtape-active-track-input-wrap
-      const list = input.closest('.mixtape-track-list') as HTMLElement | null;
-      const rect = (wrap ?? input).getBoundingClientRect();
-      const listBottom = list ? list.getBoundingClientRect().bottom : window.innerHeight;
+      // Width tracks the whole builder container (matches the single-tape
+      // search bar width); vertical anchor stays on the input itself.
+      const builder = input.closest('.mixtape-builder') as HTMLElement | null;
+      const inputRect = input.getBoundingClientRect();
+      const widthRect = (builder ?? input).getBoundingClientRect();
       // Visual viewport shrinks when the mobile soft keyboard is open;
-      // use its bottom edge as the real "floor" instead of the list /
+      // use its bottom edge as the real "floor" instead of the
       // window. Falls back to window.innerHeight on desktop.
+      // (We deliberately do NOT clamp to the track-list's bottom —
+      // the input lives inside the list, so that clamp made spaceBelow
+      // tiny and forced flip-up even with plenty of viewport room.)
       const vv = window.visualViewport;
       const viewBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
-      const effectiveBottom = Math.min(listBottom, viewBottom);
-      const spaceBelow = effectiveBottom - rect.bottom;
-      const spaceAbove = rect.top - (vv ? vv.offsetTop : 0);
-      // Force flip-up when the keyboard would obscure the dropdown
-      // (very little space below). Otherwise use the larger side.
-      const flip: 'up' | 'down' = spaceBelow < 160 ? 'up' : (spaceBelow >= spaceAbove ? 'down' : 'up');
+      const spaceBelow = viewBottom - inputRect.bottom;
+      const spaceAbove = inputRect.top - (vv ? vv.offsetTop : 0);
+      // Prefer flipping DOWN — only flip up when the dropdown wouldn't fit
+      // meaningfully below (e.g. mobile soft-keyboard open, or input sits
+      // close to the bottom of the viewport). The previous
+      // `spaceBelow >= spaceAbove` rule pushed the dropdown upward any
+      // time the input was even slightly past viewport-centre, which
+      // happened constantly with the builder anchored at top:48vh.
+      const MIN_DOWN_SPACE = 220;
+      const flip: 'up' | 'down' = spaceBelow >= MIN_DOWN_SPACE
+        ? 'down'
+        : (spaceAbove > spaceBelow ? 'up' : 'down');
       const maxHeight = Math.max(120, Math.min(
         flip === 'up' ? spaceAbove - 8 : spaceBelow - 8,
         window.innerHeight * 0.5,
       ));
       setDropdownPos({
-        left: rect.left,
-        inputTop: rect.top,
-        inputBottom: rect.bottom,
-        width: rect.width,
+        left: widthRect.left,
+        inputTop: inputRect.top,
+        inputBottom: inputRect.bottom,
+        width: widthRect.width,
         flip,
         maxHeight,
       });

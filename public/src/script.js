@@ -286,16 +286,10 @@ const Search = {
         this._dropdown.style.display = "none";
 
         // Insert directly inside the make-tape search container (so width +
-        // position track the search bar). Falls back to the legacy spot
-        // beside .start-form for safety.
+        // position track the search bar).
         const searchEl = document.getElementById("single-tape-search");
         if (searchEl) {
             searchEl.appendChild(this._dropdown);
-            return;
-        }
-        const startForm = document.querySelector(".start-form");
-        if (startForm && startForm.parentNode) {
-            startForm.parentNode.insertBefore(this._dropdown, startForm.nextSibling);
         }
     },
 
@@ -473,20 +467,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     LuckyPicks.init();
 
-    // New primary entry points: "make a single tape" / "make a mixtape".
-    const createTapeBtn = document.getElementById("create-tape-btn");
-    if (createTapeBtn) {
-        createTapeBtn.addEventListener("click", () => {
-            window.dispatchEvent(new CustomEvent('jeem-create-pending-tape'));
-        });
-    }
-    const createMixtapeBtn = document.getElementById("create-mixtape-btn");
-    if (createMixtapeBtn) {
-        createMixtapeBtn.addEventListener("click", () => {
-            window.dispatchEvent(new CustomEvent('jeem-create-pending-mixtape'));
-        });
-    }
-
     // Grey out mixtape button when search bar is empty
     const mixtapeBtn = document.getElementById("mixtape-btn");
     function updateMixtapeBtnState() {
@@ -500,7 +480,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     updateMixtapeBtnState();
 
+    // Instant (debounced) search while typing — matches the mixtape
+    // builder UX. URL inputs skip the search and stay parked until the
+    // user presses Enter (handled by the form submit above).
+    let _searchDebounce = null;
     if (input) {
+        input.addEventListener("input", () => {
+            const v = input.value.trim();
+            if (_searchDebounce) clearTimeout(_searchDebounce);
+            if (!v) {
+                Search.close();
+                return;
+            }
+            if (parseYouTubeInput(v)) {
+                // URL — don't search; user submits with Enter.
+                Search.close();
+                return;
+            }
+            _searchDebounce = setTimeout(() => {
+                Search.doSearch(v);
+            }, 250);
+        });
+
         input.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
                 Search.close();

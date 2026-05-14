@@ -282,12 +282,26 @@ Drops opaque bg (`#0a0805`→transparent) once `tableReady` (from `jeem-table-re
 
 ## Start screen
 
-`#create-tape-btn` "make a single tape" + `#create-mixtape-btn` "make a mixtape". Replace old search/lucky bar.
+No start-screen buttons — both create flows are entered via 3D table
+stickers (see "Table stickers" below). Old `#create-tape-btn` /
+`#create-mixtape-btn` / `.start-form` / `.primary-action-btn` were
+removed from `index.html`, `script.js`, and `player.css`.
 
 ### Pending single (`isPending`)
-Click → `jeem-create-pending-tape` → spawn placeholder at canvas centre + inspect-entry. Excluded from save. Standard inspect title/remove skipped (`if (tape.isPending) return null`).
+Single-sticker click → `jeem-create-pending-tape` → spawn placeholder at canvas centre + inspect-entry. Excluded from save. Standard inspect title/remove skipped (`if (tape.isPending) return null`).
 
 `#single-tape-creator` overlay: blurb + `#video-form`. Full-screen flex column `justify-content:space-between` so blurb above 3D tape, search bar below. Search dropdown appended inside `#single-tape-search` (width tracks bar).
+
+`#idEntry` has `placeholder="paste a youtube url or search…"` to match the
+mixtape builder's add-track input. `.single-tape-search` width is
+`min(620px, 86vw)` (same as `.mixtape-builder`) so both create screens
+show visually identical search bars + dropdowns. Dropdown gap to the
+input is `margin-top: 4px` (matching the portalled mixtape dropdown's
+`top: inputBottom + 4`); `max-height: 50vh`.
+
+Instant (debounced 250ms) search while typing in `#idEntry` — the input
+event feeds `Search.doSearch`; URL-shaped values skip the search and
+wait for Enter (form submit).
 
 Submission: `addTapeFromSearch` detects `isPending`, forwards to `finishPendingTape`:
 - t=0: glitch overlay out, fade placeholder.
@@ -295,7 +309,7 @@ Submission: `addTapeFromSearch` detects `isPending`, forwards to `finishPendingT
 - t=1800: reposition at canvas centre + jitter, bump `respawnVersions`, add to `newTapeIds` → fall-in from `SPAWN_HEIGHT`. Clear flag.
 
 ### Pending mixtape (`isPendingMixtape`)
-Click → `jeem-create-pending-mixtape` → `startPendingMixtape` spawns placeholder + inspect entry. Excluded from save.
+Mixtape-sticker click → `jeem-create-pending-mixtape` → `startPendingMixtape` spawns placeholder + inspect entry. Excluded from save.
 
 `mixtape-creator-overlay--callout` always-on (narrow + wide). Narrow (≤960): builder spans `left:16px;right:16px`.
 
@@ -722,3 +736,92 @@ Narrow playback panel inline style: `padding: 16px 16px 42px 38px` (bottom 42px 
 ## Playback mode tracklist triangle
 
 `.tape-playback-panel .mixtape-track-list-frame::before { display: none }` — triangle indicator hidden in playback mode (kept in inspect/creator views).
+
+## Table stickers (`TableSticker.tsx`)
+
+Two flat round PNG stickers on the wood at `y=0.03`, replacing the
+old start-screen buttons as the entry points to the create flows.
+
+- Mixtape sticker: `[-4.5, 0.03, -5.5]`, `size=5`,
+  `textureUrl="/assets/mixtape_sticker.png"`, dispatches
+  `jeem-create-pending-mixtape`.
+- Single sticker: `[1, 0.03, -4]`, `size=3`,
+  `textureUrl="/assets/single_sticker.png"`, dispatches
+  `jeem-create-pending-tape`.
+
+`TableSticker` props: `position`, `size`, `textureUrl`, `label`,
+`clickEvent`, `enabled`, `visible`. Mesh is a `planeGeometry` rotated
+`-π/2` on X, `receiveShadow`, `meshStandardMaterial` with `roughness=0.8`,
+`emissive="#ffffff"`, `emissiveIntensity=0` lerped to `0.12` on hover.
+The pointer cursor is forced to `pointer` on hover.
+
+**Premultiplied alpha** — PNGs have anti-aliased edges with white-ish
+RGB at low alpha (non-premultiplied source), which composites as a
+light halo around the disc against the dark wood. Fix:
+`tex.premultiplyAlpha = true` on the loaded texture +
+`premultipliedAlpha={true}` on the material so the blend equation
+matches the upload. Without both, the halo remains.
+
+**Hover-state cleanup** — a `useEffect([enabled, hovered])` clears the
+hover state and resets `document.body.style.cursor` when `enabled`
+flips off mid-hover (e.g. user starts dragging a tape while the
+cursor sits on a sticker). Otherwise the glow stays stuck on.
+
+### Visibility / enabled wiring (TapesTable3D)
+Props `hideMixtapeSticker`, `hideSingleSticker`, `stickersInert`
+thread down from `TapesTable`. Per-sticker:
+- `visible = !hide<Type>Sticker`
+- `enabled = !inspectTapeId && !lockCamera && !stickersInert`
+
+`TapesTable` derives:
+- `hideMixtapeSticker = inspectedIsPending || (inspectTapeId && !inspectedIsPendingMixtape)`
+- `hideSingleSticker  = inspectedIsPendingMixtape || (inspectTapeId && !inspectedIsPending)`
+- `stickersInert = dragging3D`
+
+Meaning: during each pending create flow only the opposite sticker
+hides (the matching one stays visible); during any non-pending
+inspect (mixtape/playlist/single) both hide; while dragging any tape
+both are inert (no hover/click).
+
+## Hold-to-grab pickup
+
+`onMove` only promoted to drag after a 5px movement threshold. A
+click-and-hold without movement therefore never picked up the tape
+— the release was treated as a tap (double-tap inspect path).
+
+Fix in `TapesTable3D`: a `holdToGrabTimer` (220ms) is started in
+`onDown`. On expiry it calls a shared `activateDrag()` (extracted
+from the old `onMove` inline activation) which flips `ps.active=true`,
+sets `drag.tapeId`, disables OrbitControls, fires `onDragStart`, and
+clears any stale `snap.tapeId` race.
+
+Timer is cancelled when:
+- `onMove` crosses the 5px threshold (fast moves still feel snappy).
+- `onUp` (quick clicks remain taps; timer doesn't fire after release).
+- Effect cleanup on unmount.
+
+`onDown` also seeds `lastPointerRef` with the down coords so the
+edge-pan useFrame has a valid reading if hold-to-grab activates
+before any pointermove.
+
+## MixtapeBuilder search dropdown flip
+
+The dropdown is portalled to `<body>` with `position:fixed`. Earlier
+logic clamped the floor to `.mixtape-track-list`'s bottom edge — but
+the input row lives *inside* that list, so `spaceBelow` collapsed
+to roughly the list's own remaining padding (tens of px), forcing
+flip-up even with plenty of viewport room.
+
+Fixed:
+- Floor is now just the visual viewport bottom (`visualViewport.offsetTop
+  + visualViewport.height`, falling back to `window.innerHeight`).
+- Direction defaults to **down** whenever `spaceBelow >= 220px`
+  (room for ~3–4 result rows); only flips up when below is
+  genuinely too cramped (mobile keyboard, input near viewport
+  bottom) **and** above has more room.
+
+Width/left now measure from `.mixtape-builder` (the same
+`min(620px, 86vw)` width as `.single-tape-search`) instead of the
+inner `.mixtape-active-track-input-wrap`, so both create screens
+show matching dropdown widths. Vertical anchor still measures from
+the input rect.

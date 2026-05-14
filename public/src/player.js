@@ -636,15 +636,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const onTapes = DOM.tapesRoot && DOM.tapesRoot.style.display !== "none";
             // If inspect view is open (incl. make-tape pending tape), exit it
             // instead of reloading the page.
-            if (onTapes && typeof window.isTapeInspecting === "function" && window.isTapeInspecting()) {
+            if (typeof window.isTapeInspecting === "function" && window.isTapeInspecting()) {
                 e.preventDefault();
                 window.exitTapeInspect && window.exitTapeInspect();
                 return;
             }
-            if (!onTapes && typeof window.toggleTableView === "function") {
-                e.preventDefault();
-                window.toggleTableView();
-            }
+            // In video mode, reload (don't toggle to table view)
+            // In table view, fall through to href="." which reloads
         });
     });
     if (DOM.tapesRoot && DOM.tapesRoot.style.display !== "none") {

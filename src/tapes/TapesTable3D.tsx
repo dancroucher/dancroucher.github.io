@@ -5,6 +5,7 @@ import { Physics } from '@react-three/rapier';
 import * as THREE from 'three';
 import { Tape } from './types';
 import { TableSurface } from './TableSurface';
+import { TableSticker } from './TableSticker';
 import { TapeBody } from './TapeBody';
 import { Recorder3D } from './Recorder3D';
 import { YouTubeSurface } from './YouTubeSurface';
@@ -120,10 +121,16 @@ interface TapesTable3DProps {
   // Shared YouTube-playing flag — passed through to each TapeBody to drive
   // spool spin without polling a vanilla-JS global every frame.
   isPlayingRef?: React.MutableRefObject<boolean>;
+  // While a pending-single flow is active, hide the mixtape table sticker;
+  // vice versa for the pending-mixtape flow.
+  hideMixtapeSticker?: boolean;
+  hideSingleSticker?: boolean;
+  // Suppress hover/click on table stickers (e.g. while dragging a tape).
+  stickersInert?: boolean;
 }
 
 function SceneContents({
-  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onSingleTap, editTapeId, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId, fadeInspectedTape, cameraTargetRef, isPlayingRef,
+  tapes, loadedTapeId, onDragStart, onDragEnd, onDoubleTap, onSingleTap, editTapeId, onMenuAction, menuId, onClearMenu, newTapeIds, respawnVersions, externalDrag, lockedTapeId, pickupBlockedTapeId, lockCamera, lockPan, freePan, maxDragX, onRecorderLoad, onRecorderEject, showRecorder, onSceneReady, inspectTapeId, fadeInspectedTape, cameraTargetRef, isPlayingRef, hideMixtapeSticker, hideSingleSticker, stickersInert,
 }: TapesTable3DProps) {
   const { camera, gl, scene } = useThree();
   const controlsRef = useRef<any>(null);
@@ -184,6 +191,12 @@ function SceneContents({
   // Mutable timer ref for lid-close delay — must be declared before the
   // cleanup effect so the ref is available when the effect runs on unmount.
   const lidCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Hold-to-grab timer. If the pointer is held still over a tape for this
+  // long, promote to drag even though the movement threshold hasn't been
+  // crossed — fixes the "tape doesn't pick up when the mouse is static"
+  // case.
+  const holdToGrabTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const HOLD_TO_GRAB_MS = 220;
 
   // Cleanup lid close timer on unmount
   useEffect(() => {
@@ -337,6 +350,30 @@ function SceneContents({
   useEffect(() => {
     const el = gl.domElement;
 
+    function activateDrag() {
+      const ps = pointerState.current;
+      if (ps.active || !ps.downTapeId) return;
+      if (inspectTapeId) return;
+      ps.active = true;
+      ps.offsetX = 0;
+      ps.offsetZ = 0;
+      drag.tapeId = ps.downTapeId;
+      if (controlsRef.current) controlsRef.current.enabled = false;
+      onDragStart(ps.downTapeId);
+
+      // Race guard: if a fast drop-and-grab happens within one animation
+      // frame, no useFrame observes snap.tapeId = X before it's picked up
+      // again, so the eject-transition detector never fires and the track
+      // plays on with no tape in the recorder. Clear the slot and fire
+      // eject synchronously here; set prev to null so the useFrame won't
+      // re-fire on the next tick.
+      if (snap.tapeId === ps.downTapeId) {
+        snap.tapeId = null;
+        prevSnapTapeId.current = null;
+        onRecorderEjectRef.current?.();
+      }
+    }
+
     function onDown(ev: PointerEvent) {
       const tapeId = raycastTape(ev.clientX, ev.clientY);
       if (!tapeId) {
@@ -356,6 +393,17 @@ function SceneContents({
         drag.targetX = tapePos.x;
         drag.targetZ = tapePos.z;
       }
+      // Seed lastPointer so the edge-pan useFrame has a reading even if the
+      // hold-to-grab path fires before the first pointermove.
+      lastPointerRef.current = { x: ev.clientX, y: ev.clientY };
+
+      // Hold-to-grab: if the pointer stays put long enough, promote to drag
+      // without requiring a movement threshold. Cancelled on move / up.
+      if (holdToGrabTimer.current) clearTimeout(holdToGrabTimer.current);
+      holdToGrabTimer.current = setTimeout(() => {
+        holdToGrabTimer.current = null;
+        activateDrag();
+      }, HOLD_TO_GRAB_MS);
     }
 
     function onMove(ev: PointerEvent) {
@@ -377,26 +425,12 @@ function SceneContents({
         const dy = ev.clientY - ps.startY;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 5) return;
-
-        // Start drag — tape centre snaps to pointer (zero offset).
-        ps.active = true;
-        ps.offsetX = 0;
-        ps.offsetZ = 0;
-        drag.tapeId = ps.downTapeId;
-        if (controlsRef.current) controlsRef.current.enabled = false;
-        onDragStart(ps.downTapeId);
-
-        // Race guard: if a fast drop-and-grab happens within one animation
-        // frame, no useFrame observes snap.tapeId = X before it's picked up
-        // again, so the eject-transition detector never fires and the track
-        // plays on with no tape in the recorder. Clear the slot and fire
-        // eject synchronously here; set prev to null so the useFrame won't
-        // re-fire on the next tick.
-        if (snap.tapeId === ps.downTapeId) {
-          snap.tapeId = null;
-          prevSnapTapeId.current = null;
-          onRecorderEjectRef.current?.();
+        // Movement threshold crossed — cancel the hold timer and start drag.
+        if (holdToGrabTimer.current) {
+          clearTimeout(holdToGrabTimer.current);
+          holdToGrabTimer.current = null;
         }
+        activateDrag();
       }
 
       // Update target — tape follows pointer with offset, clamped to bounds
@@ -409,6 +443,10 @@ function SceneContents({
     }
 
     function onUp(ev: PointerEvent) {
+      if (holdToGrabTimer.current) {
+        clearTimeout(holdToGrabTimer.current);
+        holdToGrabTimer.current = null;
+      }
       const ps = pointerState.current;
       const tapeId = ps.downTapeId;
       const wasDragging = ps.active;
@@ -508,6 +546,10 @@ function SceneContents({
       el.removeEventListener('pointerdown', onDown);
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
+      if (holdToGrabTimer.current) {
+        clearTimeout(holdToGrabTimer.current);
+        holdToGrabTimer.current = null;
+      }
     };
   }, [gl, drag, snap, raycastTape, raycastToPlane, getTapeWorldPos, isDeckDrop, isOverRecorder, onDragStart, onDragEnd, onDoubleTap, onSingleTap, editTapeId, onClearMenu, lockedTapeId, pickupBlockedTapeId, maxDragX, onRecorderLoad, showRecorder, inspectTapeId, tapes]);
 
@@ -838,6 +880,9 @@ function SceneContents({
       <Suspense fallback={null}>
         <Physics gravity={[0, -400, 0]} timeStep={1 / 60}>
           <TableSurface />
+          {/* Sticker on the table surface — near top-left, under tapes */}
+          <TableSticker position={[-4.5, 0.03, -5.5]} size={5} textureUrl="/assets/mixtape_sticker.png" clickEvent="jeem-create-pending-mixtape" enabled={!inspectTapeId && !lockCamera && !stickersInert} visible={!hideMixtapeSticker} />
+          <TableSticker position={[1, 0.03, -4]} size={3} textureUrl="/assets/single_sticker.png" clickEvent="jeem-create-pending-tape" enabled={!inspectTapeId && !lockCamera && !stickersInert} visible={!hideSingleSticker} />
           {/* Recorder — lower-left, partially running off the table edge */}
           <group visible={sceneReady}>
             {/* Always mounted so it can fade out via `hidden` when entering

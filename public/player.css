@@ -731,41 +731,6 @@ a:hover {
   text-decoration: none;
 }
 
-.start-form {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  gap: 8px;
-  padding: 8px 8px 0 0;
-  position: relative;
-  width: 100%;
-}
-
-/* Two top-level action buttons that replace the old search/lucky bar. */
-.primary-action-btn {
-  flex: 1;
-  min-width: 160px;
-  padding: 12px 18px;
-  background: rgba(0, 0, 0, 0.55);
-  color: rgba(250, 249, 246, 0.95);
-  border: 1px solid rgba(250, 249, 246, 0.25);
-  font-family: '04b03', monospace;
-  font-size: 14px;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-.primary-action-btn:hover {
-  background: rgba(0, 0, 0, 0.75);
-  border-color: rgba(250, 249, 246, 0.5);
-}
-.primary-action-btn--disabled,
-.primary-action-btn[disabled] {
-  opacity: 0.35;
-  pointer-events: none;
-  cursor: not-allowed;
-}
-
 /* Make-tape overlay — full-screen flex column. Blurb anchors near the top
    so it sits above the centred 3D tape; the search bar (and its dropdown)
    anchor near the bottom so they sit below the tape. Pointer events pass
@@ -1188,7 +1153,9 @@ a:hover {
   margin-top: 4vh;
 }
 .single-tape-search {
-  width: min(540px, 80vw);
+  /* Match the mixtape builder's track-input width so both create
+     screens use a visually identical search bar + dropdown. */
+  width: min(620px, 86vw);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1200,13 +1167,17 @@ a:hover {
   max-width: none;
   margin: 0;
 }
-/* Search dropdown sits directly under the search bar, matching its width. */
+/* Search dropdown sits directly under the search bar, matching the
+   mixtape builder's portalled dropdown (no left margin, sits flush with
+   the input bottom). */
 .single-tape-search .search-dropdown {
   width: 100%;
   max-width: none;
   box-sizing: border-box;
   margin-left: 0;
+  margin-top: 4px;
   margin-bottom: 0;
+  max-height: 50vh;
 }
 
 .search-source-toggle {
