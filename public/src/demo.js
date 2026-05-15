@@ -305,16 +305,15 @@ var Demo = (function () {
                         AppState.songTitle = data.title || "";
                         AppState.songAuthor = data.author_name || "";
                         History.add(id, data.title || "", data.author_name || "", isPlaylist ? "playlist" : "single", trackIndex);
-                        // Create a tape if loaded from URL
-                        if (window.TapesBridge) {
-                            window.TapesBridge.addTapeFromSearch(
-                                isPlaylist ? "" : id,
-                                data.title || "",
-                                data.author_name || "",
-                                isPlaylist,
-                                isPlaylist ? id : undefined
-                            );
-                        }
+                        // NOTE: do NOT call TapesBridge.addTapeFromSearch here.
+                        // submitVideoNameFromSaved fires for EVERY track played
+                        // via the recorder (incl. each mixtape / playlist /
+                        // infinite track), and adding a tape per track would
+                        // spawn a duplicate single-track tape every time a
+                        // mixtape advanced — visible after visiting a share URL
+                        // and pressing play. The legitimate URL-load tape
+                        // creation is already handled by script.js
+                        // checkAndLoadFromURL.
                     }
                 })
                 .catch(() => {});
