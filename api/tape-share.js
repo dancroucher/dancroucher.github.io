@@ -3,9 +3,9 @@ import { putShare } from './utils/share-store.js';
 const VALID_PAYLOAD_KEYS = new Set(['i', 't', 'a', 'p', 'pl', 'n', 'c', 'h', 'x', 's', 'v']);
 const MAX_HISTORY_LEN = 2000;
 
-function validateWirePayload(body: unknown): { ok: true; payload: Record<string, unknown> } | { ok: false; reason: string } {
+function validateWirePayload(body) {
   if (!body || typeof body !== 'object') return { ok: false, reason: 'not an object' };
-  const o = body as Record<string, unknown>;
+  const o = body;
   if (typeof o.t !== 'string') return { ok: false, reason: 'missing t (title)' };
   if (o.t.length > 500) return { ok: false, reason: 'title too long' };
   for (const k of Object.keys(o)) {
@@ -22,7 +22,12 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'method not allowed' });
   }
-  const validated = validateWirePayload(req.body);
+  // Client wraps the wire payload as `{ payload: wire }`; accept either
+  // shape so older callers (or direct curl tests) still work.
+  const body = req.body && typeof req.body === 'object' && 'payload' in req.body
+    ? req.body.payload
+    : req.body;
+  const validated = validateWirePayload(body);
   if (!validated.ok) {
     return res.status(400).json({ error: 'invalid payload: ' + validated.reason });
   }

@@ -261,6 +261,22 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
   // Set when the user clicks remove on the inspected tape — fades it away
   // before the exit-inspect sequence runs. Cleared once removal completes.
   const [removingInspected, setRemovingInspected] = useState(false);
+  // Two-stage remove: first click arms (button label → "confirm?"); second
+  // click within `REMOVE_CONFIRM_MS` actually deletes. Auto-disarms on a
+  // timer so a stale armed state doesn't surprise the user later.
+  const [removeArmed, setRemoveArmed] = useState(false);
+  const removeArmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Auto-clear armed state whenever the inspect target changes.
+  useEffect(() => {
+    setRemoveArmed(false);
+    if (removeArmTimerRef.current) {
+      clearTimeout(removeArmTimerRef.current);
+      removeArmTimerRef.current = null;
+    }
+  }, [inspectTapeId]);
+  useEffect(() => () => {
+    if (removeArmTimerRef.current) clearTimeout(removeArmTimerRef.current);
+  }, []);
   const [editingTitle, setEditingTitle] = useState(false);
   const [mixtapeBuilderTracks, setMixtapeBuilderTracks] = useState<MixtapeBuilderTrack[]>([]);
   // Caret rendered in-canvas on the cassette label while editing the
@@ -1853,44 +1869,72 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         // Title vertical position. Narrow (single + tracklist) matches the
         // desktop pattern with the title above the cassette.
         const titleTop = isWideMixtape ? '14vh' : (isNarrow ? '13vh' : '12vh');
-        // Buttons row position. Narrow (single + tracklist) uses the same
-        // free-floating row at 75vh as desktop, content-sized + nowrap.
+        // Buttons row position. Free-floating at 94vh, content-sized so the
+        // clickable bounding box matches the visible buttons exactly
+        // (prevents stray clicks beside the buttons from registering on a
+        // wider wrapper).
         const buttonsRowStyle: React.CSSProperties = {
-          ...colStyle, width: 'auto', top: '94vh', gap: 12, justifyContent: 'center', flexWrap: 'nowrap',
+          position: 'fixed', left: '50%', transform: 'translateX(-50%)',
+          top: '94vh', zIndex: 99996, pointerEvents: 'auto',
+          display: 'flex', flexDirection: 'row', alignItems: 'center',
+          justifyContent: 'center', gap: 12, flexWrap: 'nowrap', width: 'auto',
         };
-        // Shared button classes
         const btnClass = 'tape-btn';
+        // Remove button is two-stage: first click arms ("confirm?"), second
+        // click commits. Auto-disarm after 3s so a stale armed state doesn't
+        // surprise the user later.
+        const handleRemoveClick = () => {
+          const target = inspectTapeId;
+          if (!target) return;
+          if (removeArmed) {
+            if (removeArmTimerRef.current) {
+              clearTimeout(removeArmTimerRef.current);
+              removeArmTimerRef.current = null;
+            }
+            setRemoveArmed(false);
+            setRemovingInspected(true);
+            setTimeout(() => {
+              deleteTape(target);
+              exitInspect();
+            }, 600);
+            return;
+          }
+          setRemoveArmed(true);
+          if (removeArmTimerRef.current) clearTimeout(removeArmTimerRef.current);
+          removeArmTimerRef.current = setTimeout(() => {
+            setRemoveArmed(false);
+            removeArmTimerRef.current = null;
+          }, 3000);
+        };
         return (
           <div className={inspectUiClass}>
             {!tape.isPendingMixtape && (
+              // Inspect buttons — ordered share → edit → remove on mixtape
+              // inspect (remove placed last to avoid misclicks). In edit
+              // mode only the confirm button shows.
               <div style={buttonsRowStyle}>
-                {!(inspectedIsMixtape && mixtapeEditMode) && (
-                  <>
-                    <ShareButton tape={tape} narrow={isNarrow} />
-
-                    <button
-                      className={btnClass}
-                      onClick={() => {
-                        const target = inspectTapeId;
-                        if (!target) return;
-                        setRemovingInspected(true);
-                        setTimeout(() => {
-                          deleteTape(target);
-                          exitInspect();
-                        }, 600);
-                      }}
-                    ><i className="fas fa-trash" />&nbsp;remove</button>
-                  </>
-                )}
-                {inspectedIsMixtape && (
+                {inspectedIsMixtape && mixtapeEditMode ? (
                   <button
                     className={btnClass}
-                    onClick={() => setMixtapeEditMode(v => !v)}
-                  >
-                    {mixtapeEditMode
-                      ? <><i className="fas fa-check" />&nbsp;confirm</>
-                      : <><i className="fas fa-pen" />&nbsp;edit</>}
-                  </button>
+                    onClick={() => setMixtapeEditMode(false)}
+                  ><i className="fas fa-check" />&nbsp;confirm</button>
+                ) : (
+                  <>
+                    <ShareButton tape={tape} narrow={isNarrow} />
+                    {inspectedIsMixtape && (
+                      <button
+                        className={btnClass}
+                        onClick={() => setMixtapeEditMode(true)}
+                      ><i className="fas fa-pen" />&nbsp;edit</button>
+                    )}
+                    <button
+                      className={`${btnClass}${removeArmed ? ' tape-btn-armed' : ''}`}
+                      onClick={handleRemoveClick}
+                    >
+                      <i className={`fas ${removeArmed ? 'fa-triangle-exclamation' : 'fa-trash'}`} />
+                      &nbsp;{removeArmed ? 'confirm?' : 'remove'}
+                    </button>
+                  </>
                 )}
               </div>
             )}
@@ -2196,7 +2240,14 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
         const widePanel: React.CSSProperties = inspectTapeId && (isMixtape || isPlaylistTape)
           ? {
               top: '48vh', left: '50%', transform: 'translateX(-50%)',
-              width: 'min(50vw, 720px)', bottom: 60,
+              width: 'min(50vw, 720px)',
+              // The panel is portalled to <body> and the inspect buttons
+              // row lives inside #tapes-root (z-index: 3 stacking context),
+              // so the panel's z-index: 200 sits above the buttons globally.
+              // Pull the bottom edge up above the buttons row (top: 94vh)
+              // so panel doesn't absorb clicks on the top half of the
+              // buttons. 8vh leaves clearance for a ~34px tall row.
+              bottom: '8vh',
               padding: 0,
             }
           : {

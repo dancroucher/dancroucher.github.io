@@ -151,6 +151,17 @@ a:hover {
   flex-shrink: 0;
 }
 
+/* Armed-to-confirm state on destructive actions (e.g. inspect-mode
+   remove button after the first click). Red text + faint red glow to
+   signal that the next click will commit. */
+.tape-btn.tape-btn-armed {
+  color: #ff6b6b;
+  text-shadow: 0 0 6px rgba(255, 107, 107, 0.55);
+}
+.tape-btn.tape-btn-armed:hover {
+  background: rgba(255, 107, 107, 0.12);
+}
+
 /* ── Tracklist panel ── */
 
 .tape-panel {
