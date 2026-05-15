@@ -510,35 +510,11 @@ export function TapesTable({ mixtape }: { mixtape?: MixtapeData }) {
           }
         } catch {}
 
-        // Also try the even older userVideoHistory format
-        if (loaded.length === 0) {
-          try {
-            const oldHistory = JSON.parse(localStorage.getItem('userVideoHistory') || '[]');
-            if (Array.isArray(oldHistory) && oldHistory.length > 0) {
-              loaded = oldHistory.map((v: any, i: number) => {
-                const isPlaylist = v.type !== 'single';
-                const col = i % 4;
-                const row = Math.floor(i / 4);
-                return {
-                  id: crypto.randomUUID?.() ?? `${Date.now()}-${i}`,
-                  videoId: isPlaylist ? '' : v.id,
-                  playlistId: isPlaylist ? v.id : undefined,
-                  isPlaylist,
-                  title: v.name || 'Untitled',
-                  author: v.author || '',
-                  tapeStyle: Math.floor(Math.random() * TAPE_STYLES.length),
-                  textureVariant: nextTextureVariant(),
-                  progress: v.progress || 0,
-                  playlistIndex: v.track || 0,
-                  timestamp: v.timestamp || Date.now(),
-                  x: 30 + col * 260 + Math.round((Math.random() - 0.5) * 40),
-                  y: HEADER_BLOCK_H + row * 170 + Math.round((Math.random() - 0.5) * 30),
-                  angle: Math.round((Math.random() * 40 - 20) * 10) / 10,
-                } as Tape;
-              });
-            }
-          } catch {}
-        }
+        // (Legacy `userVideoHistory` localStorage migration removed —
+        //  it kept synthesising tapes for any track played in any previous
+        //  session, including all individual tracks of a shared mixtape,
+        //  so visiting a share URL would spawn the mixtape + a tape per
+        //  played track. Migration from `jeem_tapes` above is preserved.)
 
         if (loaded.length > 0) {
           await saveTapes(loaded);
